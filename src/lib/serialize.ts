@@ -36,9 +36,23 @@ export function serializeTask<T extends TaskLike>(task: T) {
 
 interface WishlistItemLike {
   estimatedCostRon: Decimal | number | null
+  targetPriceRon?: Decimal | number | null
   [key: string]: unknown
 }
 
 export function serializeWishlistItem<T extends WishlistItemLike>(item: T) {
-  return { ...item, estimatedCostRon: toNumberOrNull(item.estimatedCostRon) }
+  return {
+    ...item,
+    estimatedCostRon: toNumberOrNull(item.estimatedCostRon),
+    targetPriceRon: toNumberOrNull(item.targetPriceRon ?? null),
+  }
+}
+
+interface WishlistPriceEntryLike {
+  priceRon: Decimal | number
+  [key: string]: unknown
+}
+
+export function serializeWishlistPriceEntry<T extends WishlistPriceEntryLike>(entry: T) {
+  return { ...entry, priceRon: toNumberOrNull(entry.priceRon) as number }
 }

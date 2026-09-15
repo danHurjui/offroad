@@ -87,6 +87,19 @@ export function paymentFailedEmailHtml(billingUrl: string): string {
   `
 }
 
+export function priceAlertEmailHtml(input: {
+  itemName: string
+  priceRon: number
+  targetPriceRon: number
+  vehicleUrl: string
+}): string {
+  return `
+    <p>You found <strong>${input.itemName}</strong> at <strong>${input.priceRon.toLocaleString('ro-RO')} RON</strong>,
+    at or below your target of ${input.targetPriceRon.toLocaleString('ro-RO')} RON.</p>
+    <p><a href="${input.vehicleUrl}">View it in RigLog</a></p>
+  `
+}
+
 export function followedProjectUpdateEmailHtml(input: { vehicleName: string; message: string; vehicleUrl: string }): string {
   return `
     <p><strong>${input.vehicleName}</strong>, a project you follow on RigLog, just ${input.message}.</p>

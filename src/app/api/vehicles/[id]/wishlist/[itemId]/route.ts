@@ -61,6 +61,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.supplierUrl !== undefined) data.supplierUrl = body.supplierUrl || null
     if (body.notes !== undefined) data.notes = body.notes || null
     if (body.hardToFind !== undefined) data.hardToFind = Boolean(body.hardToFind)
+    // RL-026: changing the target price re-arms the alert (same
+    // rearm-on-change idempotency pattern as Document.expiryDate).
+    if (body.targetPriceRon !== undefined) {
+      data.targetPriceRon = body.targetPriceRon != null ? Number(body.targetPriceRon) : null
+      data.priceAlertSentAt = null
+    }
 
     const updated = await prisma.wishlistItem.update({ where: { id: item.id }, data })
     return NextResponse.json(serializeWishlistItem(updated))

@@ -405,12 +405,40 @@ model WishlistItem {
   /// Supplier / source notes (RL-012) — free text, separate from supplierUrl.
   notes            String?
   hardToFind       Boolean  @default(false)
+  /// RL-026 (Phase 4) — Pro-only price alert target. Automated daily
+  /// scraping of supplierUrl was NOT built (legally grey per the ticket's
+  /// own note, and this app has no scraping infra); instead the owner
+  /// manually logs prices they've found via WishlistPriceEntry below, and
+  /// a notification fires the first time a logged price is <= target.
+  targetPriceRon   Decimal? @db.Decimal(10, 2)
+  /// Set the first time a logged price triggers the alert; reset to null
+  /// whenever targetPriceRon itself changes, so lowering/raising the
+  /// target re-arms the alert (same idempotency pattern as
+  /// Document.reminderNSentAt).
+  priceAlertSentAt DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle              @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  priceHistory WishlistPriceEntry[]
 
   @@index([vehicleId])
+}
+
+/// RL-026 (Phase 4) — a manually-logged "I found it at this price" entry,
+/// the simpler alternative the ticket's own note recommends over
+/// automated scraping. Powers the price-history chart on the wishlist
+/// item detail page.
+model WishlistPriceEntry {
+  id             String   @id @default(cuid())
+  wishlistItemId String
+  priceRon       Decimal  @db.Decimal(10, 2)
+  note           String?
+  recordedAt     DateTime @default(now())
+
+  wishlistItem WishlistItem @relation(fields: [wishlistItemId], references: [id], onDelete: Cascade)
+
+  @@index([wishlistItemId])
 }
 
 /// Off-road only — RL-027 (Phase 4). Schema-ready; not built.

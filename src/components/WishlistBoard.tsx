@@ -189,6 +189,9 @@ export default function WishlistBoard({
                     {convertLabel}
                   </button>
                 )}
+                <Link href={`/dashboard/vehicles/${vehicleId}/wishlist/${item.id}`} className="btn-secondary">
+                  Price alert
+                </Link>
                 <Link href={`/dashboard/vehicles/${vehicleId}/wishlist/${item.id}/edit`} className="btn-secondary">
                   Edit
                 </Link>
