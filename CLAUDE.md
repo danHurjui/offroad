@@ -32,9 +32,9 @@ ask the project owner for copies if you need the originals):
   feature spec, monetization. Written against a Supabase stack; treat its
   tech sections (5.1–5.3) as superseded by this file.
 - **RigLog_Feature_Tickets_v3.docx** — RL-001…RL-033 ticket backlog with
-  acceptance criteria, phased 1–4. Phase 1 (RL-001–010, RL-029) and all of
-  Phase 2 (RL-011–017, RL-030–033) are implemented. Phase 3–4 is
-  schema-ready but not built — see "What's not built yet" below.
+  acceptance criteria, phased 1–4. Phase 1 (RL-001–010, RL-029), Phase 2
+  (RL-011–017, RL-030–033), and Phase 3 (RL-018–024) are implemented.
+  Phase 4 is schema-ready but not built — see "What's not built yet" below.
 
 ## Commands
 
@@ -205,7 +205,7 @@ Phase 2 is fully implemented:
   `/api/webhooks/stripe`, `/dashboard/upgrade`) — Monthly/Annual/Lifetime,
   webhook is the only writer of `User.isPro`
 
-Phase 3 is in progress:
+Phase 3 is fully implemented:
 - RL-018 public project profile (`/builds/[username]/[slug]`,
   `src/lib/username.ts`, `src/lib/vehicleSlug.ts`) — read-only, no
   session, indexed (`src/app/robots.ts`/`sitemap.ts`); the vehicle owner's
@@ -224,10 +224,14 @@ Phase 3 is in progress:
   Web Push needs `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/
   `NEXT_PUBLIC_VAPID_PUBLIC_KEY` set (DEPLOY.md "Configure Web Push") or
   it silently no-ops per subscriber
+- RL-024 parts request crowdsourcing (`PartsRequest`/`PartsRequestComment`
+  models, `/community/parts-wanted`) — posting is Pro-gated, replying
+  isn't. The ticket's "or a direct message" isn't built — this repo has
+  no messaging/inbox system to hang that on; only the comment-thread half
+  ships
 
 Not built — schema exists, routes/UI don't (see ticket IDs for acceptance
 criteria when picking these up):
-- RL-024 Parts request (needs new schema)
 - RL-025–028 (Phase 4): native app, price alerts, trail GPS log, VIN decoder
 
 ## Pitfalls

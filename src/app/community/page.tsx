@@ -103,8 +103,15 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
   return (
     <div className="min-h-screen bg-surface-muted">
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="mb-1 text-2xl font-bold text-ink">Community builds</h1>
-        <p className="mb-4 text-sm text-ink-muted">Public off-road builds and restoration projects on RigLog.</p>
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <h1 className="mb-1 text-2xl font-bold text-ink">Community builds</h1>
+            <p className="text-sm text-ink-muted">Public off-road builds and restoration projects on RigLog.</p>
+          </div>
+          <Link href="/community/parts-wanted" className="btn-secondary shrink-0">
+            Parts wanted
+          </Link>
+        </div>
 
         {session && (
           <div className="mb-4 flex gap-2 text-sm">

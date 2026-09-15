@@ -114,14 +114,16 @@ model User {
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
 
-  oauthAccounts       OAuthAccount[]
-  passwordResetTokens PasswordResetToken[]
-  vehicles            Vehicle[]
-  tasksAdded          Task[]                @relation("TaskAddedBy")
-  invitesSent         ProjectCollaborator[] @relation("InvitedBy")
-  collaboratorOn      ProjectCollaborator[] @relation("CollaboratorUser")
-  following           Follow[]              @relation("Follower")
-  pushSubscriptions   PushSubscription[]
+  oauthAccounts        OAuthAccount[]
+  passwordResetTokens  PasswordResetToken[]
+  vehicles             Vehicle[]
+  tasksAdded           Task[]                @relation("TaskAddedBy")
+  invitesSent          ProjectCollaborator[] @relation("InvitedBy")
+  collaboratorOn       ProjectCollaborator[] @relation("CollaboratorUser")
+  following            Follow[]              @relation("Follower")
+  pushSubscriptions    PushSubscription[]
+  partsRequests        PartsRequest[]
+  partsRequestComments PartsRequestComment[]
 }
 
 /// RL-023: a user following a public project. Notifications (email/push,
@@ -157,6 +159,52 @@ model PushSubscription {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+enum PartsRequestStatus {
+  OPEN
+  FOUND
+}
+
+/// RL-024: community parts crowdsourcing, Pro only (src/app/api/parts-requests/route.ts).
+/// vehicleMake/vehicleModel are free text, not a relation to Vehicle — a
+/// request is often about a car the requester hasn't (yet, or ever)
+/// logged in RigLog. "Respond with a comment" (PartsRequestComment) is
+/// implemented; "or a direct message" from the ticket is not — this repo
+/// has no messaging/inbox system to hang that on, and building one was
+/// out of scope here. See CLAUDE.md.
+model PartsRequest {
+  id                String             @id @default(cuid())
+  userId            String
+  vehicleMake       String
+  vehicleModel      String
+  partName          String
+  partNumber        String?
+  conditionAccepted String
+  location          String
+  description       String?
+  status            PartsRequestStatus @default(OPEN)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments PartsRequestComment[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model PartsRequestComment {
+  id             String   @id @default(cuid())
+  partsRequestId String
+  userId         String
+  body           String
+  createdAt      DateTime @default(now())
+
+  partsRequest PartsRequest @relation(fields: [partsRequestId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([partsRequestId])
 }
 
 /// Links a Google-OAuth identity to a User, found-or-created by email at
