@@ -12,6 +12,9 @@ export default function Nav({ displayName }: { displayName: string }) {
           RigLog
         </Link>
         <div className="flex items-center gap-3 text-sm">
+          <Link href="/community" className="text-ink-muted hover:text-ink">
+            Community
+          </Link>
           <Link href="/dashboard/settings" className="text-ink-muted hover:text-ink">
             {displayName}
           </Link>

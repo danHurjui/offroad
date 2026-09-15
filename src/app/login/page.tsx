@@ -76,6 +76,11 @@ export default function LoginPage() {
             Create account
           </Link>
         </div>
+        <div className="mt-3 text-center text-sm">
+          <Link href="/community" className="text-ink-muted hover:underline">
+            Browse community builds →
+          </Link>
+        </div>
       </div>
     </div>
   )
