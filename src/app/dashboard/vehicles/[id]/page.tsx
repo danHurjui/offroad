@@ -18,13 +18,32 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
   const completeStatus = config.completeStatus
 
-  const [tasks, foundState, documents] = await Promise.all([
-    prisma.task.findMany({ where: { vehicleId: vehicle.id }, orderBy: { updatedAt: 'desc' } }),
+  const [tasks, foundState, documents, collaborators] = await Promise.all([
+    prisma.task.findMany({
+      where: { vehicleId: vehicle.id },
+      orderBy: { updatedAt: 'desc' },
+      include: { addedBy: { select: { displayName: true } } },
+    }),
     vehicle.projectType === 'RESTORATION'
       ? prisma.foundState.findUnique({ where: { vehicleId: vehicle.id } })
       : Promise.resolve(null),
     prisma.document.findMany({ where: { vehicleId: vehicle.id }, select: { expiryDate: true } }),
+    prisma.projectCollaborator.findMany({
+      where: { vehicleId: vehicle.id },
+      select: { collaboratorUserId: true, status: true },
+    }),
   ])
+  // RL-032: "removed collaborator" tag — a task can outlive the
+  // collaborator who logged it once the owner revokes their access. A
+  // user with any ACTIVE row (re-invited after removal) is not tagged.
+  const activeCollaboratorUserIds = new Set(
+    collaborators.filter((c) => c.status === 'ACTIVE' && c.collaboratorUserId).map((c) => c.collaboratorUserId)
+  )
+  const removedCollaboratorUserIds = new Set(
+    collaborators
+      .filter((c) => c.status === 'REMOVED' && c.collaboratorUserId && !activeCollaboratorUserIds.has(c.collaboratorUserId))
+      .map((c) => c.collaboratorUserId)
+  )
 
   const documentsNeedingAttention = documents.filter(
     (d) => getDocumentStatus(d.expiryDate).status !== 'valid'
@@ -73,20 +92,34 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           <Link href={`/dashboard/vehicles/${vehicle.id}/photos`} className="btn-secondary">
             Photos
           </Link>
-          <Link href={`/dashboard/vehicles/${vehicle.id}/wishlist`} className="btn-secondary">
-            {config.wishlistLabel}
-          </Link>
-          <Link href={`/dashboard/vehicles/${vehicle.id}/documents`} className="btn-secondary relative">
-            Documents
-            {documentsNeedingAttention > 0 && (
-              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">
-                {documentsNeedingAttention}
-              </span>
-            )}
-          </Link>
+          {isOwner && (
+            <Link href={`/dashboard/vehicles/${vehicle.id}/wishlist`} className="btn-secondary">
+              {config.wishlistLabel}
+            </Link>
+          )}
+          {isOwner && (
+            <Link href={`/dashboard/vehicles/${vehicle.id}/documents`} className="btn-secondary relative">
+              Documents
+              {documentsNeedingAttention > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">
+                  {documentsNeedingAttention}
+                </span>
+              )}
+            </Link>
+          )}
+          {(!vehicle.hideCostsFromCollaborators || isOwner) && (
+            <Link href={`/dashboard/vehicles/${vehicle.id}/analytics`} className="btn-secondary">
+              Analytics
+            </Link>
+          )}
           {vehicle.projectType === 'RESTORATION' && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/found-state`} className="btn-secondary">
               Found state
+            </Link>
+          )}
+          {isOwner && (
+            <Link href={`/dashboard/vehicles/${vehicle.id}/collaborators`} className="btn-secondary">
+              Collaborators
             </Link>
           )}
           {isOwner && (
@@ -99,6 +132,13 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           </Link>
         </div>
       </div>
+
+      {!isOwner && (
+        <div className="card mb-6 border-surface-border bg-surface-subtle p-4 text-sm text-ink-muted">
+          You&apos;re a collaborator on this build — you can log tasks and photos, but wishlist, documents, and
+          vehicle settings stay with the owner.
+        </div>
+      )}
 
       {vehicle.coverPhotoUrl && (
         <div className="card mb-6 overflow-hidden">
@@ -138,7 +178,14 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       </div>
 
       <div className="mb-6 grid grid-cols-3 gap-3">
-        <StatCard label="Total spent" value={`${totalSpent.toLocaleString('ro-RO')} RON`} />
+        <StatCard
+          label="Total spent"
+          value={
+            !isOwner && vehicle.hideCostsFromCollaborators
+              ? 'Hidden'
+              : `${totalSpent.toLocaleString('ro-RO')} RON`
+          }
+        />
         <StatCard label="Completed" value={String(completedCount)} />
         <StatCard label="Planned" value={String(plannedCount)} />
       </div>
@@ -166,6 +213,12 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
                   >
                     <div className="flex items-center gap-2">
                       {task.workType === 'WORKSHOP' && <span title="Workshop task">🔧</span>}
+                      {task.addedByUserId !== vehicle.ownerId && (
+                        <AddedByBadge
+                          name={task.addedBy.displayName}
+                          removed={removedCollaboratorUserIds.has(task.addedByUserId)}
+                        />
+                      )}
                       <div>
                         <div className="font-medium text-ink">{task.name}</div>
                         <div className="text-xs text-ink-faint">
@@ -184,6 +237,24 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         ))}
       </div>
     </div>
+  )
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '?'
+}
+
+function AddedByBadge({ name, removed }: { name: string; removed: boolean }) {
+  return (
+    <span
+      title={removed ? `${name} (collaborator access removed)` : `Added by ${name}`}
+      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
+        removed ? 'bg-ink-faint/20 text-ink-faint line-through' : 'bg-brand-100 text-brand-700'
+      }`}
+    >
+      {initials(name)}
+    </span>
   )
 }
 

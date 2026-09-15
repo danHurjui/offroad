@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleOwner } from '@/lib/access'
 
 // RL-011/012: drag-to-reorder. Body: { orderedIds: string[] } — every id
 // in the vehicle's wishlist, in the new order. priority is set to array
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!auth.ok) return auth.error
   const { session } = auth
 
-  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   try {

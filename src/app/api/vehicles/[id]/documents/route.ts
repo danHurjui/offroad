@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleOwner } from '@/lib/access'
 import { isValidDocumentType } from '@/lib/documents'
 
 // RL-013: document reminders — ITP, RCA, CASCO, Rovinieta, and travel docs.
@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   if (!auth.ok) return auth.error
   const { session } = auth
 
-  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const documents = await prisma.document.findMany({
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!auth.ok) return auth.error
   const { session } = auth
 
-  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   try {

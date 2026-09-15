@@ -22,6 +22,7 @@ export default async function EditVehiclePage({ params }: { params: { id: string
           engine: vehicle.engine,
           vin: vehicle.vin,
           isPublic: vehicle.isPublic,
+          hideCostsFromCollaborators: vehicle.hideCostsFromCollaborators,
         }}
       />
     </div>

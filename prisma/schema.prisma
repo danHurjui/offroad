@@ -56,7 +56,12 @@ enum DocumentType {
 
 /// A person who can log in. `accountType` distinguishes vehicle owners
 /// (who may subscribe to Pro) from mechanic/specialist collaborators
-/// (always free — see RL-030..033, not yet built but modeled here).
+/// (always free — see RL-030..033). Nothing currently reads
+/// `accountType` for gating — it's descriptive metadata set at
+/// registration, not itself an authorization check; `isPro` is what
+/// actually gates Pro features, and a collaborator's own `isPro` is
+/// irrelevant to what they can see (they inherit the vehicle owner's
+/// tier — see the analytics page and CLAUDE.md).
 model User {
   id              String       @id @default(cuid())
   email           String       @unique
@@ -114,19 +119,24 @@ model PasswordResetToken {
 /// see src/lib/projectType.ts. Set at creation; the edit form does not
 /// expose it as changeable once tasks exist.
 model Vehicle {
-  id            String      @id @default(cuid())
-  ownerId       String
-  projectType   ProjectType
-  make          String
-  model         String
-  year          Int
-  generation    String?
-  engine        String?
-  vin           String?
-  coverPhotoUrl String?
-  isPublic      Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id                         String      @id @default(cuid())
+  ownerId                    String
+  projectType                ProjectType
+  make                       String
+  model                      String
+  year                       Int
+  generation                 String?
+  engine                     String?
+  vin                        String?
+  coverPhotoUrl              String?
+  isPublic                   Boolean     @default(false)
+  /// RL-031: owner-controlled toggle — when true, collaborators viewing
+  /// this vehicle don't see cost totals (dashboard "Total spent" card,
+  /// analytics page). Individual task cost fields are unaffected; this
+  /// only gates the aggregate views. Owner and Pro-gating always see it.
+  hideCostsFromCollaborators Boolean     @default(false)
+  createdAt                  DateTime    @default(now())
+  updatedAt                  DateTime    @updatedAt
 
   owner         User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   tasks         Task[]
@@ -310,10 +320,12 @@ model Document {
   @@index([vehicleId])
 }
 
-/// Mechanic/specialist collaborator invite — RL-030/031 (Phase 2).
-/// requireVehicleAccess() (src/lib/access.ts) already grants ACTIVE
-/// collaborators read/limited-write access; the invite flow itself
-/// (email send, accept link, job reports) is not built.
+/// Mechanic/specialist collaborator invite — RL-030/031/032. Invite
+/// created PENDING by the owner (src/app/api/vehicles/[id]/collaborators/
+/// route.ts), moves to ACTIVE when the invited email accepts
+/// (src/app/api/collaborate/accept/route.ts), or REMOVED when the owner
+/// revokes access. requireVehicleAccess() (src/lib/access.ts) grants
+/// ACTIVE collaborators read/limited-write access on every vehicle route.
 model ProjectCollaborator {
   id                 String             @id @default(cuid())
   vehicleId          String

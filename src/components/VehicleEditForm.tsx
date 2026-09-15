@@ -12,6 +12,7 @@ interface Vehicle {
   engine: string | null
   vin: string | null
   isPublic: boolean
+  hideCostsFromCollaborators: boolean
 }
 
 export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
@@ -24,6 +25,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
     engine: vehicle.engine ?? '',
     vin: vehicle.vin ?? '',
     isPublic: vehicle.isPublic,
+    hideCostsFromCollaborators: vehicle.hideCostsFromCollaborators,
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -93,6 +95,15 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
             onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
           />
           Make this project public (shareable profile — coming soon)
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={form.hideCostsFromCollaborators}
+            onChange={(e) => setForm({ ...form, hideCostsFromCollaborators: e.target.checked })}
+          />
+          Hide cost totals from collaborators
         </label>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

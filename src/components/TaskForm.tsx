@@ -26,10 +26,16 @@ export default function TaskForm({
   vehicleId,
   projectType,
   initialTask,
+  collaboratorLabel,
 }: {
   vehicleId: string
   projectType: ProjectType
   initialTask?: InitialTask
+  /** RL-032: when a collaborator (not the owner) is adding a task, prefill
+   * work type as Workshop and the workshop name with their invite label —
+   * most mechanic/specialist collaborators are logging their own shop's
+   * work, not DIY. Owners never get this prop. */
+  collaboratorLabel?: string | null
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -42,14 +48,16 @@ export default function TaskForm({
     initialTask?.category ?? searchParams.get('category') ?? config.categories[0].value
   )
   const [status, setStatus] = useState(initialTask?.status ?? config.statusTags[0].value)
-  const [workType, setWorkType] = useState<'DIY' | 'WORKSHOP'>(initialTask?.workType ?? 'DIY')
+  const [workType, setWorkType] = useState<'DIY' | 'WORKSHOP'>(
+    initialTask?.workType ?? (collaboratorLabel !== undefined ? 'WORKSHOP' : 'DIY')
+  )
   const [costRon, setCostRon] = useState(initialTask?.costRon != null ? String(initialTask.costRon) : '')
   const [partsCostRon, setPartsCostRon] = useState(initialTask?.partsCostRon != null ? String(initialTask.partsCostRon) : '')
   const [labourCostRon, setLabourCostRon] = useState(initialTask?.labourCostRon != null ? String(initialTask.labourCostRon) : '')
   const [date, setDate] = useState(initialTask?.date ? initialTask.date.slice(0, 10) : new Date().toISOString().slice(0, 10))
   const [notes, setNotes] = useState(initialTask?.notes ?? '')
   const [supplierUrl, setSupplierUrl] = useState(initialTask?.supplierUrl ?? '')
-  const [workshopName, setWorkshopName] = useState(initialTask?.workshopName ?? '')
+  const [workshopName, setWorkshopName] = useState(initialTask?.workshopName ?? collaboratorLabel ?? '')
   const [workshopContact, setWorkshopContact] = useState(initialTask?.workshopContact ?? '')
   const [originalityCondition, setOriginalityCondition] = useState(initialTask?.originalityCondition ?? '')
   const [error, setError] = useState<string | null>(null)

@@ -1,13 +1,13 @@
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { toNumberOrNull } from '@/lib/serialize'
 import WishlistItemForm from '@/components/WishlistItemForm'
 
 export default async function EditWishlistItemPage({ params }: { params: { id: string; itemId: string } }) {
   const session = await requireSessionOrRedirect()
-  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
 
   const item = await prisma.wishlistItem.findUnique({ where: { id: params.itemId } })

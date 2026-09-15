@@ -5,11 +5,17 @@ jest.mock('@/lib/prisma', () => ({
     vehicle: { findUnique: jest.fn(), update: jest.fn() },
     projectCollaborator: { findFirst: jest.fn() },
     task: { findMany: jest.fn(), create: jest.fn() },
+    user: { findUnique: jest.fn() },
   },
+}))
+jest.mock('@/lib/email', () => ({
+  sendEmail: jest.fn().mockResolvedValue(undefined),
+  collaboratorTaskAddedEmailHtml: jest.fn().mockReturnValue('<p>task added</p>'),
 }))
 
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/prisma'
+import { sendEmail } from '@/lib/email'
 import { GET, POST } from '@/app/api/vehicles/[id]/tasks/route'
 
 const mockGetSession = getServerSession as jest.Mock
@@ -17,6 +23,7 @@ const mockVehicleFindUnique = prisma.vehicle.findUnique as jest.Mock
 const mockVehicleUpdate = prisma.vehicle.update as jest.Mock
 const mockTaskFindMany = prisma.task.findMany as jest.Mock
 const mockTaskCreate = prisma.task.create as jest.Mock
+const mockUserFindUnique = prisma.user.findUnique as jest.Mock
 
 const OFFROAD_VEHICLE = { id: 'v1', ownerId: 'u1', projectType: 'OFFROAD' }
 const params = { id: 'v1' }
@@ -32,6 +39,7 @@ beforeEach(() => {
   jest.clearAllMocks()
   mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
   mockVehicleFindUnique.mockResolvedValue(OFFROAD_VEHICLE)
+  mockUserFindUnique.mockResolvedValue({ email: 'owner@x.com', displayName: 'Collaborator' })
 })
 
 describe('GET /api/vehicles/[id]/tasks', () => {
@@ -112,5 +120,15 @@ describe('POST /api/vehicles/[id]/tasks', () => {
     expect(mockTaskCreate).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ addedByUserId: 'u1' }) })
     )
+    expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'owner@x.com' }))
+  })
+
+  it('does not email the owner when the owner adds their own task', async () => {
+    mockTaskCreate.mockResolvedValue({ id: 't3', workType: 'DIY', costRon: null, partsCostRon: null, labourCostRon: null })
+    await POST(
+      makePostReq({ name: 'Oil change', category: 'ENGINE', status: 'DONE', date: '2025-01-01' }),
+      { params }
+    )
+    expect(sendEmail).not.toHaveBeenCalled()
   })
 })

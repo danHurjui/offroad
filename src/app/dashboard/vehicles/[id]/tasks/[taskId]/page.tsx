@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG, ORIGINALITY_CONDITIONS, labelFor } from '@/lib/projectType'
 import { toNumberOrNull } from '@/lib/serialize'
 import TaskPhotos from '@/components/TaskPhotos'
+import TaskReceipt from '@/components/TaskReceipt'
 import DeleteTaskButton from '@/components/DeleteTaskButton'
 
 // RL-005: task detail view.
@@ -16,13 +17,29 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
 
   const task = await prisma.task.findUnique({
     where: { id: params.taskId },
-    include: { photos: { orderBy: { createdAt: 'asc' } } },
+    include: { photos: { orderBy: { createdAt: 'asc' } }, addedBy: { select: { displayName: true } } },
   })
   if (!task || task.vehicleId !== vehicle.id) notFound()
 
   const isOwner = vehicle.ownerId === session.user.id
   const canEdit = isOwner || task.addedByUserId === session.user.id
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+
+  const addedByCollaborator = task.addedByUserId !== vehicle.ownerId
+  let addedByRemoved = false
+  if (addedByCollaborator) {
+    const [activeRow, removedRow] = await Promise.all([
+      prisma.projectCollaborator.findFirst({
+        where: { vehicleId: vehicle.id, collaboratorUserId: task.addedByUserId, status: 'ACTIVE' },
+        select: { id: true },
+      }),
+      prisma.projectCollaborator.findFirst({
+        where: { vehicleId: vehicle.id, collaboratorUserId: task.addedByUserId, status: 'REMOVED' },
+        select: { id: true },
+      }),
+    ])
+    addedByRemoved = !activeRow && Boolean(removedRow)
+  }
 
   const partsCostRon = toNumberOrNull(task.partsCostRon)
   const labourCostRon = toNumberOrNull(task.labourCostRon)
@@ -61,6 +78,15 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
             <dt className="text-ink-faint">Date</dt>
             <dd className="text-ink">{new Date(task.date).toLocaleDateString('ro-RO')}</dd>
           </div>
+          {addedByCollaborator && (
+            <div>
+              <dt className="text-ink-faint">Added by</dt>
+              <dd className="text-ink">
+                {task.addedBy.displayName}
+                {addedByRemoved && <span className="ml-1 text-xs text-ink-faint">(access removed)</span>}
+              </dd>
+            </div>
+          )}
           <div>
             <dt className="text-ink-faint">Total cost</dt>
             <dd className="font-semibold text-ink">{totalCost.toLocaleString('ro-RO')} RON</dd>
@@ -102,6 +128,10 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
         </dl>
 
         <hr className="mb-4 border-surface-border" />
+        <h2 className="mb-3 font-semibold text-ink">Receipt</h2>
+        <TaskReceipt vehicleId={vehicle.id} taskId={task.id} receiptUrl={task.receiptUrl} canEdit={canEdit} />
+
+        <hr className="my-4 border-surface-border" />
         <h2 className="mb-3 font-semibold text-ink">Photos</h2>
         <TaskPhotos
           vehicleId={vehicle.id}

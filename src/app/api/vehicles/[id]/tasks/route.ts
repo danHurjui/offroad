@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { isValidTaskVocabulary } from '@/lib/projectType'
 import { serializeTask } from '@/lib/serialize'
+import { sendEmail, collaboratorTaskAddedEmailHtml } from '@/lib/email'
 
 // RL-004: add / edit a task or modification. RL-029: DIY/workshop split.
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -101,6 +102,27 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     // touch the vehicle so dashboard "most recently updated" sort reflects it
     await prisma.vehicle.update({ where: { id: vehicle.id }, data: { updatedAt: new Date() } })
+
+    // RL-032: notify the owner when a collaborator (not the owner) logs a task.
+    if (session.user.id !== vehicle.ownerId) {
+      const [owner, collaboratorUser] = await Promise.all([
+        prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { email: true } }),
+        prisma.user.findUnique({ where: { id: session.user.id }, select: { displayName: true } }),
+      ])
+      if (owner) {
+        const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+        await sendEmail({
+          to: owner.email,
+          subject: `${collaboratorUser?.displayName ?? 'A collaborator'} added a task to your build`,
+          html: collaboratorTaskAddedEmailHtml({
+            collaboratorName: collaboratorUser?.displayName ?? 'A collaborator',
+            taskName: name,
+            vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+            vehicleUrl: `${baseUrl}/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`,
+          }),
+        })
+      }
+    }
 
     return NextResponse.json(serializeTask(task), { status: 201 })
   } catch {

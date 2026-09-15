@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleOwner } from '@/lib/access'
 import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { serializeWishlistItem } from '@/lib/serialize'
 
@@ -16,7 +16,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string;
   if (!auth.ok) return auth.error
   const { session } = auth
 
-  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const item = await loadItem(params.id, params.itemId)
@@ -30,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!auth.ok) return auth.error
   const { session } = auth
 
-  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const item = await loadItem(params.id, params.itemId)
@@ -74,7 +74,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!auth.ok) return auth.error
   const { session } = auth
 
-  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const item = await loadItem(params.id, params.itemId)

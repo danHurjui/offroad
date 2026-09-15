@@ -53,3 +53,27 @@ export function documentReminderEmailHtml(input: {
     <p><a href="${input.vehicleUrl}">Update it in RigLog</a></p>
   `
 }
+
+export function collaboratorInviteEmailHtml(input: {
+  inviterName: string
+  vehicleName: string
+  acceptUrl: string
+}): string {
+  return `
+    <p>${input.inviterName} has invited you to collaborate on their <strong>${input.vehicleName}</strong> on RigLog.</p>
+    <p><a href="${input.acceptUrl}">Accept the invite</a></p>
+    <p>This link expires in 7 days. Collaborator accounts are always free.</p>
+  `
+}
+
+export function collaboratorTaskAddedEmailHtml(input: {
+  collaboratorName: string
+  taskName: string
+  vehicleName: string
+  vehicleUrl: string
+}): string {
+  return `
+    <p>${input.collaboratorName} added a new task to your <strong>${input.vehicleName}</strong>: ${input.taskName}</p>
+    <p><a href="${input.vehicleUrl}">View it in RigLog</a></p>
+  `
+}

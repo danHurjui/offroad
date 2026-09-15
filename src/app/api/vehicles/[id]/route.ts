@@ -59,6 +59,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.vin !== undefined) data.vin = body.vin || null
     if (body.coverPhotoUrl !== undefined) data.coverPhotoUrl = body.coverPhotoUrl || null
     if (body.isPublic !== undefined) data.isPublic = Boolean(body.isPublic)
+    if (body.hideCostsFromCollaborators !== undefined) data.hideCostsFromCollaborators = Boolean(body.hideCostsFromCollaborators)
 
     const updated = await prisma.vehicle.update({ where: { id: vehicle.id }, data })
     return NextResponse.json(updated)

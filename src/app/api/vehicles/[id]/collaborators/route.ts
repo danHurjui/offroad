@@ -1,0 +1,95 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { requireSession } from '@/lib/authz'
+import { requireVehicleOwner } from '@/lib/access'
+import { generateInviteToken, isValidEmail, inviteAcceptUrl, FREE_TIER_COLLABORATOR_LIMIT, DAILY_INVITE_LIMIT } from '@/lib/collaborators'
+import { sendEmail, collaboratorInviteEmailHtml } from '@/lib/email'
+
+// RL-030: invite mechanic/specialist as project collaborator. Owner only.
+export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireSession()
+  if (!auth.ok) return auth.error
+  const { session } = auth
+
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
+  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const collaborators = await prisma.projectCollaborator.findMany({
+    where: { vehicleId: vehicle.id },
+    orderBy: { invitedAt: 'desc' },
+    include: { collaboratorUser: { select: { displayName: true } } },
+  })
+
+  return NextResponse.json(
+    collaborators.map(({ inviteToken: _inviteToken, ...c }) => c) // never leak the token in a list response
+  )
+}
+
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireSession()
+  if (!auth.ok) return auth.error
+  const { session } = auth
+
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
+  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  try {
+    const body = await req.json()
+    const email = typeof body.email === 'string' ? body.email.toLowerCase().trim() : ''
+    const label = typeof body.label === 'string' ? body.label.trim() : null
+    const role = body.role === 'SPECIALIST' ? 'SPECIALIST' : 'MECHANIC'
+
+    if (!isValidEmail(email)) {
+      return NextResponse.json({ error: 'A valid email is required' }, { status: 400 })
+    }
+
+    const alreadyActive = await prisma.projectCollaborator.findFirst({
+      where: { vehicleId: vehicle.id, email, status: 'ACTIVE' },
+    })
+    if (alreadyActive) {
+      return NextResponse.json({ error: 'This email is already an active collaborator' }, { status: 400 })
+    }
+
+    const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true, displayName: true } })
+    if (!owner?.isPro) {
+      const activeOrPendingCount = await prisma.projectCollaborator.count({
+        where: { vehicleId: vehicle.id, status: { in: ['PENDING', 'ACTIVE'] } },
+      })
+      if (activeOrPendingCount >= FREE_TIER_COLLABORATOR_LIMIT) {
+        return NextResponse.json(
+          { error: `Free tier is limited to ${FREE_TIER_COLLABORATOR_LIMIT} collaborators. Upgrade to Pro for unlimited.`, code: 'UPGRADE_REQUIRED' },
+          { status: 403 }
+        )
+      }
+    }
+
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    const invitesToday = await prisma.projectCollaborator.count({
+      where: { vehicleId: vehicle.id, invitedAt: { gte: oneDayAgo } },
+    })
+    if (invitesToday >= DAILY_INVITE_LIMIT) {
+      return NextResponse.json({ error: 'Daily invite limit reached for this vehicle. Try again tomorrow.' }, { status: 429 })
+    }
+
+    const inviteToken = generateInviteToken()
+    const collaborator = await prisma.projectCollaborator.create({
+      data: { vehicleId: vehicle.id, invitedByUserId: session.user.id, email, label, role, inviteToken },
+    })
+
+    const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+    await sendEmail({
+      to: email,
+      subject: `${owner?.displayName ?? 'Someone'} invited you to collaborate on RigLog`,
+      html: collaboratorInviteEmailHtml({
+        inviterName: owner?.displayName ?? 'Someone',
+        vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+        acceptUrl: inviteAcceptUrl(inviteToken, baseUrl),
+      }),
+    })
+
+    const { inviteToken: _inviteToken, ...safe } = collaborator
+    return NextResponse.json(safe, { status: 201 })
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

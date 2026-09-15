@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
+import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import TaskForm from '@/components/TaskForm'
 
@@ -11,12 +12,23 @@ export default async function NewTaskPage({ params }: { params: { id: string } }
   if (!vehicle) notFound()
 
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const isOwner = vehicle.ownerId === session.user.id
+  const collaborator = isOwner
+    ? null
+    : await prisma.projectCollaborator.findFirst({
+        where: { vehicleId: vehicle.id, collaboratorUserId: session.user.id, status: 'ACTIVE' },
+        select: { label: true },
+      })
 
   return (
     <div className="mx-auto max-w-xl">
       <h1 className="mb-6 text-2xl font-bold text-ink">{config.addTaskCta}</h1>
       <Suspense fallback={null}>
-        <TaskForm vehicleId={vehicle.id} projectType={vehicle.projectType} />
+        <TaskForm
+          vehicleId={vehicle.id}
+          projectType={vehicle.projectType}
+          collaboratorLabel={isOwner ? undefined : collaborator?.label ?? ''}
+        />
       </Suspense>
     </div>
   )

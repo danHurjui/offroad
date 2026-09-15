@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleOwner } from '@/lib/access'
 import { saveUpload, deleteUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 
 // RL-013: optional scan/photo attachment per document.
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   if (!auth.ok) return auth.error
   const { session } = auth
 
-  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const document = await prisma.document.findUnique({ where: { id: params.docId } })
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
       return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 })
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      return NextResponse.json({ error: 'File too large (max 10MB)' }, { status: 400 })
+      return NextResponse.json({ error: `File too large (max ${MAX_UPLOAD_BYTES / 1024 / 1024}MB)` }, { status: 400 })
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())

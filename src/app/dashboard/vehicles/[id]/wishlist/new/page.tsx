@@ -1,12 +1,12 @@
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleOwner } from '@/lib/access'
 import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import WishlistItemForm from '@/components/WishlistItemForm'
 
 export default async function NewWishlistItemPage({ params }: { params: { id: string } }) {
   const session = await requireSessionOrRedirect()
-  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
 
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
