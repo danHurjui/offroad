@@ -1,0 +1,7 @@
+Roboto is licensed under the Apache License, Version 2.0.
+https://www.apache.org/licenses/LICENSE-2.0
+
+These .ttf files are bundled with the pdfmake npm package
+(https://github.com/bpampuch/pdfmake) and are used here, unmodified, to
+render diacritics (ă, â, î, ș, ț) in server-generated PDFs — the PDF
+standard-14 fonts (Helvetica etc.) don't cover Romanian characters.

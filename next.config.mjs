@@ -30,6 +30,15 @@ const nextConfig = {
   // deployment. Vercel does its own build tracing and explicitly
   // recommends against standalone output on its platform.
   eslint: { ignoreDuringBuilds: true },
+  experimental: {
+    // RL-014/RL-033: the PDF export routes (src/lib/pdf.ts) read Roboto
+    // .ttf files from /fonts at runtime via fs, not an import — Vercel's
+    // build-time file tracer can't see that reference on its own, so the
+    // font files would be missing from the deployed function without this.
+    outputFileTracingIncludes: {
+      '/api/**/*': ['./fonts/**/*'],
+    },
+  },
   async headers() {
     return [
       {

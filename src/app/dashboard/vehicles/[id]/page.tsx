@@ -123,6 +123,11 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
             </Link>
           )}
           {isOwner && (
+            <Link href={`/dashboard/vehicles/${vehicle.id}/export`} className="btn-secondary">
+              Export PDF
+            </Link>
+          )}
+          {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/edit`} className="btn-secondary">
               Settings
             </Link>
