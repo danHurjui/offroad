@@ -47,37 +47,37 @@ enum DocumentType {
 /// (who may subscribe to Pro) from mechanic/specialist collaborators
 /// (always free — see RL-030..033, not yet built but modeled here).
 model User {
-  id               String      @id @default(cuid())
-  email            String      @unique
-  password         String?
-  displayName      String
-  location         String?
-  avatarUrl        String?
-  isPublicProfile  Boolean     @default(false)
-  preferredMode    ProjectType?
-  accountType      AccountType @default(OWNER)
+  id              String       @id @default(cuid())
+  email           String       @unique
+  password        String?
+  displayName     String
+  location        String?
+  avatarUrl       String?
+  isPublicProfile Boolean      @default(false)
+  preferredMode   ProjectType?
+  accountType     AccountType  @default(OWNER)
   /// Pro gates the RL-002 "1 vehicle free / unlimited Pro" limit today.
   /// RL-017 (Stripe) is not built — there is no UI path to flip this yet.
-  isPro            Boolean     @default(false)
-  active           Boolean     @default(true)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  isPro           Boolean      @default(false)
+  active          Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
-  oauthAccounts        OAuthAccount[]
-  passwordResetTokens  PasswordResetToken[]
-  vehicles             Vehicle[]
-  tasksAdded           Task[]                @relation("TaskAddedBy")
-  invitesSent          ProjectCollaborator[]  @relation("InvitedBy")
-  collaboratorOn       ProjectCollaborator[]  @relation("CollaboratorUser")
+  oauthAccounts       OAuthAccount[]
+  passwordResetTokens PasswordResetToken[]
+  vehicles            Vehicle[]
+  tasksAdded          Task[]                @relation("TaskAddedBy")
+  invitesSent         ProjectCollaborator[] @relation("InvitedBy")
+  collaboratorOn      ProjectCollaborator[] @relation("CollaboratorUser")
 }
 
 /// Links a Google-OAuth identity to a User, found-or-created by email at
 /// sign-in (see src/lib/auth.ts) — not NextAuth's full Prisma adapter.
 model OAuthAccount {
-  id                 String @id @default(cuid())
-  userId             String
-  provider           String
-  providerAccountId  String
+  id                String @id @default(cuid())
+  userId            String
+  provider          String
+  providerAccountId String
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -103,19 +103,19 @@ model PasswordResetToken {
 /// see src/lib/projectType.ts. Set at creation; the edit form does not
 /// expose it as changeable once tasks exist.
 model Vehicle {
-  id             String      @id @default(cuid())
-  ownerId        String
-  projectType    ProjectType
-  make           String
-  model          String
-  year           Int
-  generation     String?
-  engine         String?
-  vin            String?
-  coverPhotoUrl  String?
-  isPublic       Boolean     @default(false)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  id            String      @id @default(cuid())
+  ownerId       String
+  projectType   ProjectType
+  make          String
+  model         String
+  year          Int
+  generation    String?
+  engine        String?
+  vin           String?
+  coverPhotoUrl String?
+  isPublic      Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   owner         User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   tasks         Task[]
@@ -135,31 +135,31 @@ model Vehicle {
 /// enums — the vocabulary differs per mode and is defined in one place
 /// (src/lib/projectType.ts) rather than duplicated as DB enums.
 model Task {
-  id                    String    @id @default(cuid())
-  vehicleId             String
-  addedByUserId         String
-  name                  String
-  brand                 String?
-  category              String
-  status                String
-  workType              WorkType  @default(DIY)
-  costRon               Decimal?  @db.Decimal(10, 2)
-  partsCostRon          Decimal?  @db.Decimal(10, 2)
-  labourCostRon         Decimal?  @db.Decimal(10, 2)
-  date                  DateTime
-  notes                 String?
-  workshopId            String?
-  workshopName          String?
-  workshopContact       String?
-  supplierUrl           String?
-  originalityCondition  String?
-  receiptUrl            String?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                   String   @id @default(cuid())
+  vehicleId            String
+  addedByUserId        String
+  name                 String
+  brand                String?
+  category             String
+  status               String
+  workType             WorkType @default(DIY)
+  costRon              Decimal? @db.Decimal(10, 2)
+  partsCostRon         Decimal? @db.Decimal(10, 2)
+  labourCostRon        Decimal? @db.Decimal(10, 2)
+  date                 DateTime
+  notes                String?
+  workshopId           String?
+  workshopName         String?
+  workshopContact      String?
+  supplierUrl          String?
+  originalityCondition String?
+  receiptUrl           String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-  vehicle  Vehicle    @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  addedBy  User       @relation("TaskAddedBy", fields: [addedByUserId], references: [id])
-  workshop Workshop?  @relation(fields: [workshopId], references: [id])
+  vehicle  Vehicle     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  addedBy  User        @relation("TaskAddedBy", fields: [addedByUserId], references: [id])
+  workshop Workshop?   @relation(fields: [workshopId], references: [id])
   photos   TaskPhoto[]
 
   @@index([vehicleId])
@@ -170,14 +170,14 @@ model Task {
 /// Reusable per-vehicle workshop list (RL-029 autocomplete is scoped to
 /// this, not a global directory — see CLAUDE.md pitfalls).
 model Workshop {
-  id          String   @id @default(cuid())
-  vehicleId   String
-  name        String
-  contact     String?
-  speciality  String?
-  location    String?
-  notes       String?
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  vehicleId  String
+  name       String
+  contact    String?
+  speciality String?
+  location   String?
+  notes      String?
+  createdAt  DateTime @default(now())
 
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   tasks   Task[]
@@ -186,13 +186,13 @@ model Workshop {
 }
 
 model TaskPhoto {
-  id         String   @id @default(cuid())
-  taskId     String
-  vehicleId  String
-  url        String
-  caption    String?
-  photoType  String
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  taskId    String
+  vehicleId String
+  url       String
+  caption   String?
+  photoType String
+  createdAt DateTime @default(now())
 
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
@@ -204,34 +204,34 @@ model TaskPhoto {
 /// never have one — always check vehicle.projectType before reading
 /// vehicle.foundState.
 model FoundState {
-  id                String   @id @default(cuid())
-  vehicleId         String   @unique
-  acquisitionDate   DateTime
-  purchasePriceRon  Decimal? @db.Decimal(10, 2)
-  odometer          Int?
-  knownHistory      String?
-  conditionRating   Int?
-  frontNotes        String?
-  rearNotes         String?
-  leftNotes         String?
-  rightNotes        String?
-  roofNotes         String?
-  floorNotes        String?
-  engineNotes       String?
-  interiorNotes     String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String   @id @default(cuid())
+  vehicleId        String   @unique
+  acquisitionDate  DateTime
+  purchasePriceRon Decimal? @db.Decimal(10, 2)
+  odometer         Int?
+  knownHistory     String?
+  conditionRating  Int?
+  frontNotes       String?
+  rearNotes        String?
+  leftNotes        String?
+  rightNotes       String?
+  roofNotes        String?
+  floorNotes       String?
+  engineNotes      String?
+  interiorNotes    String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   vehicle Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   photos  FoundStatePhoto[]
 }
 
 model FoundStatePhoto {
-  id            String   @id @default(cuid())
-  foundStateId  String
-  url           String
-  caption       String?
-  createdAt     DateTime @default(now())
+  id           String   @id @default(cuid())
+  foundStateId String
+  url          String
+  caption      String?
+  createdAt    DateTime @default(now())
 
   foundState FoundState @relation(fields: [foundStateId], references: [id], onDelete: Cascade)
 
@@ -239,20 +239,21 @@ model FoundStatePhoto {
 }
 
 /// Wishlist (offroad) / parts hunt board (restoration) — RL-011/012.
-/// Schema-ready; routes/UI not built (Phase 2).
 model WishlistItem {
-  id                String   @id @default(cuid())
-  vehicleId         String
-  name              String
-  category          String?
-  estimatedCostRon  Decimal? @db.Decimal(10, 2)
-  priority          Int      @default(0)
-  status            String
-  partCondition     String?
-  supplierUrl       String?
-  hardToFind        Boolean  @default(false)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String   @id @default(cuid())
+  vehicleId        String
+  name             String
+  category         String?
+  estimatedCostRon Decimal? @db.Decimal(10, 2)
+  priority         Int      @default(0)
+  status           String
+  partCondition    String?
+  supplierUrl      String?
+  /// Supplier / source notes (RL-012) — free text, separate from supplierUrl.
+  notes            String?
+  hardToFind       Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
@@ -276,16 +277,22 @@ model TrailRun {
   @@index([vehicleId])
 }
 
-/// ITP/RCA/CASCO/Rovinieta reminders, both modes — RL-013 (Phase 2).
-/// Schema-ready; not built.
+/// ITP/RCA/CASCO/Rovinieta reminders, both modes — RL-013. Reminders fire
+/// at 30/14/3 days before expiryDate; the `reminderNSentAt` fields make
+/// that idempotent across cron runs and reset to null whenever expiryDate
+/// changes (see PATCH /api/vehicles/[id]/documents/[docId]) so renewing a
+/// document re-arms all three reminders.
 model Document {
-  id          String       @id @default(cuid())
-  vehicleId   String
-  type        DocumentType
-  expiryDate  DateTime
-  fileUrl     String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id               String       @id @default(cuid())
+  vehicleId        String
+  type             DocumentType
+  expiryDate       DateTime
+  fileUrl          String?
+  reminder30SentAt DateTime?
+  reminder14SentAt DateTime?
+  reminder3SentAt  DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
@@ -297,21 +304,21 @@ model Document {
 /// collaborators read/limited-write access; the invite flow itself
 /// (email send, accept link, job reports) is not built.
 model ProjectCollaborator {
-  id                   String              @id @default(cuid())
-  vehicleId            String
-  invitedByUserId      String
-  collaboratorUserId   String?
-  email                String
-  role                 CollaboratorRole    @default(MECHANIC)
-  label                String?
-  status               CollaboratorStatus  @default(PENDING)
-  inviteToken          String              @unique
-  invitedAt            DateTime            @default(now())
-  acceptedAt           DateTime?
+  id                 String             @id @default(cuid())
+  vehicleId          String
+  invitedByUserId    String
+  collaboratorUserId String?
+  email              String
+  role               CollaboratorRole   @default(MECHANIC)
+  label              String?
+  status             CollaboratorStatus @default(PENDING)
+  inviteToken        String             @unique
+  invitedAt          DateTime           @default(now())
+  acceptedAt         DateTime?
 
-  vehicle           Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  invitedBy         User    @relation("InvitedBy", fields: [invitedByUserId], references: [id])
-  collaboratorUser  User?   @relation("CollaboratorUser", fields: [collaboratorUserId], references: [id])
+  vehicle          Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  invitedBy        User    @relation("InvitedBy", fields: [invitedByUserId], references: [id])
+  collaboratorUser User?   @relation("CollaboratorUser", fields: [collaboratorUserId], references: [id])
 
   @@index([vehicleId])
   @@index([collaboratorUserId])

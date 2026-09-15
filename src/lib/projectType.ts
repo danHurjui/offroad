@@ -17,6 +17,14 @@ interface ProjectTypeConfig {
   wishlistLabel: string
   communityTabLabel: string
   statusTags: Option[]
+  /**
+   * The status value that counts as "done" for progress % and for
+   * wishlist "mark as installed/fitted" conversion. NOT necessarily
+   * `statusTags[statusTags.length - 1]` — off-road's list order follows
+   * the product doc ("Done · Planned · Broken · In Progress · Sourced"),
+   * which puts DONE first, not last.
+   */
+  completeStatus: string
   categories: Option[]
   photoTypes: Option[]
   wishlistStatuses: Option[]
@@ -37,6 +45,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
       { value: 'IN_PROGRESS', label: 'In Progress' },
       { value: 'SOURCED', label: 'Sourced' },
     ],
+    completeStatus: 'DONE',
     categories: [
       { value: 'SUSPENSION', label: 'Suspension' },
       { value: 'PROTECTION', label: 'Protection' },
@@ -77,6 +86,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
       { value: 'REBUILT', label: 'Rebuilt' },
       { value: 'COMPLETE', label: 'Complete' },
     ],
+    completeStatus: 'COMPLETE',
     categories: [
       { value: 'BODY_PANELS', label: 'Body & Panels' },
       { value: 'PAINT', label: 'Paint' },

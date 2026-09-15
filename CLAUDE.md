@@ -24,9 +24,9 @@ ask the project owner for copies if you need the originals):
   feature spec, monetization. Written against a Supabase stack; treat its
   tech sections (5.1–5.3) as superseded by this file.
 - **RigLog_Feature_Tickets_v3.docx** — RL-001…RL-033 ticket backlog with
-  acceptance criteria, phased 1–4. Phase 1 (RL-001–010, RL-029) is
-  implemented. Phases 2–4 are schema-ready but not built — see "What's not
-  built yet" below.
+  acceptance criteria, phased 1–4. Phase 1 (RL-001–010, RL-029) and RL-011,
+  RL-012, RL-013 from Phase 2 are implemented. The rest of Phase 2–4 is
+  schema-ready but not built — see "What's not built yet" below.
 
 ## Commands
 
@@ -109,16 +109,52 @@ instance.
    `next-auth`, import the route's `GET`/`POST`/etc. directly (see
    `src/__tests__/vehicles.test.ts` for the pattern)
 
+### Wishlist / parts hunt (`src/lib/projectType.ts`, `wishlist/` routes)
+One `WishlistItem` model backs both RL-011 (off-road wishlist) and RL-012
+(restoration parts hunt); `config.wishlistStatuses` and `PART_CONDITIONS`
+already existed from Phase 1 scaffolding. Two deliberate deviations from
+the ticket text:
+- **`category` is a required select**, not the optional free-text field
+  RL-011 lists — every item needs one to convert cleanly to a task (see
+  below), and the category breakdown card needs it too.
+- **"Mark as installed/fitted" (`wishlist/[itemId]/convert/route.ts`)
+  never copies `partCondition` onto the created task's
+  `originalityCondition`** — they're different vocabularies (sourcing
+  condition vs. authenticity) that only coincidentally share the value
+  `REPRODUCTION`. Set originality on the task afterward if it applies.
+- Reorder (`wishlist/reorder/route.ts`) takes the *entire* ordered id list
+  and rejects anything that doesn't match the vehicle's current wishlist
+  exactly — no partial reorders, so a stale client can't corrupt another
+  session's ordering.
+
+### Document reminders (`src/lib/documents.ts`, `documents/` routes)
+`Document.reminderNSentAt` (N = 30/14/3) makes the reminder check
+idempotent across cron runs, and resets to null on any PATCH that changes
+`expiryDate` (renewing re-arms all three). `decideReminder()` in
+`src/lib/documents.ts` is pure and unit-tested separately from the route —
+if a document is created already inside multiple thresholds (e.g. expiry
+in 10 days catches both the 30- and 14-day marks on the first check), it
+sends **one** catch-up email, not one per threshold, and marks every
+reached-but-unsent field so none of them fire again later as a stale
+duplicate.
+
+`POST /api/cron/document-reminders` is not wired to a scheduler — nothing
+in this repo calls it. Point your platform's cron (Vercel Cron, a system
+crontab, GitHub Actions) at it with an `x-cron-secret: $CRON_SECRET`
+header. In-app badge (vehicle dashboard "Documents" link) and the historic-
+vehicle banner (`isHistoricVehicle()`, 30+ years old → informational only,
+doesn't change reminder math) are built; web push is not — only email.
+
 ## What's not built yet
 
 Phase 1 (core log) is implemented: auth, vehicle CRUD, dashboard, task CRUD,
 task detail, photo upload, photo timeline, found-state intake, profile
-settings, PWA install shell, workshop DIY/labour log on task.
+settings, PWA install shell, workshop DIY/labour log on task. From Phase 2:
+wishlist/parts hunt (RL-011/012) and document reminders (RL-013, email only
+— see above) are implemented.
 
 Not built — schema exists, routes/UI don't (see ticket IDs for acceptance
 criteria when picking these up):
-- RL-011/012 Wishlist / parts hunt board
-- RL-013 Document reminders (ITP/RCA/Rovinieta)
 - RL-014 PDF export, RL-017 Stripe payments
 - RL-015 Cost analytics dashboard
 - RL-018 Public project profile, RL-022 Community feed, RL-023 Follow
@@ -168,3 +204,14 @@ criteria when picking these up):
    kids-heaven backend tests). Route handlers are imported and invoked
    directly with a hand-built `NextRequest`-shaped object; see any file in
    `src/__tests__/` for the shape.
+
+9. **`/api/cron/document-reminders` has no session** — it's a system
+   endpoint, gated by `x-cron-secret` against `CRON_SECRET`, not
+   `requireSession()`. Don't add a user-auth check to it; don't call it
+   from client code either.
+
+10. **Renewing a document is a PATCH on `expiryDate`, not a separate
+    "dismiss reminder" endpoint** — there isn't one. The three
+    `reminderNSentAt` fields only reset when `expiryDate` itself changes
+    (`documents/[docId]/route.ts`), so a PATCH that touches other fields
+    but not `expiryDate` correctly leaves them alone.

@@ -5,6 +5,7 @@ import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
 import { toNumberOrNull } from '@/lib/serialize'
+import { getDocumentStatus, isHistoricVehicle } from '@/lib/documents'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
 
 // RL-003: project dashboard — build overview screen.
@@ -15,14 +16,20 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
 
   const isOwner = vehicle.ownerId === session.user.id
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
-  const completeStatus = config.statusTags[config.statusTags.length - 1].value
+  const completeStatus = config.completeStatus
 
-  const [tasks, foundState] = await Promise.all([
+  const [tasks, foundState, documents] = await Promise.all([
     prisma.task.findMany({ where: { vehicleId: vehicle.id }, orderBy: { updatedAt: 'desc' } }),
     vehicle.projectType === 'RESTORATION'
       ? prisma.foundState.findUnique({ where: { vehicleId: vehicle.id } })
       : Promise.resolve(null),
+    prisma.document.findMany({ where: { vehicleId: vehicle.id }, select: { expiryDate: true } }),
   ])
+
+  const documentsNeedingAttention = documents.filter(
+    (d) => getDocumentStatus(d.expiryDate).status !== 'valid'
+  ).length
+  const isHistoric = isHistoricVehicle(vehicle.year)
 
   const categoriesWithCompletion = new Set(
     tasks.filter((t) => t.status === completeStatus).map((t) => t.category)
@@ -66,6 +73,17 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           <Link href={`/dashboard/vehicles/${vehicle.id}/photos`} className="btn-secondary">
             Photos
           </Link>
+          <Link href={`/dashboard/vehicles/${vehicle.id}/wishlist`} className="btn-secondary">
+            {config.wishlistLabel}
+          </Link>
+          <Link href={`/dashboard/vehicles/${vehicle.id}/documents`} className="btn-secondary relative">
+            Documents
+            {documentsNeedingAttention > 0 && (
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">
+                {documentsNeedingAttention}
+              </span>
+            )}
+          </Link>
           {vehicle.projectType === 'RESTORATION' && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/found-state`} className="btn-secondary">
               Found state
@@ -85,6 +103,16 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       {vehicle.coverPhotoUrl && (
         <div className="card mb-6 overflow-hidden">
           <VehicleCoverImg url={vehicle.coverPhotoUrl} alt={`${vehicle.make} ${vehicle.model}`} />
+        </div>
+      )}
+
+      {isHistoric && (
+        <div className="card mb-6 border-surface-border bg-surface-subtle p-4 text-sm text-ink-muted">
+          This vehicle qualifies for <strong className="text-ink">historic status</strong> (30+ years
+          old) — Romanian ITP is required every 2 years instead of annually.{' '}
+          <Link href={`/dashboard/vehicles/${vehicle.id}/documents`} className="text-brand-600 hover:underline">
+            Manage documents
+          </Link>
         </div>
       )}
 

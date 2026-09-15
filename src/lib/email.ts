@@ -41,3 +41,15 @@ export function passwordResetEmailHtml(resetUrl: string): string {
     <p>If you didn't request this, you can safely ignore this email.</p>
   `
 }
+
+export function documentReminderEmailHtml(input: {
+  documentLabel: string
+  vehicleName: string
+  daysUntilLabel: string
+  vehicleUrl: string
+}): string {
+  return `
+    <p>${input.documentLabel} for your <strong>${input.vehicleName}</strong> ${input.daysUntilLabel}.</p>
+    <p><a href="${input.vehicleUrl}">Update it in RigLog</a></p>
+  `
+}

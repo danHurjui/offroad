@@ -54,6 +54,30 @@ describe('labelFor', () => {
   })
 })
 
+describe('completeStatus', () => {
+  // Regression: off-road's statusTags list order follows the product doc
+  // ("Done · Planned · Broken · In Progress · Sourced"), which puts DONE
+  // first — code that assumed "the terminal status is the last array
+  // entry" (as the vehicle dashboard's progress % and the wishlist
+  // convert-to-task route both used to) silently used SOURCED instead.
+  it('is DONE for off-road, not the last statusTags entry', () => {
+    expect(PROJECT_TYPE_CONFIG.OFFROAD.completeStatus).toBe('DONE')
+    expect(PROJECT_TYPE_CONFIG.OFFROAD.completeStatus).not.toBe(
+      PROJECT_TYPE_CONFIG.OFFROAD.statusTags[PROJECT_TYPE_CONFIG.OFFROAD.statusTags.length - 1].value
+    )
+  })
+
+  it('is COMPLETE for restoration', () => {
+    expect(PROJECT_TYPE_CONFIG.RESTORATION.completeStatus).toBe('COMPLETE')
+  })
+
+  it('is always a value present in that mode\'s own statusTags', () => {
+    for (const config of Object.values(PROJECT_TYPE_CONFIG)) {
+      expect(config.statusTags.some((s) => s.value === config.completeStatus)).toBe(true)
+    }
+  })
+})
+
 describe('every category set matches the ticket spec size', () => {
   it('off-road has 9 categories (8 build + maintenance)', () => {
     expect(PROJECT_TYPE_CONFIG.OFFROAD.categories).toHaveLength(9)
