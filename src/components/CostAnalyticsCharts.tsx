@@ -47,11 +47,11 @@ export default function CostAnalyticsCharts({
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={categoryData} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E3DBCE" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#D3D9E0" />
                 <XAxis dataKey="label" tick={{ fontSize: 11 }} interval={0} angle={-20} textAnchor="end" height={50} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip formatter={formatRon} />
-                <Bar dataKey="total" fill="#F2560F" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="total" fill="#2A5D8C" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -66,11 +66,11 @@ export default function CostAnalyticsCharts({
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyData} margin={{ top: 4, right: 8, left: 8, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E3DBCE" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#D3D9E0" />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip formatter={formatRon} />
-                <Line type="monotone" dataKey="cumulative" stroke="#F2560F" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="cumulative" stroke="#2A5D8C" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>

@@ -137,7 +137,7 @@ export default function WishlistPriceAlert({
                 {item.targetPriceRon != null && (
                   <ReferenceLine y={item.targetPriceRon} stroke="#16a34a" strokeDasharray="4 4" label="Target" />
                 )}
-                <Line type="monotone" dataKey="price" stroke="#2563eb" strokeWidth={2} dot />
+                <Line type="monotone" dataKey="price" stroke="#2A5D8C" strokeWidth={2} dot />
               </LineChart>
             </ResponsiveContainer>
           </div>

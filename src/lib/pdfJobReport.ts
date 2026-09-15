@@ -99,7 +99,7 @@ export function buildJobReportDocDefinition(input: JobReportInput): PdfDocDefini
       margin: [40, 0, 40, 0],
     }),
     styles: {
-      title: { fontSize: 20, bold: true, margin: [0, 0, 0, 2], color: '#F2560F' },
+      title: { fontSize: 20, bold: true, margin: [0, 0, 0, 2], color: '#2A5D8C' },
       subtitle: { fontSize: 13, bold: true, margin: [0, 0, 0, 10] },
       summary: { fontSize: 12, bold: true },
       detailKey: { fontSize: 9, color: '#6b6b6b' },

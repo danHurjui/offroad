@@ -40,7 +40,7 @@ export default function TrailThumbnail({ track, className }: { track: Point[]; c
   return (
     <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className={className} preserveAspectRatio="none">
       <rect width={SIZE} height={SIZE} className="fill-surface-subtle" />
-      <polyline points={points} fill="none" stroke="#2563eb" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <polyline points={points} fill="none" stroke="#2A5D8C" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

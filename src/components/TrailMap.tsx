@@ -55,7 +55,7 @@ export default function TrailMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {track.length > 1 && (
-        <Polyline positions={track.map((p) => [p.lat, p.lng])} pathOptions={{ color: '#2563eb', weight: 4 }} />
+        <Polyline positions={track.map((p) => [p.lat, p.lng])} pathOptions={{ color: '#2A5D8C', weight: 4 }} />
       )}
       {waypoints.map((w) => (
         <Marker key={w.id} position={[w.lat, w.lng]}>

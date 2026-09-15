@@ -4,8 +4,8 @@
   "description": "Off-road build tracker & restoration journal",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#FAF7F3",
-  "theme_color": "#F2560F",
+  "background_color": "#F2F4F6",
+  "theme_color": "#2A5D8C",
   "icons": [
     { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]

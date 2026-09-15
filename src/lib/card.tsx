@@ -31,7 +31,7 @@ export const CARD_COLORS = {
   bg: '#0B0B0F',
   overlayTop: 'rgba(11,11,15,0.15)',
   overlayBottom: 'rgba(11,11,15,0.92)',
-  brand: '#F2560F',
+  brand: '#4D87B3',
   text: '#FFFFFF',
   textMuted: 'rgba(255,255,255,0.72)',
 }

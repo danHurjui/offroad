@@ -148,7 +148,7 @@ export function buildVehicleHistoryDocDefinition(input: VehicleHistoryPdfInput):
       title: { fontSize: 20, bold: true, margin: [0, 0, 0, 2] },
       subtitle: { fontSize: 11, color: '#6b6b6b', margin: [0, 0, 0, 10] },
       summary: { fontSize: 12, bold: true },
-      sectionHeader: { fontSize: 14, bold: true, margin: [0, 0, 0, 8], color: '#F2560F' },
+      sectionHeader: { fontSize: 14, bold: true, margin: [0, 0, 0, 8], color: '#2A5D8C' },
       detailKey: { fontSize: 9, color: '#6b6b6b' },
       detailValue: { fontSize: 9 },
       taskBlock: { margin: [0, 0, 0, 12] },
