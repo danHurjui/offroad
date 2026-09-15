@@ -6,7 +6,9 @@ import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
 import { toNumberOrNull } from '@/lib/serialize'
 import { getDocumentStatus, isHistoricVehicle } from '@/lib/documents'
+import { computeOriginalityScore } from '@/lib/originality'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
+import OriginalityBadge from '@/components/OriginalityBadge'
 
 // RL-003: project dashboard — build overview screen.
 export default async function VehicleDashboardPage({ params }: { params: { id: string } }) {
@@ -33,6 +35,14 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       select: { collaboratorUserId: true, status: true },
     }),
   ])
+  // RL-019: Pro-gated, restoration only — the vehicle owner's isPro (a
+  // collaborator's own tier is irrelevant, same as everywhere else).
+  const owner =
+    vehicle.projectType === 'RESTORATION'
+      ? await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { isPro: true } })
+      : null
+  const originalityScore =
+    vehicle.projectType === 'RESTORATION' && owner?.isPro ? computeOriginalityScore(tasks, completeStatus) : undefined
   // RL-032: "removed collaborator" tag — a task can outlive the
   // collaborator who logged it once the owner revokes their access. A
   // user with any ACTIVE row (re-invited after removal) is not tagged.
@@ -82,6 +92,11 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="badge bg-brand-100 text-brand-700">{config.label}</span>
+          {originalityScore !== undefined && (
+            <span className="ml-2">
+              <OriginalityBadge score={originalityScore} />
+            </span>
+          )}
           <h1 className="mt-2 text-2xl font-bold text-ink">{config.screenTitle}</h1>
           <p className="text-ink-muted">
             {vehicle.year} {vehicle.make} {vehicle.model}

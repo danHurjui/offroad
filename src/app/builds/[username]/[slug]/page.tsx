@@ -4,13 +4,15 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
 import { toNumberOrNull } from '@/lib/serialize'
+import { computeOriginalityScore } from '@/lib/originality'
+import OriginalityBadge from '@/components/OriginalityBadge'
 
 // cache() dedupes this within one request — generateMetadata and the page
 // component both need it, and without this they'd each hit the DB.
 const findPublicVehicle = cache(async (username: string, slug: string) => {
   const owner = await prisma.user.findUnique({
     where: { username },
-    select: { id: true, displayName: true, location: true },
+    select: { id: true, displayName: true, location: true, isPro: true },
   })
   if (!owner) return null
 
@@ -84,6 +86,9 @@ export default async function PublicVehiclePage({
     return sum + cost
   }, 0)
 
+  const originalityScore =
+    vehicle.projectType === 'RESTORATION' && owner.isPro ? computeOriginalityScore(tasks, completeStatus) : undefined
+
   const grouped = new Map<string, typeof tasks>()
   for (const task of tasks) {
     if (!grouped.has(task.category)) grouped.set(task.category, [])
@@ -111,6 +116,11 @@ export default async function PublicVehiclePage({
           )}
           <div className="p-6">
             <span className="badge bg-brand-100 text-brand-700">{config.label}</span>
+            {originalityScore !== undefined && (
+              <span className="ml-2">
+                <OriginalityBadge score={originalityScore} />
+              </span>
+            )}
             <h1 className="mt-2 text-2xl font-bold text-ink">
               {vehicle.year} {vehicle.make} {vehicle.model}
               {vehicle.generation ? ` (${vehicle.generation})` : ''}
