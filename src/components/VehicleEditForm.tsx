@@ -13,6 +13,9 @@ interface Vehicle {
   vin: string | null
   isPublic: boolean
   hideCostsFromCollaborators: boolean
+  hidePublicCost: boolean
+  slug: string | null
+  ownerUsername: string | null
 }
 
 export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
@@ -26,7 +29,9 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
     vin: vehicle.vin ?? '',
     isPublic: vehicle.isPublic,
     hideCostsFromCollaborators: vehicle.hideCostsFromCollaborators,
+    hidePublicCost: vehicle.hidePublicCost,
   })
+  const publicUrl = vehicle.ownerUsername && vehicle.slug ? `/builds/${vehicle.ownerUsername}/${vehicle.slug}` : null
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -88,14 +93,38 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
           </div>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-ink">
-          <input
-            type="checkbox"
-            checked={form.isPublic}
-            onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
-          />
-          Make this project public (shareable profile — coming soon)
-        </label>
+        <div>
+          <label className="flex items-center gap-2 text-sm text-ink">
+            <input
+              type="checkbox"
+              checked={form.isPublic}
+              onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
+            />
+            Make this project public (anyone with the link can view it, read-only)
+          </label>
+          {form.isPublic && (
+            <p className="mt-1 pl-6 text-xs text-ink-faint">
+              {publicUrl ? (
+                <>
+                  Live at <span className="font-mono">{publicUrl}</span>
+                </>
+              ) : (
+                'The public URL will be assigned when you save.'
+              )}
+            </p>
+          )}
+        </div>
+
+        {form.isPublic && (
+          <label className="flex items-center gap-2 pl-6 text-sm text-ink">
+            <input
+              type="checkbox"
+              checked={form.hidePublicCost}
+              onChange={(e) => setForm({ ...form, hidePublicCost: e.target.checked })}
+            />
+            Hide total cost from the public page
+          </label>
+        )}
 
         <label className="flex items-center gap-2 text-sm text-ink">
           <input

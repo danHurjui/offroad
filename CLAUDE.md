@@ -205,10 +205,18 @@ Phase 2 is fully implemented:
   `/api/webhooks/stripe`, `/dashboard/upgrade`) — Monthly/Annual/Lifetime,
   webhook is the only writer of `User.isPro`
 
+Phase 3 is in progress:
+- RL-018 public project profile (`/builds/[username]/[slug]`,
+  `src/lib/username.ts`, `src/lib/vehicleSlug.ts`) — read-only, no
+  session, indexed (`src/app/robots.ts`/`sitemap.ts`); the vehicle owner's
+  `hidePublicCost` toggle and the `/api/uploads/[...path]` public-vehicle
+  carve-out (see pitfall #6) both live here
+
 Not built — schema exists, routes/UI don't (see ticket IDs for acceptance
 criteria when picking these up):
-- RL-018 Public project profile, RL-022 Community feed, RL-023 Follow
+- RL-022 Community feed, RL-023 Follow (needs a new `Follow` model)
 - RL-019 Originality score, RL-020/021 Share cards
+- RL-024 Parts request (needs new schema)
 - RL-025–028 (Phase 4): native app, price alerts, trail GPS log, VIN decoder
 
 ## Pitfalls
@@ -242,7 +250,10 @@ criteria when picking these up):
 
 6. **Uploaded photos are never served directly from `/public/uploads`** —
    always go through `/api/uploads/[...path]` so vehicle-access checks
-   apply. Do not add a static rewrite that bypasses this.
+   apply. Do not add a static rewrite that bypasses this. Since RL-018,
+   that route allows unauthenticated requests for a public vehicle
+   (`vehicle.isPublic`) — that's the one intentional exception; every other
+   access path still requires a session + `requireVehicleAccess()`.
 
 7. **`npx prisma generate` after every schema edit** — required before
    `npm test` or `npm run dev` will pick up new fields/models.
@@ -272,3 +283,12 @@ criteria when picking these up):
     pooler in front of the docker-compose Postgres). Don't remove it to
     "simplify" local dev — that breaks the Neon/Vercel Postgres pooling
     setup DEPLOY.md depends on.
+
+12. **`User.username`/`Vehicle.slug` (RL-018) are generated, never
+    user-typed** — `src/lib/username.ts`/`src/lib/vehicleSlug.ts`. Both are
+    nullable in the schema (pre-RL-018 rows can be null) and get lazily
+    backfilled by `PATCH /api/vehicles/[id]` the moment a vehicle is
+    switched to public — don't add a "choose your username" field without
+    also handling the collision-suffix logic those helpers already do.
+    `Vehicle.slug` is unique per owner (`@@unique([ownerId, slug])`), not
+    globally — the owner's username in the URL is what disambiguates.

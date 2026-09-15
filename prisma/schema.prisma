@@ -75,6 +75,12 @@ model User {
   email                String       @unique
   password             String?
   displayName          String
+  /// RL-018: stable public handle (`/builds/[username]/...`), distinct
+  /// from `displayName` since that can contain spaces/unicode/duplicates.
+  /// Generated once at signup (src/lib/username.ts) — never null for a
+  /// user created after that ticket shipped; existing rows from before it
+  /// are backfilled lazily the first time they publish a vehicle.
+  username             String?      @unique
   location             String?
   avatarUrl            String?
   isPublicProfile      Boolean      @default(false)
@@ -154,6 +160,15 @@ model Vehicle {
   vin                        String?
   coverPhotoUrl              String?
   isPublic                   Boolean     @default(false)
+  /// RL-018: URL segment for the public page (`/builds/[username]/[slug]`)
+  /// — unique per owner, not globally (see the compound index below).
+  /// Generated at vehicle creation (src/lib/slug.ts); backfilled lazily if
+  /// somehow still null when a vehicle is switched to public.
+  slug                       String?
+  /// RL-018: owner-controlled toggle — when true, the public page
+  /// (visitors, not collaborators — see hideCostsFromCollaborators above)
+  /// omits the total cost figure. Independent of that collaborator toggle.
+  hidePublicCost             Boolean     @default(false)
   /// RL-031: owner-controlled toggle — when true, collaborators viewing
   /// this vehicle don't see cost totals (dashboard "Total spent" card,
   /// analytics page). Individual task cost fields are unaffected; this
@@ -171,7 +186,9 @@ model Vehicle {
   documents     Document[]
   trailRuns     TrailRun[]
 
+  @@unique([ownerId, slug])
   @@index([ownerId])
+  @@index([isPublic])
 }
 
 /// A modification (offroad) or restoration task/stage. `category`,

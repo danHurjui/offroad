@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { isProjectType } from '@/lib/projectType'
+import { generateVehicleSlug } from '@/lib/vehicleSlug'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 const FREE_TIER_VEHICLE_LIMIT = 1
@@ -61,6 +62,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const slug = await generateVehicleSlug(session.user.id, yearNum, make, model)
+
     const vehicle = await prisma.vehicle.create({
       data: {
         ownerId: session.user.id,
@@ -72,6 +75,7 @@ export async function POST(req: NextRequest) {
         engine: engine || null,
         vin: vin || null,
         coverPhotoUrl: coverPhotoUrl || null,
+        slug,
       },
     })
 

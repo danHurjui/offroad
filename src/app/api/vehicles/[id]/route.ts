@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess, requireVehicleOwner } from '@/lib/access'
+import { ensureUsername } from '@/lib/username'
+import { generateVehicleSlug } from '@/lib/vehicleSlug'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 
@@ -60,6 +62,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.coverPhotoUrl !== undefined) data.coverPhotoUrl = body.coverPhotoUrl || null
     if (body.isPublic !== undefined) data.isPublic = Boolean(body.isPublic)
     if (body.hideCostsFromCollaborators !== undefined) data.hideCostsFromCollaborators = Boolean(body.hideCostsFromCollaborators)
+    if (body.hidePublicCost !== undefined) data.hidePublicCost = Boolean(body.hidePublicCost)
+
+    // RL-018: a vehicle/owner created before this ticket shipped might
+    // still be missing a slug/username — backfill both the moment it's
+    // switched public, since the public URL needs both.
+    if (data.isPublic === true && !vehicle.slug) {
+      const year = (data.year as number | undefined) ?? vehicle.year
+      const make = (data.make as string | undefined) ?? vehicle.make
+      const model = (data.model as string | undefined) ?? vehicle.model
+      data.slug = await generateVehicleSlug(vehicle.ownerId, year, make, model)
+    }
+    if (data.isPublic === true) {
+      await ensureUsername(vehicle.ownerId)
+    }
 
     const updated = await prisma.vehicle.update({ where: { id: vehicle.id }, data })
     return NextResponse.json(updated)

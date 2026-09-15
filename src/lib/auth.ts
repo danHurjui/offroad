@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
 import { prisma } from './prisma'
 import { verifyPassword } from './password'
+import { generateUsername } from './username'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -38,10 +39,12 @@ export const authOptions: NextAuthOptions = {
         try {
           let dbUser = await prisma.user.findUnique({ where: { email: user.email } })
           if (!dbUser) {
+            const displayName = user.name ?? user.email.split('@')[0]
             dbUser = await prisma.user.create({
               data: {
                 email: user.email,
-                displayName: user.name ?? user.email.split('@')[0],
+                displayName,
+                username: await generateUsername(displayName),
                 accountType: 'OWNER',
                 active: true,
               },

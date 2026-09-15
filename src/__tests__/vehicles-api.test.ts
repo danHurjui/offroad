@@ -2,7 +2,7 @@ jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
 jest.mock('@/lib/auth', () => ({ authOptions: {} }))
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    vehicle: { findMany: jest.fn(), count: jest.fn(), create: jest.fn() },
+    vehicle: { findMany: jest.fn(), count: jest.fn(), create: jest.fn(), findFirst: jest.fn() },
     user: { findUnique: jest.fn() },
   },
 }))
@@ -16,12 +16,16 @@ const mockFindMany = prisma.vehicle.findMany as jest.Mock
 const mockCount = prisma.vehicle.count as jest.Mock
 const mockCreate = prisma.vehicle.create as jest.Mock
 const mockUserFindUnique = prisma.user.findUnique as jest.Mock
+const mockVehicleFindFirst = prisma.vehicle.findFirst as jest.Mock
 
 function makePostReq(body: unknown) {
   return { json: () => Promise.resolve(body) } as never
 }
 
-beforeEach(() => jest.clearAllMocks())
+beforeEach(() => {
+  jest.clearAllMocks()
+  mockVehicleFindFirst.mockResolvedValue(null) // no slug collision by default
+})
 
 describe('GET /api/vehicles', () => {
   it('returns 401 when not authenticated', async () => {
@@ -91,6 +95,29 @@ describe('POST /api/vehicles', () => {
     expect(data.id).toBe('v1')
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ ownerId: 'u1', projectType: 'OFFROAD' }) })
+    )
+  })
+
+  it('generates a slug for the public URL', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockUserFindUnique.mockResolvedValue({ isPro: false })
+    mockCount.mockResolvedValue(0)
+    mockCreate.mockResolvedValue({ id: 'v1' })
+    await POST(makePostReq({ projectType: 'OFFROAD', make: 'Jeep', model: 'Wrangler TJ', year: 2000 }))
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ slug: '2000-jeep-wrangler-tj' }) })
+    )
+  })
+
+  it('appends a numeric suffix when the slug collides for the same owner', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockUserFindUnique.mockResolvedValue({ isPro: false })
+    mockCount.mockResolvedValue(0)
+    mockVehicleFindFirst.mockResolvedValueOnce({ id: 'existing' }).mockResolvedValueOnce(null)
+    mockCreate.mockResolvedValue({ id: 'v2' })
+    await POST(makePostReq({ projectType: 'OFFROAD', make: 'Jeep', model: 'TJ', year: 2000 }))
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ slug: '2000-jeep-tj-2' }) })
     )
   })
 })

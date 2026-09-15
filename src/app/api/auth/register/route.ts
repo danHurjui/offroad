@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, isPasswordStrongEnough } from '@/lib/password'
+import { generateUsername } from '@/lib/username'
 
 // RL-001: register with email+password, no distinguishing error messages
 // leak which emails exist.
@@ -27,8 +28,9 @@ export async function POST(req: NextRequest) {
     }
 
     const hashed = await hashPassword(password)
+    const username = await generateUsername(displayName)
     const user = await prisma.user.create({
-      data: { email, password: hashed, displayName, accountType: 'OWNER', active: true },
+      data: { email, password: hashed, displayName, username, accountType: 'OWNER', active: true },
     })
 
     return NextResponse.json({ id: user.id, email: user.email, displayName: user.displayName }, { status: 201 })

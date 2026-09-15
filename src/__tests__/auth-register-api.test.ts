@@ -53,4 +53,13 @@ describe('POST /api/auth/register', () => {
       expect.objectContaining({ data: expect.objectContaining({ email: 'a@b.com', accountType: 'OWNER' }) })
     )
   })
+
+  it('generates a username for the public profile URL', async () => {
+    mockFindUnique.mockResolvedValue(null)
+    mockCreate.mockResolvedValue({ id: 'u1', email: 'a@b.com', displayName: 'Dan Hurjui' })
+    await POST(makeReq({ email: 'a@b.com', password: 'longenough1', displayName: 'Dan Hurjui' }))
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ username: 'dan-hurjui' }) })
+    )
+  })
 })
