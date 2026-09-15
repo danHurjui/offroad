@@ -33,8 +33,9 @@ ask the project owner for copies if you need the originals):
   tech sections (5.1–5.3) as superseded by this file.
 - **RigLog_Feature_Tickets_v3.docx** — RL-001…RL-033 ticket backlog with
   acceptance criteria, phased 1–4. Phase 1 (RL-001–010, RL-029), Phase 2
-  (RL-011–017, RL-030–033), and Phase 3 (RL-018–024) are implemented.
-  Phase 4 is schema-ready but not built — see "What's not built yet" below.
+  (RL-011–017, RL-030–033), Phase 3 (RL-018–024), and Phase 4 (RL-026,
+  RL-027, RL-028) are implemented. RL-025 (native Expo app) was closed
+  `not_planned` by the repo owner — see "What's not built yet" below.
 
 ## Commands
 
@@ -230,9 +231,43 @@ Phase 3 is fully implemented:
   no messaging/inbox system to hang that on; only the comment-thread half
   ships
 
-Not built — schema exists, routes/UI don't (see ticket IDs for acceptance
-criteria when picking these up):
-- RL-025–028 (Phase 4): native app, price alerts, trail GPS log, VIN decoder
+Phase 4 is implemented, with scope adaptations from the tickets' original
+Supabase/Expo/Mapbox/RevenueCat-era wording (same kind of stack deviation
+as the rest of this file — see "What this is" above):
+- RL-026 price alert (`WishlistItem.targetPriceRon`, `WishlistPriceEntry`,
+  `src/lib/priceAlert.ts`, `/dashboard/vehicles/[id]/wishlist/[itemId]`) —
+  manual "I found it at this price" logging with a history chart,
+  notifying by email/push the first time a logged price hits the target.
+  Automated daily URL scraping (the ticket's literal ask) is not built —
+  legally grey per the ticket's own note, and this app has no scraping
+  infra — the manual flow is the lower-risk alternative the ticket itself
+  suggests starting with.
+- RL-028 VIN/chassis decoder (`src/lib/vinDecoder.ts`,
+  `/dashboard/vehicles/[id]/vin-decoder`) — decodes a restoration
+  vehicle's existing VIN via a local Dacia/Renault-Romania WMI table
+  (UU1/UU2/UU6, Mioveni plant — confirmed real codes) or NHTSA's free
+  vPIC API, with manual-entry fallback. Does NOT include an ARO /
+  pre-standard Romanian chassis-number lookup table (no verifiable
+  reference data found) or any VIN-derived colour code (no international
+  standard encodes paint colour in a VIN) — both always fall to manual
+  entry. Decoded spec (never the raw VIN) also shows on the public
+  profile, same restoration+Pro gate as the originality score.
+- RL-027 trail log (`TrailRun`/`TrailWaypoint` models,
+  `src/lib/trailTrack.ts`, `/dashboard/vehicles/[id]/trail-log`) — GPS
+  track recording via the browser Geolocation API, a Leaflet+OpenStreetMap
+  map (no API key needed — this stack has no Mapbox key), manual
+  waypoints with note/photo, localStorage crash recovery. Two disclosed
+  limits: recording is foreground-only (a PWA has no "always" background
+  location permission the way a native app does), and offline map-tile
+  pre-download isn't built. Surfaces in the Photos tab via a
+  client-rendered SVG polyline thumbnail (`TrailThumbnail.tsx`) rather
+  than a captured raster map screenshot — no static-maps API key
+  available to generate one.
+- RL-025 (native Expo/React Native app, RevenueCat IAP, Expo push) was
+  closed `not_planned` by the repo owner (GitHub issue #16) — not
+  attempted. It's also a poor fit for this environment regardless: it
+  needs a separate native codebase, App Store/Play Console accounts, and
+  device/emulator testing this sandbox has none of.
 
 ## Pitfalls
 
@@ -307,3 +342,14 @@ criteria when picking these up):
     also handling the collision-suffix logic those helpers already do.
     `Vehicle.slug` is unique per owner (`@@unique([ownerId, slug])`), not
     globally — the owner's username in the URL is what disambiguates.
+
+13. **`leaflet`/`react-leaflet` (RL-027) must be loaded client-side only**
+    — Leaflet touches `window` at import time, so any component that
+    imports it directly throws "window is not defined" if it's ever
+    reached during SSR. `TrailMap.tsx` is the one file that imports
+    `leaflet`/`react-leaflet` directly; every page that needs a map wraps
+    it via `next/dynamic(() => import('@/components/TrailMap'), { ssr:
+    false })` (see `TrailRunMapView.tsx`, `TrailRecorder.tsx`) rather than
+    importing `TrailMap` directly. Don't import `leaflet` from a Server
+    Component or from a client component that isn't itself behind an
+    `ssr: false` dynamic import.
