@@ -21,6 +21,16 @@ export async function DELETE(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
+  // CLAUDE.md pitfall #4: collaborator access is read-mostly — a
+  // collaborator may only delete photos on tasks they added themselves,
+  // not any photo on the vehicle (matches the receipt DELETE route's
+  // pattern for the same task-scoped resource).
+  const task = await prisma.task.findUnique({ where: { id: photo.taskId } })
+  const isOwner = vehicle.ownerId === session.user.id
+  if (!isOwner && task?.addedByUserId !== session.user.id) {
+    return NextResponse.json({ error: 'You can only remove photos from tasks you added' }, { status: 403 })
+  }
+
   try {
     await prisma.taskPhoto.delete({ where: { id: photo.id } })
     await deleteUpload(photo.url)
