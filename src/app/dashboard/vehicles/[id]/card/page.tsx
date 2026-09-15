@@ -5,10 +5,14 @@ import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import ShareImageButton from '@/components/ShareImageButton'
+import TransformationCardPicker from '@/components/TransformationCardPicker'
 
 // RL-020 (off-road build card) / RL-021 (restoration transformation
 // card) — one page, branching on projectType, since both are the same
 // preview-then-share flow against a sibling PNG-generating route.
+// Restoration additionally lets the owner pick which before/after photos
+// appear (see TransformationCardPicker) — off-road doesn't need that,
+// it auto-picks the 4 most recent completed mods.
 export default async function ShareCardPage({ params }: { params: { id: string } }) {
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
@@ -19,11 +23,28 @@ export default async function ShareCardPage({ params }: { params: { id: string }
   const isPro = Boolean(owner?.isPro)
 
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
-  const endpoint =
-    vehicle.projectType === 'OFFROAD'
-      ? `/api/vehicles/${vehicle.id}/card/build`
-      : `/api/vehicles/${vehicle.id}/card/transformation`
-  const title = vehicle.projectType === 'OFFROAD' ? 'Share build card' : 'Share transformation card'
+  const isOffroad = vehicle.projectType === 'OFFROAD'
+  const title = isOffroad ? 'Share build card' : 'Share transformation card'
+
+  let beforeOptions: { id: string; label: string }[] = []
+  let afterOptions: { id: string; label: string }[] = []
+  if (isPro && !isOffroad) {
+    const [foundState, tasks] = await Promise.all([
+      prisma.foundState.findUnique({
+        where: { vehicleId: vehicle.id },
+        include: { photos: { orderBy: { createdAt: 'asc' } } },
+      }),
+      prisma.task.findMany({
+        where: { vehicleId: vehicle.id },
+        select: { name: true, photos: { select: { id: true, createdAt: true }, orderBy: { createdAt: 'desc' } } },
+      }),
+    ])
+    beforeOptions = (foundState?.photos ?? []).map((p, i) => ({ id: p.id, label: p.caption ?? `Found state photo ${i + 1}` }))
+    afterOptions = tasks
+      .flatMap((t) => t.photos.map((p) => ({ id: p.id, label: t.name, createdAt: p.createdAt })))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .map(({ id, label }) => ({ id, label }))
+  }
 
   return (
     <div className="mx-auto max-w-xl">
@@ -32,21 +53,28 @@ export default async function ShareCardPage({ params }: { params: { id: string }
       </Link>
       <h1 className="mb-6 text-2xl font-bold text-ink">{title}</h1>
 
-      {isPro ? (
-        <div className="space-y-4">
-          <div className="card overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={endpoint} alt={`${title} preview`} className="w-full" />
-          </div>
-          <ShareImageButton endpoint={endpoint} fallbackName={`RigLog_${vehicleName}`} />
-        </div>
-      ) : (
+      {!isPro ? (
         <div className="card p-5">
           <p className="text-sm text-ink-muted">
             Upgrading to Pro is not available in this preview build — Pro will unlock a shareable, RigLog-branded
             image card for this build, ready to post to Instagram or Facebook groups.
           </p>
         </div>
+      ) : isOffroad ? (
+        <div className="space-y-4">
+          <div className="card overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`/api/vehicles/${vehicle.id}/card/build`} alt={`${title} preview`} className="w-full" />
+          </div>
+          <ShareImageButton endpoint={`/api/vehicles/${vehicle.id}/card/build`} fallbackName={`RigLog_${vehicleName}`} />
+        </div>
+      ) : (
+        <TransformationCardPicker
+          vehicleId={vehicle.id}
+          vehicleName={vehicleName}
+          beforeOptions={beforeOptions}
+          afterOptions={afterOptions}
+        />
       )}
     </div>
   )
