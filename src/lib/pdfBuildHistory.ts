@@ -1,10 +1,7 @@
 import type { Content } from 'pdfmake'
-import type { PdfDocDefinition } from '@/lib/pdf'
+import type { PdfDocDefinition, PdfPhoto } from '@/lib/pdf'
 
-export interface PdfTaskPhoto {
-  dataUri: string
-  caption: string | null
-}
+export type PdfTaskPhoto = PdfPhoto
 
 export interface PdfTask {
   name: string

@@ -79,6 +79,25 @@ export async function resolveImageDataUri(storagePath: string): Promise<string |
   }
 }
 
+export interface PdfPhoto {
+  dataUri: string
+  caption: string | null
+}
+
+/**
+ * Resolves up to `limit` stored upload paths to embeddable photos,
+ * skipping any that can't be embedded (see resolveImageDataUri). Shared by
+ * RL-014's build history export and RL-033's job report.
+ */
+export async function resolvePhotos(urls: string[], limit: number): Promise<PdfPhoto[]> {
+  const dataUris = await Promise.all(urls.slice(0, limit).map((url) => resolveImageDataUri(url)))
+  const photos: PdfPhoto[] = []
+  for (const dataUri of dataUris) {
+    if (dataUri) photos.push({ dataUri, caption: null })
+  }
+  return photos
+}
+
 export function pdfFilename(prefix: string, vehicleName: string, date: Date = new Date()): string {
   const safeVehicleName = vehicleName.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
   const dateStr = date.toISOString().slice(0, 10)

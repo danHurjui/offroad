@@ -60,7 +60,7 @@ export default async function ExportPdfPage({ params }: { params: { id: string }
 
       <div className="card mt-4 p-5">
         {isPro ? (
-          <ExportPdfButton vehicleId={vehicle.id} vehicleName={vehicleName} />
+          <ExportPdfButton endpoint={`/api/vehicles/${vehicle.id}/export/pdf`} fallbackName={`RigLog_${vehicleName}`} />
         ) : (
           <p className="text-sm text-ink-muted">
             This is a preview of what your export includes. Upgrading to Pro is not available in this preview

@@ -35,7 +35,7 @@ const BASE_INPUT: VehicleHistoryPdfInput = {
 describe('buildVehicleHistoryDocDefinition', () => {
   it('includes the vehicle name and progress summary', () => {
     const doc = buildVehicleHistoryDocDefinition(BASE_INPUT)
-    const content = doc.content as Record<string, unknown>[]
+    const content = doc.content as unknown as Record<string, unknown>[]
     expect(content[0]).toMatchObject({ text: '2001 Jeep Wrangler' })
   })
 

@@ -4,8 +4,8 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
 import { toNumberOrNull } from '@/lib/serialize'
-import { renderPdf, resolveImageDataUri, pdfFilename } from '@/lib/pdf'
-import { buildVehicleHistoryDocDefinition, type PdfTaskPhoto, type PdfTaskCategory } from '@/lib/pdfBuildHistory'
+import { renderPdf, resolveImageDataUri, resolvePhotos, pdfFilename } from '@/lib/pdf'
+import { buildVehicleHistoryDocDefinition, type PdfTaskCategory } from '@/lib/pdfBuildHistory'
 
 // RL-014: build history PDF export, Pro only. Generation can take a few
 // seconds for a large project (up to 50 tasks / 100 photos per the ticket's
@@ -14,15 +14,6 @@ export const maxDuration = 60
 
 const MAX_TASK_PHOTOS = 3
 const MAX_FOUND_STATE_PHOTOS = 4
-
-async function resolvePhotos(urls: string[], limit: number): Promise<PdfTaskPhoto[]> {
-  const dataUris = await Promise.all(urls.slice(0, limit).map((url) => resolveImageDataUri(url)))
-  const photos: PdfTaskPhoto[] = []
-  for (const dataUri of dataUris) {
-    if (dataUri) photos.push({ dataUri, caption: null })
-  }
-  return photos
-}
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await requireSession()

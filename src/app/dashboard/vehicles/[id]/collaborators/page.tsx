@@ -40,6 +40,7 @@ export default async function CollaboratorsPage({ params }: { params: { id: stri
           status: c.status,
           invitedAt: c.invitedAt.toISOString(),
           acceptedAt: c.acceptedAt ? c.acceptedAt.toISOString() : null,
+          collaboratorUserId: c.collaboratorUserId,
           collaboratorDisplayName: c.collaboratorUser?.displayName ?? null,
         }))}
       />

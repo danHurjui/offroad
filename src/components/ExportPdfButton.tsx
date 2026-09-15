@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 
-// RL-014: fetches the PDF as a blob (rather than a plain <a href> link) so
-// we can also offer the Web Share API — a straight navigation can't hand
-// the browser a File object to share.
-export default function ExportPdfButton({ vehicleId, vehicleName }: { vehicleId: string; vehicleName: string }) {
+// RL-014/RL-033: fetches the PDF as a blob (rather than a plain <a href>
+// link) so we can also offer the Web Share API — a straight navigation
+// can't hand the browser a File object to share.
+export default function ExportPdfButton({ endpoint, fallbackName }: { endpoint: string; fallbackName: string }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -13,7 +13,7 @@ export default function ExportPdfButton({ vehicleId, vehicleName }: { vehicleId:
     setError(null)
     setLoading(true)
     try {
-      const res = await fetch(`/api/vehicles/${vehicleId}/export/pdf`)
+      const res = await fetch(endpoint)
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         setError(data.error ?? 'Could not generate PDF')
@@ -21,7 +21,7 @@ export default function ExportPdfButton({ vehicleId, vehicleName }: { vehicleId:
       }
       const disposition = res.headers.get('Content-Disposition') ?? ''
       const match = disposition.match(/filename="([^"]+)"/)
-      const filename = match?.[1] ?? `RigLog_${vehicleName.replace(/\s+/g, '_')}.pdf`
+      const filename = match?.[1] ?? `${fallbackName.replace(/\s+/g, '_')}.pdf`
       const blob = await res.blob()
       return { blob, filename }
     } catch {

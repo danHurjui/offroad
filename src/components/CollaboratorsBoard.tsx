@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 interface CollaboratorRow {
   id: string
@@ -11,6 +12,7 @@ interface CollaboratorRow {
   status: 'PENDING' | 'ACTIVE' | 'REMOVED'
   invitedAt: string
   acceptedAt: string | null
+  collaboratorUserId: string | null
   collaboratorDisplayName: string | null
 }
 
@@ -146,26 +148,36 @@ export default function CollaboratorsBoard({
                 {c.email} · {c.role === 'SPECIALIST' ? 'Specialist' : 'Mechanic'}
               </p>
             </div>
-            {c.status !== 'REMOVED' && (
-              <div className="flex gap-2">
-                {c.status === 'PENDING' && (
-                  <button
-                    className="btn-secondary"
-                    disabled={busyId === c.id}
-                    onClick={() => onResend(c.id)}
-                  >
-                    Resend
-                  </button>
-                )}
-                <button
-                  className="btn-secondary text-red-600"
-                  disabled={busyId === c.id}
-                  onClick={() => onRevoke(c.id)}
+            <div className="flex gap-2">
+              {c.collaboratorUserId && (
+                <Link
+                  href={`/dashboard/vehicles/${vehicleId}/job-report?collaboratorId=${c.collaboratorUserId}`}
+                  className="btn-secondary"
                 >
-                  Revoke
-                </button>
-              </div>
-            )}
+                  Job report
+                </Link>
+              )}
+              {c.status !== 'REMOVED' && (
+                <>
+                  {c.status === 'PENDING' && (
+                    <button
+                      className="btn-secondary"
+                      disabled={busyId === c.id}
+                      onClick={() => onResend(c.id)}
+                    >
+                      Resend
+                    </button>
+                  )}
+                  <button
+                    className="btn-secondary text-red-600"
+                    disabled={busyId === c.id}
+                    onClick={() => onRevoke(c.id)}
+                  >
+                    Revoke
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         ))}
       </div>
