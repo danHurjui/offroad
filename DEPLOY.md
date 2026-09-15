@@ -64,6 +64,7 @@ Project Settings → Environment Variables:
 | `RESEND_API_KEY` | Optional — from [resend.com](https://resend.com) (free tier). Without it, password-reset and document-reminder emails just log to the function's console instead of sending, which is invisible to real users. |
 | `EMAIL_FROM` | Optional, e.g. `RigLog <no-reply@yourdomain.com>` (needs a domain verified in Resend) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional — Google OAuth login |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_ANNUAL`, `STRIPE_PRICE_LIFETIME` | Optional — Pro upgrade (RL-017). Without `STRIPE_SECRET_KEY`, `/dashboard/upgrade` checkout requests fail with a 500; the rest of the app works fine without it. See step 6.5 below. |
 
 `BLOB_READ_WRITE_TOKEN` is already set from step 2.
 
@@ -95,6 +96,25 @@ sends an `Authorization: Bearer $CRON_SECRET` header automatically since
 `CRON_SECRET` is set as a project env var (see the route's comment in
 `src/app/api/cron/document-reminders/route.ts`). Hobby plan cron jobs are
 limited to once a day, which this already respects.
+
+## 6.5 Configure Stripe (optional — Pro upgrade)
+
+1. In the Stripe dashboard (live mode, or test mode while trying this out),
+   create three Prices with currency `RON`: Monthly (14.99, recurring),
+   Annual (99, recurring), Lifetime (299, one-time). Copy each Price ID
+   into `STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_ANNUAL` /
+   `STRIPE_PRICE_LIFETIME`.
+2. Copy your Secret key into `STRIPE_SECRET_KEY`.
+3. Developers → Webhooks → Add endpoint:
+   `https://<your-domain>/api/webhooks/stripe`, events
+   `checkout.session.completed`, `invoice.payment_failed`,
+   `invoice.payment_succeeded`, `customer.subscription.deleted`. Copy the
+   endpoint's signing secret into `STRIPE_WEBHOOK_SECRET`.
+4. Redeploy so the new env vars take effect.
+
+Local dev: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
+prints a webhook secret for `STRIPE_WEBHOOK_SECRET` without registering a
+public endpoint.
 
 ## Known free-tier constraints
 

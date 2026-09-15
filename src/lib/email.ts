@@ -77,3 +77,12 @@ export function collaboratorTaskAddedEmailHtml(input: {
     <p><a href="${input.vehicleUrl}">View it in RigLog</a></p>
   `
 }
+
+export function paymentFailedEmailHtml(billingUrl: string): string {
+  return `
+    <p>We couldn't process your latest RigLog Pro payment.</p>
+    <p>Stripe will automatically retry the charge — if it keeps failing, your Pro access may be paused. You can
+    update your card any time from account settings.</p>
+    <p><a href="${billingUrl}">Update payment method</a></p>
+  `
+}

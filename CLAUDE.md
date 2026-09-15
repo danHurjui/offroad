@@ -32,8 +32,8 @@ ask the project owner for copies if you need the originals):
   feature spec, monetization. Written against a Supabase stack; treat its
   tech sections (5.1–5.3) as superseded by this file.
 - **RigLog_Feature_Tickets_v3.docx** — RL-001…RL-033 ticket backlog with
-  acceptance criteria, phased 1–4. Phase 1 (RL-001–010, RL-029) and RL-011,
-  RL-012, RL-013 from Phase 2 are implemented. The rest of Phase 2–4 is
+  acceptance criteria, phased 1–4. Phase 1 (RL-001–010, RL-029) and all of
+  Phase 2 (RL-011–017, RL-030–033) are implemented. Phase 3–4 is
   schema-ready but not built — see "What's not built yet" below.
 
 ## Commands
@@ -179,19 +179,36 @@ real users in production if you forget to set it).
 
 Phase 1 (core log) is implemented: auth, vehicle CRUD, dashboard, task CRUD,
 task detail, photo upload, photo timeline, found-state intake, profile
-settings, PWA install shell, workshop DIY/labour log on task. From Phase 2:
-wishlist/parts hunt (RL-011/012) and document reminders (RL-013, email only
-— see above) are implemented.
+settings, PWA install shell, workshop DIY/labour log on task.
+
+Phase 2 is fully implemented:
+- RL-011/012 wishlist / parts hunt, RL-013 document reminders (email only —
+  see above)
+- RL-016 receipt attach on tasks
+- RL-015 cost analytics dashboard (`src/lib/analytics.ts` +
+  `/dashboard/vehicles/[id]/analytics`) — free tier gets total-spent only,
+  Pro gets charts/trends/date-range filter
+- RL-030–033 mechanic/specialist collaborator flow: invite/resend/revoke
+  (`src/app/api/vehicles/[id]/collaborators/`), accept
+  (`/collaborate/accept`), owner-only wishlist/documents/settings
+  (`requireVehicleOwner`), `Vehicle.hideCostsFromCollaborators`, the
+  collaborator-added-task defaults in `TaskForm`, and both PDF exports
+  below
+- RL-014 PDF build history export (`src/lib/pdf.ts` + `pdfBuildHistory.ts`,
+  `/dashboard/vehicles/[id]/export`) — Pro-gated, pdfmake + bundled Roboto
+  font for Romanian diacritics
+- RL-033 job report (`src/lib/pdfJobReport.ts`,
+  `/dashboard/vehicles/[id]/job-report`) — always free, reuses RL-014's PDF
+  engine
+- RL-017 Stripe Pro subscription (`src/lib/stripe.ts`,
+  `/api/billing/checkout`, `/api/billing/portal`,
+  `/api/webhooks/stripe`, `/dashboard/upgrade`) — Monthly/Annual/Lifetime,
+  webhook is the only writer of `User.isPro`
 
 Not built — schema exists, routes/UI don't (see ticket IDs for acceptance
 criteria when picking these up):
-- RL-014 PDF export, RL-017 Stripe payments
-- RL-015 Cost analytics dashboard
 - RL-018 Public project profile, RL-022 Community feed, RL-023 Follow
 - RL-019 Originality score, RL-020/021 Share cards
-- RL-030–033 Mechanic collaborator invite flow, job reports (the
-  `ProjectCollaborator` and `Workshop` models exist; `requireVehicleAccess()`
-  already accounts for collaborator access, but there is no invite UI/route)
 - RL-025–028 (Phase 4): native app, price alerts, trail GPS log, VIN decoder
 
 ## Pitfalls

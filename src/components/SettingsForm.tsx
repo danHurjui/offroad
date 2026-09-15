@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 
 interface Profile {
@@ -9,6 +10,14 @@ interface Profile {
   location: string | null
   isPublicProfile: boolean
   isPro: boolean
+  proPlan: 'MONTHLY' | 'ANNUAL' | 'LIFETIME' | null
+  stripeCustomerId: string | null
+}
+
+const PLAN_LABELS: Record<NonNullable<Profile['proPlan']>, string> = {
+  MONTHLY: 'Pro (Monthly)',
+  ANNUAL: 'Pro (Annual)',
+  LIFETIME: 'Pro (Lifetime)',
 }
 
 // RL-009: profile & settings. Every field saves immediately with a
@@ -21,6 +30,8 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
   const [isPublicProfile, setIsPublicProfile] = useState(profile.isPublicProfile)
   const [saved, setSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [portalLoading, setPortalLoading] = useState(false)
+  const [portalError, setPortalError] = useState<string | null>(null)
 
   async function save(patch: Record<string, unknown>) {
     setSaved(false)
@@ -34,6 +45,20 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
       router.refresh()
       setTimeout(() => setSaved(false), 2000)
     }
+  }
+
+  async function onManageBilling() {
+    setPortalError(null)
+    setPortalLoading(true)
+    const res = await fetch('/api/billing/portal', { method: 'POST' })
+    setPortalLoading(false)
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setPortalError(data.error ?? 'Could not open billing portal')
+      return
+    }
+    const { url } = await res.json()
+    window.location.href = url
   }
 
   async function onDeleteAccount() {
@@ -85,10 +110,22 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
       <div className="card p-6">
         <h2 className="mb-1 font-semibold text-ink">Plan</h2>
         <p className="text-sm text-ink-muted">
-          {profile.isPro ? 'Pro' : 'Free'} — {profile.isPro ? 'unlimited vehicles and photos.' : '1 vehicle, 10 photos per task.'}
+          {profile.isPro ? (profile.proPlan ? PLAN_LABELS[profile.proPlan] : 'Pro') : 'Free'} —{' '}
+          {profile.isPro ? 'unlimited vehicles and photos.' : '1 vehicle, 10 photos per task.'}
         </p>
-        {!profile.isPro && (
-          <p className="mt-2 text-xs text-ink-faint">Upgrading to Pro is not available in this preview build.</p>
+        {profile.isPro ? (
+          profile.stripeCustomerId && (
+            <>
+              <button type="button" className="btn-secondary mt-3" onClick={onManageBilling} disabled={portalLoading}>
+                {portalLoading ? 'Opening…' : 'Manage subscription'}
+              </button>
+              {portalError && <p className="mt-2 text-sm text-red-600">{portalError}</p>}
+            </>
+          )
+        ) : (
+          <Link href="/dashboard/upgrade" className="btn-primary mt-3 inline-block">
+            Upgrade to Pro
+          </Link>
         )}
       </div>
 

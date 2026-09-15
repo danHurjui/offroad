@@ -54,6 +54,14 @@ enum DocumentType {
   VIGNETTE
 }
 
+/// RL-017: which Stripe product got the user to isPro=true. MONTHLY/ANNUAL
+/// are recurring Subscriptions; LIFETIME is a one-time Payment.
+enum ProPlan {
+  MONTHLY
+  ANNUAL
+  LIFETIME
+}
+
 /// A person who can log in. `accountType` distinguishes vehicle owners
 /// (who may subscribe to Pro) from mechanic/specialist collaborators
 /// (always free — see RL-030..033). Nothing currently reads
@@ -63,21 +71,37 @@ enum DocumentType {
 /// irrelevant to what they can see (they inherit the vehicle owner's
 /// tier — see the analytics page and CLAUDE.md).
 model User {
-  id              String       @id @default(cuid())
-  email           String       @unique
-  password        String?
-  displayName     String
-  location        String?
-  avatarUrl       String?
-  isPublicProfile Boolean      @default(false)
-  preferredMode   ProjectType?
-  accountType     AccountType  @default(OWNER)
-  /// Pro gates the RL-002 "1 vehicle free / unlimited Pro" limit today.
-  /// RL-017 (Stripe) is not built — there is no UI path to flip this yet.
-  isPro           Boolean      @default(false)
-  active          Boolean      @default(true)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id                   String       @id @default(cuid())
+  email                String       @unique
+  password             String?
+  displayName          String
+  location             String?
+  avatarUrl            String?
+  isPublicProfile      Boolean      @default(false)
+  preferredMode        ProjectType?
+  accountType          AccountType  @default(OWNER)
+  /// Pro gates the RL-002 "1 vehicle free / unlimited Pro" limit, RL-014's
+  /// PDF export, and RL-015's full analytics dashboard. Flipped only by
+  /// the Stripe webhook (src/app/api/webhooks/stripe/route.ts) — never set
+  /// directly from a client-facing route.
+  isPro                Boolean      @default(false)
+  /// Set once a Checkout session creates/reuses a Stripe Customer for this
+  /// user — needed to open the Billing Portal (RL-017) and to resolve
+  /// incoming webhook events back to a user.
+  stripeCustomerId     String?      @unique
+  /// Only set for MONTHLY/ANNUAL (a recurring Stripe Subscription).
+  /// LIFETIME is a one-time Payment and has no subscription to track.
+  stripeSubscriptionId String?      @unique
+  proPlan              ProPlan?
+  /// Set by the webhook on `invoice.payment_failed`, cleared on the next
+  /// `invoice.payment_succeeded` — drives the in-app failed-payment banner.
+  /// isPro is left untouched here; Stripe's own retry schedule (and
+  /// eventually `customer.subscription.deleted`) is what actually revokes
+  /// access, not a single failed charge.
+  proPaymentFailedAt   DateTime?
+  active               Boolean      @default(true)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
   oauthAccounts       OAuthAccount[]
   passwordResetTokens PasswordResetToken[]
