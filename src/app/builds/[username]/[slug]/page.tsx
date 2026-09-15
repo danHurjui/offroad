@@ -60,7 +60,10 @@ export async function generateMetadata({
 // deliberately never shown here (unlike the owner's own PDF export):
 // a public VIN is enough to pull a full vehicle history report on most
 // lookup services, which isn't something an owner opts into just by
-// flipping "make this project public".
+// flipping "make this project public". RL-028's *decoded* spec (make,
+// year, factory, engine/body/colour — never the VIN string itself) is
+// shown below when present, same restoration+Pro gate as the
+// originality score.
 export default async function PublicVehiclePage({
   params,
 }: {
@@ -145,6 +148,10 @@ export default async function PublicVehiclePage({
             </p>
             {vehicle.engine && <p className="mt-1 text-sm text-ink-muted">{vehicle.engine}</p>}
 
+            {vehicle.projectType === 'RESTORATION' && owner.isPro && vehicle.vinDecoded && (
+              <FactorySpec decoded={vehicle.vinDecoded as never} />
+            )}
+
             {!isOwnerViewing && (
               <div className="mt-3">
                 <FollowButton vehicleId={vehicle.id} initialFollowing={isFollowing} initialFollowerCount={followerCount} />
@@ -213,6 +220,38 @@ export default async function PublicVehiclePage({
           Documented with <span className="font-semibold">RigLog</span>
         </p>
       </div>
+    </div>
+  )
+}
+
+interface DecodedVinSpec {
+  manufacturer: string | null
+  modelYear: number | null
+  factory: string | null
+  engineCode: string | null
+  bodyStyle: string | null
+  colorCode: string | null
+}
+
+function FactorySpec({ decoded }: { decoded: DecodedVinSpec }) {
+  const fields: [string, string | number | null][] = [
+    ['Manufacturer', decoded.manufacturer],
+    ['Model year', decoded.modelYear],
+    ['Factory', decoded.factory],
+    ['Engine code', decoded.engineCode],
+    ['Body style', decoded.bodyStyle],
+    ['Colour code', decoded.colorCode],
+  ]
+  const present = fields.filter(([, value]) => value != null && value !== '')
+  if (present.length === 0) return null
+
+  return (
+    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-ink-faint">
+      {present.map(([label, value]) => (
+        <span key={label}>
+          {label}: <span className="text-ink-muted">{value}</span>
+        </span>
+      ))}
     </div>
   )
 }

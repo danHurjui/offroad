@@ -248,6 +248,17 @@ model Vehicle {
   generation                 String?
   engine                     String?
   vin                        String?
+  /// RL-028 (Phase 4) — decoded factory spec, restoration mode only.
+  /// Shape: { manufacturer, modelYear, factory, engineCode, bodyStyle,
+  /// colorCode } (JSON, not a Vehicle column each, since some fields are
+  /// only ever filled by the user's own manual entry and never by either
+  /// decode path). colorCode is *always* user-supplied — no VIN decode
+  /// path (local or NHTSA) can derive paint colour; there's no
+  /// international standard encoding it in the VIN itself.
+  vinDecoded                 Json?
+  /// 'local' (Dacia/Renault-Romania WMI table) | 'nhtsa' (vPIC API) |
+  /// 'manual' (user-entered fallback) — see src/lib/vinDecoder.ts.
+  vinDecodeSource            String?
   coverPhotoUrl              String?
   isPublic                   Boolean     @default(false)
   /// RL-018: URL segment for the public page (`/builds/[username]/[slug]`)
