@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile } from 'fs/promises'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
-import { resolveUploadPath, StorageError } from '@/lib/storage'
+import { readUpload, StorageError } from '@/lib/storage'
 
 const CONTENT_TYPES: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -12,8 +11,9 @@ const CONTENT_TYPES: Record<string, string> = {
   pdf: 'application/pdf',
 }
 
-// Photos/receipts are never served from /public/uploads directly — every
-// request re-checks vehicle access here first (see CLAUDE.md pitfall #6).
+// Photos/receipts are never served from /public/uploads (or a raw Blob
+// URL) directly — every request re-checks vehicle access here first,
+// whichever backend readUpload() is reading from (see CLAUDE.md pitfall #6).
 export async function GET(_req: NextRequest, { params }: { params: { path: string[] } }) {
   const auth = await requireSession()
   if (!auth.ok) return auth.error
@@ -27,16 +27,15 @@ export async function GET(_req: NextRequest, { params }: { params: { path: strin
 
   try {
     const storagePath = params.path.join('/')
-    const filePath = resolveUploadPath(storagePath)
-    const buffer = await readFile(filePath)
+    const { buffer, contentType } = await readUpload(storagePath)
     const ext = storagePath.split('.').pop()?.toLowerCase() ?? ''
-    const contentType = CONTENT_TYPES[ext] ?? 'application/octet-stream'
+    const resolvedContentType = contentType ?? CONTENT_TYPES[ext] ?? 'application/octet-stream'
 
     return new NextResponse(buffer as unknown as BodyInit, {
-      headers: { 'Content-Type': contentType, 'Cache-Control': 'private, max-age=3600' },
+      headers: { 'Content-Type': resolvedContentType, 'Cache-Control': 'private, max-age=3600' },
     })
   } catch (e) {
-    if (e instanceof StorageError) return NextResponse.json({ error: 'Invalid path' }, { status: 400 })
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (e instanceof StorageError) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -43,7 +43,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())
-    const storagePath = await saveUpload(vehicle.ownerId, vehicle.id, file.name, buffer)
+    const storagePath = await saveUpload(vehicle.ownerId, vehicle.id, file.name, buffer, file.type)
 
     const photo = await prisma.foundStatePhoto.create({
       data: {

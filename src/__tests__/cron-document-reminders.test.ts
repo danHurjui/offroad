@@ -8,7 +8,7 @@ jest.mock('@/lib/email', () => ({
 
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
-import { POST } from '@/app/api/cron/document-reminders/route'
+import { GET, POST } from '@/app/api/cron/document-reminders/route'
 
 const mockFindMany = prisma.document.findMany as jest.Mock
 const mockUpdate = prisma.document.update as jest.Mock
@@ -33,6 +33,25 @@ it('returns 401 if CRON_SECRET is unset (fails closed, never treats "no secret c
   delete process.env.CRON_SECRET
   const res = await POST(req({ 'x-cron-secret': 'anything' }))
   expect(res.status).toBe(401)
+})
+
+it('accepts the Authorization: Bearer header Vercel Cron sends automatically', async () => {
+  mockFindMany.mockResolvedValue([])
+  const res = await GET(req({ authorization: 'Bearer test-secret' }))
+  expect(res.status).toBe(200)
+})
+
+it('rejects a Bearer token that does not match CRON_SECRET', async () => {
+  const res = await GET(req({ authorization: 'Bearer wrong-secret' }))
+  expect(res.status).toBe(401)
+})
+
+it('GET and POST both work — Vercel invokes cron routes with GET', async () => {
+  mockFindMany.mockResolvedValue([])
+  const getRes = await GET(req({ 'x-cron-secret': 'test-secret' }))
+  const postRes = await POST(req({ 'x-cron-secret': 'test-secret' }))
+  expect(getRes.status).toBe(200)
+  expect(postRes.status).toBe(200)
 })
 
 it('sends a reminder for a document crossing a threshold and marks it sent', async () => {

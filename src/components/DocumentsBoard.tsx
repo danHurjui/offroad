@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { DOCUMENT_TYPE_OPTIONS, formatDaysUntil, getDocumentStatus, type DocumentStatus } from '@/lib/documents'
 import { labelFor } from '@/lib/projectType'
+import { compressImageIfNeeded } from '@/lib/compressImage'
 
 interface DocumentRow {
   id: string
@@ -82,8 +83,9 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
 
   async function onAttachFile(doc: DocumentRow, file: File) {
     setBusyId(doc.id)
+    const compressed = await compressImageIfNeeded(file) // no-op for PDFs
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', compressed)
     const res = await fetch(`/api/vehicles/${vehicleId}/documents/${doc.id}/file`, { method: 'POST', body: formData })
     setBusyId(null)
     if (res.ok) {

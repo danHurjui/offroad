@@ -43,7 +43,7 @@ wait_for_port() {
 
 start_dev() {
   [ ! -f "$ROOT/.env.local" ] && warn "Missing .env.local — copy from .env.example"
-  info "Starting docker-compose (postgres + redis)..."
+  info "Starting docker-compose (postgres)..."
   (cd "$ROOT" && docker-compose up -d)
   if [ ! -d "$ROOT/node_modules" ]; then
     log "Installing dependencies (first run)..."
@@ -82,7 +82,6 @@ print_status() {
   echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo -e "  ${CYAN}App${NC}       →  http://localhost:3000"
   echo -e "  ${CYAN}Postgres${NC}  →  localhost:5434"
-  echo -e "  ${CYAN}Redis${NC}     →  localhost:6380"
   echo ""
   echo -e "  ${YELLOW}Dev seed credentials (npm run db:seed):${NC}"
   echo -e "  demo@riglog.ro / demo1234"

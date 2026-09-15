@@ -6,14 +6,21 @@ import { sendEmail, documentReminderEmailHtml } from '@/lib/email'
 
 /**
  * RL-013: document reminders at 30/14/3 days before expiry, delivered by
- * email. Not user-facing — call this on a schedule (Vercel Cron, a
- * system crontab, GitHub Actions, etc.) with `x-cron-secret: $CRON_SECRET`.
- * There is no scheduler wired up in this repo; add one when deploying.
+ * email. Not user-facing.
+ *
+ * vercel.json wires a daily Vercel Cron job at this path when deployed
+ * there — Vercel invokes cron routes with GET and, when CRON_SECRET is
+ * set as a project env var, automatically adds `Authorization: Bearer
+ * $CRON_SECRET` (see https://vercel.com/docs/cron-jobs/manage-cron-jobs
+ * #securing-cron-jobs). Off Vercel, call it yourself (a crontab, GitHub
+ * Actions, curl) with either that header or `x-cron-secret: $CRON_SECRET`
+ * — POST is accepted too, for manual/non-GET callers.
  *
  * In-app badge / web push are not implemented here — see CLAUDE.md.
  */
-export async function POST(req: NextRequest) {
-  const secret = req.headers.get('x-cron-secret')
+async function handle(req: NextRequest) {
+  const bearer = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+  const secret = bearer ?? req.headers.get('x-cron-secret')
   if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -54,3 +61,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ checked: documents.length, sent })
 }
+
+export { handle as GET, handle as POST }

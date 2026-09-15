@@ -26,7 +26,9 @@ const csp = [
 ].join('; ');
 
 const nextConfig = {
-  output: 'standalone',
+  // No `output: 'standalone'` — that's for a self-managed Docker/Node
+  // deployment. Vercel does its own build tracing and explicitly
+  // recommends against standalone output on its platform.
   eslint: { ignoreDuringBuilds: true },
   async headers() {
     return [

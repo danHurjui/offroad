@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { compressImageIfNeeded } from '@/lib/compressImage'
 
 interface FoundStatePhoto {
   id: string
@@ -80,8 +81,9 @@ export default function FoundStateForm({ vehicleId, initial }: { vehicleId: stri
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
+    const compressed = await compressImageIfNeeded(file)
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', compressed)
     const res = await fetch(`/api/vehicles/${vehicleId}/found-state/photos`, { method: 'POST', body: formData })
     setUploading(false)
     if (fileInputRef.current) fileInputRef.current.value = ''

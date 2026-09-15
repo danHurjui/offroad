@@ -12,9 +12,17 @@ data model and screens are identical for both.
 
 Infrastructure and conventions are carried over from the kids-heaven-education
 admin app: Next.js App Router + Prisma (direct, no ORM-agnostic layer) +
-NextAuth v4 (JWT sessions) + Postgres/Redis via docker-compose. This diverges
-from the Supabase stack described in the product's original analysis doc —
-see "Product docs" below.
+NextAuth v4 (JWT sessions) + Postgres via docker-compose (no Redis — it was
+in the original kids-heaven env template but nothing here ever used it).
+This diverges from the Supabase stack described in the product's original
+analysis doc — see "Product docs" below.
+
+Deploys to Vercel's free tier — see `DEPLOY.md`. That constrained two
+things beyond the kids-heaven pattern: photo/document storage
+(`src/lib/storage.ts`) is Vercel Blob in production, not just local disk,
+and Postgres needs a pooled connection string (`DATABASE_URL` +
+`DIRECT_URL` in `prisma/schema.prisma`) since serverless functions don't
+share connections. Both sections below cover the details.
 
 ## Product docs
 
@@ -33,7 +41,7 @@ ask the project owner for copies if you need the originals):
 ```bash
 # Dev
 ./start.sh [dev|stop|logs]
-docker-compose up -d          # postgres + redis only
+docker-compose up -d          # postgres only
 
 # Tests
 npm test                                          # Jest, Prisma mocked
@@ -92,14 +100,31 @@ import `PROJECT_TYPE_CONFIG[vehicle.projectType]` and validate against it.
 This is what RL-003/RL-004/RL-006 mean by "vocabulary adapts to project type."
 
 ### Photo / file storage (`src/lib/storage.ts`)
-No Supabase Storage — files are written to disk under
-`UPLOADS_DIR/<userId>/<vehicleId>/...` and served from `/uploads/*`
-(see `src/app/api/uploads/[...path]/route.ts`, which re-checks vehicle access
-before streaming a file — the `/uploads` static path itself is not
-public). Every filesystem write is wrapped in `try/catch` returning a JSON
-500, per the kids-heaven filesystem-writes pitfall. This is a dev/single-node
-approach; swap for S3-compatible storage before running more than one app
-instance.
+No Supabase Storage — `saveUpload()`/`readUpload()`/`deleteUpload()` are a
+small dual-backend abstraction keyed off whether `BLOB_READ_WRITE_TOKEN`
+is set: local disk under `UPLOADS_DIR/<userId>/<vehicleId>/<uuid>` when
+it isn't (dev), Vercel Blob when it is (production — Vercel's serverless
+functions have no shared, persistent filesystem, so local disk silently
+breaks there). Every route handler that reads/writes a file only calls
+those three functions and never knows which backend is active.
+
+Either way, the DB only ever stores a **storage key** (`userId/vehicleId/
+uuid.ext`), never a public URL — `src/app/api/uploads/[...path]/route.ts`
+is the only thing that turns a key into bytes, and it re-checks vehicle
+access first. For the Blob backend this means every read does a `list()`
+lookup by exact pathname then a server-side `fetch()` of the result — an
+extra round trip, deliberate, so a raw (technically public, since Vercel
+Blob doesn't support gated access) Blob URL is never handed to the
+browser. Every filesystem/Blob write is wrapped in `try/catch` returning a
+JSON 500, per the kids-heaven filesystem-writes pitfall.
+
+`MAX_UPLOAD_BYTES` is 4MB, not the RL-016 ticket's 10MB — Vercel's
+serverless functions cap request bodies around 4.5MB regardless of plan.
+`src/lib/compressImage.ts` resizes images to ~1200px client-side before
+upload (also completes RL-006's compression acceptance criterion, which
+Phase 1 had left unwired), so this rarely bites for photos; a large PDF
+receipt scan still can. See DEPLOY.md for the direct-to-Blob upload
+alternative if that limit becomes a real problem.
 
 ### Adding a route
 1. Create `src/app/api/<feature>/route.ts` (or `[id]/route.ts`)
@@ -138,12 +163,17 @@ sends **one** catch-up email, not one per threshold, and marks every
 reached-but-unsent field so none of them fire again later as a stale
 duplicate.
 
-`POST /api/cron/document-reminders` is not wired to a scheduler — nothing
-in this repo calls it. Point your platform's cron (Vercel Cron, a system
-crontab, GitHub Actions) at it with an `x-cron-secret: $CRON_SECRET`
-header. In-app badge (vehicle dashboard "Documents" link) and the historic-
-vehicle banner (`isHistoricVehicle()`, 30+ years old → informational only,
-doesn't change reminder math) are built; web push is not — only email.
+`/api/cron/document-reminders` (GET and POST, same handler) is wired to a
+real scheduler when deployed on Vercel: `vercel.json` runs it daily via
+Vercel Cron, which Vercel invokes with `GET` and an automatic
+`Authorization: Bearer $CRON_SECRET` header. Off Vercel, point your own
+scheduler (a crontab, GitHub Actions) at it with either that header or
+`x-cron-secret: $CRON_SECRET`. In-app badge (vehicle dashboard "Documents"
+link) and the historic-vehicle banner (`isHistoricVehicle()`, 30+ years
+old → informational only, doesn't change reminder math) are built; web
+push is not — only email, and only if `RESEND_API_KEY` is set (otherwise
+`sendEmail()` just logs to the console — fine for dev, a silent no-op for
+real users in production if you forget to set it).
 
 ## What's not built yet
 
@@ -206,7 +236,9 @@ criteria when picking these up):
    `src/__tests__/` for the shape.
 
 9. **`/api/cron/document-reminders` has no session** — it's a system
-   endpoint, gated by `x-cron-secret` against `CRON_SECRET`, not
+   endpoint, gated by `CRON_SECRET` (checked against either an
+   `Authorization: Bearer` header — what Vercel Cron sends automatically —
+   or `x-cron-secret`, for manual/non-Vercel callers), not
    `requireSession()`. Don't add a user-auth check to it; don't call it
    from client code either.
 
@@ -215,3 +247,11 @@ criteria when picking these up):
     `reminderNSentAt` fields only reset when `expiryDate` itself changes
     (`documents/[docId]/route.ts`), so a PATCH that touches other fields
     but not `expiryDate` correctly leaves them alone.
+
+11. **`DIRECT_URL` is required, not optional** — `prisma/schema.prisma`'s
+    `directUrl = env("DIRECT_URL")` throws "environment variable not
+    found" from any `prisma generate`/`migrate`/`studio` command if it's
+    unset, even locally where it can just repeat `DATABASE_URL` (no
+    pooler in front of the docker-compose Postgres). Don't remove it to
+    "simplify" local dev — that breaks the Neon/Vercel Postgres pooling
+    setup DEPLOY.md depends on.

@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PROJECT_TYPE_CONFIG, labelFor, type ProjectType } from '@/lib/projectType'
+import { compressImageIfNeeded } from '@/lib/compressImage'
 
 interface Photo {
   id: string
@@ -39,8 +40,9 @@ export default function TaskPhotos({
     setError(null)
     setUploading(true)
 
+    const compressed = await compressImageIfNeeded(file)
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', compressed)
     formData.append('photoType', photoType)
 
     const res = await fetch(`/api/vehicles/${vehicleId}/tasks/${taskId}/photos`, {

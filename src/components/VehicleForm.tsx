@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ProjectType } from '@/lib/projectType'
+import { compressImageIfNeeded } from '@/lib/compressImage'
 
 // RL-002: create a vehicle / project. Project type selector is prominent —
 // two large buttons, not a dropdown.
@@ -40,8 +41,9 @@ export default function VehicleForm() {
     }
 
     if (coverFile) {
+      const compressed = await compressImageIfNeeded(coverFile)
       const formData = new FormData()
-      formData.append('file', coverFile)
+      formData.append('file', compressed)
       await fetch(`/api/vehicles/${data.id}/cover-photo`, { method: 'POST', body: formData })
     }
 
