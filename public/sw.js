@@ -21,6 +21,30 @@ self.addEventListener('activate', (event) => {
   self.clients.claim()
 })
 
+// RL-023: shows a followed-project update. Payload is the JSON built by
+// src/lib/webpush.ts's sendPushNotification — {title, body, url}.
+self.addEventListener('push', (event) => {
+  let payload = { title: 'RigLog', body: 'A project you follow was updated.', url: '/' }
+  try {
+    if (event.data) payload = { ...payload, ...event.data.json() }
+  } catch {
+    // non-JSON payload — fall back to the default text above
+  }
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: '/icons/icon.svg',
+      data: { url: payload.url },
+    })
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = event.notification.data?.url || '/'
+  event.waitUntil(self.clients.openWindow(url))
+})
+
 self.addEventListener('fetch', (event) => {
   const { request } = event
   if (request.method !== 'GET') return // never cache mutating requests

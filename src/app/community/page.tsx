@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
 import { computeVehicleProgress } from '@/lib/vehicleProgress'
@@ -26,6 +28,7 @@ interface SearchParams {
   era?: string
   q?: string
   page?: string
+  following?: string
 }
 
 export default async function CommunityFeedPage({ searchParams }: { searchParams: SearchParams }) {
@@ -37,11 +40,17 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
   const q = searchParams.q?.trim() ?? ''
   const page = Math.max(1, Number(searchParams.page) || 1)
 
+  const session = await getServerSession(authOptions)
+  // RL-023: "Following" tab — only meaningful when logged in; falls back
+  // to the full feed for a logged-out visitor rather than erroring.
+  const followingOnly = searchParams.following === '1' && Boolean(session)
+
   const where = {
     isPublic: true,
     ...(type ? { projectType: type as ProjectType } : {}),
     ...(make ? { make: { contains: make, mode: 'insensitive' as const } } : {}),
     ...(country ? { owner: { location: { contains: country, mode: 'insensitive' as const } } } : {}),
+    ...(followingOnly ? { followers: { some: { followerUserId: session!.user.id } } } : {}),
     ...(q
       ? {
           OR: [
@@ -82,7 +91,7 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
   const pageItems = withComputedFields.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   function buildHref(overrides: Partial<SearchParams>) {
-    const merged = { type, make, country, status, era, q, ...overrides }
+    const merged = { type, make, country, status, era, q, following: followingOnly ? '1' : undefined, ...overrides }
     const params = new URLSearchParams()
     for (const [key, value] of Object.entries(merged)) {
       if (value) params.set(key, String(value))
@@ -95,9 +104,21 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
     <div className="min-h-screen bg-surface-muted">
       <div className="mx-auto max-w-5xl px-4 py-8">
         <h1 className="mb-1 text-2xl font-bold text-ink">Community builds</h1>
-        <p className="mb-6 text-sm text-ink-muted">Public off-road builds and restoration projects on RigLog.</p>
+        <p className="mb-4 text-sm text-ink-muted">Public off-road builds and restoration projects on RigLog.</p>
+
+        {session && (
+          <div className="mb-4 flex gap-2 text-sm">
+            <Link href={buildHref({ following: undefined, page: undefined })} className={`badge ${!followingOnly ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
+              All
+            </Link>
+            <Link href={buildHref({ following: '1', page: undefined })} className={`badge ${followingOnly ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
+              Following
+            </Link>
+          </div>
+        )}
 
         <form className="card mb-6 grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-6" method="get">
+          {followingOnly && <input type="hidden" name="following" value="1" />}
           <input type="text" name="q" defaultValue={q} placeholder="Search make, model, owner…" className="input sm:col-span-3 lg:col-span-2" />
           <select name="type" defaultValue={type ?? ''} className="input">
             <option value="">All types</option>
@@ -123,7 +144,9 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
         </form>
 
         {pageItems.length === 0 ? (
-          <p className="text-center text-sm text-ink-faint">No public builds match these filters yet.</p>
+          <p className="text-center text-sm text-ink-faint">
+            {followingOnly ? "You're not following any public projects yet." : 'No public builds match these filters yet.'}
+          </p>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {pageItems.map(({ vehicle, config, taskCount }) => (

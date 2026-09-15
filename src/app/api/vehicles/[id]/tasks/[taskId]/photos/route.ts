@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { isValidPhotoType } from '@/lib/projectType'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
+import { notifyFollowers } from '@/lib/followNotify'
 
 const FREE_TIER_PHOTOS_PER_TASK = 10
 
@@ -78,6 +79,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
         caption: typeof caption === 'string' ? caption : null,
       },
     })
+
+    await notifyFollowers(vehicle.id, `added new photos to "${task.name}"`)
 
     return NextResponse.json(photo, { status: 201 })
   } catch (e) {

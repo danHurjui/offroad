@@ -211,11 +211,22 @@ Phase 3 is in progress:
   session, indexed (`src/app/robots.ts`/`sitemap.ts`); the vehicle owner's
   `hidePublicCost` toggle and the `/api/uploads/[...path]` public-vehicle
   carve-out (see pitfall #6) both live here
+- RL-019 originality score (`src/lib/originality.ts`) — badge on the
+  dashboard and the public profile, restoration + Pro owner only
+- RL-020/021 shareable PNG cards (`src/lib/card.tsx`, `next/og`'s
+  `ImageResponse`) — off-road build card and restoration before/after
+  transformation card, both at `/dashboard/vehicles/[id]/card`, Pro-gated
+- RL-022 community feed (`/community`) — filters/search computed and
+  paginated in memory over a bounded fetch (see the page's own comment on
+  why, and its scale ceiling)
+- RL-023 follow a project (`Follow`/`PushSubscription` models,
+  `src/lib/followNotify.ts`, `src/lib/webpush.ts`) — email always works;
+  Web Push needs `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/
+  `NEXT_PUBLIC_VAPID_PUBLIC_KEY` set (DEPLOY.md "Configure Web Push") or
+  it silently no-ops per subscriber
 
 Not built — schema exists, routes/UI don't (see ticket IDs for acceptance
 criteria when picking these up):
-- RL-022 Community feed, RL-023 Follow (needs a new `Follow` model)
-- RL-019 Originality score, RL-020/021 Share cards
 - RL-024 Parts request (needs new schema)
 - RL-025–028 (Phase 4): native app, price alerts, trail GPS log, VIN decoder
 

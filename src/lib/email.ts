@@ -86,3 +86,11 @@ export function paymentFailedEmailHtml(billingUrl: string): string {
     <p><a href="${billingUrl}">Update payment method</a></p>
   `
 }
+
+export function followedProjectUpdateEmailHtml(input: { vehicleName: string; message: string; vehicleUrl: string }): string {
+  return `
+    <p><strong>${input.vehicleName}</strong>, a project you follow on RigLog, just ${input.message}.</p>
+    <p><a href="${input.vehicleUrl}">See what's new</a></p>
+    <p style="color:#888;font-size:12px">You're getting this because you follow this project. Turn it off any time in your RigLog account settings.</p>
+  `
+}

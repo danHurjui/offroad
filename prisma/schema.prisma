@@ -105,6 +105,11 @@ model User {
   /// eventually `customer.subscription.deleted`) is what actually revokes
   /// access, not a single failed charge.
   proPaymentFailedAt   DateTime?
+  /// RL-023: whether this user gets an email when a project they follow
+  /// completes a task or adds photos. Both default on; either channel
+  /// alone is a no-op if the user has no PushSubscription rows.
+  notifyFollowedEmail  Boolean      @default(true)
+  notifyFollowedPush   Boolean      @default(true)
   active               Boolean      @default(true)
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
@@ -115,6 +120,43 @@ model User {
   tasksAdded          Task[]                @relation("TaskAddedBy")
   invitesSent         ProjectCollaborator[] @relation("InvitedBy")
   collaboratorOn      ProjectCollaborator[] @relation("CollaboratorUser")
+  following           Follow[]              @relation("Follower")
+  pushSubscriptions   PushSubscription[]
+}
+
+/// RL-023: a user following a public project. Notifications (email/push,
+/// gated by the User-level toggles above) fire from
+/// src/lib/followNotify.ts when a followed vehicle completes a task or
+/// adds task photos.
+model Follow {
+  id             String   @id @default(cuid())
+  vehicleId      String
+  followerUserId String
+  createdAt      DateTime @default(now())
+
+  vehicle  Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  follower User    @relation("Follower", fields: [followerUserId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, followerUserId])
+  @@index([vehicleId])
+  @@index([followerUserId])
+}
+
+/// RL-023: one browser/device's Web Push subscription. A user can have
+/// several (multiple devices); each is notified independently, and a
+/// 404/410 response from the push service (src/lib/webpush.ts) means the
+/// subscription is dead and the row should be deleted, not retried.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 /// Links a Google-OAuth identity to a User, found-or-created by email at
@@ -185,6 +227,7 @@ model Vehicle {
   foundState    FoundState?
   documents     Document[]
   trailRuns     TrailRun[]
+  followers     Follow[]
 
   @@unique([ownerId, slug])
   @@index([ownerId])

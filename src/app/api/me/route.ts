@@ -20,6 +20,8 @@ export async function GET() {
       preferredMode: true,
       accountType: true,
       isPro: true,
+      notifyFollowedEmail: true,
+      notifyFollowedPush: true,
       createdAt: true,
     },
   })
@@ -50,6 +52,8 @@ export async function PATCH(req: NextRequest) {
       }
       data.preferredMode = body.preferredMode
     }
+    if (body.notifyFollowedEmail !== undefined) data.notifyFollowedEmail = Boolean(body.notifyFollowedEmail)
+    if (body.notifyFollowedPush !== undefined) data.notifyFollowedPush = Boolean(body.notifyFollowedPush)
 
     const updated = await prisma.user.update({
       where: { id: session.user.id },
@@ -62,6 +66,8 @@ export async function PATCH(req: NextRequest) {
         avatarUrl: true,
         isPublicProfile: true,
         preferredMode: true,
+        notifyFollowedEmail: true,
+        notifyFollowedPush: true,
       },
     })
 

@@ -116,6 +116,17 @@ Local dev: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
 prints a webhook secret for `STRIPE_WEBHOOK_SECRET` without registering a
 public endpoint.
 
+## 6.6 Configure Web Push (optional — RL-023 follow notifications)
+
+1. Run `npx web-push generate-vapid-keys` (no install needed, `npx` fetches
+   it on the fly).
+2. Set `VAPID_PUBLIC_KEY` and `NEXT_PUBLIC_VAPID_PUBLIC_KEY` to the printed
+   public key (both, identical value — see the comment in `.env.example`
+   for why), and `VAPID_PRIVATE_KEY` to the private key.
+3. Redeploy. Without these set, the "Enable push on this device" button in
+   Settings reports "not configured" and email notifications to followers
+   keep working on their own.
+
 ## Known free-tier constraints
 
 - **Uploads are capped at 4MB** (`MAX_UPLOAD_BYTES` in `src/lib/storage.ts`)

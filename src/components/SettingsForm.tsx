@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
+import { subscribeToPush, unsubscribeFromPush } from '@/lib/pushClient'
 
 interface Profile {
   displayName: string
@@ -12,6 +13,8 @@ interface Profile {
   isPro: boolean
   proPlan: 'MONTHLY' | 'ANNUAL' | 'LIFETIME' | null
   stripeCustomerId: string | null
+  notifyFollowedEmail: boolean
+  notifyFollowedPush: boolean
 }
 
 const PLAN_LABELS: Record<NonNullable<Profile['proPlan']>, string> = {
@@ -32,6 +35,9 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
   const [deleting, setDeleting] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
   const [portalError, setPortalError] = useState<string | null>(null)
+  const [notifyFollowedEmail, setNotifyFollowedEmail] = useState(profile.notifyFollowedEmail)
+  const [notifyFollowedPush, setNotifyFollowedPush] = useState(profile.notifyFollowedPush)
+  const [pushStatus, setPushStatus] = useState<string | null>(null)
 
   async function save(patch: Record<string, unknown>) {
     setSaved(false)
@@ -59,6 +65,22 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
     }
     const { url } = await res.json()
     window.location.href = url
+  }
+
+  async function onEnablePush() {
+    setPushStatus(null)
+    const result = await subscribeToPush()
+    if (result === 'subscribed') {
+      setNotifyFollowedPush(true)
+      save({ notifyFollowedPush: true })
+      setPushStatus('Push notifications enabled on this device.')
+    } else if (result === 'denied') {
+      setPushStatus('Notification permission was denied in your browser.')
+    } else if (result === 'unsupported') {
+      setPushStatus('Push notifications are not supported on this device/browser.')
+    } else {
+      setPushStatus('Push notifications are not configured on this server yet.')
+    }
   }
 
   async function onDeleteAccount() {
@@ -127,6 +149,39 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
             Upgrade to Pro
           </Link>
         )}
+      </div>
+
+      <div className="card space-y-3 p-6">
+        <h2 className="mb-1 font-semibold text-ink">Following notifications</h2>
+        <p className="text-sm text-ink-muted">Get notified when a project you follow completes a task or adds photos.</p>
+        <label className="flex items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={notifyFollowedEmail}
+            onChange={(e) => {
+              setNotifyFollowedEmail(e.target.checked)
+              save({ notifyFollowedEmail: e.target.checked })
+            }}
+          />
+          Email me
+        </label>
+        <label className="flex items-center gap-2 text-sm text-ink">
+          <input
+            type="checkbox"
+            checked={notifyFollowedPush}
+            onChange={(e) => {
+              const checked = e.target.checked
+              setNotifyFollowedPush(checked)
+              save({ notifyFollowedPush: checked })
+              if (!checked) unsubscribeFromPush()
+            }}
+          />
+          Push notify me
+        </label>
+        <button type="button" className="btn-secondary" onClick={onEnablePush}>
+          Enable push on this device
+        </button>
+        {pushStatus && <p className="text-sm text-ink-muted">{pushStatus}</p>}
       </div>
 
       <div className="card p-6">

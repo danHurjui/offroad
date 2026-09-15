@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
 import { toNumberOrNull } from '@/lib/serialize'
 import { computeOriginalityScore } from '@/lib/originality'
 import OriginalityBadge from '@/components/OriginalityBadge'
+import FollowButton from '@/components/FollowButton'
 
 // cache() dedupes this within one request — generateMetadata and the page
 // component both need it, and without this they'd each hit the DB.
@@ -89,6 +92,17 @@ export default async function PublicVehiclePage({
   const originalityScore =
     vehicle.projectType === 'RESTORATION' && owner.isPro ? computeOriginalityScore(tasks, completeStatus) : undefined
 
+  const session = await getServerSession(authOptions)
+  const isOwnerViewing = session?.user.id === owner.id
+  const [followerCount, isFollowing] = await Promise.all([
+    prisma.follow.count({ where: { vehicleId: vehicle.id } }),
+    session && !isOwnerViewing
+      ? prisma.follow
+          .findUnique({ where: { vehicleId_followerUserId: { vehicleId: vehicle.id, followerUserId: session.user.id } } })
+          .then(Boolean)
+      : Promise.resolve(false),
+  ])
+
   const grouped = new Map<string, typeof tasks>()
   for (const task of tasks) {
     if (!grouped.has(task.category)) grouped.set(task.category, [])
@@ -130,6 +144,12 @@ export default async function PublicVehiclePage({
               {owner.location ? ` · ${owner.location}` : ''}
             </p>
             {vehicle.engine && <p className="mt-1 text-sm text-ink-muted">{vehicle.engine}</p>}
+
+            {!isOwnerViewing && (
+              <div className="mt-3">
+                <FollowButton vehicleId={vehicle.id} initialFollowing={isFollowing} initialFollowerCount={followerCount} />
+              </div>
+            )}
 
             <div className="mt-4 flex flex-wrap gap-4">
               <div>

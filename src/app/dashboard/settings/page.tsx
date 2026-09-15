@@ -6,7 +6,16 @@ export default async function SettingsPage() {
   const session = await requireSessionOrRedirect()
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: session.user.id },
-    select: { displayName: true, location: true, isPublicProfile: true, isPro: true, proPlan: true, stripeCustomerId: true },
+    select: {
+      displayName: true,
+      location: true,
+      isPublicProfile: true,
+      isPro: true,
+      proPlan: true,
+      stripeCustomerId: true,
+      notifyFollowedEmail: true,
+      notifyFollowedPush: true,
+    },
   })
 
   return (

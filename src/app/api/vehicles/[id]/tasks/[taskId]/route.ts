@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
-import { isValidTaskVocabulary } from '@/lib/projectType'
+import { isValidTaskVocabulary, PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { serializeTask } from '@/lib/serialize'
+import { notifyFollowers } from '@/lib/followNotify'
 
 async function loadTask(vehicleId: string, taskId: string) {
   const task = await prisma.task.findUnique({ where: { id: taskId }, include: { photos: true } })
@@ -96,6 +97,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     const updated = await prisma.task.update({ where: { id: task.id }, data, include: { photos: true } })
+
+    // RL-023: notify followers only on the transition into "complete" —
+    // not on every edit of an already-complete task.
+    const completeStatus = PROJECT_TYPE_CONFIG[vehicle.projectType].completeStatus
+    if (updated.status === completeStatus && task.status !== completeStatus) {
+      await notifyFollowers(vehicle.id, `marked "${updated.name}" as done`)
+    }
+
     return NextResponse.json(serializeTask(updated))
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
