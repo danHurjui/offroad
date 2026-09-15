@@ -48,6 +48,15 @@ export function serializeWishlistItem<T extends WishlistItemLike>(item: T) {
   }
 }
 
+interface TrailRunLike {
+  distanceKm: Decimal | number | null
+  [key: string]: unknown
+}
+
+export function serializeTrailRun<T extends TrailRunLike>(run: T) {
+  return { ...run, distanceKm: toNumberOrNull(run.distanceKm) }
+}
+
 interface WishlistPriceEntryLike {
   priceRon: Decimal | number
   [key: string]: unknown

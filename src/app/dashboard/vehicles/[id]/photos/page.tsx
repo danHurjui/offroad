@@ -4,6 +4,7 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
+import TrailThumbnail from '@/components/TrailThumbnail'
 
 // RL-007: photo timeline — full project visual log, filterable.
 export default async function PhotosTimelinePage({
@@ -19,16 +20,27 @@ export default async function PhotosTimelinePage({
 
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
   const order = searchParams.order === 'oldest' ? 'asc' : 'desc'
+  const isOwner = vehicle.ownerId === session.user.id
+  const noFiltersActive = !searchParams.photoType && !searchParams.category
 
-  const photos = await prisma.taskPhoto.findMany({
-    where: {
-      vehicleId: vehicle.id,
-      ...(searchParams.photoType ? { photoType: searchParams.photoType } : {}),
-      ...(searchParams.category ? { task: { category: searchParams.category } } : {}),
-    },
-    orderBy: { createdAt: order },
-    include: { task: { select: { id: true, name: true, category: true } } },
-  })
+  const [photos, trailRuns] = await Promise.all([
+    prisma.taskPhoto.findMany({
+      where: {
+        vehicleId: vehicle.id,
+        ...(searchParams.photoType ? { photoType: searchParams.photoType } : {}),
+        ...(searchParams.category ? { task: { category: searchParams.category } } : {}),
+      },
+      orderBy: { createdAt: order },
+      include: { task: { select: { id: true, name: true, category: true } } },
+    }),
+    // RL-027: trail runs surface here too, but only alongside the
+    // unfiltered view — they have no photoType/category of their own to
+    // filter by, so mixing them into a filtered result would be
+    // misleading about what "All types"/"All categories" actually means.
+    isOwner && vehicle.projectType === 'OFFROAD' && noFiltersActive
+      ? prisma.trailRun.findMany({ where: { vehicleId: vehicle.id }, orderBy: { date: order } })
+      : Promise.resolve([]),
+  ])
 
   const vehicleId = vehicle.id
   function filterUrl(overrides: Record<string, string | undefined>) {
@@ -92,6 +104,26 @@ export default async function PhotosTimelinePage({
               </span>
             </Link>
           ))}
+        </div>
+      )}
+
+      {trailRuns.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">Trail runs</h2>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {trailRuns.map((run) => (
+              <Link
+                key={run.id}
+                href={`/dashboard/vehicles/${vehicle.id}/trail-log/${run.id}`}
+                className="group relative block aspect-square overflow-hidden rounded-lg bg-surface-subtle"
+              >
+                <TrailThumbnail track={(run.trackGeoJson as { lat: number; lng: number }[] | null) ?? []} className="h-full w-full" />
+                <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5 text-[11px] text-white">
+                  {run.name}
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
     </div>

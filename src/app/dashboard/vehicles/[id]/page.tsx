@@ -137,6 +137,11 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
               VIN decoder
             </Link>
           )}
+          {isOwner && vehicle.projectType === 'OFFROAD' && (
+            <Link href={`/dashboard/vehicles/${vehicle.id}/trail-log`} className="btn-secondary">
+              Trail log
+            </Link>
+          )}
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/collaborators`} className="btn-secondary">
               Collaborators

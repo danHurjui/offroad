@@ -452,21 +452,60 @@ model WishlistPriceEntry {
   @@index([wishlistItemId])
 }
 
-/// Off-road only — RL-027 (Phase 4). Schema-ready; not built.
+/// Off-road only — RL-027 (Phase 4). GPS track recorded client-side via
+/// the browser Geolocation API (foreground only — a PWA has no "always"
+/// background location permission the way a native app does; recording
+/// stops if the tab is backgrounded/closed, which is disclosed in the
+/// recorder UI rather than silently losing data). trackGeoJson is an
+/// array of {lat, lng, altitude?, timestamp} points, computed
+/// client-side (src/lib/trailTrack.ts) into distanceKm/elevationGainM
+/// before the run is saved; durationMin is tracked separately from
+/// start/pause/resume/stop timestamps (not derived from track points),
+/// so paused time is correctly excluded.
 model TrailRun {
-  id          String   @id @default(cuid())
-  vehicleId   String
-  name        String
-  date        DateTime
-  location    String?
-  distanceKm  Decimal? @db.Decimal(6, 2)
-  durationMin Int?
-  notes       String?
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  vehicleId      String
+  name           String
+  date           DateTime
+  location       String?
+  distanceKm     Decimal? @db.Decimal(6, 2)
+  durationMin    Int?
+  /// Null when no point in the track carried a usable altitude reading —
+  /// common on devices/browsers that don't expose GPS altitude. Never
+  /// estimated or defaulted to 0.
+  elevationGainM Int?
+  /// The recorded points. Rendered as a client-side SVG polyline
+  /// thumbnail (src/components/TrailThumbnail.tsx) rather than a
+  /// captured raster "map screenshot" — this stack has no static-maps
+  /// API key (see the Leaflet/OSM substitution note on the map
+  /// component), so the thumbnail is computed from this data instead of
+  /// a separately stored image file.
+  trackGeoJson   Json?
+  notes          String?
+  createdAt      DateTime @default(now())
 
-  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle         @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  waypoints TrailWaypoint[]
 
   @@index([vehicleId])
+}
+
+/// A manually-dropped point during a trail run recording (RL-027) — a
+/// note and/or photo at a specific spot, distinct from the continuous
+/// GPS track itself.
+model TrailWaypoint {
+  id         String   @id @default(cuid())
+  trailRunId String
+  lat        Float
+  lng        Float
+  note       String?
+  photoUrl   String?
+  recordedAt DateTime
+  createdAt  DateTime @default(now())
+
+  trailRun TrailRun @relation(fields: [trailRunId], references: [id], onDelete: Cascade)
+
+  @@index([trailRunId])
 }
 
 /// ITP/RCA/CASCO/Rovinieta reminders, both modes — RL-013. Reminders fire
