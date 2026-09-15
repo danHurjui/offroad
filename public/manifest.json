@@ -1,0 +1,12 @@
+{
+  "name": "RigLog",
+  "short_name": "RigLog",
+  "description": "Off-road build tracker & restoration journal",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#FAF7F3",
+  "theme_color": "#F2560F",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

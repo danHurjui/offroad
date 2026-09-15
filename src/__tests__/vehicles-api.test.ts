@@ -1,0 +1,96 @@
+jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
+jest.mock('@/lib/auth', () => ({ authOptions: {} }))
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    vehicle: { findMany: jest.fn(), count: jest.fn(), create: jest.fn() },
+    user: { findUnique: jest.fn() },
+  },
+}))
+
+import { getServerSession } from 'next-auth'
+import { prisma } from '@/lib/prisma'
+import { GET, POST } from '@/app/api/vehicles/route'
+
+const mockGetSession = getServerSession as jest.Mock
+const mockFindMany = prisma.vehicle.findMany as jest.Mock
+const mockCount = prisma.vehicle.count as jest.Mock
+const mockCreate = prisma.vehicle.create as jest.Mock
+const mockUserFindUnique = prisma.user.findUnique as jest.Mock
+
+function makePostReq(body: unknown) {
+  return { json: () => Promise.resolve(body) } as never
+}
+
+beforeEach(() => jest.clearAllMocks())
+
+describe('GET /api/vehicles', () => {
+  it('returns 401 when not authenticated', async () => {
+    mockGetSession.mockResolvedValue(null)
+    const res = await GET()
+    expect(res.status).toBe(401)
+  })
+
+  it('returns owned and collaborating vehicles', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockFindMany.mockResolvedValueOnce([{ id: 'v1' }]).mockResolvedValueOnce([{ id: 'v2' }])
+    const res = await GET()
+    const data = await res.json()
+    expect(res.status).toBe(200)
+    expect(data.owned).toEqual([{ id: 'v1' }])
+    expect(data.collaborating).toEqual([{ id: 'v2' }])
+  })
+})
+
+describe('POST /api/vehicles', () => {
+  it('returns 401 when not authenticated', async () => {
+    mockGetSession.mockResolvedValue(null)
+    const res = await POST(makePostReq({}))
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 400 for an invalid projectType', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    const res = await POST(makePostReq({ projectType: 'SUPABASE', make: 'Jeep', model: 'TJ', year: 2000 }))
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 400 for an out-of-range year', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    const res = await POST(makePostReq({ projectType: 'OFFROAD', make: 'Jeep', model: 'TJ', year: 1800 }))
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 403 with UPGRADE_REQUIRED when free tier already has 1 vehicle', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockUserFindUnique.mockResolvedValue({ isPro: false })
+    mockCount.mockResolvedValue(1)
+    const res = await POST(makePostReq({ projectType: 'OFFROAD', make: 'Jeep', model: 'TJ', year: 2000 }))
+    const data = await res.json()
+    expect(res.status).toBe(403)
+    expect(data.code).toBe('UPGRADE_REQUIRED')
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  it('allows a second vehicle for Pro users', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockUserFindUnique.mockResolvedValue({ isPro: true })
+    mockCreate.mockResolvedValue({ id: 'v2' })
+    const res = await POST(makePostReq({ projectType: 'OFFROAD', make: 'Jeep', model: 'TJ', year: 2000 }))
+    expect(res.status).toBe(201)
+    expect(mockCount).not.toHaveBeenCalled()
+  })
+
+  it('creates a vehicle for a free user with no existing vehicles', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockUserFindUnique.mockResolvedValue({ isPro: false })
+    mockCount.mockResolvedValue(0)
+    mockCreate.mockResolvedValue({ id: 'v1', ownerId: 'u1', projectType: 'OFFROAD' })
+    const res = await POST(makePostReq({ projectType: 'OFFROAD', make: 'Jeep', model: 'TJ', year: 2000 }))
+    const data = await res.json()
+    expect(res.status).toBe(201)
+    expect(data.id).toBe('v1')
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ ownerId: 'u1', projectType: 'OFFROAD' }) })
+    )
+  })
+})

@@ -1,0 +1,126 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { requireSession } from '@/lib/authz'
+import { requireVehicleAccess } from '@/lib/access'
+import { isValidTaskVocabulary } from '@/lib/projectType'
+import { serializeTask } from '@/lib/serialize'
+
+async function loadTask(vehicleId: string, taskId: string) {
+  const task = await prisma.task.findUnique({ where: { id: taskId }, include: { photos: true } })
+  if (!task || task.vehicleId !== vehicleId) return null
+  return task
+}
+
+// RL-005: task detail view.
+export async function GET(_req: NextRequest, { params }: { params: { id: string; taskId: string } }) {
+  const auth = await requireSession()
+  if (!auth.ok) return auth.error
+  const { session } = auth
+
+  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const task = await loadTask(params.id, params.taskId)
+  if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  return NextResponse.json(serializeTask(task))
+}
+
+// RL-004: edit. Collaborators may only edit tasks they added (CLAUDE.md
+// "collaborator access is read-mostly").
+export async function PATCH(req: NextRequest, { params }: { params: { id: string; taskId: string } }) {
+  const auth = await requireSession()
+  if (!auth.ok) return auth.error
+  const { session } = auth
+
+  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const task = await loadTask(params.id, params.taskId)
+  if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const isOwner = vehicle.ownerId === session.user.id
+  if (!isOwner && task.addedByUserId !== session.user.id) {
+    return NextResponse.json({ error: 'You can only edit tasks you added' }, { status: 403 })
+  }
+
+  try {
+    const body = await req.json()
+    const data: Record<string, unknown> = {}
+
+    if (body.name !== undefined) data.name = String(body.name)
+    if (body.brand !== undefined) data.brand = body.brand || null
+    if (body.category !== undefined || body.status !== undefined) {
+      const category = body.category ?? task.category
+      const status = body.status ?? task.status
+      if (!isValidTaskVocabulary(vehicle.projectType, category, status)) {
+        return NextResponse.json({ error: 'Invalid category/status for this project type' }, { status: 400 })
+      }
+      data.category = category
+      data.status = status
+    }
+    if (body.date !== undefined) {
+      if (Number.isNaN(new Date(body.date).getTime())) {
+        return NextResponse.json({ error: 'Invalid date' }, { status: 400 })
+      }
+      data.date = new Date(body.date)
+    }
+    if (body.notes !== undefined) data.notes = body.notes || null
+    if (body.supplierUrl !== undefined) data.supplierUrl = body.supplierUrl || null
+    if (body.originalityCondition !== undefined) data.originalityCondition = body.originalityCondition || null
+
+    if (body.workType !== undefined) {
+      const resolvedWorkType = body.workType === 'WORKSHOP' ? 'WORKSHOP' : 'DIY'
+      data.workType = resolvedWorkType
+      if (resolvedWorkType === 'WORKSHOP') {
+        if (!body.workshopName && !task.workshopName) {
+          return NextResponse.json({ error: 'workshopName is required when work type is Workshop' }, { status: 400 })
+        }
+        data.workshopName = body.workshopName ?? task.workshopName
+        data.workshopContact = body.workshopContact ?? task.workshopContact
+        data.partsCostRon = body.partsCostRon != null ? Number(body.partsCostRon) : task.partsCostRon
+        data.labourCostRon = body.labourCostRon != null ? Number(body.labourCostRon) : task.labourCostRon
+        data.costRon = null
+      } else {
+        data.workshopName = null
+        data.workshopContact = null
+        data.partsCostRon = null
+        data.labourCostRon = null
+        data.costRon = body.costRon != null ? Number(body.costRon) : task.costRon
+      }
+    } else if (body.costRon !== undefined && task.workType === 'DIY') {
+      data.costRon = body.costRon != null ? Number(body.costRon) : null
+    } else if ((body.partsCostRon !== undefined || body.labourCostRon !== undefined) && task.workType === 'WORKSHOP') {
+      if (body.partsCostRon !== undefined) data.partsCostRon = body.partsCostRon != null ? Number(body.partsCostRon) : null
+      if (body.labourCostRon !== undefined) data.labourCostRon = body.labourCostRon != null ? Number(body.labourCostRon) : null
+    }
+
+    const updated = await prisma.task.update({ where: { id: task.id }, data, include: { photos: true } })
+    return NextResponse.json(serializeTask(updated))
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// Delete is owner-only (CLAUDE.md pitfall #4 / RL-031 DB-level rule).
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string; taskId: string } }) {
+  const auth = await requireSession()
+  if (!auth.ok) return auth.error
+  const { session } = auth
+
+  const vehicle = await requireVehicleAccess(params.id, session.user.id)
+  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (vehicle.ownerId !== session.user.id) {
+    return NextResponse.json({ error: 'Only the owner can delete a task' }, { status: 403 })
+  }
+
+  const task = await loadTask(params.id, params.taskId)
+  if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  try {
+    await prisma.task.delete({ where: { id: task.id } })
+    return NextResponse.json({ message: 'Task deleted' })
+  } catch {
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}

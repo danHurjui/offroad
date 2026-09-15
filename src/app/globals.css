@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #FAF7F3;
+  --foreground: #1B1712;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #15120E;
+    --foreground: #F1ECE4;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+.btn {
+  @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+.btn-primary {
+  @apply btn bg-brand-500 text-white hover:bg-brand-600;
+}
+.btn-secondary {
+  @apply btn bg-surface-subtle text-ink hover:bg-surface-border;
+}
+.btn-danger {
+  @apply btn bg-red-600 text-white hover:bg-red-700;
+}
+.card {
+  @apply rounded-xl border border-surface-border bg-surface shadow-card;
+}
+.input {
+  @apply w-full rounded-lg border border-surface-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200;
+}
+.label {
+  @apply mb-1 block text-sm font-medium text-ink-muted;
+}
+.badge {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+}
