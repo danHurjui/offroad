@@ -14,6 +14,12 @@ interface ProjectTypeConfig {
   screenTitle: string
   progressLabel: string
   addTaskCta: string
+  /**
+   * Placeholder on the task form's name field. A worked example of what a
+   * "task" means in this mode does more than any amount of help text — the
+   * word itself means something different in each one.
+   */
+  namePlaceholder: string
   wishlistLabel: string
   communityTabLabel: string
   statusTags: Option[]
@@ -44,6 +50,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     screenTitle: 'My Build',
     progressLabel: 'Build progress',
     addTaskCta: '+ Add modification',
+    namePlaceholder: 'e.g. 2" lift kit + shocks',
     wishlistLabel: 'Wishlist',
     communityTabLabel: 'Builds',
     statusTags: [
@@ -85,6 +92,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     screenTitle: 'My Restoration',
     progressLabel: 'Restoration progress',
     addTaskCta: '+ Add task / stage',
+    namePlaceholder: 'e.g. Strip and re-chrome front bumper',
     wishlistLabel: 'Parts hunt',
     communityTabLabel: 'Restorations',
     statusTags: [
@@ -133,6 +141,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     screenTitle: 'My Car',
     progressLabel: 'Jobs logged',
     addTaskCta: '+ Log a repair',
+    namePlaceholder: 'e.g. Front brake pads and discs',
     wishlistLabel: 'Planned work',
     communityTabLabel: 'Daily drivers',
     statusTags: [

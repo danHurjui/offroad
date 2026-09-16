@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts'
 import { useChartTheme } from './useChartTheme'
+import FormError from './FormError'
 
 interface Item {
   id: string
@@ -92,9 +93,12 @@ export default function WishlistPriceAlert({
         <div className="flex gap-2">
           <input
             id="targetPriceRon"
+            name="targetPriceRon"
             type="number"
             step="0.01"
             min="0"
+            inputMode="decimal"
+            autoComplete="off"
             className="input"
             value={targetPriceRon}
             onChange={(e) => setTargetPriceRon(e.target.value)}
@@ -155,24 +159,33 @@ export default function WishlistPriceAlert({
         <span className="label">I found it at this price</span>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <input
+            id="newPrice"
+            name="newPrice"
             type="number"
             step="0.01"
             min="0.01"
+            inputMode="decimal"
+            autoComplete="off"
             className="input"
             placeholder="Price (RON)"
+            aria-label="Price in RON"
             value={newPrice}
             onChange={(e) => setNewPrice(e.target.value)}
             required
           />
           <input
+            id="newNote"
+            name="newNote"
             type="text"
             className="input"
             placeholder="Note (optional) — e.g. emag.ro"
+            aria-label="Note about where you found this price"
+            autoComplete="off"
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
           />
         </div>
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        <FormError>{error}</FormError>
         <button type="submit" className="btn-primary w-full" disabled={logging}>
           {logging ? 'Logging…' : 'Log price'}
         </button>

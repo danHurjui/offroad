@@ -101,7 +101,10 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           <label className="label" htmlFor="displayName">Display name</label>
           <input
             id="displayName"
+            name="displayName"
             className="input"
+            autoComplete="name"
+            autoCapitalize="words"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             onBlur={() => save({ displayName })}
@@ -111,8 +114,11 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           <label className="label" htmlFor="location">Location</label>
           <input
             id="location"
+            name="location"
             className="input"
             placeholder="City, Country"
+            autoComplete="address-level2"
+            autoCapitalize="words"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             onBlur={() => save({ location })}

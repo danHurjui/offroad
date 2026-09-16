@@ -70,8 +70,12 @@ export default function PartsRequestComments({
       {status === 'authenticated' ? (
         <form onSubmit={onSubmit} className="space-y-2">
           <textarea
+            id="parts-reply"
+            name="parts-reply"
+            aria-label="Reply to this parts request"
             className="input"
             rows={3}
+            autoCapitalize="sentences"
             placeholder="Know where to find this part? Reply here."
             value={body}
             onChange={(e) => setBody(e.target.value)}

@@ -6,6 +6,10 @@ import { PART_CONDITIONS } from '@/lib/projectType'
 
 // RL-024: parts request form — Pro-gated server-side; this component
 // assumes the caller already confirmed the viewer is Pro and logged in.
+import FormError from './FormError'
+import AutocompleteInput from './AutocompleteInput'
+import { ALL_MAKES, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
+
 export default function PartsRequestForm() {
   const router = useRouter()
   const [form, setForm] = useState({
@@ -44,19 +48,54 @@ export default function PartsRequestForm() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
           <label className="label" htmlFor="vehicleMake">Vehicle make</label>
-          <input id="vehicleMake" className="input" value={form.vehicleMake} onChange={(e) => setForm({ ...form, vehicleMake: e.target.value })} required />
+          <AutocompleteInput
+            id="vehicleMake"
+            value={form.vehicleMake}
+            onChange={(vehicleMake) => setForm({ ...form, vehicleMake })}
+            suggestions={ALL_MAKES}
+            autoCapitalize="words"
+            autoFocus
+            required
+          />
         </div>
         <div>
           <label className="label" htmlFor="vehicleModel">Vehicle model</label>
-          <input id="vehicleModel" className="input" value={form.vehicleModel} onChange={(e) => setForm({ ...form, vehicleModel: e.target.value })} required />
+          <AutocompleteInput
+            id="vehicleModel"
+            value={form.vehicleModel}
+            onChange={(vehicleModel) => setForm({ ...form, vehicleModel })}
+            suggestions={modelSuggestionsFor(form.vehicleMake)}
+            autoCapitalize="words"
+            required
+          />
         </div>
         <div>
           <label className="label" htmlFor="partName">Part name</label>
-          <input id="partName" className="input" value={form.partName} onChange={(e) => setForm({ ...form, partName: e.target.value })} required />
+          <input
+            id="partName"
+            name="partName"
+            className="input"
+            value={form.partName}
+            onChange={(e) => setForm({ ...form, partName: e.target.value })}
+            placeholder="e.g. Front left wing"
+            autoComplete="off"
+            autoCapitalize="sentences"
+            required
+          />
         </div>
         <div>
           <label className="label" htmlFor="partNumber">Part number (optional)</label>
-          <input id="partNumber" className="input" value={form.partNumber} onChange={(e) => setForm({ ...form, partNumber: e.target.value })} />
+          <input
+            id="partNumber"
+            name="partNumber"
+            className="input font-mono"
+            value={form.partNumber}
+            onChange={(e) => setForm({ ...form, partNumber: e.target.value })}
+            placeholder="OEM reference, if known"
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+          />
         </div>
         <div>
           <label className="label" htmlFor="conditionAccepted">Condition accepted</label>
@@ -70,8 +109,11 @@ export default function PartsRequestForm() {
           <label className="label" htmlFor="location">Location / willing to ship</label>
           <input
             id="location"
+            name="location"
             className="input"
             placeholder="e.g. Cluj, willing to ship nationwide"
+            autoComplete="address-level2"
+            autoCapitalize="words"
             value={form.location}
             onChange={(e) => setForm({ ...form, location: e.target.value })}
             required
@@ -82,13 +124,15 @@ export default function PartsRequestForm() {
         <label className="label" htmlFor="description">Description (optional)</label>
         <textarea
           id="description"
+          name="description"
           className="input"
+          autoCapitalize="sentences"
           rows={4}
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
         />
       </div>
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      <FormError>{error}</FormError>
       <button type="submit" className="btn-primary w-full" disabled={loading}>
         {loading ? 'Posting…' : 'Post request'}
       </button>

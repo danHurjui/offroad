@@ -77,8 +77,14 @@ export default function TicketComments({
       {signedIn ? (
         <form onSubmit={onSubmit} className="card space-y-3 p-4">
           <textarea
+            id="ticket-comment"
+            name="ticket-comment"
+            // Placeholder-only fields have no accessible name once the
+            // placeholder disappears on the first keystroke.
+            aria-label="Add a comment"
             className="input"
             rows={3}
+            autoCapitalize="sentences"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             maxLength={TICKET_COMMENT_MAX}

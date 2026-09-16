@@ -25,6 +25,8 @@ const STATUS_STYLES: Record<CollaboratorRow['status'], string> = {
 // RL-030/031: invite form + list with resend (PENDING) / revoke
 // (PENDING or ACTIVE) actions. REMOVED rows stay visible read-only — past
 // collaborators, not deleted.
+import FormError from './FormError'
+
 export default function CollaboratorsBoard({
   vehicleId,
   collaborators: initialCollaborators,
@@ -101,8 +103,13 @@ export default function CollaboratorsBoard({
             <label className="label" htmlFor="email">Email</label>
             <input
               id="email"
+              name="email"
               type="email"
               className="input"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="off"
+              spellCheck={false}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -112,9 +119,12 @@ export default function CollaboratorsBoard({
             <label className="label" htmlFor="label">Label (optional)</label>
             <input
               id="label"
+              name="label"
               type="text"
               className="input"
               placeholder="e.g. Ionescu Auto"
+              autoComplete="off"
+              autoCapitalize="words"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
             />
@@ -127,7 +137,7 @@ export default function CollaboratorsBoard({
             <option value="SPECIALIST">Specialist</option>
           </select>
         </div>
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        <FormError>{error}</FormError>
         <button type="submit" className="btn-primary" disabled={inviting}>
           {inviting ? 'Sending…' : 'Send invite'}
         </button>

@@ -152,6 +152,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                   <input
                     type="date"
                     className="input w-auto"
+                    aria-label={`New expiry date for ${labelFor(DOCUMENT_TYPE_OPTIONS, doc.type)}`}
                     value={renewDrafts[doc.id] ?? ''}
                     onChange={(e) => setRenewDrafts((prev) => ({ ...prev, [doc.id]: e.target.value }))}
                   />

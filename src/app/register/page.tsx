@@ -4,6 +4,10 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import FormError from '@/components/FormError'
+import PasswordInput from '@/components/PasswordInput'
+import PasswordStrengthMeter from '@/components/PasswordStrengthMeter'
+import { MIN_PASSWORD_LENGTH } from '@/lib/passwordStrength'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -54,41 +58,62 @@ export default function RegisterPage() {
             <label className="label" htmlFor="displayName">Name</label>
             <input
               id="displayName"
+              name="displayName"
               type="text"
               className="input"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
+              autoComplete="name"
+              autoCapitalize="words"
+              enterKeyHint="next"
+              autoFocus
               required
             />
+            <p className="mt-1 text-xs text-ink-faint">Shown on your public builds.</p>
           </div>
           <div>
             <label className="label" htmlFor="email">Email</label>
             <input
               id="email"
+              name="email"
               type="email"
               className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              inputMode="email"
+              enterKeyHint="next"
+              autoCapitalize="off"
+              spellCheck={false}
               required
             />
           </div>
           <div>
-            <label className="label" htmlFor="password">Password</label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
-              className="input"
+              label="Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={8}
-              required
+              onChange={setPassword}
+              autoComplete="new-password"
+              minLength={MIN_PASSWORD_LENGTH}
+              describedBy="password-strength"
             />
-            <p className="mt-1 text-xs text-ink-faint">At least 8 characters.</p>
+            <PasswordStrengthMeter password={password} id="password-strength" />
+            {!password && (
+              <p className="mt-1 text-xs text-ink-faint">At least {MIN_PASSWORD_LENGTH} characters.</p>
+            )}
           </div>
-          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+          <FormError id="register-error">{error}</FormError>
           <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? 'Creating account…' : 'Create account'}
           </button>
+          <p className="text-center text-xs text-ink-faint">
+            By creating an account you agree to our{' '}
+            <Link href="/privacy" className="underline hover:text-ink-muted">
+              privacy policy
+            </Link>
+            .
+          </p>
         </form>
 
         <p className="mt-4 text-center text-sm">

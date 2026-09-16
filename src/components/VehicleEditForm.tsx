@@ -2,9 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import AutocompleteInput from './AutocompleteInput'
+import FormError from './FormError'
+import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
+import type { ProjectType } from '@/lib/projectType'
 
 interface Vehicle {
   id: string
+  // Not editable (pitfall #2 — it would orphan every task's vocabulary);
+  // it is here only to pick the right make suggestions.
+  projectType: ProjectType
   make: string
   model: string
   year: number
@@ -69,27 +76,79 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="make">Make</label>
-            <input id="make" className="input" value={form.make} onChange={(e) => setForm({ ...form, make: e.target.value })} required />
+            <AutocompleteInput
+              id="make"
+              value={form.make}
+              onChange={(make) => setForm({ ...form, make })}
+              suggestions={MAKE_SUGGESTIONS[vehicle.projectType]}
+              autoCapitalize="words"
+              required
+            />
           </div>
           <div>
             <label className="label" htmlFor="model">Model</label>
-            <input id="model" className="input" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} required />
+            <AutocompleteInput
+              id="model"
+              value={form.model}
+              onChange={(model) => setForm({ ...form, model })}
+              suggestions={modelSuggestionsFor(form.make)}
+              autoCapitalize="words"
+              required
+            />
           </div>
           <div>
             <label className="label" htmlFor="year">Year</label>
-            <input id="year" type="number" className="input" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} required />
+            <input
+              id="year"
+              name="year"
+              type="number"
+              className="input"
+              value={form.year}
+              onChange={(e) => setForm({ ...form, year: e.target.value })}
+              min={1886}
+              max={new Date().getFullYear() + 1}
+              step={1}
+              inputMode="numeric"
+              required
+            />
           </div>
           <div>
             <label className="label" htmlFor="generation">Generation</label>
-            <input id="generation" className="input" value={form.generation} onChange={(e) => setForm({ ...form, generation: e.target.value })} />
+            <input
+              id="generation"
+              name="generation"
+              className="input"
+              value={form.generation}
+              onChange={(e) => setForm({ ...form, generation: e.target.value })}
+              autoComplete="off"
+            />
           </div>
           <div>
             <label className="label" htmlFor="engine">Engine</label>
-            <input id="engine" className="input" value={form.engine} onChange={(e) => setForm({ ...form, engine: e.target.value })} />
+            <input
+              id="engine"
+              name="engine"
+              className="input"
+              value={form.engine}
+              onChange={(e) => setForm({ ...form, engine: e.target.value })}
+              autoComplete="off"
+            />
           </div>
           <div>
             <label className="label" htmlFor="vin">VIN / chassis number</label>
-            <input id="vin" className="input" value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} />
+            {/* VINs are 17 uppercase alphanumerics with no I/O/Q; uppercasing
+                as you type saves a round of "why won't it decode?". */}
+            <input
+              id="vin"
+              name="vin"
+              className="input font-mono uppercase"
+              value={form.vin}
+              onChange={(e) => setForm({ ...form, vin: e.target.value.toUpperCase() })}
+              maxLength={17}
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+            />
           </div>
         </div>
 
@@ -135,7 +194,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
           Hide cost totals from collaborators
         </label>
 
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        <FormError>{error}</FormError>
         <button type="submit" className="btn-primary w-full" disabled={loading}>
           {loading ? 'Saving…' : 'Save changes'}
         </button>
