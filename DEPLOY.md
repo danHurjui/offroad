@@ -61,8 +61,9 @@ Project Settings → Environment Variables:
 | `NEXTAUTH_SECRET` | `openssl rand -base64 32` |
 | `NEXTAUTH_URL` | `https://<your-project>.vercel.app` (or custom domain) — see note below |
 | `CRON_SECRET` | Another random string (`openssl rand -base64 32`) |
-| `RESEND_API_KEY` | **Required for password reset to work at all** — from [resend.com](https://resend.com) (free tier). Without it, `/forgot-password` now refuses with a 503 rather than silently pretending to send; document-reminder and follow emails are dropped with an error in the function log. |
-| `EMAIL_FROM` | e.g. `RigLog <no-reply@yourdomain.com>`. **The domain must be verified in Resend**, or every send is rejected with a 403. The default is `no-reply@riglog.ro`, which will fail unless you own and have verified that domain. |
+| `BREVO_API_KEY` | **Required for password reset to work at all** (or `RESEND_API_KEY` instead) — from [brevo.com](https://brevo.com), free tier. Brevo lets you verify a single sender address, so it works without owning a domain. Without any provider key, `/forgot-password` refuses with a 503 rather than silently pretending to send; document-reminder and follow emails are dropped with an error in the function log. |
+| `RESEND_API_KEY` | Alternative to Brevo — requires a verified *domain*. If both keys are set, **Brevo is used**. |
+| `EMAIL_FROM` | e.g. `RigLog <no-reply@yourdomain.com>`. Must be a sender you have **verified with whichever provider you use** — on Brevo that can be a single address (a Gmail, say); on Resend it must be a domain. The default is `no-reply@riglog.ro`, which will fail unless you own and have verified that domain. |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional — Google OAuth login |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_ANNUAL`, `STRIPE_PRICE_LIFETIME` | Optional — Pro upgrade (RL-017). Without `STRIPE_SECRET_KEY`, `/dashboard/upgrade` checkout requests fail with a 500; the rest of the app works fine without it. See step 6.5 below. |
 
@@ -153,22 +154,24 @@ The reset flow itself (token → link → new password) is covered by tests;
 in practice a missing email is almost always one of these three, in order
 of likelihood:
 
-1. **`RESEND_API_KEY` is not set.** `/forgot-password` answers `503` with
+1. **No provider key is set.** `/forgot-password` answers `503` with
    `code: "EMAIL_NOT_CONFIGURED"` and logs
-   `[email] RESEND_API_KEY is not set` in the function log. Set the
-   variable and **redeploy** — env changes don't apply to a running
-   deployment.
+   `[email] no email provider configured` in the function log. Set
+   `BREVO_API_KEY` (or `RESEND_API_KEY`) and **redeploy** — env changes
+   don't apply to a running deployment.
 
-2. **`EMAIL_FROM` uses a domain you haven't verified in Resend.** Resend
-   rejects the send with a 403; the route answers `502` with
-   `code: "EMAIL_SEND_FAILED"` and the function log carries Resend's own
-   reason plus the `from` address it tried. Either verify your domain in
-   Resend, or set `EMAIL_FROM` to Resend's onboarding sender for testing.
+2. **`EMAIL_FROM` isn't a sender you've verified.** The provider rejects
+   the send; the route answers `502` with `code: "EMAIL_SEND_FAILED"` and
+   the function log carries the provider's own reason plus the `from`
+   address it tried. On **Brevo**, `EMAIL_FROM` must match a verified
+   sender exactly (Senders, Domains & Dedicated IPs → Senders), or sit on
+   a verified domain. On **Resend**, the domain must be verified.
 
 3. **You've hit the per-address limit** while testing — 3 requests per
    hour for the same email. The response is a `429` with `Retry-After`,
    and the page now says so instead of claiming a link was sent.
 
-On the free Resend tier you can only send to your own verified address
-until a domain is verified, so "it works for my email but not for a test
-address" is expected until then.
+Brevo's free tier is a daily send allowance rather than a domain
+requirement, so a verified single sender is enough to email real users.
+Check the current daily limit on their pricing page — a reset storm or a
+document-reminder cron run counts against it.

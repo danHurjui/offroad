@@ -34,7 +34,9 @@ export async function POST(req: NextRequest) {
     // Checked before the lookup so the answer can't vary by whether the
     // address exists.
     if (!isEmailConfigured()) {
-      console.error('[forgot-password] RESEND_API_KEY is not set — cannot send reset emails.')
+      console.error(
+        '[forgot-password] no email provider configured (BREVO_API_KEY / RESEND_API_KEY) — cannot send reset emails.'
+      )
       return NextResponse.json(
         {
           error:

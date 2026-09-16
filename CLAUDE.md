@@ -195,9 +195,32 @@ scheduler (a crontab, GitHub Actions) at it with either that header or
 `x-cron-secret: $CRON_SECRET`. In-app badge (vehicle dashboard "Documents"
 link) and the historic-vehicle banner (`isHistoricVehicle()`, 30+ years
 old → informational only, doesn't change reminder math) are built; web
-push is not — only email, and only if `RESEND_API_KEY` is set (otherwise
-`sendEmail()` just logs to the console — fine for dev, a silent no-op for
-real users in production if you forget to set it).
+push is not — only email. See "Email" below for the provider setup.
+
+### Email (`src/lib/email.ts`)
+Two providers, chosen by **which API key is set** — Brevo first, then
+Resend. Switching (or switching back) is an environment-variable edit, not
+a code change; nothing provider-shaped escapes `sendEmail()`, and the
+eight call sites don't know which is active. Brevo is the default because
+it can verify a **single sender address**, so it works without owning a
+domain; Resend requires a verified domain.
+
+`EMAIL_FROM` keeps the `Name <addr@example.com>` form for both —
+`parseSender()` splits it into the `{name, email}` pair Brevo wants. It
+must name a sender you have actually verified with whichever provider is
+active, or every send is rejected.
+
+With **neither** key set, `sendEmail()` logs to the console. That is a
+convenience in dev and a trap in production, so an unset key is logged at
+error level there. Anything for which a missing email means the operation
+truly failed — password reset — must call `isEmailConfigured()` and refuse
+rather than returning its reassuring "check your inbox" message. That
+check belongs *before* the user lookup, so its answer can't vary by
+whether the address exists.
+
+Provider rejections are logged with the provider's own response body and
+the `from` address that was tried; without that the operator sees only a
+generic 500 and the usual cause (an unverified sender) is invisible.
 
 ### Public site (`/`, `/tickets`, `/donate`)
 `/` used to redirect to `/dashboard` or `/login`; it's now a real marketing

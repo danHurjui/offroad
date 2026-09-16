@@ -1,14 +1,18 @@
 /**
- * Thin Resend wrapper. Falls back to console logging in dev when
- * RESEND_API_KEY is unset, so the password reset flow works without
- * signing up for anything.
+ * Transactional email, over Brevo or Resend.
  *
- * In **production** that fallback is a trap rather than a convenience: the
- * app would tell someone "a reset link has been sent" while nothing was
- * sent, leaving them locked out with no way to tell why. So an unset key
- * is logged as an error there, and callers for whom a missing email means
- * the operation genuinely failed (password reset) check
- * `isEmailConfigured()` first and refuse rather than pretending.
+ * Which one is used is a config choice, not a code change: whichever API
+ * key is set wins, Brevo first. Keeping both means switching providers (or
+ * switching back) is an environment-variable edit, and nothing here leaks
+ * past `sendEmail()` — the eight call sites don't know or care.
+ *
+ * With neither key set, this falls back to console logging. That is a
+ * convenience in dev and a trap in **production**: the app would tell
+ * someone "a reset link has been sent" while nothing was sent, leaving
+ * them locked out with no way to tell why. So an unset key is logged as an
+ * error there, and callers for whom a missing email means the operation
+ * genuinely failed (password reset) check `isEmailConfigured()` first and
+ * refuse rather than pretending.
  */
 
 interface SendEmailInput {
@@ -17,22 +21,86 @@ interface SendEmailInput {
   html: string
 }
 
-/** True when real email can actually be sent (i.e. Resend is configured). */
-export function isEmailConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY)
+export type EmailProvider = 'brevo' | 'resend'
+
+const DEFAULT_FROM = 'RigLog <no-reply@riglog.ro>'
+
+/**
+ * Which provider will actually be used, or null when none is configured.
+ * Brevo takes precedence so that setting BREVO_API_KEY is enough to switch
+ * without having to remember to clear the old key.
+ */
+export function emailProvider(): EmailProvider | null {
+  if (process.env.BREVO_API_KEY) return 'brevo'
+  if (process.env.RESEND_API_KEY) return 'resend'
+  return null
 }
 
-export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.EMAIL_FROM ?? 'RigLog <no-reply@riglog.ro>'
+/** True when real email can actually be sent. */
+export function isEmailConfigured(): boolean {
+  return emailProvider() !== null
+}
 
-  if (!apiKey) {
+/**
+ * Splits `EMAIL_FROM` into the name/address pair Brevo wants.
+ *
+ * The env var keeps the familiar `Name <addr@example.com>` form that
+ * Resend takes verbatim, so switching providers doesn't mean rewriting
+ * config. A bare address (no angle brackets) is accepted too.
+ */
+export function parseSender(from: string): { name?: string; email: string } {
+  const match = from.match(/^\s*(.*?)\s*<([^>]+)>\s*$/)
+  if (match) {
+    const name = match[1].replace(/^"|"$/g, '').trim()
+    return { ...(name ? { name } : {}), email: match[2].trim() }
+  }
+  return { email: from.trim() }
+}
+
+async function sendViaBrevo(apiKey: string, from: string, { to, subject, html }: SendEmailInput) {
+  const sender = parseSender(from)
+  return fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      // Brevo authenticates with its own header, not a Bearer token.
+      'api-key': apiKey,
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({ sender, to: [{ email: to }], subject, htmlContent: html }),
+  })
+}
+
+async function sendViaResend(apiKey: string, from: string, { to, subject, html }: SendEmailInput) {
+  return fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ from, to, subject, html }),
+  })
+}
+
+/** What to check when a provider rejects the message. */
+function rejectionHint(provider: EmailProvider, from: string): string {
+  return provider === 'brevo'
+    ? `(from=${from} — this exact address must be a verified sender, or on a verified domain, in Brevo)`
+    : `(from=${from} — check this domain is verified in Resend)`
+}
+
+export async function sendEmail(input: SendEmailInput): Promise<void> {
+  const { to, subject, html } = input
+  const provider = emailProvider()
+  const from = process.env.EMAIL_FROM ?? DEFAULT_FROM
+
+  if (!provider) {
     if (process.env.NODE_ENV === 'production') {
       // Loud, because this is silent data loss from the user's point of
       // view — and the fix is one environment variable.
       console.error(
-        `[email] RESEND_API_KEY is not set — DROPPED an email to ${to} ("${subject}"). ` +
-          `Set RESEND_API_KEY (and EMAIL_FROM on a domain verified in Resend) to actually send mail.`
+        `[email] no email provider configured — DROPPED an email to ${to} ("${subject}"). ` +
+          `Set BREVO_API_KEY (or RESEND_API_KEY), plus EMAIL_FROM on a verified sender.`
       )
       return
     }
@@ -42,29 +110,24 @@ export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<
 
   let res: Response
   try {
-    res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ from, to, subject, html }),
-    })
+    res =
+      provider === 'brevo'
+        ? await sendViaBrevo(process.env.BREVO_API_KEY!, from, input)
+        : await sendViaResend(process.env.RESEND_API_KEY!, from, input)
   } catch (e) {
-    console.error(`[email] could not reach Resend for ${to} ("${subject}"):`, e)
+    console.error(`[email] could not reach ${provider} for ${to} ("${subject}"):`, e)
     throw new Error('Could not reach the email provider')
   }
 
   if (!res.ok) {
     const body = await res.text().catch(() => '')
-    // Log the provider's own reason. The usual culprit is a 403 because
-    // EMAIL_FROM uses a domain that isn't verified in Resend — without
-    // this line the operator sees only a generic 500.
+    // Log the provider's own reason. The usual culprit is an unverified
+    // sender — without this line the operator sees only a generic 500.
     console.error(
-      `[email] Resend rejected the message to ${to} ("${subject}"): ${res.status} ${body} ` +
-        `(from=${from} — check this domain is verified in Resend)`
+      `[email] ${provider} rejected the message to ${to} ("${subject}"): ${res.status} ${body} ` +
+        rejectionHint(provider, from)
     )
-    throw new Error(`Resend send failed: ${res.status} ${body}`)
+    throw new Error(`${provider} send failed: ${res.status} ${body}`)
   }
 }
 
