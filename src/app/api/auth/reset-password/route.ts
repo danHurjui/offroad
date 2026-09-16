@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, isPasswordStrongEnough } from '@/lib/password'
 import { readJsonBody } from '@/lib/requestBody'
+import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
 
 export async function POST(req: NextRequest) {
+  const limit = await consumeRateLimit('resetPassword', `ip:${clientIp(req.headers)}`)
+  if (!limit.ok) return rateLimitResponse(limit)
+
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
   const body = parsed.body

@@ -3,12 +3,18 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
 import { validateText, TICKET_COMMENT_MAX } from '@/lib/tickets'
+import { consumeRateLimit, rateLimitResponse } from '@/lib/rateLimit'
 
 /** Comment on a ticket. Any logged-in user. */
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await requireSession()
   if (!auth.ok) return auth.error
   const { session } = auth
+
+  // Keyed on the user id, not the IP: a session id can't be rotated the
+  // way a spoofed x-forwarded-for can.
+  const limit = await consumeRateLimit('ticketComment', `user:${session.user.id}`)
+  if (!limit.ok) return rateLimitResponse(limit)
 
   const ticket = await prisma.ticket.findUnique({ where: { id: params.id }, select: { id: true } })
   if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 })

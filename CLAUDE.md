@@ -419,14 +419,30 @@ as the rest of this file — see "What this is" above):
     `Vehicle.slug` is unique per owner (`@@unique([ownerId, slug])`), not
     globally — the owner's username in the URL is what disambiguates.
 
-13. **Nothing in this app is rate limited** — not login, registration,
-    password reset, ticket posting, commenting or donations. There is no
-    limiter infrastructure here at all. Voting is bounded per user by its
-    unique constraint, but everything else relies on an attacker not
-    bothering. If you add a public write surface, know that you are adding
-    it to an unthrottled API, and prefer a platform-level WAF rule over
-    hand-rolling a limiter in a serverless function (where in-process
-    counters don't survive between invocations anyway).
+13. **Rate limiting is Postgres-backed, and new write endpoints don't get
+    it for free** — `consumeRateLimit()` (`src/lib/rateLimit.ts`) must be
+    called explicitly. Add the rule to `RATE_LIMITS` and wire the call, or
+    the endpoint is unthrottled. Two rules when you do:
+    - **Key on the user id wherever a session exists.** A session id can't
+      be rotated; `x-forwarded-for` can be, by anyone, unless the app sits
+      behind a proxy that overwrites it (Vercel does — a direct origin
+      doesn't).
+    - **An IP-keyed limit must be looser than the account-keyed limit for
+      the same action.** One address can be a whole office, university or
+      mobile carrier, so a tight IP budget locks out strangers who share a
+      NAT. `login` (per email) is 10/15min; `loginIp` is 50/15min. There's
+      a unit test asserting that ordering.
+
+    It deliberately **fails open**: if the DB is unreachable the request is
+    allowed rather than 500ing. Don't "harden" that into fail-closed
+    without thinking it through — it would turn a database blip into a
+    total login outage.
+
+    Not used: an in-process counter (serverless functions don't share
+    memory, so it bounds nothing once deployed) or Vercel's WAF rate
+    limiting (paid-plan only, and IP-only, so it can't do the per-account
+    limits). A WAF rule would be a reasonable *extra* layer on Pro, not a
+    replacement.
 
 14. **`leaflet`/`react-leaflet` (RL-027) must be loaded client-side only**
     — Leaflet touches `window` at import time, so any component that

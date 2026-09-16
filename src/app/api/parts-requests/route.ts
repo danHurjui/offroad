@@ -3,12 +3,17 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { PART_CONDITIONS } from '@/lib/projectType'
 import { readJsonBody } from '@/lib/requestBody'
+import { consumeRateLimit, rateLimitResponse } from '@/lib/rateLimit'
 
 // RL-024: community parts crowdsourcing. Pro only.
 export async function POST(req: NextRequest) {
   const auth = await requireSession()
   if (!auth.ok) return auth.error
   const { session } = auth
+  // Keyed on the user id, not the IP: a session id can't be rotated the
+  // way a spoofed x-forwarded-for can.
+  const limit = await consumeRateLimit('partsRequest', `user:${session.user.id}`)
+  if (!limit.ok) return rateLimitResponse(limit)
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true } })
   if (!user?.isPro) {

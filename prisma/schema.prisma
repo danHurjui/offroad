@@ -690,3 +690,23 @@ model Donation {
   @@index([status])
   @@index([userId])
 }
+
+/// Fixed-window rate limit counter (src/lib/rateLimit.ts).
+///
+/// Backed by Postgres rather than an in-process Map because serverless
+/// functions don't share memory — a counter in a module-level variable is
+/// per-instance and resets on every cold start, so it bounds nothing. This
+/// is also why the app doesn't rely on Vercel's WAF rate limiting: that's
+/// a paid-plan feature and IP-only, and several of these limits need to be
+/// per-account.
+///
+/// `key` encodes both the action and the subject ("login:ip:1.2.3.4",
+/// "ticket:user:abc"). Rows for elapsed windows are dead weight and get
+/// swept by the daily cron (src/app/api/cron/document-reminders/route.ts).
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}

@@ -3,10 +3,14 @@ import { prisma } from '@/lib/prisma'
 import { hashPassword, isPasswordStrongEnough } from '@/lib/password'
 import { generateUsername } from '@/lib/username'
 import { readJsonBody } from '@/lib/requestBody'
+import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
 
 // RL-001: register with email+password, no distinguishing error messages
 // leak which emails exist.
 export async function POST(req: NextRequest) {
+  const limit = await consumeRateLimit('register', `ip:${clientIp(req.headers)}`)
+  if (!limit.ok) return rateLimitResponse(limit)
+
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
   const body = parsed.body

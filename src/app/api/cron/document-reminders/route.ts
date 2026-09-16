@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { decideReminder, formatDaysUntil, getDocumentStatus, DOCUMENT_TYPE_OPTIONS } from '@/lib/documents'
 import { labelFor } from '@/lib/projectType'
 import { sendEmail, documentReminderEmailHtml } from '@/lib/email'
+import { purgeExpiredRateLimits } from '@/lib/rateLimit'
 
 /**
  * RL-013: document reminders at 30/14/3 days before expiry, delivered by
@@ -59,7 +60,12 @@ async function handle(req: NextRequest) {
     sent++
   }
 
-  return NextResponse.json({ checked: documents.length, sent })
+  // Piggyback the rate-limit sweep on the daily cron rather than adding a
+  // second scheduled function — elapsed windows are dead rows, and Vercel's
+  // Hobby plan allows only a limited number of cron jobs.
+  const purgedRateLimits = await purgeExpiredRateLimits()
+
+  return NextResponse.json({ checked: documents.length, sent, purgedRateLimits })
 }
 
 export { handle as GET, handle as POST }

@@ -4,6 +4,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import { prisma } from './prisma'
 import { verifyPassword } from './password'
 import { generateUsername } from './username'
+import { consumeRateLimit, clientIp } from './rateLimit'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,9 +18,27 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null
         const email = credentials.email.toLowerCase().trim()
+
+        // Throttle credential stuffing. Keyed on both the target account
+        // and the source IP: the email key stops one account being ground
+        // down from many hosts, the IP key stops one host spraying many
+        // accounts. Both are consumed so neither dimension is a free pass.
+        //
+        // NextAuth gives no way to return a distinct "rate limited" error
+        // from authorize() — returning null is the only signal — so a
+        // throttled attempt is indistinguishable from a wrong password.
+        // That's acceptable here, and arguably better: it tells an
+        // attacker nothing about whether they tripped a limit.
+        const ip = clientIp(new Headers((req?.headers ?? {}) as Record<string, string>))
+        const [byEmail, byIp] = await Promise.all([
+          consumeRateLimit('login', `email:${email}`),
+          consumeRateLimit('loginIp', `ip:${ip}`),
+        ])
+        if (!byEmail.ok || !byIp.ok) return null
+
         try {
           const user = await prisma.user.findUnique({ where: { email } })
           if (!user || !user.active || !user.password) return null

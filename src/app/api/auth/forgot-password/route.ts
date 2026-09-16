@@ -3,12 +3,16 @@ import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { sendEmail, passwordResetEmailHtml } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
+import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
 
 const TOKEN_TTL_MS = 60 * 60 * 1000 // 1 hour
 
 // RL-001: request a password reset; always returns 200 regardless of
 // whether the email exists, to avoid leaking account existence.
 export async function POST(req: NextRequest) {
+  const ipLimit = await consumeRateLimit('forgotPasswordIp', `ip:${clientIp(req.headers)}`)
+  if (!ipLimit.ok) return rateLimitResponse(ipLimit)
+
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
   const body = parsed.body
@@ -16,6 +20,13 @@ export async function POST(req: NextRequest) {
   try {
     const email = typeof body.email === 'string' ? body.email.toLowerCase().trim() : ''
     if (!email) return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+
+    // Per-address limit: this is what stops someone's inbox being flooded
+    // with reset mail. It counts regardless of whether the account exists,
+    // so a 429 here still leaks nothing about account existence — the same
+    // reason this route always 200s below.
+    const emailLimit = await consumeRateLimit('forgotPassword', `email:${email}`)
+    if (!emailLimit.ok) return rateLimitResponse(emailLimit)
 
     const user = await prisma.user.findUnique({ where: { email } })
     if (user && user.active) {

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getStripe } from '@/lib/stripe'
 import { readJsonBody } from '@/lib/requestBody'
 import { parseDonationBani, DONATION_CURRENCY, DONATION_MESSAGE_MAX } from '@/lib/donations'
+import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
 
 /**
  * Starts a Stripe Checkout session for a one-off donation.
@@ -21,6 +22,9 @@ import { parseDonationBani, DONATION_CURRENCY, DONATION_MESSAGE_MAX } from '@/li
  * The Donation row is created PENDING; only the webhook marks it PAID.
  */
 export async function POST(req: NextRequest) {
+  const limit = await consumeRateLimit('donationCheckout', `ip:${clientIp(req.headers)}`)
+  if (!limit.ok) return rateLimitResponse(limit)
+
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
   const body = parsed.body
