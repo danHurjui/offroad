@@ -569,5 +569,59 @@
     "convertFailed": "Nu am putut converti articolul",
     "confirmDelete": "Ștergi „{name}”?",
     "emptyList": "Nu ai încă nimic în {list}."
+  },
+  "vehicleNew": {
+    "projectType": "Tip de proiect",
+    "blurb": {
+      "OFFROAD": "Ce am montat pe ea?",
+      "RESTORATION": "În ce stadiu e mașina?",
+      "DAILY_DRIVER": "Ce s-a reparat și ce urmează?"
+    },
+    "make": "Marcă",
+    "makePlaceholder": "Dacia",
+    "model": "Model",
+    "modelPlaceholder": "Duster",
+    "year": "An",
+    "generation": "Generație (opțional)",
+    "generationPlaceholder": "ex. Mk2 / faza 2",
+    "engine": "Motor (opțional)",
+    "enginePlaceholder": "ex. 1.5 dCi 110 CP",
+    "coverPhoto": "Poză de copertă (opțional)",
+    "chooseType": "Alege ce fel de vehicul este",
+    "createFailed": "Nu am putut crea vehiculul",
+    "creating": "Se creează…",
+    "create": "Creează vehiculul"
+  },
+  "collaborators": {
+    "inviteTitle": "Invită un colaborator",
+    "labelOptional": "Etichetă (opțional)",
+    "labelPlaceholder": "ex. Ionescu Auto",
+    "role": "Rol",
+    "mechanic": "Mecanic",
+    "specialist": "Specialist",
+    "sending": "Se trimite…",
+    "sendInvite": "Trimite invitația",
+    "empty": "Niciun colaborator încă.",
+    "jobReport": "Raport de lucrări",
+    "resend": "Retrimite",
+    "revoke": "Revocă",
+    "status": {
+      "PENDING": "În așteptare",
+      "ACTIVE": "Activ",
+      "REMOVED": "Revocat"
+    },
+    "inviteFailed": "Nu am putut trimite invitația",
+    "resendFailed": "Nu am putut retrimite invitația",
+    "revokeFailed": "Nu am putut revoca accesul",
+    "confirmRevoke": "Revoci accesul acestui colaborator? Îl pierde imediat."
+  },
+  "wishlistForm": {
+    "name": "Denumire",
+    "namePlaceholder": "Ce cauți?",
+    "sourcingNotes": "Observații despre căutare (opțional)",
+    "notes": "Observații (opțional)",
+    "saveFailed": "Nu am putut salva",
+    "saveChanges": "Salvează modificările",
+    "add": "Adaugă articolul"
   }
 }

@@ -569,5 +569,59 @@
     "convertFailed": "Could not convert item",
     "confirmDelete": "Delete “{name}”?",
     "emptyList": "Nothing on your {list} yet."
+  },
+  "vehicleNew": {
+    "projectType": "Project type",
+    "blurb": {
+      "OFFROAD": "What have I bolted on?",
+      "RESTORATION": "What stage is the car at?",
+      "DAILY_DRIVER": "What’s been fixed, and what’s due?"
+    },
+    "make": "Make",
+    "makePlaceholder": "Dacia",
+    "model": "Model",
+    "modelPlaceholder": "Duster",
+    "year": "Year",
+    "generation": "Generation (optional)",
+    "generationPlaceholder": "e.g. Mk2 / phase 2",
+    "engine": "Engine (optional)",
+    "enginePlaceholder": "e.g. 1.5 dCi 110 CP",
+    "coverPhoto": "Cover photo (optional)",
+    "chooseType": "Choose what kind of vehicle this is",
+    "createFailed": "Could not create vehicle",
+    "creating": "Creating…",
+    "create": "Create vehicle"
+  },
+  "collaborators": {
+    "inviteTitle": "Invite a collaborator",
+    "labelOptional": "Label (optional)",
+    "labelPlaceholder": "e.g. Ionescu Auto",
+    "role": "Role",
+    "mechanic": "Mechanic",
+    "specialist": "Specialist",
+    "sending": "Sending…",
+    "sendInvite": "Send invite",
+    "empty": "No collaborators yet.",
+    "jobReport": "Job report",
+    "resend": "Resend",
+    "revoke": "Revoke",
+    "status": {
+      "PENDING": "Pending",
+      "ACTIVE": "Active",
+      "REMOVED": "Removed"
+    },
+    "inviteFailed": "Could not send invite",
+    "resendFailed": "Could not resend invite",
+    "revokeFailed": "Could not revoke access",
+    "confirmRevoke": "Revoke this collaborator’s access? They will lose access immediately."
+  },
+  "wishlistForm": {
+    "name": "Name",
+    "namePlaceholder": "What are you after?",
+    "sourcingNotes": "Sourcing notes (optional)",
+    "notes": "Notes (optional)",
+    "saveFailed": "Could not save",
+    "saveChanges": "Save changes",
+    "add": "Add item"
   }
 }
