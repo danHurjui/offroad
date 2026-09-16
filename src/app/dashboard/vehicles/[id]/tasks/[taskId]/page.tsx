@@ -26,8 +26,12 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
 
   const addedByCollaborator = task.addedByUserId !== vehicle.ownerId
+  // A deleted account leaves addedByUserId null. Looking a null up in
+  // ProjectCollaborator would match any *pending* invite (those have no
+  // collaboratorUserId yet), so the query is skipped entirely.
+  const addedByDeletedAccount = task.addedByUserId === null
   let addedByRemoved = false
-  if (addedByCollaborator) {
+  if (addedByCollaborator && !addedByDeletedAccount) {
     const [activeRow, removedRow] = await Promise.all([
       prisma.projectCollaborator.findFirst({
         where: { vehicleId: vehicle.id, collaboratorUserId: task.addedByUserId, status: 'ACTIVE' },
@@ -82,8 +86,14 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
             <div>
               <dt className="text-ink-faint">Added by</dt>
               <dd className="text-ink">
-                {task.addedBy.displayName}
-                {addedByRemoved && <span className="ml-1 text-xs text-ink-faint">(access removed)</span>}
+                {addedByDeletedAccount ? (
+                  <span className="text-ink-faint">A deleted account</span>
+                ) : (
+                  <>
+                    {task.addedBy?.displayName}
+                    {addedByRemoved && <span className="ml-1 text-xs text-ink-faint">(access removed)</span>}
+                  </>
+                )}
               </dd>
             </div>
           )}

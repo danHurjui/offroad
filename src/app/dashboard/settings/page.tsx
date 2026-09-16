@@ -2,6 +2,7 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
 import SettingsForm from '@/components/SettingsForm'
 import ThemeToggle from '@/components/ThemeToggle'
+import DataExportCard from '@/components/DataExportCard'
 
 export default async function SettingsPage() {
   const session = await requireSessionOrRedirect()
@@ -37,6 +38,12 @@ export default async function SettingsPage() {
       </section>
 
       <SettingsForm profile={user} />
+
+      {/* Below the profile form, above nothing — it belongs next to the
+          delete-account button it is the counterpart to. */}
+      <div className="mt-6">
+        <DataExportCard />
+      </div>
     </div>
   )
 }

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Providers from '@/components/Providers'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts'
+import CookieNotice from '@/components/CookieNotice'
 import { THEME_SCRIPT } from '@/lib/theme'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           {children}
           <KeyboardShortcuts />
+          <CookieNotice />
         </Providers>
         <ServiceWorkerRegistration />
       </body>

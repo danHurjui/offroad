@@ -212,7 +212,10 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
       <div className="card p-6">
         <h2 className="mb-2 font-semibold text-ink">Danger zone</h2>
         <p className="mb-3 text-sm text-ink-muted">
-          Deletes your account and every vehicle, task, and photo you own. This cannot be undone.
+          Deletes your account and every vehicle, task, document and photo you own — including the
+          uploaded files themselves, not just the entries pointing at them. Records of any donations
+          are kept for accounting, with your account detached from them. This cannot be undone, so
+          take a copy of your data first if you want one.
         </p>
         <button type="button" className="btn-danger" onClick={onDeleteAccount} disabled={deleting}>
           {deleting ? 'Deleting…' : 'Delete account'}

@@ -261,10 +261,16 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
                   >
                     <div className="flex items-center gap-2">
                       {task.workType === 'WORKSHOP' && <span title="Workshop task">🔧</span>}
+                      {/* addedByUserId is null once the account that added
+                          the task is deleted — the work stays in the log,
+                          the attribution doesn't. */}
                       {task.addedByUserId !== vehicle.ownerId && (
                         <AddedByBadge
-                          name={task.addedBy.displayName}
-                          removed={removedCollaboratorUserIds.has(task.addedByUserId)}
+                          name={task.addedBy?.displayName ?? null}
+                          removed={
+                            task.addedByUserId === null ||
+                            removedCollaboratorUserIds.has(task.addedByUserId)
+                          }
                         />
                       )}
                       <div>
@@ -293,7 +299,20 @@ function initials(name: string): string {
   return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '?'
 }
 
-function AddedByBadge({ name, removed }: { name: string; removed: boolean }) {
+function AddedByBadge({ name, removed }: { name: string | null; removed: boolean }) {
+  if (!name) {
+    // The account is gone. Saying who added it would be a lie, and hiding
+    // the badge entirely would make the task look like the owner's own.
+    return (
+      <span
+        title="Added by an account that has since been deleted"
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ink-faint/20 text-[10px] font-semibold text-ink-faint"
+      >
+        ?
+      </span>
+    )
+  }
+
   return (
     <span
       title={removed ? `${name} (collaborator access removed)` : `Added by ${name}`}

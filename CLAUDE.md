@@ -272,6 +272,96 @@ proves nothing. Donations and Pro purchases share the
 fall through and grant Pro.** The `status: 'PENDING'` filter in its
 `updateMany` is what makes a Stripe retry idempotent.
 
+### Theme (`src/lib/theme.ts`, `src/app/globals.css`)
+Light/dark/system, `darkMode: 'class'` on `<html>`. Nothing re-themes by
+hand: `surface`/`ink`/`background` are Tailwind tokens backed by CSS
+variables (`rgb(var(--x) / <alpha-value>)`), so flipping `.dark` re-colours
+every existing `bg-surface`/`text-ink` in the app. Adding a literal colour
+to a component is how that stops being true.
+
+Badges and callouts are named by **meaning**, not hue — `badge-success`,
+`badge-warn`, `note-warn` (globals.css) — because each needs a dark
+counterpart and spraying `dark:` over every call site is how half get
+missed. Recharts can't see CSS variables (it writes literal SVG colour
+props), so charts call `useChartTheme()`, which watches the class on
+`<html>`.
+
+The preference is in localStorage, not a cookie — a per-device display
+setting has no business on every request, and keeping it out of cookies
+keeps it out of the consent story. `THEME_SCRIPT` is inlined in `<head>`
+and runs before first paint so there's no white flash; it's a string
+nothing type-checks, so `theme.test.ts` executes it for real (a throw there
+is a blank page, not a wrong colour).
+
+### Forms (`src/components/{AutocompleteInput,MoneyInput,PasswordInput,FormError}.tsx`)
+Every RON amount goes through `MoneyInput` (decimal keypad, `min=0`,
+`step=0.01`) and every error through `FormError` (`role="alert"`, with the
+field's `aria-describedby` pointing at it). `autoComplete` is mandatory on
+`PasswordInput` rather than optional: `current-password` vs `new-password`
+is what decides whether a password manager can fill or save, and a missing
+one is silent.
+
+Autocomplete is `<datalist>`, never a constraint — no route validates
+against the lists. Makes/models come from `src/lib/vehicleSuggestions.ts`
+(`Record<ProjectType, ...>`, so a new mode makes `tsc` name the file);
+brands and workshops come from `taskFieldSuggestions()`, scoped to the one
+vehicle the caller already passed `requireVehicleAccess()` for, selecting
+no cost column. `assessPassword()` is advisory only and a test pins it to
+never being stricter than the server's `isPasswordStrongEnough()`.
+
+### Keyboard shortcuts (`src/lib/shortcuts.ts`)
+`g`+letter chords to navigate, single keys for actions, `?` for the sheet.
+The matching is a plain module so the load-bearing parts are testable:
+`isTypingTarget()` suppresses everything while the user is in a field (an
+`n` firing mid-sentence in a notes box is worse than no shortcuts), a chord
+prefix never doubles as a single key, and an unrecognised second key
+cancels rather than falling through.
+
+`newHrefForPath()` is shared by the `n` key and the header's + button so
+they can't point at different things. `KeyboardShortcuts` is mounted in the
+**root** layout and gated on the client-side session — calling
+`getServerSession()` there would make `/login`, `/register` and
+`/reset-password` dynamic, and they're static.
+
+### Privacy, cookies and GDPR (`src/lib/legal.ts`, `src/lib/personalData.ts`)
+`/privacy` and `/cookies` are public, and every factual claim on them comes
+from `src/lib/legal.ts` — a policy that contradicts the code is worse than
+none. **Add a service that receives user data and you add it to
+`SUB_PROCESSORS` in the same change**; `legal.test.ts` asserts every
+external host the code calls appears there. The cookie list is all
+`strictlyNecessary: true`, which is what justifies a notice rather than a
+consent banner — a test enforces that, and the page renders its own warning
+if it ever stops being true. `NEXT_PUBLIC_PRIVACY_CONTROLLER` /
+`NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL` are env, not hardcoded: the deployer is
+the controller.
+
+`collectUserData()` backs `GET /api/me/export` (Art. 15/20). It deliberately
+omits the password hash, Stripe ids and push endpoints — each for a reason
+written at the function.
+
+**Cascades delete rows, not bytes.** Uploads live under
+`<userId>/<vehicleId>/<uuid>` in Blob or on disk, so `prisma.user.delete()`
+and `prisma.vehicle.delete()` used to orphan every photo, receipt and
+document. Both DELETE handlers now call `collectStorageKeys()` **before**
+the delete (afterwards there's nothing left to read the keys from) and
+`deleteStoredFiles()` after. Add a model with a storage key and it must go
+into `collectStorageKeys()`, or its files survive an erasure request.
+
+**Every relation to `User` states its `onDelete` explicitly**, and
+`deletionRules.test.ts` reads the schema to enforce that none is `Restrict`
+or `NoAction`. This is not tidiness: Prisma's default for a *required*
+relation is `Restrict`, and `Task.addedBy` had no rule — so account
+deletion 500'd for every user who had ever logged a task, silently, for as
+long as the route existed. The route looked right; the schema refused.
+
+`Task.addedBy` is `SetNull` rather than `Cascade` on purpose: a mechanic
+collaborator deleting their own account must not take the vehicle owner's
+service history with them. `addedByUserId` is therefore nullable, meaning
+"added by an account that no longer exists" — the permission checks
+(`!isOwner && task.addedByUserId !== session.user.id`) fall the safe way on
+null, but anything *querying* by it must not, since a null
+`collaboratorUserId` also matches every pending invite.
+
 ### Admin surface (`/admin`, `src/lib/authz.ts`)
 Gated by `requireAdmin()` (API) / `requireAdminOrNotFound()` (pages), both
 of which **404 rather than 403** for a non-admin — the admin area doesn't
@@ -513,7 +603,15 @@ as the rest of this file — see "What this is" above):
     limits). A WAF rule would be a reasonable *extra* layer on Pro, not a
     replacement.
 
-14. **`leaflet`/`react-leaflet` (RL-027) must be loaded client-side only**
+14. **Deleting a row does not delete its file** — every upload lives in
+    Vercel Blob or on disk under `<userId>/<vehicleId>/<uuid>`, and the
+    Prisma cascades know nothing about it. Any handler that deletes rows
+    owning a storage key must gather the keys with `collectStorageKeys()`
+    *before* the delete and call `deleteStoredFiles()` after. A new model
+    with a file column has to be added to `collectStorageKeys()` too, or
+    its files quietly survive an account erasure.
+
+15. **`leaflet`/`react-leaflet` (RL-027) must be loaded client-side only**
     — Leaflet touches `window` at import time, so any component that
     imports it directly throws "window is not defined" if it's ever
     reached during SSR. `TrailMap.tsx` is the one file that imports

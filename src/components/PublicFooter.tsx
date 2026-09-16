@@ -24,6 +24,12 @@ export default function PublicFooter() {
           <Link href="/login" className="hover:text-ink">
             Log in
           </Link>
+          <Link href="/privacy" className="hover:text-ink">
+            Privacy
+          </Link>
+          <Link href="/cookies" className="hover:text-ink">
+            Cookies
+          </Link>
         </nav>
       </div>
     </footer>
