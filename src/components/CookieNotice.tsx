@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 
 const STORAGE_KEY = 'riglog-cookie-notice'
@@ -22,6 +23,7 @@ const STORAGE_KEY = 'riglog-cookie-notice'
  * writes itself, and localStorage keeps it off every request.
  */
 export default function CookieNotice() {
+  const t = useTranslations('cookieNotice')
   // Starts hidden and only appears after the check, so it never flashes up
   // for someone who dismissed it a month ago.
   const [visible, setVisible] = useState(false)
@@ -52,21 +54,22 @@ export default function CookieNotice() {
       // Not a dialog and not a focus trap: it blocks nothing and demands
       // nothing, so it must not interrupt whatever the visitor is doing.
       role="region"
-      aria-label="Cookie notice"
+      aria-label={t('region')}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-surface-border bg-surface/95 p-4 backdrop-blur"
       style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
     >
       <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-ink-muted">
-          RigLog uses cookies only to keep you logged in and to protect the sign-in form. No
-          tracking, no advertising, nothing to consent to —{' '}
-          <Link href="/cookies" className="text-brand-600 dark:text-brand-300 hover:underline">
-            here&rsquo;s the full list
-          </Link>
-          .
+          {t.rich('body', {
+            list: (chunks) => (
+              <Link href="/cookies" className="text-brand-600 dark:text-brand-300 hover:underline">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
         <button type="button" onClick={dismiss} className="btn-secondary shrink-0 self-start sm:self-auto">
-          Got it
+          {t('gotIt')}
         </button>
       </div>
     </div>

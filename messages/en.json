@@ -953,5 +953,62 @@
     "duration": "Duration",
     "elevationGain": "Elevation gain",
     "waypoints": "Waypoints"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "close": "Close",
+    "showHelp": "Show keyboard shortcuts",
+    "buttonTitle": "Keyboard shortcuts (?)",
+    "group": {
+      "goTo": "Go to",
+      "actions": "Actions",
+      "help": "Help"
+    },
+    "item": {
+      "dashboard": "Dashboard",
+      "community": "Community",
+      "partsWanted": "Parts wanted",
+      "feedback": "Feedback board",
+      "settings": "Profile & settings",
+      "new": "New — task on a vehicle, otherwise a new vehicle",
+      "search": "Jump to the search box on this page",
+      "showList": "Show this list",
+      "close": "Close this dialog"
+    },
+    "then": "then",
+    "typingNote": "Shortcuts are ignored while you’re typing in a field. Press <key></key> any time to bring this back."
+  },
+  "dataExport": {
+    "title": "Your data",
+    "intro": "Download everything RigLog holds about your account — your profile, every vehicle, task, cost, document and wishlist item, plus what you have posted publicly. It arrives as JSON, so another tool can read it.",
+    "filesNote": "Photos and files aren’t inside the download — a build’s photos can run to hundreds of megabytes. The export lists them so you can match a file to the entry that used it, and each one is downloadable from its own page.",
+    "preparing": "Preparing…",
+    "download": "Download my data",
+    "whatWeStore": "What we store and why",
+    "rateLimited": "You have requested this a few times just now. Please try again a little later.",
+    "failed": "Could not build the export. Please try again."
+  },
+  "cookieNotice": {
+    "region": "Cookie notice",
+    "body": "RigLog uses cookies only to keep you logged in and to protect the sign-in form. No tracking, no advertising, nothing to consent to — <list>here’s the full list</list>.",
+    "gotIt": "Got it"
+  },
+  "charts": {
+    "spendByCategory": "Spend by category",
+    "cumulativeSpend": "Cumulative spend over time",
+    "noCostedTasks": "No costed tasks in this range."
+  },
+  "misc": {
+    "noCoverPhoto": "No cover photo",
+    "noTrack": "No track",
+    "theme": "Theme",
+    "share": "Share",
+    "generating": "Generating…",
+    "downloadPng": "Download PNG",
+    "downloadPdf": "Download PDF",
+    "cardFailed": "Could not generate card",
+    "pdfFailed": "Could not generate PDF",
+    "shareUnsupported": "Sharing is not supported on this device — use Download instead.",
+    "originalityHelp": "Originality score = OEM original parts / all completed tasks. Useful for buyers and concours judges — a rough measure of how much of the car is still factory-original."
   }
 }

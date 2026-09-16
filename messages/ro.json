@@ -953,5 +953,62 @@
     "duration": "Durată",
     "elevationGain": "Diferență de nivel",
     "waypoints": "Repere"
+  },
+  "shortcuts": {
+    "title": "Scurtături de tastatură",
+    "close": "Închide",
+    "showHelp": "Arată scurtăturile de tastatură",
+    "buttonTitle": "Scurtături de tastatură (?)",
+    "group": {
+      "goTo": "Navigare",
+      "actions": "Acțiuni",
+      "help": "Ajutor"
+    },
+    "item": {
+      "dashboard": "Panou de bord",
+      "community": "Comunitate",
+      "partsWanted": "Piese căutate",
+      "feedback": "Panou de sugestii",
+      "settings": "Profil și setări",
+      "new": "Nou — o lucrare pe vehiculul curent, altfel un vehicul nou",
+      "search": "Sari la caseta de căutare din pagină",
+      "showList": "Arată această listă",
+      "close": "Închide fereastra"
+    },
+    "then": "apoi",
+    "typingNote": "Scurtăturile sunt ignorate cât timp scrii într-un câmp. Apasă <key></key> oricând ca să revii la această listă."
+  },
+  "dataExport": {
+    "title": "Datele tale",
+    "intro": "Descarcă tot ce păstrează RigLog despre contul tău — profilul, fiecare vehicul, lucrare, cost, document și articol din listă, plus ce ai publicat public. Vine ca JSON, ca să-l poată citi și alt program.",
+    "filesNote": "Pozele și fișierele nu sunt incluse în descărcare — pozele unui proiect pot ajunge la sute de megabiți. Exportul le listează ca să poți potrivi fiecare fișier cu înregistrarea care l-a folosit, iar fiecare se poate descărca din pagina lui.",
+    "preparing": "Se pregătește…",
+    "download": "Descarcă-mi datele",
+    "whatWeStore": "Ce păstrăm și de ce",
+    "rateLimited": "Ai cerut asta de câteva ori în ultimul timp. Încearcă din nou puțin mai târziu.",
+    "failed": "Nu am putut construi exportul. Încearcă din nou."
+  },
+  "cookieNotice": {
+    "region": "Notificare despre cookie-uri",
+    "body": "RigLog folosește cookie-uri doar ca să te țină autentificat și ca să protejeze formularul de autentificare. Fără urmărire, fără publicitate, nimic de consimțit — <list>aici e lista completă</list>.",
+    "gotIt": "Am înțeles"
+  },
+  "charts": {
+    "spendByCategory": "Cheltuieli pe categorii",
+    "cumulativeSpend": "Cheltuieli cumulate în timp",
+    "noCostedTasks": "Nicio lucrare cu cost în această perioadă."
+  },
+  "misc": {
+    "noCoverPhoto": "Fără poză de copertă",
+    "noTrack": "Fără traseu",
+    "theme": "Temă",
+    "share": "Distribuie",
+    "generating": "Se generează…",
+    "downloadPng": "Descarcă PNG",
+    "downloadPdf": "Descarcă PDF",
+    "cardFailed": "Nu am putut genera cardul",
+    "pdfFailed": "Nu am putut genera PDF-ul",
+    "shareUnsupported": "Distribuirea nu este acceptată pe acest dispozitiv — folosește Descarcă.",
+    "originalityHelp": "Scorul de originalitate = piese originale OEM / toate lucrările finalizate. Util pentru cumpărători și pentru juriile de concurs — o măsură aproximativă a cât din mașină mai este de fabrică."
   }
 }

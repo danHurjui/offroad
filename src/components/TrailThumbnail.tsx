@@ -1,3 +1,5 @@
+import { getTranslations } from 'next-intl/server'
+
 interface Point {
   lat: number
   lng: number
@@ -8,11 +10,12 @@ interface Point {
 // ticket's literal "map screenshot thumbnail" ask, since this stack has
 // no static-maps API key to capture a raster image from. Used on the
 // trail-log list and the Photos tab's trail-runs section.
-export default function TrailThumbnail({ track, className }: { track: Point[]; className?: string }) {
+export default async function TrailThumbnail({ track, className }: { track: Point[]; className?: string }) {
+  const t = await getTranslations('misc')
   if (track.length < 2) {
     return (
       <div className={`flex items-center justify-center bg-surface-subtle text-xs text-ink-faint ${className ?? ''}`}>
-        No track
+        {t('noTrack')}
       </div>
     )
   }

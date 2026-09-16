@@ -1,11 +1,14 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 import { useState } from 'react'
 
 // RL-020/RL-021: fetches the PNG as a blob (rather than a plain <a href>
 // link) for the same reason as ExportPdfButton — Web Share API needs an
 // actual File object.
 export default function ShareImageButton({ endpoint, fallbackName }: { endpoint: string; fallbackName: string }) {
+  const t = useTranslations('misc')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -16,13 +19,13 @@ export default function ShareImageButton({ endpoint, fallbackName }: { endpoint:
       const res = await fetch(endpoint)
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        setError(data.error ?? 'Could not generate card')
+        setError(data.error ?? t('cardFailed'))
         return null
       }
       const blob = await res.blob()
       return { blob, filename: `${fallbackName.replace(/\s+/g, '_')}.png` }
     } catch {
-      setError('Could not generate card')
+      setError(t('cardFailed'))
       return null
     } finally {
       setLoading(false)
@@ -53,7 +56,7 @@ export default function ShareImageButton({ endpoint, fallbackName }: { endpoint:
         // user cancelled the share sheet — not an error
       }
     } else {
-      setError('Sharing is not supported on this device — use Download instead.')
+      setError(t('shareUnsupported'))
     }
   }
 
@@ -61,10 +64,10 @@ export default function ShareImageButton({ endpoint, fallbackName }: { endpoint:
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn-primary" onClick={onDownload} disabled={loading}>
-          {loading ? 'Generating…' : 'Download PNG'}
+          {loading ? t('generating') : t('downloadPng')}
         </button>
         <button type="button" className="btn-secondary" onClick={onShare} disabled={loading}>
-          Share
+          {t('share')}
         </button>
       </div>
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}

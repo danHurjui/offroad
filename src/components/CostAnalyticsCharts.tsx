@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import {
   BarChart,
   Bar,
@@ -38,6 +39,7 @@ export default function CostAnalyticsCharts({
   categoryData: CategoryDatum[]
   monthlyData: MonthlyDatum[]
 }) {
+  const t = useTranslations('charts')
   const theme = useChartTheme()
   const tooltipStyle = {
     backgroundColor: theme.tooltipBg,
@@ -49,9 +51,9 @@ export default function CostAnalyticsCharts({
   return (
     <div className="space-y-6">
       <div className="card p-4">
-        <h2 className="mb-3 text-sm font-semibold text-ink-muted">Spend by category</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink-muted">{t('spendByCategory')}</h2>
         {categoryData.length === 0 ? (
-          <p className="text-sm text-ink-faint">No costed tasks in this range.</p>
+          <p className="text-sm text-ink-faint">{t('noCostedTasks')}</p>
         ) : (
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -68,9 +70,9 @@ export default function CostAnalyticsCharts({
       </div>
 
       <div className="card p-4">
-        <h2 className="mb-3 text-sm font-semibold text-ink-muted">Cumulative spend over time</h2>
+        <h2 className="mb-3 text-sm font-semibold text-ink-muted">{t('cumulativeSpend')}</h2>
         {monthlyData.length === 0 ? (
-          <p className="text-sm text-ink-faint">No costed tasks in this range.</p>
+          <p className="text-sm text-ink-faint">{t('noCostedTasks')}</p>
         ) : (
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
