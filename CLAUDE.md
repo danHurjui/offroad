@@ -409,6 +409,26 @@ never bought, offered a subscription to manage, or nagged to upgrade.
 There is a live suite (`comppro`) that walks a comped account through
 every Pro-gated endpoint and page; extend it when you add a gate.
 
+**The founding-member promotion** (`src/lib/foundingMembers.ts`) grants the
+first `FOUNDING_MEMBER_LIMIT` accounts Pro permanently, as `isProComped` —
+which is exactly why that column is separate from `isPro`: a founding
+member who later buys and cancels a subscription must come out of it still
+comped, and the Stripe webhook sets `isPro` false on cancellation.
+
+Allocation is **one conditional UPDATE carrying the limit**, not
+`count()`-then-`create()`, or two people registering at 99 would both
+become #100. It runs inside the transaction that creates the user, so a
+registration that fails afterwards rolls the slot back rather than burning
+one of the hundred. And it counts a persistent counter, not live users —
+`count(*)` would reopen a slot on every account deletion and turn "the
+first 100 users" into "the first 100 still here".
+
+`User.foundingNumber` is unique as a last line of defence. If it ever
+fires, registration **falls back to an ordinary signup rather than 500**:
+a broken promotion must not stop people joining. That only happens when
+the counter is out of step with the numbers already issued, which is
+operator error, so it logs loudly.
+
 Ticket triage has **no separate admin write path** — the admin screens
 call the same `PATCH /api/tickets/[id]` the public detail page uses, which
 already separates author edits from admin status changes.

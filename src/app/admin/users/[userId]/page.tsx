@@ -19,7 +19,7 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
     select: {
       id: true, email: true, displayName: true, username: true, location: true,
       isPro: true, proPlan: true, isAdmin: true, active: true, accountType: true, createdAt: true,
-      isProComped: true, proCompedAt: true, proCompedReason: true, proCompedById: true,
+      isProComped: true, foundingNumber: true, proCompedAt: true, proCompedReason: true, proCompedById: true,
       vehicles: {
         select: { id: true, make: true, model: true, year: true, projectType: true, isPublic: true },
         orderBy: { createdAt: 'desc' },
@@ -54,7 +54,11 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
             {user.isPro && (
               <span className="badge badge-brand">Pro{user.proPlan ? ` · ${user.proPlan}` : ''}</span>
             )}
-            {user.isProComped && <span className="badge badge-success">Pro · comped</span>}
+            {user.isProComped && (
+              <span className="badge badge-success">
+                {user.foundingNumber !== null ? `Founding member #${user.foundingNumber}` : 'Pro · comped'}
+              </span>
+            )}
             {!user.active && <span className="badge badge-danger">deactivated</span>}
           </div>
           <p className="text-sm text-ink-muted">{user.email}</p>

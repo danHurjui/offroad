@@ -107,8 +107,15 @@ model User {
   proCompedAt          DateTime?
   proCompedReason      String?
   /// The admin who granted it, kept for accountability. Not a relation:
-  /// it must survive that admin's account being deleted.
+  /// it must survive that admin's account being deleted. Null when the
+  /// comp was granted automatically (the founding-member promotion).
   proCompedById        String?
+  /// Founding-member position, 1..FOUNDING_MEMBER_LIMIT, for the first
+  /// accounts ever created. Null for everyone after the promotion ran out
+  /// and for accounts created before it existed. Unique, because two
+  /// people cannot both be #7 — that constraint is the last line of
+  /// defence if the allocator is ever changed carelessly.
+  foundingNumber       Int?         @unique
   /// Moderates the public feedback board (src/app/tickets) — changing a
   /// ticket's status and replying as staff. Not a general-purpose admin
   /// role: it grants nothing over other users' vehicles or data, and is
@@ -733,6 +740,25 @@ model Donation {
 /// `key` encodes both the action and the subject ("login:ip:1.2.3.4",
 /// "ticket:user:abc"). Rows for elapsed windows are dead weight and get
 /// swept by the daily cron (src/app/api/cron/document-reminders/route.ts).
+/// Allocation counter for the founding-member promotion — a single row.
+///
+/// Deliberately NOT `SELECT count(*) FROM "User"`: that reopens a slot
+/// every time someone deletes their account, so "the first 100 users"
+/// would quietly become "the first 100 users who are still here", and
+/// slot #100 could be handed out repeatedly. This counter only ever goes
+/// up.
+///
+/// Incremented by a single conditional UPDATE inside the same transaction
+/// that creates the user (src/lib/foundingMembers.ts), so a registration
+/// that fails does not burn a slot, and two concurrent registrations at 99
+/// cannot both become #100.
+model FoundingMemberCounter {
+  /// Always 1. A one-row table, enforced by the primary key.
+  id        Int      @id @default(1)
+  taken     Int      @default(0)
+  updatedAt DateTime @updatedAt
+}
+
 model RateLimit {
   key       String   @id
   count     Int      @default(0)

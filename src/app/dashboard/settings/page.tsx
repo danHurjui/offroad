@@ -14,6 +14,7 @@ export default async function SettingsPage() {
       isPublicProfile: true,
       isPro: true,
       isProComped: true,
+      foundingNumber: true,
       proPlan: true,
       stripeCustomerId: true,
       notifyFollowedEmail: true,

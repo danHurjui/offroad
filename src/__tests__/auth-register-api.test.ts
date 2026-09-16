@@ -1,6 +1,18 @@
-jest.mock('@/lib/prisma', () => ({
-  prisma: { user: { findUnique: jest.fn(), create: jest.fn() } },
-}))
+jest.mock('@/lib/prisma', () => {
+  const user = { findUnique: jest.fn(), create: jest.fn() }
+  // Registration now claims a founding-member slot in the same transaction
+  // as the account, so the mock has to hand the callback a working handle.
+  // The same `user.create` mock backs both paths, so assertions about what
+  // was created are unaffected by which one ran.
+  const $queryRaw = jest.fn().mockResolvedValue([])
+  return {
+    prisma: {
+      user,
+      $queryRaw,
+      $transaction: jest.fn((fn: (tx: unknown) => unknown) => fn({ user, $queryRaw })),
+    },
+  }
+})
 jest.mock('@/lib/password', () => ({
   hashPassword: jest.fn().mockResolvedValue('hashed'),
   isPasswordStrongEnough: jest.requireActual('@/lib/password').isPasswordStrongEnough,
@@ -11,6 +23,13 @@ import { POST } from '@/app/api/auth/register/route'
 
 const mockFindUnique = prisma.user.findUnique as jest.Mock
 const mockCreate = prisma.user.create as jest.Mock
+const mockClaimSlot = (prisma as unknown as { $queryRaw: jest.Mock }).$queryRaw
+
+beforeEach(() => {
+  // Default: the promotion is exhausted, so these tests exercise an
+  // ordinary signup. The founding-member path has its own suite.
+  mockClaimSlot.mockResolvedValue([])
+})
 
 function makeReq(body: unknown) {
   return { json: () => Promise.resolve(body) } as never
@@ -61,5 +80,36 @@ describe('POST /api/auth/register', () => {
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ username: 'dan-hurjui' }) })
     )
+  })
+
+  it('comps the account when a founding-member slot is free', async () => {
+    mockFindUnique.mockResolvedValue(null)
+    mockClaimSlot.mockResolvedValue([{ taken: 3 }])
+    mockCreate.mockResolvedValue({ id: 'u1', email: 'a@b.com', displayName: 'Dan', foundingNumber: 3 })
+
+    const res = await POST(makeReq({ email: 'a@b.com', password: 'longenough1', displayName: 'Dan' }))
+    const data = await res.json()
+
+    expect(res.status).toBe(201)
+    expect(data.foundingNumber).toBe(3)
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ foundingNumber: 3, isProComped: true }),
+      })
+    )
+    // isPro belongs to the Stripe webhook and would be revoked by a
+    // cancellation the founding member never made.
+    expect(mockCreate.mock.calls[0][0].data).not.toHaveProperty('isPro')
+  })
+
+  it('creates an ordinary account once the promotion is exhausted', async () => {
+    mockFindUnique.mockResolvedValue(null)
+    mockClaimSlot.mockResolvedValue([])
+    mockCreate.mockResolvedValue({ id: 'u1', email: 'a@b.com', displayName: 'Dan', foundingNumber: null })
+
+    const res = await POST(makeReq({ email: 'a@b.com', password: 'longenough1', displayName: 'Dan' }))
+    expect(res.status).toBe(201)
+    expect((await res.json()).foundingNumber).toBeNull()
+    expect(mockCreate.mock.calls[0][0].data).not.toHaveProperty('isProComped')
   })
 })

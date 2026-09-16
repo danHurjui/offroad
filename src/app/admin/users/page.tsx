@@ -41,7 +41,7 @@ export default async function AdminUsersPage({
       take: PAGE_SIZE,
       select: {
         id: true, email: true, displayName: true, username: true,
-        isPro: true, isProComped: true, isAdmin: true, active: true, createdAt: true,
+        isPro: true, isProComped: true, foundingNumber: true, isAdmin: true, active: true, createdAt: true,
         _count: { select: { vehicles: true, tickets: true } },
       },
     }),
@@ -103,7 +103,11 @@ export default async function AdminUsersPage({
                     </Link>
                     {u.isAdmin && <span className="badge badge-warn">admin</span>}
                     {u.isPro && <span className="badge badge-brand">Pro</span>}
-                    {u.isProComped && <span className="badge badge-success">Pro · comped</span>}
+                    {u.isProComped && (
+                      <span className="badge badge-success">
+                        {u.foundingNumber !== null ? `Founding #${u.foundingNumber}` : 'Pro · comped'}
+                      </span>
+                    )}
                     {!u.active && <span className="badge badge-danger">deactivated</span>}
                   </div>
                   <div className="truncate text-sm text-ink-muted">{u.email}</div>

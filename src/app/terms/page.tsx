@@ -11,7 +11,7 @@ import {
   PRIVACY_CONTROLLER,
   WITHDRAWAL_PERIOD_DAYS,
 } from '@/lib/legal'
-import { FREE_TIER } from '@/lib/pro'
+import { FREE_TIER, FOUNDING_MEMBER_LIMIT } from '@/lib/pro'
 import { PRO_PLANS } from '@/lib/stripe'
 import { MAX_UPLOAD_BYTES } from '@/lib/storage'
 
@@ -154,6 +154,25 @@ export default function TermsPage() {
             Losing Pro never deletes anything. Your vehicles, photos and history stay exactly where
             they are; the Pro-only screens stop opening, and your export keeps working so you can
             take everything with you.
+          </p>
+        </Section>
+
+        <Section title="Founding members">
+          <p>
+            The first {FOUNDING_MEMBER_LIMIT} accounts ever created get Pro at no charge. If you are
+            one of them, your settings page says so and gives your number.
+          </p>
+          <p>
+            It is a gift rather than a purchase: nothing was paid, so there is nothing to refund and
+            no subscription to cancel. It is tied to your account and cannot be transferred or
+            sold.
+          </p>
+          <p>
+            <strong className="text-ink">&ldquo;For life&rdquo; means for as long as RigLog runs.</strong>{' '}
+            We will not put it behind a payment later, and buying — then cancelling — a paid plan
+            will not remove it. We can withdraw it if the account breaks the rules above, on the
+            same terms as any other account. If RigLog shuts down, it ends with the service; your
+            export still works, and we would give notice.
           </p>
         </Section>
 

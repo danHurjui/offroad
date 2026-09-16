@@ -62,3 +62,13 @@ export const FREE_TIER = {
   /** Photos per task. Pro is unlimited. */
   photosPerTask: 10,
 } as const
+
+/**
+ * How many accounts get Pro free for life, in order of creation.
+ *
+ * Granted as `isProComped` (never `isPro`), allocated atomically in
+ * src/lib/foundingMembers.ts. Lowering this after launch does not take the
+ * comp off anyone who already has it — the counter and their
+ * `foundingNumber` both persist — it only stops new ones being handed out.
+ */
+export const FOUNDING_MEMBER_LIMIT = 100

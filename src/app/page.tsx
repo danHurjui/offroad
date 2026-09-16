@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { PROJECT_TYPES, PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { PRO_PLANS } from '@/lib/stripe'
+import { foundingMemberStatus } from '@/lib/foundingMembers'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 
@@ -75,7 +76,13 @@ function Section({
   )
 }
 
-export default function Home() {
+export default async function Home() {
+  // Already a dynamic page (PublicHeader reads the session), so the live
+  // count costs nothing extra in rendering mode. It can be a few seconds
+  // stale by the time it reaches a browser, which is fine — it is a
+  // marketing number, and the grant itself is decided atomically at signup.
+  const founding = await foundingMemberStatus()
+
   return (
     <div className="min-h-screen bg-background">
       <PublicHeader />
@@ -101,6 +108,18 @@ export default function Home() {
           <p className="mt-4 text-sm text-ink-faint">
             One vehicle free, forever. No card needed to start.
           </p>
+
+          {/* Only while there are slots. An expired offer left on a landing
+              page is worse than never running one. */}
+          {founding.open && (
+            <p className="mx-auto mt-6 inline-flex flex-wrap items-center justify-center gap-x-2 rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-sm dark:border-brand-400/30 dark:bg-brand-400/10">
+              <span className="font-semibold text-ink">Founding members get Pro free for life.</span>
+              <span className="text-ink-muted">
+                {founding.remaining} of {founding.limit}{' '}
+                {founding.remaining === 1 ? 'place' : 'places'} left.
+              </span>
+            </p>
+          )}
         </div>
       </section>
 
@@ -170,6 +189,13 @@ export default function Home() {
             <p className="mt-4 text-xs text-ink-faint">
               Also available annually ({PRO_PLANS.ANNUAL.priceRon} RON) or as a one-off lifetime purchase (
               {PRO_PLANS.LIFETIME.priceRon} RON).
+              {founding.open && (
+                <>
+                  {' '}
+                  The first {founding.limit} accounts pay none of it — {founding.remaining} still
+                  open.
+                </>
+              )}
             </p>
             <Link href="/register" className="btn-primary mt-4 w-full">
               Start free, upgrade later

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { subscribeToPush, unsubscribeFromPush } from '@/lib/pushClient'
-import { proKind } from '@/lib/pro'
+import { proKind, FREE_TIER } from '@/lib/pro'
 
 interface Profile {
   displayName: string
@@ -13,6 +13,7 @@ interface Profile {
   isPublicProfile: boolean
   isPro: boolean
   isProComped: boolean
+  foundingNumber: number | null
   proPlan: 'MONTHLY' | 'ANNUAL' | 'LIFETIME' | null
   stripeCustomerId: string | null
   notifyFollowedEmail: boolean
@@ -152,12 +153,23 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
               ? 'Pro — complimentary'
               : 'Free'}{' '}
           —{' '}
-          {kind === 'none' ? '1 vehicle, 10 photos per task.' : 'unlimited vehicles and photos.'}
+          {kind === 'none'
+            ? `${FREE_TIER.vehicles} vehicle, ${FREE_TIER.photosPerTask} photos per task.`
+            : 'unlimited vehicles and photos.'}
         </p>
         {kind === 'comped' && (
           <p className="mt-1 text-xs text-ink-faint">
-            Pro was granted to you by the RigLog team. There is nothing to pay and no subscription to
-            manage.
+            {profile.foundingNumber !== null ? (
+              <>
+                You are founding member #{profile.foundingNumber}. Pro is yours for as long as
+                RigLog runs — there is nothing to pay and no subscription to manage.
+              </>
+            ) : (
+              <>
+                Pro was granted to you by the RigLog team. There is nothing to pay and no
+                subscription to manage.
+              </>
+            )}
           </p>
         )}
         {kind !== 'none' ? (
