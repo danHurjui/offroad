@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Providers from '@/components/Providers'
+import KeyboardShortcuts from '@/components/KeyboardShortcuts'
 import { THEME_SCRIPT } from '@/lib/theme'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 
@@ -31,7 +32,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="RigLog" />
       </head>
       <body className="font-sans">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <KeyboardShortcuts />
+        </Providers>
         <ServiceWorkerRegistration />
       </body>
     </html>

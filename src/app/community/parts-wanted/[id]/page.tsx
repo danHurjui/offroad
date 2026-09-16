@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import PublicHeader from '@/components/PublicHeader'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getServerSession } from 'next-auth'
@@ -36,6 +37,7 @@ export default async function PartsRequestDetailPage({ params }: { params: { id:
 
   return (
     <div className="min-h-screen bg-surface-muted">
+      <PublicHeader />
       <div className="mx-auto max-w-2xl px-4 py-8">
         <Link href="/community/parts-wanted" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
           ← Back to parts wanted

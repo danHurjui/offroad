@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import PublicHeader from '@/components/PublicHeader'
 import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -24,6 +25,7 @@ export default async function PartsWantedPage() {
 
   return (
     <div className="min-h-screen bg-surface-muted">
+      <PublicHeader />
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>

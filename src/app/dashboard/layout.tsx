@@ -12,6 +12,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-surface-muted">
+      {/* Visually hidden until focused — the first Tab on any page skips the
+          header rather than walking through every nav link. */}
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
       <Nav displayName={user?.displayName ?? 'Account'} isAdmin={session.user.isAdmin} />
       {user?.proPaymentFailedAt && (
         <div className="bg-red-600 px-4 py-2 text-center text-sm text-white">
@@ -22,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           to keep Pro access.
         </div>
       )}
-      <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
+      <main id="main" className="mx-auto max-w-5xl px-4 py-6">{children}</main>
     </div>
   )
 }

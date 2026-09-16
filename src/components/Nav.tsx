@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import ThemeToggle from './ThemeToggle'
+import QuickAddButton from './QuickAddButton'
+import ShortcutHelpButton from './ShortcutHelpButton'
 
 export default function Nav({ displayName, isAdmin }: { displayName: string; isAdmin?: boolean }) {
   return (
@@ -30,6 +32,8 @@ export default function Nav({ displayName, isAdmin }: { displayName: string; isA
           <button className="text-ink-muted hover:text-ink" onClick={() => signOut({ callbackUrl: '/login' })}>
             Log out
           </button>
+          <QuickAddButton />
+          <ShortcutHelpButton />
           <ThemeToggle compact />
         </div>
       </div>
