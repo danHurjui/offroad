@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { PROJECT_TYPES, PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { PROJECT_TYPES } from '@/lib/projectType'
+import { getAllVocabulary } from '@/lib/vocabulary'
 import { PRO_PLANS } from '@/lib/stripe'
 import { foundingMemberStatus } from '@/lib/foundingMembers'
 import PublicHeader from '@/components/PublicHeader'
@@ -82,6 +83,9 @@ export default async function Home() {
   // stale by the time it reaches a browser, which is fine — it is a
   // marketing number, and the grant itself is decided atomically at signup.
   const founding = await foundingMemberStatus()
+  // The three-modes section maps over PROJECT_TYPES synchronously inside
+  // JSX, so the labels have to be in hand before the render starts.
+  const vocabulary = await getAllVocabulary()
 
   return (
     <div className="min-h-screen bg-background">
@@ -127,7 +131,7 @@ export default async function Home() {
       <Section eyebrow="One app, three jobs" title="Pick the mode that fits the vehicle">
         <div className="grid gap-5 sm:grid-cols-3">
           {PROJECT_TYPES.map((type) => {
-            const config = PROJECT_TYPE_CONFIG[type]
+            const config = vocabulary[type]
             const pitch = MODE_PITCH[type]
             return (
               <div key={type} className="card flex flex-col p-6">

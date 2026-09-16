@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PROJECT_TYPES, PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
+import { PROJECT_TYPES, type ProjectType } from '@/lib/projectType'
+import { useAllVocabulary } from '@/lib/vocabulary'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 
 // RL-002: create a vehicle / project. Project type selector is prominent —
@@ -21,6 +22,7 @@ import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
 const NO_SUGGESTIONS: readonly string[] = []
 
 export default function VehicleForm() {
+  const vocabulary = useAllVocabulary()
   const router = useRouter()
   const [projectType, setProjectType] = useState<ProjectType | null>(null)
   const [make, setMake] = useState('')
@@ -79,7 +81,7 @@ export default function VehicleForm() {
                 projectType === type ? 'border-brand-500 bg-brand-50 dark:bg-brand-400/10' : 'border-surface-border'
               }`}
             >
-              <div className="font-semibold text-ink">{PROJECT_TYPE_CONFIG[type].label}</div>
+              <div className="font-semibold text-ink">{vocabulary[type].label}</div>
               <div className="text-sm text-ink-muted">{PROJECT_TYPE_BLURBS[type]}</div>
             </button>
           ))}

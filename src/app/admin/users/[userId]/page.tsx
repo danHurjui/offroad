@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { requireAdminOrNotFound } from '@/lib/serverAuth'
-import { PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
+import { type ProjectType } from '@/lib/projectType'
+import { getAllVocabulary } from '@/lib/vocabulary'
 import { TICKET_TYPES, TICKET_STATUSES, type TicketType, type TicketStatus } from '@/lib/tickets'
 import AdminUserActiveToggle from '@/components/AdminUserActiveToggle'
 import AdminCompProToggle from '@/components/AdminCompProToggle'
@@ -14,6 +15,7 @@ export const dynamic = 'force-dynamic'
 export default async function AdminUserDetailPage({ params }: { params: { userId: string } }) {
   const session = await requireAdminOrNotFound()
 
+  const vocabulary = await getAllVocabulary()
   const user = await prisma.user.findUnique({
     where: { id: params.userId },
     select: {
@@ -119,7 +121,7 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
               </span>
               <span className="flex items-center gap-2">
                 <span className="badge bg-surface-subtle text-ink-muted">
-                  {PROJECT_TYPE_CONFIG[v.projectType as ProjectType].label}
+                  {vocabulary[v.projectType as ProjectType].label}
                 </span>
                 {v.isPublic && <span className="badge badge-success">public</span>}
               </span>

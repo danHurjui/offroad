@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import CollaboratorsBoard from '@/components/CollaboratorsBoard'
 
 // RL-030/031: owner-only collaborator management. Not linked from
@@ -13,7 +13,7 @@ export default async function CollaboratorsPage({ params }: { params: { id: stri
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const collaborators = await prisma.projectCollaborator.findMany({
     where: { vehicleId: vehicle.id },
     orderBy: { invitedAt: 'desc' },

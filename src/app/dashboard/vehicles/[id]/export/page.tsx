@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
 import ExportPdfButton from '@/components/ExportPdfButton'
@@ -17,7 +17,7 @@ export default async function ExportPdfPage({ params }: { params: { id: string }
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
   const isPro = hasPro(owner)
 

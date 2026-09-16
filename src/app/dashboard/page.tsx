@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
+import { type ProjectType } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
 
@@ -55,14 +56,14 @@ export default async function DashboardPage() {
   )
 }
 
-function VehicleCard({
+async function VehicleCard({
   vehicle,
   collaborator,
 }: {
   vehicle: { id: string; make: string; model: string; year: number; projectType: ProjectType; coverPhotoUrl: string | null }
   collaborator?: boolean
 }) {
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   return (
     <Link href={`/dashboard/vehicles/${vehicle.id}`} className="card block overflow-hidden hover:shadow-panel">
       <VehicleCoverImg url={vehicle.coverPhotoUrl} alt={`${vehicle.make} ${vehicle.model}`} />

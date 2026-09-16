@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
+import LanguageToggle from './LanguageToggle'
 import QuickAddButton from './QuickAddButton'
 import ShortcutHelpButton from './ShortcutHelpButton'
 
@@ -35,6 +36,7 @@ export default function Nav({ displayName, isAdmin }: { displayName: string; isA
           </button>
           <QuickAddButton />
           <ShortcutHelpButton />
+          <LanguageToggle compact />
           <ThemeToggle compact />
         </div>
       </div>

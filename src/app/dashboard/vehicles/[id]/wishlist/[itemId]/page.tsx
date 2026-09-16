@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import { serializeWishlistItem, serializeWishlistPriceEntry } from '@/lib/serialize'
 import WishlistPriceAlert from '@/components/WishlistPriceAlert'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
@@ -22,7 +23,7 @@ export default async function WishlistItemDetailPage({ params }: { params: { id:
   const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
   const isPro = hasPro(owner)
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const priceHistory = isPro
     ? await prisma.wishlistPriceEntry.findMany({
         where: { wishlistItemId: item.id },

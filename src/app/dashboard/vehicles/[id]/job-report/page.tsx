@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import ExportPdfButton from '@/components/ExportPdfButton'
 
 // RL-033: job report — always free. A collaborator generates their own
@@ -20,7 +20,7 @@ export default async function JobReportPage({
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const isOwner = vehicle.ownerId === session.user.id
   const range = searchParams.range === 'all' ? 'all' : '30d'
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`

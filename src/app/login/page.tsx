@@ -1,14 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import AuthShell from '@/components/AuthShell'
 import FormError from '@/components/FormError'
 import PasswordInput from '@/components/PasswordInput'
 import GoogleSignInButton from '@/components/GoogleSignInButton'
 
 export default function LoginPage() {
+  const t = useTranslations('auth.login')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,7 +26,7 @@ export default function LoginPage() {
     const result = await signIn('credentials', { email, password, redirect: false })
     setLoading(false)
     if (result?.error) {
-      setError('Incorrect email or password')
+      setError(t('badCredentials'))
       return
     }
     router.push('/dashboard')
@@ -30,14 +34,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface-muted px-4">
+    <AuthShell>
       <div className="card w-full max-w-sm p-6">
+        {/* The product name is not translated — it is the brand. */}
         <h1 className="mb-1 text-2xl font-bold text-ink">RigLog</h1>
-        <p className="mb-6 text-sm text-ink-muted">Log in to your build.</p>
+        <p className="mb-6 text-sm text-ink-muted">{t('subtitle')}</p>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="label" htmlFor="email">Email</label>
+            <label className="label" htmlFor="email">{tc('email')}</label>
             <input
               id="email"
               name="email"
@@ -61,7 +66,7 @@ export default function LoginPage() {
           </div>
           <PasswordInput
             id="password"
-            label="Password"
+            label={tc('password')}
             value={password}
             onChange={setPassword}
             autoComplete="current-password"
@@ -70,7 +75,7 @@ export default function LoginPage() {
           />
           <FormError id="login-error">{error}</FormError>
           <button type="submit" className="btn-primary w-full" disabled={loading}>
-            {loading ? 'Logging in…' : 'Log in'}
+            {loading ? t('submitting') : t('submit')}
           </button>
         </form>
 
@@ -78,18 +83,18 @@ export default function LoginPage() {
 
         <div className="mt-4 flex justify-between text-sm">
           <Link href="/forgot-password" className="text-brand-600 dark:text-brand-300 hover:underline">
-            Forgot password?
+            {t('forgot')}
           </Link>
           <Link href="/register" className="text-brand-600 dark:text-brand-300 hover:underline">
-            Create account
+            {t('createAccount')}
           </Link>
         </div>
         <div className="mt-3 text-center text-sm">
           <Link href="/community" className="text-ink-muted hover:underline">
-            Browse community builds →
+            {t('browseCommunity')}
           </Link>
         </div>
       </div>
-    </div>
+    </AuthShell>
   )
 }

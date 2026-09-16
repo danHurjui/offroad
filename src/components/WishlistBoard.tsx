@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { PROJECT_TYPE_CONFIG, labelFor, type ProjectType } from '@/lib/projectType'
+import { labelFor, type ProjectType } from '@/lib/projectType'
+import { useVocabulary } from '@/lib/vocabulary'
 
 interface WishlistItem {
   id: string
@@ -63,7 +64,7 @@ export default function WishlistBoard({
   items: WishlistItem[]
 }) {
   const router = useRouter()
-  const config = PROJECT_TYPE_CONFIG[projectType]
+  const config = useVocabulary(projectType)
   const statusColors = STATUS_COLORS[projectType]
   const terminalStatus = config.wishlistStatuses[config.wishlistStatuses.length - 1].value
   const convertLabel = CONVERT_LABELS[projectType]

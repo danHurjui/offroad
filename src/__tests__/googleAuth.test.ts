@@ -22,6 +22,7 @@ describe('isGoogleAuthConfigured', () => {
   const load = () => {
     let configured = false
     jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- isolateModules needs a synchronous re-require; an import is hoisted and evaluated once.
       configured = (require('@/lib/auth') as typeof import('@/lib/auth')).isGoogleAuthConfigured()
     })
     return configured
@@ -54,6 +55,7 @@ describe('provider registration', () => {
   const providerIds = () => {
     let ids: string[] = []
     jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- see above.
       const { authOptions } = require('@/lib/auth') as typeof import('@/lib/auth')
       ids = authOptions.providers.map((p) => p.id)
     })

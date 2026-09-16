@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import { getDocumentStatus, isHistoricVehicle } from '@/lib/documents'
 import { computeOriginalityScore } from '@/lib/originality'
@@ -18,7 +19,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
   if (!vehicle) notFound()
 
   const isOwner = vehicle.ownerId === session.user.id
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const completeStatus = config.completeStatus
 
   const [tasks, foundState, documents, collaborators] = await Promise.all([

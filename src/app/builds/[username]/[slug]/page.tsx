@@ -5,7 +5,8 @@ import { notFound } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import { computeOriginalityScore } from '@/lib/originality'
 import OriginalityBadge from '@/components/OriginalityBadge'
@@ -39,7 +40,7 @@ export async function generateMetadata({
   if (!data) return {}
 
   const { vehicle, owner } = data
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const title = `${vehicle.year} ${vehicle.make} ${vehicle.model} — RigLog`
   const description = `${config.label} by ${owner.displayName} on RigLog.`
   const baseUrl = appUrlForMetadata()
@@ -76,7 +77,7 @@ export default async function PublicVehiclePage({
   if (!data) notFound()
   const { vehicle, owner } = data
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const completeStatus = config.completeStatus
 
   const tasks = await prisma.task.findMany({

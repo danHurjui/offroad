@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
+import LanguageToggle from './LanguageToggle'
 
 /**
  * Header for the logged-out marketing site (/, /donate, /tickets). Distinct
@@ -24,6 +25,7 @@ export default async function PublicHeader() {
           <Logo />
         </Link>
         <nav className="flex items-center gap-4 text-sm">
+          <LanguageToggle compact />
           <ThemeToggle compact />
           <Link href="/tickets" className="text-ink-muted hover:text-ink">
             Roadmap

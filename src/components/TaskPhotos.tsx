@@ -2,7 +2,8 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PROJECT_TYPE_CONFIG, labelFor, type ProjectType } from '@/lib/projectType'
+import { labelFor, type ProjectType } from '@/lib/projectType'
+import { useVocabulary } from '@/lib/vocabulary'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 
 interface Photo {
@@ -27,7 +28,7 @@ export default function TaskPhotos({
   photos: Photo[]
 }) {
   const router = useRouter()
-  const config = PROJECT_TYPE_CONFIG[projectType]
+  const config = useVocabulary(projectType)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [photoType, setPhotoType] = useState(config.photoTypes[0].value)
   const [uploading, setUploading] = useState(false)

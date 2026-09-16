@@ -1,0 +1,227 @@
+{
+  "meta": {
+    "description": "Jurnal de build off-road, restaurare și reparații"
+  },
+  "language": {
+    "label": "Limbă",
+    "choose": "Alege limba",
+    "ro": "Română",
+    "en": "English",
+    "switchTo": "Schimbă în {language}",
+    "failed": "Nu am putut schimba limba. Încearcă din nou."
+  },
+  "settings": {
+    "language": {
+      "title": "Limbă",
+      "help": "Se aplică imediat, pe acest dispozitiv. Alegerea este salvată și în cont, ca notificările prin e-mail să vină în aceeași limbă."
+    }
+  },
+  "common": {
+    "save": "Salvează",
+    "saving": "Se salvează…",
+    "cancel": "Anulează",
+    "delete": "Șterge",
+    "deleting": "Se șterge…",
+    "edit": "Editează",
+    "back": "Înapoi",
+    "email": "E-mail",
+    "password": "Parolă",
+    "loading": "Se încarcă…",
+    "networkError": "Nu am putut contacta serverul. Verifică conexiunea și încearcă din nou.",
+    "genericError": "Ceva n-a mers. Încearcă din nou."
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Intră în contul tău.",
+      "submit": "Autentificare",
+      "submitting": "Se autentifică…",
+      "badCredentials": "E-mail sau parolă incorecte",
+      "forgot": "Ai uitat parola?",
+      "createAccount": "Creează cont",
+      "browseCommunity": "Vezi proiectele comunității →"
+    },
+    "register": {
+      "title": "Creează-ți contul",
+      "subtitle": "Începe gratuit să-ți ții jurnalul mașinii.",
+      "name": "Nume",
+      "nameHelp": "Apare pe proiectele tale publice.",
+      "passwordHelp": "Cel puțin {min} caractere.",
+      "submit": "Creează cont",
+      "submitting": "Se creează contul…",
+      "failed": "Înregistrarea nu a reușit",
+      "terms": "Creând un cont, accepți <terms>termenii</terms> și <privacy>politica de confidențialitate</privacy>.",
+      "haveAccount": "Ai deja cont?",
+      "logIn": "Autentifică-te"
+    },
+    "google": {
+      "continue": "Continuă cu Google"
+    },
+    "forgot": {
+      "title": "Resetează-ți parola",
+      "sent": "Dacă acest e-mail există, am trimis un link de resetare. Expiră într-o oră — verifică și folderul de spam dacă nu ajunge în câteva minute.",
+      "submit": "Trimite linkul",
+      "submitting": "Se trimite…",
+      "rateLimited": "Prea multe cereri de resetare. Încearcă din nou în aproximativ {minutes, plural, one {un minut} other {# minute}}.",
+      "backToLogin": "Înapoi la autentificare"
+    },
+    "reset": {
+      "incompleteTitle": "Linkul de resetare este incomplet",
+      "incompleteBody": "Acestui link îi lipsește token-ul — unele aplicații de e-mail rup linkurile lungi pe mai multe rânduri. Copiază linkul întreg din e-mail sau cere unul nou.",
+      "requestNew": "Cere un link nou",
+      "title": "Setează o parolă nouă",
+      "newPassword": "Parolă nouă",
+      "confirmPassword": "Confirmă parola nouă",
+      "mismatch": "Parolele nu coincid.",
+      "mismatchYet": "Încă nu coincid.",
+      "submit": "Salvează parola nouă"
+    }
+  },
+  "vocab": {
+    "mode": {
+      "OFFROAD": {
+        "label": "Build off-road",
+        "screenTitle": "Build-ul meu",
+        "progressLabel": "Progres build",
+        "addTaskCta": "+ Adaugă modificare",
+        "namePlaceholder": "ex. kit de înălțare 2\" + amortizoare",
+        "wishlistLabel": "Listă de dorințe",
+        "communityTabLabel": "Build-uri"
+      },
+      "RESTORATION": {
+        "label": "Proiect de restaurare",
+        "screenTitle": "Restaurarea mea",
+        "progressLabel": "Progres restaurare",
+        "addTaskCta": "+ Adaugă etapă / lucrare",
+        "namePlaceholder": "ex. Demontare și recromare bară față",
+        "wishlistLabel": "Căutare piese",
+        "communityTabLabel": "Restaurări"
+      },
+      "DAILY_DRIVER": {
+        "label": "Mașină de zi cu zi",
+        "screenTitle": "Mașina mea",
+        "progressLabel": "Lucrări înregistrate",
+        "addTaskCta": "+ Înregistrează o reparație",
+        "namePlaceholder": "ex. Plăcuțe și discuri de frână față",
+        "wishlistLabel": "Lucrări planificate",
+        "communityTabLabel": "Mașini de zi cu zi"
+      }
+    },
+    "status": {
+      "OFFROAD": {
+        "DONE": "Gata",
+        "PLANNED": "Planificat",
+        "BROKEN": "Defect",
+        "IN_PROGRESS": "În lucru",
+        "SOURCED": "Găsit"
+      },
+      "RESTORATION": {
+        "STRIPPED": "Demontat",
+        "IN_PROGRESS": "În lucru",
+        "PRIMED": "Grunduit",
+        "PAINTED": "Vopsit",
+        "REBUILT": "Recondiționat",
+        "COMPLETE": "Finalizat"
+      },
+      "DAILY_DRIVER": {
+        "DONE": "Gata",
+        "DUE": "Scadent",
+        "BOOKED": "Programat",
+        "IN_PROGRESS": "În lucru",
+        "DEFERRED": "Amânat"
+      }
+    },
+    "category": {
+      "OFFROAD": {
+        "SUSPENSION": "Suspensie",
+        "PROTECTION": "Protecție",
+        "RECOVERY": "Recuperare",
+        "LIGHTING": "Iluminat",
+        "TYRES": "Anvelope și jante",
+        "ELECTRONICS": "Electronice",
+        "ENGINE": "Motor / transmisie",
+        "AESTHETICS": "Estetică",
+        "MAINTENANCE": "Întreținere"
+      },
+      "RESTORATION": {
+        "BODY_PANELS": "Caroserie și tablă",
+        "PAINT": "Vopsitorie",
+        "INTERIOR": "Interior",
+        "CHROME_TRIM": "Crom și ornamente",
+        "ENGINE_REBUILD": "Recondiționare motor",
+        "ELECTRICS": "Instalație electrică",
+        "CHASSIS": "Șasiu și tren de rulare",
+        "GLASS": "Geamuri",
+        "DOCUMENTATION": "Acte și documentație"
+      },
+      "DAILY_DRIVER": {
+        "SERVICING": "Revizie și fluide",
+        "BRAKES": "Frâne",
+        "TYRES": "Anvelope și jante",
+        "SUSPENSION": "Suspensie și direcție",
+        "ENGINE": "Motor",
+        "TRANSMISSION": "Transmisie și ambreiaj",
+        "ELECTRICAL": "Instalație electrică",
+        "COOLING": "Răcire și climatizare",
+        "EXHAUST": "Evacuare și emisii",
+        "BODYWORK": "Caroserie și geamuri",
+        "INSPECTION": "ITP și verificări",
+        "OTHER": "Altele"
+      }
+    },
+    "photoType": {
+      "OFFROAD": {
+        "BEFORE": "Înainte",
+        "AFTER": "După",
+        "INSTALL": "Montaj",
+        "DAMAGE": "Avarie",
+        "TRAIL": "Traseu"
+      },
+      "RESTORATION": {
+        "FOUND_STATE": "Starea la găsire",
+        "STRIPPED": "Demontat",
+        "PROGRESS": "Progres",
+        "DETAIL": "Detaliu",
+        "COMPLETE": "Finalizat"
+      },
+      "DAILY_DRIVER": {
+        "FAULT": "Defecțiune",
+        "REPAIR": "Reparație",
+        "PART": "Piesă",
+        "OTHER": "Altele"
+      }
+    },
+    "wishlistStatus": {
+      "OFFROAD": {
+        "RESEARCHING": "Documentare",
+        "SOURCED": "Găsit",
+        "ORDERED": "Comandat",
+        "INSTALLED": "Montat"
+      },
+      "RESTORATION": {
+        "HUNTING": "În căutare",
+        "LOCATED": "Găsită",
+        "RESERVED": "Rezervată",
+        "PURCHASED": "Cumpărată",
+        "FITTED": "Montată"
+      },
+      "DAILY_DRIVER": {
+        "RESEARCHING": "Documentare",
+        "QUOTED": "Ofertat",
+        "ORDERED": "Comandat",
+        "FITTED": "Montat"
+      }
+    },
+    "partCondition": {
+      "NOS": "NOS (piesă nouă de stoc vechi)",
+      "GOOD_USED": "Second-hand, stare bună",
+      "NEEDS_WORK": "Necesită recondiționare",
+      "REPRODUCTION": "Reproducere"
+    },
+    "originality": {
+      "OEM_ORIGINAL": "Original OEM",
+      "PERIOD_CORRECT": "Corect pentru epocă",
+      "MODERN_REPLACEMENT": "Înlocuitor modern",
+      "REPRODUCTION": "Reproducere"
+    }
+  }
+}

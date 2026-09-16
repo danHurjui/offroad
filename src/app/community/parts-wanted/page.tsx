@@ -4,7 +4,8 @@ import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { labelFor, PART_CONDITIONS } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getPartConditions } from '@/lib/vocabulary'
 
 export const metadata: Metadata = {
   title: 'Parts wanted — RigLog Community',
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 // RL-024: "Parts wanted" section of the community feed — every OPEN
 // request, most recent first. Posting is Pro-gated; browsing isn't.
 export default async function PartsWantedPage() {
+  const partConditions = await getPartConditions()
   const session = await getServerSession(authOptions)
 
   const requests = await prisma.partsRequest.findMany({
@@ -60,7 +62,7 @@ export default async function PartsWantedPage() {
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-ink-muted">
-                  {labelFor(PART_CONDITIONS, r.conditionAccepted)} · {r.location}
+                  {labelFor(partConditions, r.conditionAccepted)} · {r.location}
                 </p>
                 <p className="mt-1 text-xs text-ink-faint">
                   {r.user.displayName}

@@ -3,7 +3,7 @@ import { Suspense } from 'react'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import TaskForm from '@/components/TaskForm'
 import { taskFieldSuggestions } from '@/lib/taskSuggestions'
 
@@ -12,7 +12,7 @@ export default async function NewTaskPage({ params }: { params: { id: string } }
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const suggestions = await taskFieldSuggestions(vehicle.id)
   const isOwner = vehicle.ownerId === session.user.id
   const collaborator = isOwner

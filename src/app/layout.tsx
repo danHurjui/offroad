@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from 'next'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 import './globals.css'
 import Providers from '@/components/Providers'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts'
@@ -6,15 +8,23 @@ import CookieNotice from '@/components/CookieNotice'
 import { THEME_SCRIPT } from '@/lib/theme'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 
-export const metadata: Metadata = {
-  title: 'RigLog',
-  description: 'Off-road build tracker & restoration journal',
-  // One SVG for every slot. Browsers scale it for the tab, iOS uses it for
-  // the home-screen icon, and there is no PNG set to keep in sync.
-  icons: {
-    icon: [{ url: '/icons/icon.svg', type: 'image/svg+xml' }],
-    apple: [{ url: '/icons/icon.svg' }],
-  },
+/**
+ * Async because the description is translated — the tab title and the
+ * link preview should be in the reader's language too.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta')
+
+  return {
+    title: 'RigLog',
+    description: t('description'),
+    // One SVG for every slot. Browsers scale it for the tab, iOS uses it
+    // for the home-screen icon, and there is no PNG set to keep in sync.
+    icons: {
+      icon: [{ url: '/icons/icon.svg', type: 'image/svg+xml' }],
+      apple: [{ url: '/icons/icon.svg' }],
+    },
+  }
 }
 
 export const viewport: Viewport = {
@@ -23,9 +33,16 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Resolved from the cookie (src/i18n/request.ts). It has to reach <html
+  // lang>, or a screen reader announces Romanian copy with English
+  // phonetics and the browser offers to translate a page that is already
+  // in the reader's language.
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         {/* Runs before first paint so a dark-theme user never sees a white
             flash while React hydrates. */}
@@ -39,11 +56,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-title" content="RigLog" />
       </head>
       <body className="font-sans">
-        <Providers>
-          {children}
-          <KeyboardShortcuts />
-          <CookieNotice />
-        </Providers>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <Providers>
+            {children}
+            <KeyboardShortcuts />
+            <CookieNotice />
+          </Providers>
+        </NextIntlClientProvider>
         <ServiceWorkerRegistration />
       </body>
     </html>

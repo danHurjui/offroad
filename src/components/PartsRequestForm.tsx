@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PART_CONDITIONS } from '@/lib/projectType'
+import { usePartConditions } from '@/lib/vocabulary'
 
 // RL-024: parts request form — Pro-gated server-side; this component
 // assumes the caller already confirmed the viewer is Pro and logged in.
@@ -11,13 +11,14 @@ import AutocompleteInput from './AutocompleteInput'
 import { ALL_MAKES, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
 
 export default function PartsRequestForm() {
+  const partConditions = usePartConditions()
   const router = useRouter()
   const [form, setForm] = useState({
     vehicleMake: '',
     vehicleModel: '',
     partName: '',
     partNumber: '',
-    conditionAccepted: PART_CONDITIONS[0].value,
+    conditionAccepted: partConditions[0].value,
     location: '',
     description: '',
   })
@@ -100,7 +101,7 @@ export default function PartsRequestForm() {
         <div>
           <label className="label" htmlFor="conditionAccepted">Condition accepted</label>
           <select id="conditionAccepted" className="input" value={form.conditionAccepted} onChange={(e) => setForm({ ...form, conditionAccepted: e.target.value })}>
-            {PART_CONDITIONS.map((c) => (
+            {partConditions.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>

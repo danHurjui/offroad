@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { PROJECT_TYPE_CONFIG, PART_CONDITIONS, type ProjectType } from '@/lib/projectType'
+import { type ProjectType } from '@/lib/projectType'
+import { useVocabulary, usePartConditions } from '@/lib/vocabulary'
 
 interface InitialItem {
   id: string
@@ -33,9 +34,10 @@ export default function WishlistItemForm({
   initialItem?: InitialItem
 }) {
   const router = useRouter()
-  const config = PROJECT_TYPE_CONFIG[projectType]
+  const config = useVocabulary(projectType)
   const isEdit = Boolean(initialItem)
 
+  const partConditions = usePartConditions()
   const [name, setName] = useState(initialItem?.name ?? '')
   const [category, setCategory] = useState(initialItem?.category ?? config.categories[0].value)
   const [estimatedCostRon, setEstimatedCostRon] = useState(
@@ -129,7 +131,7 @@ export default function WishlistItemForm({
             <label className="label" htmlFor="partCondition">Part condition</label>
             <select id="partCondition" className="input" value={partCondition} onChange={(e) => setPartCondition(e.target.value)}>
               <option value="">Not specified</option>
-              {PART_CONDITIONS.map((c) => (
+              {partConditions.map((c) => (
                 <option key={c.value} value={c.value}>{c.label}</option>
               ))}
             </select>

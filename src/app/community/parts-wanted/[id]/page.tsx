@@ -5,7 +5,8 @@ import { notFound } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { labelFor, PART_CONDITIONS } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getPartConditions } from '@/lib/vocabulary'
 import PartsRequestComments from '@/components/PartsRequestComments'
 import MarkFoundButton from '@/components/MarkFoundButton'
 
@@ -29,6 +30,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 export default async function PartsRequestDetailPage({ params }: { params: { id: string } }) {
+  const partConditions = await getPartConditions()
   const request = await findRequest(params.id)
   if (!request) notFound()
 
@@ -65,7 +67,7 @@ export default async function PartsRequestDetailPage({ params }: { params: { id:
             )}
             <div>
               <dt className="text-ink-faint">Condition accepted</dt>
-              <dd className="text-ink">{labelFor(PART_CONDITIONS, request.conditionAccepted)}</dd>
+              <dd className="text-ink">{labelFor(partConditions, request.conditionAccepted)}</dd>
             </div>
             <div className="col-span-2">
               <dt className="text-ink-faint">Location / shipping</dt>

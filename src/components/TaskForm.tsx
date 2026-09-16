@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { PROJECT_TYPE_CONFIG, ORIGINALITY_CONDITIONS, type ProjectType } from '@/lib/projectType'
+import { type ProjectType } from '@/lib/projectType'
+import { useVocabulary, useOriginalityConditions } from '@/lib/vocabulary'
 import type { TaskFieldSuggestions } from '@/lib/taskSuggestions'
 import AutocompleteInput from './AutocompleteInput'
 import FormError from './FormError'
@@ -47,9 +48,10 @@ export default function TaskForm({
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const config = PROJECT_TYPE_CONFIG[projectType]
+  const config = useVocabulary(projectType)
   const isEdit = Boolean(initialTask)
 
+  const originalityConditions = useOriginalityConditions()
   const [name, setName] = useState(initialTask?.name ?? '')
   const [brand, setBrand] = useState(initialTask?.brand ?? '')
   const [category, setCategory] = useState(
@@ -273,7 +275,7 @@ export default function TaskForm({
           <label className="label" htmlFor="originalityCondition">Part condition (optional)</label>
           <select id="originalityCondition" className="input" value={originalityCondition} onChange={(e) => setOriginalityCondition(e.target.value)}>
             <option value="">Not rated</option>
-            {ORIGINALITY_CONDITIONS.map((c) => (
+            {originalityConditions.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>

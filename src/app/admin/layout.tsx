@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { requireAdminOrNotFound } from '@/lib/serverAuth'
 import Logo from '@/components/Logo'
 import ThemeToggle from '@/components/ThemeToggle'
+import LanguageToggle from '@/components/LanguageToggle'
 
 /**
  * Every /admin page is gated here as well as in its own API routes. The
@@ -35,6 +36,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Link href="/dashboard" className="btn-secondary">
               Back to app
             </Link>
+            <LanguageToggle compact />
             <ThemeToggle compact />
           </nav>
         </div>

@@ -1,14 +1,18 @@
 'use client'
 
 import { Suspense, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import AuthShell from '@/components/AuthShell'
 import FormError from '@/components/FormError'
 import PasswordInput from '@/components/PasswordInput'
 import PasswordStrengthMeter from '@/components/PasswordStrengthMeter'
 import { MIN_PASSWORD_LENGTH } from '@/lib/passwordStrength'
 
 function ResetPasswordForm() {
+  const t = useTranslations('auth.reset')
+  const tc = useTranslations('common')
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token') ?? ''
@@ -26,7 +30,7 @@ function ResetPasswordForm() {
     // A typo here locks you out of your own account, and the API only ever
     // sees one of the two values — so this check has to happen client-side.
     if (password !== confirm) {
-      setError('The two passwords do not match.')
+      setError(t('mismatch'))
       return
     }
     setError(null)
@@ -40,26 +44,23 @@ function ResetPasswordForm() {
       const data = await res.json().catch(() => ({}))
       setLoading(false)
       if (!res.ok) {
-        setError(data.error ?? 'Something went wrong')
+        setError(data.error ?? tc('genericError'))
         return
       }
       router.push('/login')
     } catch {
       setLoading(false)
-      setError('Could not reach the server. Please check your connection and try again.')
+      setError(tc('networkError'))
     }
   }
 
   if (!token) {
     return (
       <div className="card w-full max-w-sm p-6">
-        <h1 className="mb-2 text-2xl font-bold text-ink">Reset link is incomplete</h1>
-        <p className="mb-4 text-sm text-ink-muted">
-          This link is missing its token — some mail apps break long links across lines. Copy the
-          whole link from the email, or request a new one.
-        </p>
+        <h1 className="mb-2 text-2xl font-bold text-ink">{t('incompleteTitle')}</h1>
+        <p className="mb-4 text-sm text-ink-muted">{t('incompleteBody')}</p>
         <Link href="/forgot-password" className="btn-primary w-full">
-          Request a new link
+          {t('requestNew')}
         </Link>
       </div>
     )
@@ -67,12 +68,12 @@ function ResetPasswordForm() {
 
   return (
     <div className="card w-full max-w-sm p-6">
-      <h1 className="mb-4 text-2xl font-bold text-ink">Set a new password</h1>
+      <h1 className="mb-4 text-2xl font-bold text-ink">{t('title')}</h1>
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <PasswordInput
             id="password"
-            label="New password"
+            label={t('newPassword')}
             value={password}
             onChange={setPassword}
             autoComplete="new-password"
@@ -85,7 +86,7 @@ function ResetPasswordForm() {
         <div>
           <PasswordInput
             id="confirm"
-            label="Confirm new password"
+            label={t('confirmPassword')}
             value={confirm}
             onChange={setConfirm}
             autoComplete="new-password"
@@ -94,7 +95,7 @@ function ResetPasswordForm() {
           />
           {mismatch && (
             <p id="confirm-mismatch" className="mt-1 text-xs text-red-600 dark:text-red-400">
-              These don&rsquo;t match yet.
+              {t('mismatchYet')}
             </p>
           )}
         </div>
@@ -104,7 +105,7 @@ function ResetPasswordForm() {
           className="btn-primary w-full"
           disabled={loading || mismatch || password.length < MIN_PASSWORD_LENGTH}
         >
-          {loading ? 'Saving…' : 'Save new password'}
+          {loading ? tc('saving') : t('submit')}
         </button>
       </form>
     </div>
@@ -113,10 +114,10 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface-muted px-4">
+    <AuthShell>
       <Suspense fallback={null}>
         <ResetPasswordForm />
       </Suspense>
-    </div>
+    </AuthShell>
   )
 }

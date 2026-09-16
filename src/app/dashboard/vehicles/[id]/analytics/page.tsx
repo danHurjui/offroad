@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import {
   isDateRange,
@@ -35,7 +36,7 @@ export default async function CostAnalyticsPage({
   if (!vehicle) notFound()
 
   const isOwner = vehicle.ownerId === session.user.id
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   // Pro is the vehicle owner's subscription, not the viewer's — a
   // collaborator's own isPro is irrelevant to what they see here.
   const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })

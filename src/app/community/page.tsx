@@ -4,7 +4,8 @@ import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, type ProjectType, PROJECT_TYPES, isProjectType } from '@/lib/projectType'
+import { type ProjectType, PROJECT_TYPES, isProjectType } from '@/lib/projectType'
+import { getAllVocabulary } from '@/lib/vocabulary'
 import { computeVehicleProgress } from '@/lib/vehicleProgress'
 import { ERA_OPTIONS, yearMatchesEra } from '@/lib/era'
 
@@ -73,10 +74,14 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
     },
   })
 
+  // Every mode's labels, resolved once: the map below is synchronous
+  // and would otherwise await per row.
+  const vocabulary = await getAllVocabulary()
+
   const withComputedFields = vehicles
     .filter((v) => v.owner.username && v.slug) // always true for a public vehicle post-RL-018, but stay defensive
     .map((v) => {
-      const config = PROJECT_TYPE_CONFIG[v.projectType]
+      const config = vocabulary[v.projectType]
       // A daily driver's log has no end state, so it is never "complete"
       // for the status filter/badge (config.tracksCompletion).
       const { isComplete: categoriesDone } = computeVehicleProgress(
@@ -140,7 +145,7 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
             <option value="">All types</option>
             {PROJECT_TYPES.map((t) => (
               <option key={t} value={t}>
-                {PROJECT_TYPE_CONFIG[t].communityTabLabel}
+                {vocabulary[t].communityTabLabel}
               </option>
             ))}
           </select>

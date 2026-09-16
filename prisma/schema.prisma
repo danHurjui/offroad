@@ -140,6 +140,14 @@ model User {
   /// alone is a no-op if the user has no PushSubscription rows.
   notifyFollowedEmail  Boolean      @default(true)
   notifyFollowedPush   Boolean      @default(true)
+  /// Language for anything this account is *sent*: reminder emails,
+  /// invitations, follow notifications. The screen renders from the
+  /// riglog-locale cookie instead (src/i18n/config.ts) — a cron job
+  /// sending a document reminder at 3am has no browser to read a cookie
+  /// from, so the preference has to live on the row as well. Null means
+  /// the account predates the language chooser, or never used it; every
+  /// reader coerces that to the default with toLocale().
+  locale               String?
   active               Boolean      @default(true)
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt

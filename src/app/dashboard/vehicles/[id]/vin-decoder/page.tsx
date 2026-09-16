@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import VinDecoderPanel from '@/components/VinDecoderPanel'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
 
@@ -15,7 +15,7 @@ export default async function VinDecoderPage({ params }: { params: { id: string 
 
   const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
   const isPro = hasPro(owner)
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
 
   return (
     <div className="mx-auto max-w-xl">

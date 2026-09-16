@@ -1,0 +1,227 @@
+{
+  "meta": {
+    "description": "Off-road build tracker & restoration journal"
+  },
+  "language": {
+    "label": "Language",
+    "choose": "Choose language",
+    "ro": "Română",
+    "en": "English",
+    "switchTo": "Switch to {language}",
+    "failed": "Could not switch language. Please try again."
+  },
+  "settings": {
+    "language": {
+      "title": "Language",
+      "help": "Applies immediately, on this device. The choice is also saved to your account so email notifications arrive in the same language."
+    }
+  },
+  "common": {
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "edit": "Edit",
+    "back": "Back",
+    "email": "Email",
+    "password": "Password",
+    "loading": "Loading…",
+    "networkError": "Could not reach the server. Please check your connection and try again.",
+    "genericError": "Something went wrong. Please try again."
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Log in to your build.",
+      "submit": "Log in",
+      "submitting": "Logging in…",
+      "badCredentials": "Incorrect email or password",
+      "forgot": "Forgot password?",
+      "createAccount": "Create account",
+      "browseCommunity": "Browse community builds →"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Start logging your build for free.",
+      "name": "Name",
+      "nameHelp": "Shown on your public builds.",
+      "passwordHelp": "At least {min} characters.",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "failed": "Registration failed",
+      "terms": "By creating an account you agree to our <terms>terms</terms> and <privacy>privacy policy</privacy>.",
+      "haveAccount": "Already have an account?",
+      "logIn": "Log in"
+    },
+    "google": {
+      "continue": "Continue with Google"
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "sent": "If that email exists, a reset link has been sent. It expires in an hour — check your spam folder if it hasn’t arrived in a few minutes.",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "rateLimited": "Too many reset requests. Please try again in about {minutes, plural, one {a minute} other {# minutes}}.",
+      "backToLogin": "Back to login"
+    },
+    "reset": {
+      "incompleteTitle": "Reset link is incomplete",
+      "incompleteBody": "This link is missing its token — some mail apps break long links across lines. Copy the whole link from the email, or request a new one.",
+      "requestNew": "Request a new link",
+      "title": "Set a new password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "mismatch": "The two passwords do not match.",
+      "mismatchYet": "These don’t match yet.",
+      "submit": "Save new password"
+    }
+  },
+  "vocab": {
+    "mode": {
+      "OFFROAD": {
+        "label": "Off-road build",
+        "screenTitle": "My Build",
+        "progressLabel": "Build progress",
+        "addTaskCta": "+ Add modification",
+        "namePlaceholder": "e.g. 2\" lift kit + shocks",
+        "wishlistLabel": "Wishlist",
+        "communityTabLabel": "Builds"
+      },
+      "RESTORATION": {
+        "label": "Restoration project",
+        "screenTitle": "My Restoration",
+        "progressLabel": "Restoration progress",
+        "addTaskCta": "+ Add task / stage",
+        "namePlaceholder": "e.g. Strip and re-chrome front bumper",
+        "wishlistLabel": "Parts hunt",
+        "communityTabLabel": "Restorations"
+      },
+      "DAILY_DRIVER": {
+        "label": "Daily driver",
+        "screenTitle": "My Car",
+        "progressLabel": "Jobs logged",
+        "addTaskCta": "+ Log a repair",
+        "namePlaceholder": "e.g. Front brake pads and discs",
+        "wishlistLabel": "Planned work",
+        "communityTabLabel": "Daily drivers"
+      }
+    },
+    "status": {
+      "OFFROAD": {
+        "DONE": "Done",
+        "PLANNED": "Planned",
+        "BROKEN": "Broken",
+        "IN_PROGRESS": "In Progress",
+        "SOURCED": "Sourced"
+      },
+      "RESTORATION": {
+        "STRIPPED": "Stripped",
+        "IN_PROGRESS": "In Progress",
+        "PRIMED": "Primed",
+        "PAINTED": "Painted",
+        "REBUILT": "Rebuilt",
+        "COMPLETE": "Complete"
+      },
+      "DAILY_DRIVER": {
+        "DONE": "Done",
+        "DUE": "Due",
+        "BOOKED": "Booked in",
+        "IN_PROGRESS": "In Progress",
+        "DEFERRED": "Deferred"
+      }
+    },
+    "category": {
+      "OFFROAD": {
+        "SUSPENSION": "Suspension",
+        "PROTECTION": "Protection",
+        "RECOVERY": "Recovery",
+        "LIGHTING": "Lighting",
+        "TYRES": "Tyres & Wheels",
+        "ELECTRONICS": "Electronics",
+        "ENGINE": "Engine / Drivetrain",
+        "AESTHETICS": "Aesthetics",
+        "MAINTENANCE": "Maintenance"
+      },
+      "RESTORATION": {
+        "BODY_PANELS": "Body & Panels",
+        "PAINT": "Paint",
+        "INTERIOR": "Interior",
+        "CHROME_TRIM": "Chrome & Trim",
+        "ENGINE_REBUILD": "Engine Rebuild",
+        "ELECTRICS": "Electrics",
+        "CHASSIS": "Chassis & Running Gear",
+        "GLASS": "Glass",
+        "DOCUMENTATION": "Documentation"
+      },
+      "DAILY_DRIVER": {
+        "SERVICING": "Servicing & Fluids",
+        "BRAKES": "Brakes",
+        "TYRES": "Tyres & Wheels",
+        "SUSPENSION": "Suspension & Steering",
+        "ENGINE": "Engine",
+        "TRANSMISSION": "Transmission & Clutch",
+        "ELECTRICAL": "Electrical",
+        "COOLING": "Cooling & Heating",
+        "EXHAUST": "Exhaust & Emissions",
+        "BODYWORK": "Bodywork & Glass",
+        "INSPECTION": "ITP & Inspection",
+        "OTHER": "Other"
+      }
+    },
+    "photoType": {
+      "OFFROAD": {
+        "BEFORE": "Before",
+        "AFTER": "After",
+        "INSTALL": "Install",
+        "DAMAGE": "Damage",
+        "TRAIL": "Trail"
+      },
+      "RESTORATION": {
+        "FOUND_STATE": "Found state",
+        "STRIPPED": "Stripped",
+        "PROGRESS": "Progress",
+        "DETAIL": "Detail",
+        "COMPLETE": "Complete"
+      },
+      "DAILY_DRIVER": {
+        "FAULT": "Fault",
+        "REPAIR": "Repair",
+        "PART": "Part",
+        "OTHER": "Other"
+      }
+    },
+    "wishlistStatus": {
+      "OFFROAD": {
+        "RESEARCHING": "Researching",
+        "SOURCED": "Sourced",
+        "ORDERED": "Ordered",
+        "INSTALLED": "Installed"
+      },
+      "RESTORATION": {
+        "HUNTING": "Hunting",
+        "LOCATED": "Located",
+        "RESERVED": "Reserved",
+        "PURCHASED": "Purchased",
+        "FITTED": "Fitted"
+      },
+      "DAILY_DRIVER": {
+        "RESEARCHING": "Researching",
+        "QUOTED": "Quoted",
+        "ORDERED": "Ordered",
+        "FITTED": "Fitted"
+      }
+    },
+    "partCondition": {
+      "NOS": "NOS (new old stock)",
+      "GOOD_USED": "Good used",
+      "NEEDS_WORK": "Needs work",
+      "REPRODUCTION": "Reproduction"
+    },
+    "originality": {
+      "OEM_ORIGINAL": "OEM original",
+      "PERIOD_CORRECT": "Period correct",
+      "MODERN_REPLACEMENT": "Modern replacement",
+      "REPRODUCTION": "Reproduction"
+    }
+  }
+}

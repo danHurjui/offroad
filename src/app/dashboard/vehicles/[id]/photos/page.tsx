@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import TrailThumbnail from '@/components/TrailThumbnail'
 
 // RL-007: photo timeline — full project visual log, filterable.
@@ -18,7 +19,7 @@ export default async function PhotosTimelinePage({
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const order = searchParams.order === 'oldest' ? 'asc' : 'desc'
   const isOwner = vehicle.ownerId === session.user.id
   const noFiltersActive = !searchParams.photoType && !searchParams.category

@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, ORIGINALITY_CONDITIONS, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getVocabulary, getOriginalityConditions } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import TaskPhotos from '@/components/TaskPhotos'
 import TaskReceipt from '@/components/TaskReceipt'
@@ -11,6 +12,7 @@ import DeleteTaskButton from '@/components/DeleteTaskButton'
 
 // RL-005: task detail view.
 export default async function TaskDetailPage({ params }: { params: { id: string; taskId: string } }) {
+  const originalityConditions = await getOriginalityConditions()
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -23,7 +25,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
 
   const isOwner = vehicle.ownerId === session.user.id
   const canEdit = isOwner || task.addedByUserId === session.user.id
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
 
   const addedByCollaborator = task.addedByUserId !== vehicle.ownerId
   // A deleted account leaves addedByUserId null. Looking a null up in
@@ -126,7 +128,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
           {task.originalityCondition && (
             <div className="col-span-2">
               <dt className="text-ink-faint">Part condition</dt>
-              <dd className="text-ink">{labelFor(ORIGINALITY_CONDITIONS, task.originalityCondition)}</dd>
+              <dd className="text-ink">{labelFor(originalityConditions, task.originalityCondition)}</dd>
             </div>
           )}
           {task.notes && (
