@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
@@ -17,7 +18,8 @@ import {
 import CostAnalyticsCharts from '@/components/CostAnalyticsCharts'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
 
-const RANGE_LABELS: Record<DateRange, string> = { '3m': 'Last 3 months', '12m': 'Last 12 months', all: 'All time' }
+/** Ordered for the filter row; the words come from the catalogue. */
+const RANGES: DateRange[] = ['3m', '12m', 'all']
 
 // RL-015: cost analytics dashboard. Free tier gets the total-spent card
 // only; Pro gets the full breakdown (charts, averages, most expensive
@@ -36,6 +38,8 @@ export default async function CostAnalyticsPage({
   if (!vehicle) notFound()
 
   const isOwner = vehicle.ownerId === session.user.id
+  const t = await getTranslations('analytics')
+  const tc = await getTranslations('common')
   const config = await getVocabulary(vehicle.projectType)
   // Pro is the vehicle owner's subscription, not the viewer's — a
   // collaborator's own isPro is irrelevant to what they see here.
@@ -46,10 +50,10 @@ export default async function CostAnalyticsPage({
     return (
       <div>
         <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-          ← Back to {config.screenTitle}
+          {tc('backTo', { screen: config.screenTitle })}
         </Link>
-        <h1 className="mb-6 text-2xl font-bold text-ink">Cost analytics</h1>
-        <div className="card p-4 text-sm text-ink-muted">The owner has hidden cost totals from collaborators.</div>
+        <h1 className="mb-6 text-2xl font-bold text-ink">{t('title')}</h1>
+        <div className="card p-4 text-sm text-ink-muted">{t('hiddenFromCollaborators')}</div>
       </div>
     )
   }
@@ -73,30 +77,30 @@ export default async function CostAnalyticsPage({
   return (
     <div>
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to {config.screenTitle}
+        {tc('backTo', { screen: config.screenTitle })}
       </Link>
-      <h1 className="mb-6 text-2xl font-bold text-ink">Cost analytics</h1>
+      <h1 className="mb-6 text-2xl font-bold text-ink">{t('title')}</h1>
 
       {!isPro ? (
         <>
           <div className="card mb-4 p-4">
-            <div className="text-xs text-ink-faint">Total spent</div>
+            <div className="text-xs text-ink-faint">{t('totalSpent')}</div>
             <div className="text-2xl font-semibold text-ink">{summary.totalSpent.toLocaleString('ro-RO')} RON</div>
           </div>
           <div className="card note p-4 text-sm text-ink">
-            Upgrade to Pro for charts, monthly trends, date filters, and the most expensive task breakdown.
+            {t('upgradePrompt')}
           </div>
         </>
       ) : (
         <>
           <div className="mb-4 flex flex-wrap gap-2 text-sm">
-            {(Object.keys(RANGE_LABELS) as DateRange[]).map((r) => (
+            {RANGES.map((r) => (
               <Link
                 key={r}
                 href={`/dashboard/vehicles/${vehicle.id}/analytics?range=${r}`}
                 className={`badge ${range === r ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}
               >
-                {RANGE_LABELS[r]}
+                {t(`range.${r}`)}
               </Link>
             ))}
           </div>

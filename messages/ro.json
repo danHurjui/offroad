@@ -65,7 +65,8 @@
     "password": "Parolă",
     "loading": "Se încarcă…",
     "networkError": "Nu am putut contacta serverul. Verifică conexiunea și încearcă din nou.",
-    "genericError": "Ceva n-a mers. Încearcă din nou."
+    "genericError": "Ceva n-a mers. Încearcă din nou.",
+    "backTo": "← Înapoi la {screen}"
   },
   "auth": {
     "login": {
@@ -437,7 +438,6 @@
     "saveFailed": "Nu am putut salva lucrarea",
     "saveChanges": "Salvează modificările",
     "add": "Adaugă lucrarea",
-    "backTo": "← Înapoi la {screen}",
     "addedBy": "Adăugat de",
     "deletedAccount": "Un cont șters",
     "accessRemoved": "(acces revocat)",
@@ -789,5 +789,61 @@
       "FEATURE": "Ce ai vrea să poți face și ce încerci să obții prin asta?",
       "IMPROVEMENT": "Ce funcționează azi, dar ar putea funcționa mai bine, și ce îl face incomod acum?"
     }
+  },
+  "upgrade": {
+    "backToSettings": "← Înapoi la setări",
+    "title": "Treci la Pro",
+    "subtitle": "Vehicule și poze nelimitate, analize complete de costuri, export PDF al istoricului și multe altele. Prețuri în RON.",
+    "monthly": "Lunar",
+    "monthlyPeriod": "/ lună",
+    "monthlyDescription": "Poți renunța oricând.",
+    "annual": "Anual",
+    "annualPeriod": "/ an",
+    "annualDescription": "Cel mai bun raport — sub 8,25 RON pe lună.",
+    "lifetime": "Pe viață",
+    "lifetimePeriod": "o singură dată",
+    "lifetimeDescription": "Plătești o dată, Pro pentru totdeauna.",
+    "redirecting": "Se redirecționează…",
+    "choose": "Alege",
+    "checkoutFailed": "Nu am putut începe plata"
+  },
+  "analytics": {
+    "title": "Analiză de costuri",
+    "hiddenFromCollaborators": "Proprietarul a ascuns totalurile de cost față de colaboratori.",
+    "totalSpent": "Total cheltuit",
+    "upgradePrompt": "Treci la Pro pentru grafice, tendințe lunare, filtre pe perioadă și defalcarea celei mai scumpe lucrări.",
+    "range": {
+      "3m": "Ultimele 3 luni",
+      "12m": "Ultimele 12 luni",
+      "all": "Tot timpul"
+    },
+    "averagePerMonth": "Medie pe lună",
+    "mostExpensive": "Cea mai scumpă lucrare"
+  },
+  "photos": {
+    "title": "Poze",
+    "allTypes": "Toate tipurile",
+    "allCategories": "Toate categoriile",
+    "newestFirst": "Întâi cele mai noi",
+    "oldestFirst": "Întâi cele mai vechi",
+    "empty": "Nicio poză încă — adaugă poze dintr-o lucrare.",
+    "trailRuns": "Trasee înregistrate"
+  },
+  "jobReport": {
+    "title": "Raport de lucrări",
+    "backToCollaborators": "← Înapoi la Colaboratori",
+    "noCollaborators": "Niciun colaborator nu a acceptat încă o invitație.",
+    "pickCollaborator": "Alege un colaborator ca să-i generezi raportul de lucrări.",
+    "last30Days": "Ultimele 30 de zile",
+    "allTime": "Tot timpul",
+    "collaborator": "Colaborator: {name}"
+  },
+  "exportPdf": {
+    "title": "Exportă istoricul",
+    "summary": "{progressLabel}: {progress}% · Total cheltuit: {total} RON",
+    "includes": "PDF-ul complet include fiecare lucrare grupată pe categorii, defalcarea costurilor și până la 3 poze per lucrare",
+    "includesRestoration": ", plus fișa stării la găsire.",
+    "includesEnd": ".",
+    "previewOnly": "Aceasta este o previzualizare a ceea ce conține exportul. Trecerea la Pro nu este disponibilă în această versiune de previzualizare — Pro va debloca descărcarea PDF-ului complet."
   }
 }

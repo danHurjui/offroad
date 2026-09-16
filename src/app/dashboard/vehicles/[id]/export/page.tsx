@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
@@ -17,6 +18,8 @@ export default async function ExportPdfPage({ params }: { params: { id: string }
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
 
+  const t = await getTranslations('exportPdf')
+  const tc = await getTranslations('common')
   const config = await getVocabulary(vehicle.projectType)
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
   const isPro = hasPro(owner)
@@ -41,20 +44,24 @@ export default async function ExportPdfPage({ params }: { params: { id: string }
   return (
     <div className="mx-auto max-w-xl">
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to {config.screenTitle}
+        {tc('backTo', { screen: config.screenTitle })}
       </Link>
-      <h1 className="mb-6 text-2xl font-bold text-ink">Export build history</h1>
+      <h1 className="mb-6 text-2xl font-bold text-ink">{t('title')}</h1>
 
       <div className="card overflow-hidden">
         {vehicle.coverPhotoUrl && <VehicleCoverImg url={vehicle.coverPhotoUrl} alt={vehicleName} />}
         <div className="p-5">
           <h2 className="text-lg font-bold text-ink">{vehicleName}</h2>
           <p className="text-sm text-ink-muted">
-            {config.progressLabel}: {progressPct}% · Total spent: {totalSpent.toLocaleString('ro-RO')} RON
+            {t('summary', {
+              progressLabel: config.progressLabel,
+              progress: progressPct,
+              total: totalSpent.toLocaleString('ro-RO'),
+            })}
           </p>
           <p className="mt-2 text-xs text-ink-faint">
-            The full PDF includes every task grouped by category, cost breakdown, and up to 3 photos per task
-            {vehicle.projectType === 'RESTORATION' ? ', plus the found state intake.' : '.'}
+            {t('includes')}
+            {vehicle.projectType === 'RESTORATION' ? t('includesRestoration') : t('includesEnd')}
           </p>
         </div>
       </div>
@@ -64,8 +71,7 @@ export default async function ExportPdfPage({ params }: { params: { id: string }
           <ExportPdfButton endpoint={`/api/vehicles/${vehicle.id}/export/pdf`} fallbackName={`RigLog_${vehicleName}`} />
         ) : (
           <p className="text-sm text-ink-muted">
-            This is a preview of what your export includes. Upgrading to Pro is not available in this preview
-            build — Pro will unlock the full PDF download.
+            {t('previewOnly')}
           </p>
         )}
       </div>

@@ -65,7 +65,8 @@
     "password": "Password",
     "loading": "Loading…",
     "networkError": "Could not reach the server. Please check your connection and try again.",
-    "genericError": "Something went wrong. Please try again."
+    "genericError": "Something went wrong. Please try again.",
+    "backTo": "← Back to {screen}"
   },
   "auth": {
     "login": {
@@ -437,7 +438,6 @@
     "saveFailed": "Could not save task",
     "saveChanges": "Save changes",
     "add": "Add task",
-    "backTo": "← Back to {screen}",
     "addedBy": "Added by",
     "deletedAccount": "A deleted account",
     "accessRemoved": "(access removed)",
@@ -789,5 +789,61 @@
       "FEATURE": "What would you like to be able to do, and what are you trying to achieve by it?",
       "IMPROVEMENT": "What works today but could work better, and what makes it awkward right now?"
     }
+  },
+  "upgrade": {
+    "backToSettings": "← Back to settings",
+    "title": "Upgrade to Pro",
+    "subtitle": "Unlimited vehicles and photos, full cost analytics, PDF build history export, and more. Prices in RON.",
+    "monthly": "Monthly",
+    "monthlyPeriod": "/ month",
+    "monthlyDescription": "Cancel any time.",
+    "annual": "Annual",
+    "annualPeriod": "/ year",
+    "annualDescription": "Best value — under 8.25 RON/month.",
+    "lifetime": "Lifetime",
+    "lifetimePeriod": "once",
+    "lifetimeDescription": "Pay once, Pro forever.",
+    "redirecting": "Redirecting…",
+    "choose": "Choose",
+    "checkoutFailed": "Could not start checkout"
+  },
+  "analytics": {
+    "title": "Cost analytics",
+    "hiddenFromCollaborators": "The owner has hidden cost totals from collaborators.",
+    "totalSpent": "Total spent",
+    "upgradePrompt": "Upgrade to Pro for charts, monthly trends, date filters, and the most expensive task breakdown.",
+    "range": {
+      "3m": "Last 3 months",
+      "12m": "Last 12 months",
+      "all": "All time"
+    },
+    "averagePerMonth": "Average per month",
+    "mostExpensive": "Most expensive task"
+  },
+  "photos": {
+    "title": "Photos",
+    "allTypes": "All types",
+    "allCategories": "All categories",
+    "newestFirst": "Newest first",
+    "oldestFirst": "Oldest first",
+    "empty": "No photos yet — add photos from a task.",
+    "trailRuns": "Trail runs"
+  },
+  "jobReport": {
+    "title": "Job report",
+    "backToCollaborators": "← Back to Collaborators",
+    "noCollaborators": "No collaborators have accepted an invite yet.",
+    "pickCollaborator": "Pick a collaborator to generate their job report.",
+    "last30Days": "Last 30 days",
+    "allTime": "All time",
+    "collaborator": "Collaborator: {name}"
+  },
+  "exportPdf": {
+    "title": "Export build history",
+    "summary": "{progressLabel}: {progress}% · Total spent: {total} RON",
+    "includes": "The full PDF includes every task grouped by category, cost breakdown, and up to 3 photos per task",
+    "includesRestoration": ", plus the found state intake.",
+    "includesEnd": ".",
+    "previewOnly": "This is a preview of what your export includes. Upgrading to Pro is not available in this preview build — Pro will unlock the full PDF download."
   }
 }

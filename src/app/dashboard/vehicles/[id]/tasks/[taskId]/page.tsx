@@ -59,7 +59,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
   return (
     <div className="mx-auto max-w-2xl">
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        {t('backTo', { screen: config.screenTitle })}
+        {tc('backTo', { screen: config.screenTitle })}
       </Link>
 
       <div className="card p-6">
