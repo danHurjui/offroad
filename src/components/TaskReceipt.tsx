@@ -78,7 +78,7 @@ export default function TaskReceipt({
           </a>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={`/api/uploads/${receiptUrl}`} alt="Receipt" className="max-h-64 rounded-lg border border-surface-border object-contain" />
+          <img src={`/api/uploads/${receiptUrl}`} alt={t('title')} className="max-h-64 rounded-lg border border-surface-border object-contain" />
         )
       ) : (
         <p className="text-sm text-ink-faint">{t('none')}</p>

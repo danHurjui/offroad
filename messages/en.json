@@ -66,7 +66,10 @@
     "loading": "Loading…",
     "networkError": "Could not reach the server. Please check your connection and try again.",
     "genericError": "Something went wrong. Please try again.",
-    "backTo": "← Back to {screen}"
+    "backTo": "← Back to {screen}",
+    "skipToContent": "Skip to content",
+    "previous": "← Previous",
+    "next": "Next →"
   },
   "auth": {
     "login": {
@@ -292,7 +295,9 @@
     "freeLimitBadge": "Free plan — 1/1 vehicles",
     "addVehicle": "+ Add vehicle",
     "empty": "No vehicles yet — log your first build or restoration.",
-    "collaborator": "Collaborator"
+    "collaborator": "Collaborator",
+    "accountFallback": "Account",
+    "paymentFailed": "Your last RigLog Pro payment failed. <link>Update your payment method</link> to keep Pro access."
   },
   "vehicle": {
     "photos": "Photos",
@@ -445,7 +450,8 @@
     "receipt": "Receipt",
     "photos": "Photos",
     "partsLabour": "Parts / Labour",
-    "totalCostLabel": "Total cost"
+    "totalCostLabel": "Total cost",
+    "editTitle": "Edit task"
   },
   "era": {
     "pre1970": "Pre-1970",
@@ -498,7 +504,8 @@
     "dangerZone": "Danger zone",
     "deleteHelp": "Deleting a vehicle removes all its tasks, photos, and history. This cannot be undone.",
     "deleteVehicle": "Delete vehicle",
-    "confirmDelete": "Delete this vehicle and all its tasks and photos? This cannot be undone."
+    "confirmDelete": "Delete this vehicle and all its tasks and photos? This cannot be undone.",
+    "pageTitle": "Vehicle settings"
   },
   "foundState": {
     "acquisitionDate": "Acquisition date",
@@ -523,7 +530,10 @@
     "photosTitle": "Found state photos",
     "uploading": "Uploading…",
     "addPhoto": "Add photo",
-    "noPhotos": "No photos yet — up to 20 allowed."
+    "noPhotos": "No photos yet — up to 20 allowed.",
+    "pageTitle": "Found state",
+    "pageSubtitle": "The permanent “before” baseline for this restoration — document the car’s condition at acquisition.",
+    "backToRestoration": "← Back to My Restoration"
   },
   "documents": {
     "type": {
@@ -554,7 +564,8 @@
     "renew": "Renew",
     "confirmDelete": "Delete this {type} record?",
     "replaceFile": "Replace file",
-    "attachFile": "Attach file"
+    "attachFile": "Attach file",
+    "pageTitle": "Documents"
   },
   "wishlist": {
     "markAsFitted": "Mark as fitted",
@@ -599,7 +610,8 @@
     "chooseType": "Choose what kind of vehicle this is",
     "createFailed": "Could not create vehicle",
     "creating": "Creating…",
-    "create": "Create vehicle"
+    "create": "Create vehicle",
+    "pageTitle": "Add a vehicle"
   },
   "collaborators": {
     "inviteTitle": "Invite a collaborator",
@@ -622,7 +634,8 @@
     "inviteFailed": "Could not send invite",
     "resendFailed": "Could not resend invite",
     "revokeFailed": "Could not revoke access",
-    "confirmRevoke": "Revoke this collaborator’s access? They will lose access immediately."
+    "confirmRevoke": "Revoke this collaborator’s access? They will lose access immediately.",
+    "pageTitle": "Collaborators"
   },
   "wishlistForm": {
     "name": "Name",
@@ -631,7 +644,8 @@
     "notes": "Notes (optional)",
     "saveFailed": "Could not save",
     "saveChanges": "Save changes",
-    "add": "Add item"
+    "add": "Add item",
+    "editTitle": "Edit item"
   },
   "trail": {
     "recovered": "You have an unsaved recording from earlier ({points} points, {waypoints} waypoints).",
@@ -674,7 +688,8 @@
     "noteAria": "Note about where you found this price",
     "logging": "Logging…",
     "logPrice": "Log price",
-    "logFailed": "Could not log price"
+    "logFailed": "Could not log price",
+    "proOnly": "Upgrade to Pro to set a price alert target and track price history for this item."
   },
   "donate": {
     "metaTitle": "Support RigLog",
@@ -788,7 +803,9 @@
       "BUG": "What did you do, what did you expect, and what happened instead? Which vehicle/screen, and on phone or desktop?",
       "FEATURE": "What would you like to be able to do, and what are you trying to achieve by it?",
       "IMPROVEMENT": "What works today but could work better, and what makes it awkward right now?"
-    }
+    },
+    "newMetaTitle": "Open a ticket — RigLog",
+    "backToRoadmap": "← Back to the roadmap"
   },
   "upgrade": {
     "backToSettings": "← Back to settings",
@@ -827,7 +844,8 @@
     "newestFirst": "Newest first",
     "oldestFirst": "Oldest first",
     "empty": "No photos yet — add photos from a task.",
-    "trailRuns": "Trail runs"
+    "trailRuns": "Trail runs",
+    "trailRunsHeading": "Trail runs"
   },
   "jobReport": {
     "title": "Job report",
@@ -881,7 +899,8 @@
     "replyFailed": "Could not post reply",
     "locationShipping": "Location / shipping",
     "descriptionLabel": "Description",
-    "repliesCount": "Replies ({count})"
+    "repliesCount": "Replies ({count})",
+    "pageEmpty": "No open parts requests right now."
   },
   "publicBuild": {
     "noCover": "No cover photo",
@@ -913,7 +932,9 @@
     "correctFields": "Correct or fill in any field.",
     "couldNotDecode": "This VIN couldn’t be decoded automatically — enter what you know.",
     "decodeFailed": "Could not decode VIN",
-    "vinLabel": "VIN / chassis number"
+    "vinLabel": "VIN / chassis number",
+    "pageTitle": "VIN decoder",
+    "proOnly": "Upgrade to Pro to decode this vehicle’s VIN into its original factory specification."
   },
   "receipt": {
     "title": "Receipt",
@@ -952,7 +973,8 @@
     "distance": "Distance",
     "duration": "Duration",
     "elevationGain": "Elevation gain",
-    "waypoints": "Waypoints"
+    "waypoints": "Waypoints",
+    "recordTitle": "Record a trail run"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",

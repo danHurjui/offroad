@@ -36,7 +36,7 @@ export default async function PartsWantedPage() {
             <Link href="/community" className="mb-1 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
               {t('backToCommunity')}
             </Link>
-            <h1 className="text-2xl font-bold text-ink">Parts wanted</h1>
+            <h1 className="text-2xl font-bold text-ink">{t('title')}</h1>
           </div>
           {session ? (
             <Link href="/community/parts-wanted/new" className="btn-primary">
@@ -50,7 +50,7 @@ export default async function PartsWantedPage() {
         </div>
 
         {requests.length === 0 ? (
-          <p className="text-center text-sm text-ink-faint">No open parts requests right now.</p>
+          <p className="text-center text-sm text-ink-faint">{t('pageEmpty')}</p>
         ) : (
           <div className="space-y-3">
             {requests.map((r) => (

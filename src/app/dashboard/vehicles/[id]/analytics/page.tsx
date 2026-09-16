@@ -107,15 +107,15 @@ export default async function CostAnalyticsPage({
 
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="card p-4">
-              <div className="text-xs text-ink-faint">Total spent</div>
+              <div className="text-xs text-ink-faint">{t('totalSpent')}</div>
               <div className="text-lg font-semibold text-ink">{summary.totalSpent.toLocaleString('ro-RO')} RON</div>
             </div>
             <div className="card p-4">
-              <div className="text-xs text-ink-faint">Average per month</div>
+              <div className="text-xs text-ink-faint">{t('averagePerMonth')}</div>
               <div className="text-lg font-semibold text-ink">{Math.round(summary.avgPerMonth).toLocaleString('ro-RO')} RON</div>
             </div>
             <div className="card p-4">
-              <div className="text-xs text-ink-faint">Most expensive task</div>
+              <div className="text-xs text-ink-faint">{t('mostExpensive')}</div>
               <div className="truncate text-lg font-semibold text-ink" title={summary.mostExpensiveTask?.name}>
                 {summary.mostExpensiveTask
                   ? `${summary.mostExpensiveTask.name} (${summary.mostExpensiveTask.cost.toLocaleString('ro-RO')} RON)`

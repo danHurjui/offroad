@@ -1,9 +1,12 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
 import Nav from '@/components/Nav'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const tc = await getTranslations('common')
+  const t = await getTranslations('dashboard')
   const session = await requireSessionOrRedirect()
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -15,16 +18,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {/* Visually hidden until focused — the first Tab on any page skips the
           header rather than walking through every nav link. */}
       <a href="#main" className="skip-link">
-        Skip to content
+        {tc('skipToContent')}
       </a>
-      <Nav displayName={user?.displayName ?? 'Account'} isAdmin={session.user.isAdmin} />
+      <Nav displayName={user?.displayName ?? t('accountFallback')} isAdmin={session.user.isAdmin} />
       {user?.proPaymentFailedAt && (
         <div className="bg-red-600 px-4 py-2 text-center text-sm text-white">
-          Your last RigLog Pro payment failed.{' '}
-          <Link href="/dashboard/settings" className="underline">
-            Update your payment method
-          </Link>{' '}
-          to keep Pro access.
+          {t.rich('paymentFailed', {
+            link: (chunks) => (
+              <Link href="/dashboard/settings" className="underline">
+                {chunks}
+              </Link>
+            ),
+          })}
         </div>
       )}
       <main id="main" className="mx-auto max-w-5xl px-4 py-6">{children}</main>

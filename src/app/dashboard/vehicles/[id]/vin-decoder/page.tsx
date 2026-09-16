@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
@@ -9,6 +10,8 @@ import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-028: VIN / chassis decoder — restoration mode, Pro-gated.
 export default async function VinDecoderPage({ params }: { params: { id: string } }) {
+  const tc = await getTranslations('common')
+  const t = await getTranslations('vin')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle || vehicle.projectType !== 'RESTORATION') notFound()
@@ -20,9 +23,9 @@ export default async function VinDecoderPage({ params }: { params: { id: string 
   return (
     <div className="mx-auto max-w-xl">
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to {config.screenTitle}
+        {tc('backTo', { screen: config.screenTitle })}
       </Link>
-      <h1 className="mb-6 text-2xl font-bold text-ink">VIN decoder</h1>
+      <h1 className="mb-6 text-2xl font-bold text-ink">{t('pageTitle')}</h1>
 
       {isPro ? (
         <VinDecoderPanel
@@ -33,7 +36,7 @@ export default async function VinDecoderPage({ params }: { params: { id: string 
         />
       ) : (
         <div className="card note p-4 text-sm text-ink">
-          Upgrade to Pro to decode this vehicle&apos;s VIN into its original factory specification.
+          {t('proOnly')}
         </div>
       )}
     </div>

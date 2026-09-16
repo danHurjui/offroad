@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
@@ -13,6 +14,7 @@ import { hasPro, PRO_SELECT } from '@/lib/pro'
 // chart. Pro-gated; the base item fields (name/category/status/...) stay
 // editable from the existing edit page, this page is alert-only.
 export default async function WishlistItemDetailPage({ params }: { params: { id: string; itemId: string } }) {
+  const t = await getTranslations('priceAlert')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -50,7 +52,7 @@ export default async function WishlistItemDetailPage({ params }: { params: { id:
         />
       ) : (
         <div className="card note p-4 text-sm text-ink">
-          Upgrade to Pro to set a price alert target and track price history for this item.
+          {t('proOnly')}
         </div>
       )}
     </div>

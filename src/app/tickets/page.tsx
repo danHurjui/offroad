@@ -31,6 +31,7 @@ export default async function TicketsPage({
 }: {
   searchParams: { type?: string; status?: string; sort?: string; page?: string }
 }) {
+  const tc = await getTranslations('common')
   const tv = await getTranslations('ticketVocab')
   const t = await getTranslations('tickets')
   const session = await getServerSession(authOptions)
@@ -191,7 +192,7 @@ export default async function TicketsPage({
           <div className="mt-6 flex items-center justify-between text-sm">
             {page > 1 ? (
               <Link href={`${filterHref({})}${filterHref({}).includes('?') ? '&' : '?'}page=${page - 1}`} className="btn-secondary">
-                ← Previous
+                {tc('previous')}
               </Link>
             ) : (
               <span />
@@ -201,7 +202,7 @@ export default async function TicketsPage({
             </span>
             {page < totalPages ? (
               <Link href={`${filterHref({})}${filterHref({}).includes('?') ? '&' : '?'}page=${page + 1}`} className="btn-secondary">
-                Next →
+                {tc('next')}
               </Link>
             ) : (
               <span />

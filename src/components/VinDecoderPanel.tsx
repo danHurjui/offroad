@@ -104,7 +104,7 @@ export default function VinDecoderPanel({
     <div className="space-y-4">
       <div className="card space-y-3 p-4">
         <div>
-          <div className="text-xs text-ink-faint">VIN / chassis number</div>
+          <div className="text-xs text-ink-faint">{t('vinLabel')}</div>
           <div className="font-mono text-sm text-ink">{vin}</div>
         </div>
         <button type="button" className="btn-primary" onClick={onDecode} disabled={decoding}>
@@ -116,7 +116,7 @@ export default function VinDecoderPanel({
       {decoded && !showManualForm && (
         <div className="card p-4">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-sm font-medium text-ink-muted">Decoded spec</span>
+            <span className="text-sm font-medium text-ink-muted">{t('decodedSpec')}</span>
             <button type="button" className="text-xs text-brand-600 dark:text-brand-300 hover:underline" onClick={() => setShowManualForm(true)}>
               {t('editManually')}
             </button>

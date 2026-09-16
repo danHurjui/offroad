@@ -66,7 +66,10 @@
     "loading": "Se încarcă…",
     "networkError": "Nu am putut contacta serverul. Verifică conexiunea și încearcă din nou.",
     "genericError": "Ceva n-a mers. Încearcă din nou.",
-    "backTo": "← Înapoi la {screen}"
+    "backTo": "← Înapoi la {screen}",
+    "skipToContent": "Sari la conținut",
+    "previous": "← Anterior",
+    "next": "Următor →"
   },
   "auth": {
     "login": {
@@ -292,7 +295,9 @@
     "freeLimitBadge": "Plan gratuit — 1/1 vehicule",
     "addVehicle": "+ Adaugă vehicul",
     "empty": "Niciun vehicul încă — începe-ți primul build sau prima restaurare.",
-    "collaborator": "Colaborator"
+    "collaborator": "Colaborator",
+    "accountFallback": "Cont",
+    "paymentFailed": "Ultima plată RigLog Pro a eșuat. <link>Actualizează metoda de plată</link> ca să păstrezi accesul Pro."
   },
   "vehicle": {
     "photos": "Poze",
@@ -445,7 +450,8 @@
     "receipt": "Bon / factură",
     "photos": "Poze",
     "partsLabour": "Piese / manoperă",
-    "totalCostLabel": "Cost total"
+    "totalCostLabel": "Cost total",
+    "editTitle": "Editează lucrarea"
   },
   "era": {
     "pre1970": "Înainte de 1970",
@@ -498,7 +504,8 @@
     "dangerZone": "Zonă periculoasă",
     "deleteHelp": "Ștergerea unui vehicul îi elimină toate lucrările, pozele și istoricul. Operațiunea nu poate fi anulată.",
     "deleteVehicle": "Șterge vehiculul",
-    "confirmDelete": "Ștergi acest vehicul și toate lucrările și pozele lui? Operațiunea nu poate fi anulată."
+    "confirmDelete": "Ștergi acest vehicul și toate lucrările și pozele lui? Operațiunea nu poate fi anulată.",
+    "pageTitle": "Setările vehiculului"
   },
   "foundState": {
     "acquisitionDate": "Data achiziției",
@@ -523,7 +530,10 @@
     "photosTitle": "Poze cu starea la găsire",
     "uploading": "Se încarcă…",
     "addPhoto": "Adaugă poză",
-    "noPhotos": "Nicio poză încă — se pot adăuga până la 20."
+    "noPhotos": "Nicio poză încă — se pot adăuga până la 20.",
+    "pageTitle": "Starea la găsire",
+    "pageSubtitle": "Reperul permanent de „înainte” pentru această restaurare — documentează starea mașinii la achiziție.",
+    "backToRestoration": "← Înapoi la Restaurarea mea"
   },
   "documents": {
     "type": {
@@ -554,7 +564,8 @@
     "renew": "Reînnoiește",
     "confirmDelete": "Ștergi înregistrarea {type}?",
     "replaceFile": "Înlocuiește fișierul",
-    "attachFile": "Atașează fișier"
+    "attachFile": "Atașează fișier",
+    "pageTitle": "Documente"
   },
   "wishlist": {
     "markAsFitted": "Marchează ca montată",
@@ -599,7 +610,8 @@
     "chooseType": "Alege ce fel de vehicul este",
     "createFailed": "Nu am putut crea vehiculul",
     "creating": "Se creează…",
-    "create": "Creează vehiculul"
+    "create": "Creează vehiculul",
+    "pageTitle": "Adaugă un vehicul"
   },
   "collaborators": {
     "inviteTitle": "Invită un colaborator",
@@ -622,7 +634,8 @@
     "inviteFailed": "Nu am putut trimite invitația",
     "resendFailed": "Nu am putut retrimite invitația",
     "revokeFailed": "Nu am putut revoca accesul",
-    "confirmRevoke": "Revoci accesul acestui colaborator? Îl pierde imediat."
+    "confirmRevoke": "Revoci accesul acestui colaborator? Îl pierde imediat.",
+    "pageTitle": "Colaboratori"
   },
   "wishlistForm": {
     "name": "Denumire",
@@ -631,7 +644,8 @@
     "notes": "Observații (opțional)",
     "saveFailed": "Nu am putut salva",
     "saveChanges": "Salvează modificările",
-    "add": "Adaugă articolul"
+    "add": "Adaugă articolul",
+    "editTitle": "Editează articolul"
   },
   "trail": {
     "recovered": "Ai o înregistrare nesalvată de mai devreme ({points} puncte, {waypoints} repere).",
@@ -674,7 +688,8 @@
     "noteAria": "Notă despre unde ai găsit acest preț",
     "logging": "Se înregistrează…",
     "logPrice": "Înregistrează prețul",
-    "logFailed": "Nu am putut înregistra prețul"
+    "logFailed": "Nu am putut înregistra prețul",
+    "proOnly": "Treci la Pro ca să setezi un preț țintă și să urmărești istoricul de preț pentru acest articol."
   },
   "donate": {
     "metaTitle": "Susține RigLog",
@@ -788,7 +803,9 @@
       "BUG": "Ce ai făcut, ce te așteptai și ce s-a întâmplat în schimb? Pe ce vehicul sau ecran, și pe telefon sau pe calculator?",
       "FEATURE": "Ce ai vrea să poți face și ce încerci să obții prin asta?",
       "IMPROVEMENT": "Ce funcționează azi, dar ar putea funcționa mai bine, și ce îl face incomod acum?"
-    }
+    },
+    "newMetaTitle": "Deschide o solicitare — RigLog",
+    "backToRoadmap": "← Înapoi la planul de dezvoltare"
   },
   "upgrade": {
     "backToSettings": "← Înapoi la setări",
@@ -827,7 +844,8 @@
     "newestFirst": "Întâi cele mai noi",
     "oldestFirst": "Întâi cele mai vechi",
     "empty": "Nicio poză încă — adaugă poze dintr-o lucrare.",
-    "trailRuns": "Trasee înregistrate"
+    "trailRuns": "Trasee înregistrate",
+    "trailRunsHeading": "Trasee înregistrate"
   },
   "jobReport": {
     "title": "Raport de lucrări",
@@ -881,7 +899,8 @@
     "replyFailed": "Nu am putut publica răspunsul",
     "locationShipping": "Locație / expediere",
     "descriptionLabel": "Descriere",
-    "repliesCount": "Răspunsuri ({count})"
+    "repliesCount": "Răspunsuri ({count})",
+    "pageEmpty": "Nicio cerere deschisă momentan."
   },
   "publicBuild": {
     "noCover": "Fără poză de copertă",
@@ -913,7 +932,9 @@
     "correctFields": "Corectează sau completează orice câmp.",
     "couldNotDecode": "Acest VIN nu a putut fi decodat automat — completează ce știi.",
     "decodeFailed": "Nu am putut decoda VIN-ul",
-    "vinLabel": "Serie VIN / șasiu"
+    "vinLabel": "Serie VIN / șasiu",
+    "pageTitle": "Decodor VIN",
+    "proOnly": "Treci la Pro ca să decodezi VIN-ul acestui vehicul în specificațiile lui de fabrică."
   },
   "receipt": {
     "title": "Bon / factură",
@@ -952,7 +973,8 @@
     "distance": "Distanță",
     "duration": "Durată",
     "elevationGain": "Diferență de nivel",
-    "waypoints": "Repere"
+    "waypoints": "Repere",
+    "recordTitle": "Înregistrează un traseu"
   },
   "shortcuts": {
     "title": "Scurtături de tastatură",

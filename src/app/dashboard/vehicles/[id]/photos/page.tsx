@@ -113,7 +113,7 @@ export default async function PhotosTimelinePage({
 
       {trailRuns.length > 0 && (
         <div className="mt-8">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">Trail runs</h2>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('trailRunsHeading')}</h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {trailRuns.map((run) => (
               <Link

@@ -80,7 +80,7 @@ export default function TicketForm() {
           onChange={(e) => setTitle(e.target.value)}
           maxLength={TICKET_TITLE_MAX}
           required
-          placeholder="One line summarising it"
+          placeholder={t('titlePlaceholder')}
         />
         <p className="mt-1 text-xs text-ink-faint">
           {title.length}/{TICKET_TITLE_MAX}
