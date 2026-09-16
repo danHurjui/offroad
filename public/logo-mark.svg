@@ -1,0 +1,32 @@
+<!--
+  RigLog mark, on a transparent background and inheriting `currentColor`.
+  For use outside the app (README, social, docs). The in-app copy lives in
+  src/components/Logo.tsx — change one, change the other.
+
+  The road's centre markings are holes punched through the road
+  (fill-rule="evenodd"), not white shapes painted over it, so the mark
+  works on a light page, a dark page and a brand tile alike.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"
+     role="img" aria-label="RigLog" fill="currentColor" color="#2A5D8C">
+  <defs>
+    <clipPath id="globe"><circle cx="256" cy="256" r="186"/></clipPath>
+  </defs>
+  <g fill="none" stroke="currentColor">
+    <circle cx="256" cy="256" r="186" stroke-width="26"/>
+    <g transform="translate(256 256)" stroke-width="20" opacity="0.45">
+      <line x1="-186" y1="0" x2="186" y2="0"/>
+      <ellipse rx="88" ry="186"/>
+      <ellipse rx="160" ry="186"/>
+      <ellipse rx="186" ry="104"/>
+    </g>
+  </g>
+  <g clip-path="url(#globe)">
+    <path fill="currentColor" fill-rule="evenodd"
+          d="M 176 460 L 244 168 L 268 168 L 336 460 Z
+             M 248 380 h 16 v 58 h -16 Z
+             M 249.5 306 h 13 v 50 h -13 Z
+             M 250.5 244 h 11 v 42 h -11 Z
+             M 252 198 h 8 v 30 h -8 Z"/>
+  </g>
+</svg>

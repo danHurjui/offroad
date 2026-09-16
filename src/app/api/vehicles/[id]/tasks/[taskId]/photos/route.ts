@@ -6,9 +6,8 @@ import { isValidPhotoType } from '@/lib/projectType'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 import { notifyFollowers } from '@/lib/followNotify'
 import { readFormData } from '@/lib/requestBody'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { hasPro, PRO_SELECT, FREE_TIER } from '@/lib/pro'
 
-const FREE_TIER_PHOTOS_PER_TASK = 10
 
 // RL-006: photo upload, linked to task.
 export async function GET(_req: NextRequest, { params }: { params: { id: string; taskId: string } }) {
@@ -67,9 +66,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
     })
     if (!hasPro(user)) {
       const existingCount = await prisma.taskPhoto.count({ where: { taskId: task.id } })
-      if (existingCount >= FREE_TIER_PHOTOS_PER_TASK) {
+      if (existingCount >= FREE_TIER.photosPerTask) {
         return NextResponse.json(
-          { error: `Free tier is limited to ${FREE_TIER_PHOTOS_PER_TASK} photos per task. Upgrade to Pro for unlimited.`, code: 'UPGRADE_REQUIRED' },
+          { error: `Free tier is limited to ${FREE_TIER.photosPerTask} photos per task. Upgrade to Pro for unlimited.`, code: 'UPGRADE_REQUIRED' },
           { status: 403 }
         )
       }

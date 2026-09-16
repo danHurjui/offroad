@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
+import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 import QuickAddButton from './QuickAddButton'
 import ShortcutHelpButton from './ShortcutHelpButton'
@@ -11,8 +12,8 @@ export default function Nav({ displayName, isAdmin }: { displayName: string; isA
     <header className="sticky top-0 z-10 border-b border-surface-border bg-surface/90 backdrop-blur"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <Link href="/dashboard" className="text-lg font-bold text-brand-600 dark:text-brand-300">
-          RigLog
+        <Link href="/dashboard" className="text-brand-600 dark:text-brand-300" aria-label="RigLog — dashboard">
+          <Logo />
         </Link>
         <div className="flex items-center gap-3 text-sm">
           <Link href="/community" className="text-ink-muted hover:text-ink">

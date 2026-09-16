@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 
 /**
@@ -19,8 +20,8 @@ export default async function PublicHeader() {
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="text-lg font-bold text-brand-600 dark:text-brand-300">
-          RigLog
+        <Link href="/" className="text-brand-600 dark:text-brand-300" aria-label="RigLog — home">
+          <Logo />
         </Link>
         <nav className="flex items-center gap-4 text-sm">
           <ThemeToggle compact />

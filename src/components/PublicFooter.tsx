@@ -24,6 +24,9 @@ export default function PublicFooter() {
           <Link href="/login" className="hover:text-ink">
             Log in
           </Link>
+          <Link href="/terms" className="hover:text-ink">
+            Terms
+          </Link>
           <Link href="/privacy" className="hover:text-ink">
             Privacy
           </Link>

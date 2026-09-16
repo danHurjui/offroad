@@ -9,6 +9,12 @@ import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 export const metadata: Metadata = {
   title: 'RigLog',
   description: 'Off-road build tracker & restoration journal',
+  // One SVG for every slot. Browsers scale it for the tab, iOS uses it for
+  // the home-screen icon, and there is no PNG set to keep in sync.
+  icons: {
+    icon: [{ url: '/icons/icon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/icons/icon.svg' }],
+  },
 }
 
 export const viewport: Viewport = {

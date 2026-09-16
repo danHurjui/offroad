@@ -46,3 +46,19 @@ export function proKind(user: ProStatusLike | null | undefined): ProKind {
   if (user.isProComped) return 'comped'
   return 'none'
 }
+
+/**
+ * What the free tier allows.
+ *
+ * Centralised because these numbers are quoted in three places that must
+ * agree: the route that enforces each one, the upgrade page that sells
+ * against them, and /terms, which is a statement to the user about what
+ * they are being given. A terms page that promises one vehicle while the
+ * code allows two is a small lie; the reverse is a support ticket.
+ */
+export const FREE_TIER = {
+  /** Vehicles per account. Pro is unlimited. */
+  vehicles: 1,
+  /** Photos per task. Pro is unlimited. */
+  photosPerTask: 10,
+} as const

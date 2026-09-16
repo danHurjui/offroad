@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { requireAdminOrNotFound } from '@/lib/serverAuth'
+import Logo from '@/components/Logo'
 import ThemeToggle from '@/components/ThemeToggle'
 
 /**
@@ -15,9 +16,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="sticky top-0 z-20 border-b border-surface-border bg-surface/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
-            <Link href="/admin" className="text-lg font-bold text-brand-600 dark:text-brand-300">
-              RigLog admin
+            <Link href="/admin" className="text-brand-600 dark:text-brand-300" aria-label="RigLog admin">
+              <Logo />
             </Link>
+            <span className="text-lg font-semibold text-ink-muted">admin</span>
             <span className="badge badge-warn">staff</span>
           </div>
           <nav className="flex items-center gap-4 text-sm">
