@@ -1,26 +1,21 @@
 <!--
-  RigLog app icon: a road running to the horizon across a globe.
+  Maskable PWA icon (manifest `purpose: "maskable"`).
 
-  "Car world" read literally — the globe says everywhere, the road says
-  driving, and the two together say the thing the app is for: a vehicle
-  with a history that goes somewhere. It covers all three project modes
-  without favouring one, which a tyre or a wrench would not (a daily
-  driver's owner is not building a rock crawler).
+  Android masks an installed icon to whatever shape the launcher uses, so
+  this one is a full-bleed square with no corner radius of its own — the
+  rounded tile in icon.svg would get masked a second time and read as a
+  squircle inside a circle.
 
-  Earlier attempts cut tyre tread into the disc. They all read as a cog or
-  a roulette wheel: radial teeth around a circle are a gear, and narrowing
-  the grooves only makes a ship's helm. A road is unambiguous at a glance
-  and survives being shrunk, which matters more than cleverness here.
+  The artwork is scaled to 0.887 so it sits inside the maskable safe
+  zone (a centred circle of 40% the icon's width), which is what the
+  launcher guarantees not to crop.
 
-  Flat geometry, no gradients, filters or text, since PWA pipelines
-  rasterise this from 16px in a browser tab to 512px on a home screen.
+  Same artwork as icon.svg — change one, change the other.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="RigLog">
-  <rect width="512" height="512" rx="112" fill="#2A5D8C"/>
-
-  <!-- The globe clips the road, so the road stops at the horizon instead of
-       running off the tile. -->
-  <defs>
+  <rect width="512" height="512" fill="#2A5D8C"/>
+  <g transform="translate(256 256) scale(0.8871) translate(-256 -256)">
+<defs>
     <clipPath id="globe">
       <circle cx="256" cy="256" r="186"/>
     </clipPath>
@@ -53,5 +48,6 @@
       <line x1="256" y1="286" x2="256" y2="244" stroke-width="11"/>
       <line x1="256" y1="228" x2="256" y2="198" stroke-width="8"/>
     </g>
+  </g>
   </g>
 </svg>
