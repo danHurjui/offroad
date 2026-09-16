@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import {
   TICKET_TYPES,
@@ -19,6 +20,7 @@ const PLACEHOLDERS: Record<TicketType, string> = {
 import FormError from './FormError'
 
 export default function TicketForm() {
+  const tv = useTranslations('ticketVocab')
   const router = useRouter()
   const [type, setType] = useState<TicketType>('BUG')
   const [title, setTitle] = useState('')
@@ -65,8 +67,8 @@ export default function TicketForm() {
                 type === t ? 'border-brand-500 bg-brand-50 dark:bg-brand-400/10' : 'border-surface-border'
               }`}
             >
-              <div className="font-semibold text-ink">{TICKET_TYPES[t].label}</div>
-              <div className="text-xs text-ink-muted">{TICKET_TYPES[t].blurb}</div>
+              <div className="font-semibold text-ink">{tv(`type.${t}.label`)}</div>
+              <div className="text-xs text-ink-muted">{tv(`type.${t}.blurb`)}</div>
             </button>
           ))}
         </div>

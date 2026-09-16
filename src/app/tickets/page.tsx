@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -30,6 +31,7 @@ export default async function TicketsPage({
 }: {
   searchParams: { type?: string; status?: string; sort?: string; page?: string }
 }) {
+  const tv = await getTranslations('ticketVocab')
   const session = await getServerSession(authOptions)
   const type = isTicketType(searchParams.type) ? searchParams.type : undefined
   const status = isTicketStatus(searchParams.status) ? searchParams.status : undefined
@@ -104,7 +106,7 @@ export default async function TicketsPage({
                 href={filterHref({ type: t })}
                 className={`badge ${type === t ? TICKET_TYPES[t].badgeClass : 'bg-surface-subtle text-ink-muted'}`}
               >
-                {TICKET_TYPES[t].label}
+                {tv(`type.${t}.label`)}
               </Link>
             ))}
           </div>
@@ -122,7 +124,7 @@ export default async function TicketsPage({
                 href={filterHref({ status: s })}
                 className={`badge ${status === s ? TICKET_STATUSES[s].badgeClass : 'bg-surface-subtle text-ink-muted'}`}
               >
-                {TICKET_STATUSES[s].label}
+                {tv(`status.${s}`)}
               </Link>
             ))}
           </div>
@@ -165,10 +167,10 @@ export default async function TicketsPage({
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-2">
                     <span className={`badge ${TICKET_TYPES[ticket.type].badgeClass}`}>
-                      {TICKET_TYPES[ticket.type].label}
+                      {tv(`type.${ticket.type}.label`)}
                     </span>
                     <span className={`badge ${TICKET_STATUSES[ticket.status].badgeClass}`}>
-                      {TICKET_STATUSES[ticket.status].label}
+                      {tv(`status.${ticket.status}`)}
                     </span>
                   </div>
                   <Link href={`/tickets/${ticket.id}`} className="block font-medium text-ink hover:text-brand-600 dark:hover:text-brand-300">

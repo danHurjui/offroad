@@ -710,5 +710,41 @@
     "receiptEmailed": "Stripe ți-a trimis chitanța pe e-mail.",
     "backHome": "Înapoi la pagina principală",
     "tellUsNext": "Spune-ne ce să construim mai departe"
+  },
+  "collaborate": {
+    "missingToken": "Acestui link de invitație îi lipsește token-ul.",
+    "checkingSession": "Se verifică sesiunea…",
+    "invited": "Ai fost invitat să colaborezi la un proiect din RigLog. Autentifică-te sau creează un cont folosind adresa de e-mail la care a fost trimisă invitația, apoi revino la acest link ca să o accepți.",
+    "logIn": "Autentificare",
+    "createAccount": "Creează cont",
+    "accepting": "Se acceptă invitația…",
+    "accepted": "Gata! Ai acum acces de colaborator la acest proiect.",
+    "viewBuild": "Vezi proiectul",
+    "goToDashboard": "Mergi la panoul de bord",
+    "acceptFailed": "Nu am putut accepta invitația"
+  },
+  "ticketVocab": {
+    "type": {
+      "BUG": {
+        "label": "Problemă",
+        "blurb": "Ceva e stricat sau se comportă greșit"
+      },
+      "FEATURE": {
+        "label": "Cerere de funcționalitate",
+        "blurb": "Ceva ce RigLog încă nu face"
+      },
+      "IMPROVEMENT": {
+        "label": "Îmbunătățire",
+        "blurb": "Ceva care există, dar ar putea funcționa mai bine"
+      }
+    },
+    "status": {
+      "OPEN": "Deschis",
+      "PLANNED": "Planificat",
+      "IN_PROGRESS": "În lucru",
+      "DONE": "Rezolvat",
+      "DECLINED": "Respins",
+      "DUPLICATE": "Duplicat"
+    }
   }
 }

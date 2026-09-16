@@ -710,5 +710,41 @@
     "receiptEmailed": "Stripe has emailed you a receipt.",
     "backHome": "Back to the homepage",
     "tellUsNext": "Tell us what to build next"
+  },
+  "collaborate": {
+    "missingToken": "This invite link is missing its token.",
+    "checkingSession": "Checking your session…",
+    "invited": "You’ve been invited to collaborate on a build in RigLog. Log in or create an account using the email address the invite was sent to, then come back to this link to accept.",
+    "logIn": "Log in",
+    "createAccount": "Create account",
+    "accepting": "Accepting invite…",
+    "accepted": "You’re in! You now have collaborator access to this build.",
+    "viewBuild": "View build",
+    "goToDashboard": "Go to dashboard",
+    "acceptFailed": "Could not accept invite"
+  },
+  "ticketVocab": {
+    "type": {
+      "BUG": {
+        "label": "Bug",
+        "blurb": "Something is broken or behaving wrongly"
+      },
+      "FEATURE": {
+        "label": "Feature request",
+        "blurb": "Something RigLog doesn’t do yet"
+      },
+      "IMPROVEMENT": {
+        "label": "Improvement",
+        "blurb": "Something that exists but could work better"
+      }
+    },
+    "status": {
+      "OPEN": "Open",
+      "PLANNED": "Planned",
+      "IN_PROGRESS": "In progress",
+      "DONE": "Done",
+      "DECLINED": "Declined",
+      "DUPLICATE": "Duplicate"
+    }
   }
 }

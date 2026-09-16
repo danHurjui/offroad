@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getServerSession } from 'next-auth'
@@ -14,6 +15,7 @@ import TicketAdminPanel from '@/components/TicketAdminPanel'
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const tv = await getTranslations('ticketVocab')
   const ticket = await prisma.ticket.findUnique({
     where: { id: params.id },
     select: { title: true, type: true },
@@ -21,11 +23,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   if (!ticket) return { title: 'Ticket not found — RigLog' }
   return {
     title: `${ticket.title} — RigLog roadmap`,
-    description: `${TICKET_TYPES[ticket.type].label} on the RigLog public roadmap.`,
+    description: `${tv(`type.${ticket.type}.label`)} on the RigLog public roadmap.`,
   }
 }
 
 export default async function TicketDetailPage({ params }: { params: { id: string } }) {
+  const tv = await getTranslations('ticketVocab')
   const session = await getServerSession(authOptions)
 
   const ticket = await prisma.ticket.findUnique({
@@ -66,10 +69,10 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <span className={`badge ${TICKET_TYPES[ticket.type].badgeClass}`}>
-                {TICKET_TYPES[ticket.type].label}
+                {tv(`type.${ticket.type}.label`)}
               </span>
               <span className={`badge ${TICKET_STATUSES[ticket.status].badgeClass}`}>
-                {TICKET_STATUSES[ticket.status].label}
+                {tv(`status.${ticket.status}`)}
               </span>
             </div>
             <h1 className="text-xl font-bold text-ink sm:text-2xl">{ticket.title}</h1>

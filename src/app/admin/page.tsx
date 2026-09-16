@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { TICKET_STATUSES, TICKET_STATUS_VALUES } from '@/lib/tickets'
@@ -24,6 +25,7 @@ function Stat({ label, value, href }: { label: string; value: string | number; h
 }
 
 export default async function AdminOverviewPage() {
+  const tv = await getTranslations('ticketVocab')
   const [users, activeUsers, proUsers, vehicles, tickets, openTickets, donations, statusCounts] =
     await Promise.all([
       prisma.user.count(),
@@ -67,7 +69,7 @@ export default async function AdminOverviewPage() {
             className="flex items-center justify-between px-4 py-3 hover:bg-surface-muted"
           >
             <span className={`badge ${TICKET_STATUSES[status].badgeClass}`}>
-              {TICKET_STATUSES[status].label}
+              {tv(`status.${status}`)}
             </span>
             <span className="font-semibold text-ink">{byStatus.get(status) ?? 0}</span>
           </Link>

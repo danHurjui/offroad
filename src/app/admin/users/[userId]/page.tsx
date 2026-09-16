@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
@@ -13,6 +14,7 @@ export const metadata: Metadata = { title: 'User — RigLog admin', robots: { in
 export const dynamic = 'force-dynamic'
 
 export default async function AdminUserDetailPage({ params }: { params: { userId: string } }) {
+  const tv = await getTranslations('ticketVocab')
   const session = await requireAdminOrNotFound()
 
   const vocabulary = await getAllVocabulary()
@@ -140,10 +142,10 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
               <span className="min-w-0 flex-1 truncate text-sm text-ink">{t.title}</span>
               <span className="flex shrink-0 items-center gap-2">
                 <span className={`badge ${TICKET_TYPES[t.type as TicketType].badgeClass}`}>
-                  {TICKET_TYPES[t.type as TicketType].label}
+                  {tv(`type.${t.type as TicketType}.label`)}
                 </span>
                 <span className={`badge ${TICKET_STATUSES[t.status as TicketStatus].badgeClass}`}>
-                  {TICKET_STATUSES[t.status as TicketStatus].label}
+                  {tv(`status.${t.status as TicketStatus}`)}
                 </span>
               </span>
             </Link>

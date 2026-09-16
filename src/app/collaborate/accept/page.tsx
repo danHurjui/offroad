@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -13,6 +14,7 @@ type AcceptState = 'idle' | 'accepting' | 'accepted' | 'error'
 // credentials flow has no built-in callbackUrl chaining here, and the
 // invite link itself stays valid to revisit after logging in.
 function AcceptCollaborateForm() {
+  const t = useTranslations('collaborate')
   const { status } = useSession()
   const searchParams = useSearchParams()
   const token = searchParams.get('token') ?? ''
@@ -30,7 +32,7 @@ function AcceptCollaborateForm() {
     })
       .then(async (res) => {
         const data = await res.json()
-        if (!res.ok) throw new Error(data.error ?? 'Could not accept invite')
+        if (!res.ok) throw new Error(data.error ?? t('acceptFailed'))
         setVehicleId(data.vehicleId)
         setState('accepted')
       })
@@ -38,6 +40,9 @@ function AcceptCollaborateForm() {
         setError(err.message)
         setState('error')
       })
+    // `t` is stable for a given render tree, and adding it would re-run
+    // the accept on a language change — which would double-accept.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, token, state])
 
   return (
@@ -45,30 +50,33 @@ function AcceptCollaborateForm() {
       <div className="card w-full max-w-sm p-6 text-center">
         <h1 className="mb-4 text-2xl font-bold text-ink">RigLog</h1>
 
-        {!token && <p className="text-sm text-red-600 dark:text-red-400">This invite link is missing its token.</p>}
+        {!token && <p className="text-sm text-red-600 dark:text-red-400">{t('missingToken')}</p>}
 
-        {token && status === 'loading' && <p className="text-sm text-ink-muted">Checking your session…</p>}
+        {token && status === 'loading' && <p className="text-sm text-ink-muted">{t('checkingSession')}</p>}
 
         {token && status === 'unauthenticated' && (
           <div className="space-y-4">
             <p className="text-sm text-ink-muted">
-              You&apos;ve been invited to collaborate on a build in RigLog. Log in or create an account using the
-              email address the invite was sent to, then come back to this link to accept.
+              {t('invited')}
             </p>
             <div className="flex justify-center gap-3">
-              <Link href="/login" className="btn-primary">Log in</Link>
-              <Link href="/register" className="btn-secondary">Create account</Link>
+              <Link href="/login" className="btn-primary">
+                {t('logIn')}
+              </Link>
+              <Link href="/register" className="btn-secondary">
+                {t('createAccount')}
+              </Link>
             </div>
           </div>
         )}
 
-        {token && (state === 'accepting') && <p className="text-sm text-ink-muted">Accepting invite…</p>}
+        {token && (state === 'accepting') && <p className="text-sm text-ink-muted">{t('accepting')}</p>}
 
         {token && state === 'accepted' && (
           <div className="space-y-3">
-            <p className="text-sm text-ink">You&apos;re in! You now have collaborator access to this build.</p>
+            <p className="text-sm text-ink">{t('accepted')}</p>
             <Link href={vehicleId ? `/dashboard/vehicles/${vehicleId}` : '/dashboard'} className="btn-primary inline-block">
-              View build
+              {t('viewBuild')}
             </Link>
           </div>
         )}
@@ -76,7 +84,9 @@ function AcceptCollaborateForm() {
         {token && state === 'error' && (
           <div className="space-y-3">
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-            <Link href="/dashboard" className="btn-secondary inline-block">Go to dashboard</Link>
+            <Link href="/dashboard" className="btn-secondary inline-block">
+              {t('goToDashboard')}
+            </Link>
           </div>
         )}
       </div>

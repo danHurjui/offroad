@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { TICKET_TYPES, TICKET_STATUSES, TICKET_STATUS_VALUES, type TicketType, type TicketStatus } from '@/lib/tickets'
@@ -26,6 +27,7 @@ export type AdminTicketView = {
  * admin write path to keep in sync.
  */
 export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) {
+  const tv = useTranslations('ticketVocab')
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState<TicketStatus>(ticket.status)
@@ -80,9 +82,9 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className={`badge ${TICKET_TYPES[ticket.type].badgeClass}`}>{TICKET_TYPES[ticket.type].label}</span>
+            <span className={`badge ${TICKET_TYPES[ticket.type].badgeClass}`}>{tv(`type.${ticket.type}.label`)}</span>
             <span className={`badge ${TICKET_STATUSES[ticket.status].badgeClass}`}>
-              {TICKET_STATUSES[ticket.status].label}
+              {tv(`status.${ticket.status}`)}
             </span>
             <span className="text-xs text-ink-faint">
               {ticket.voteCount} vote{ticket.voteCount === 1 ? '' : 's'} · {ticket.commentCount} comment
@@ -122,7 +124,7 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
                   status === s ? `${TICKET_STATUSES[s].badgeClass} border-brand-400` : 'border-surface-border bg-surface text-ink-muted'
                 }`}
               >
-                {TICKET_STATUSES[s].label}
+                {tv(`status.${s}`)}
               </button>
             ))}
           </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { TICKET_STATUSES, TICKET_STATUS_VALUES, type TicketStatus } from '@/lib/tickets'
 
@@ -17,6 +18,7 @@ export default function TicketAdminPanel({
   currentStatus: TicketStatus
   currentNote: string | null
 }) {
+  const tv = useTranslations('ticketVocab')
   const router = useRouter()
   const [status, setStatus] = useState<TicketStatus>(currentStatus)
   const [adminNote, setAdminNote] = useState(currentNote ?? '')
@@ -64,7 +66,7 @@ export default function TicketAdminPanel({
               status === s ? `${TICKET_STATUSES[s].badgeClass} border-brand-400` : 'border-surface-border bg-surface text-ink-muted'
             }`}
           >
-            {TICKET_STATUSES[s].label}
+            {tv(`status.${s}`)}
           </button>
         ))}
       </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import {
@@ -18,6 +19,7 @@ export default async function AdminTicketsPage({
 }: {
   searchParams: { type?: string; status?: string; q?: string; sort?: string; page?: string }
 }) {
+  const tv = await getTranslations('ticketVocab')
   const type = isTicketType(searchParams.type) ? searchParams.type : undefined
   const status = isTicketStatus(searchParams.status) ? searchParams.status : undefined
   const q = searchParams.q?.trim() ?? ''
@@ -72,13 +74,13 @@ export default async function AdminTicketsPage({
         <select name="type" defaultValue={type ?? ''} className="input w-44">
           <option value="">All types</option>
           {TICKET_TYPE_VALUES.map((t) => (
-            <option key={t} value={t}>{TICKET_TYPES[t].label}</option>
+            <option key={t} value={t}>{tv(`type.${t}.label`)}</option>
           ))}
         </select>
         <select name="status" defaultValue={status ?? ''} className="input w-40">
           <option value="">All statuses</option>
           {TICKET_STATUS_VALUES.map((s) => (
-            <option key={s} value={s}>{TICKET_STATUSES[s].label}</option>
+            <option key={s} value={s}>{tv(`status.${s}`)}</option>
           ))}
         </select>
         <select name="sort" defaultValue={sort} className="input w-36">

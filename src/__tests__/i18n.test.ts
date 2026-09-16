@@ -9,6 +9,7 @@ import {
   toLocale,
 } from '@/i18n/config'
 import { PART_CONDITIONS, ORIGINALITY_CONDITIONS, PROJECT_TYPE_CONFIG, PROJECT_TYPES } from '@/lib/projectType'
+import { TICKET_TYPE_VALUES, TICKET_STATUS_VALUES } from '@/lib/tickets'
 import { translateConfig, translatePartConditions, translateOriginalityConditions } from '@/lib/vocabulary'
 
 const read = (locale: string) =>
@@ -214,6 +215,33 @@ describe('the project-type vocabulary', () => {
     for (const option of ORIGINALITY_CONDITIONS) {
       const key = `vocab.originality.${option.value}`
       expect({ key, value: lookup(catalogue, key) }).toMatchObject({ value: expect.stringMatching(/\S/) })
+    }
+  })
+})
+
+/**
+ * Same reasoning for the feedback board's own vocabulary: TICKET_TYPES and
+ * TICKET_STATUSES still own the values and the badge colours, and only the
+ * label and blurb are looked up per request.
+ */
+describe('the ticket vocabulary', () => {
+  it.each(LOCALES)('%s labels every ticket type and status', (locale) => {
+    const catalogue = CATALOGUES[locale]
+
+    for (const type of TICKET_TYPE_VALUES) {
+      for (const field of ['label', 'blurb']) {
+        const key = `ticketVocab.type.${type}.${field}`
+        expect({ key, value: lookup(catalogue, key) }).toMatchObject({
+          value: expect.stringMatching(/\S/),
+        })
+      }
+    }
+
+    for (const status of TICKET_STATUS_VALUES) {
+      const key = `ticketVocab.status.${status}`
+      expect({ key, value: lookup(catalogue, key) }).toMatchObject({
+        value: expect.stringMatching(/\S/),
+      })
     }
   })
 })
