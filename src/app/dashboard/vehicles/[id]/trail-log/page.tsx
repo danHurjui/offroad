@@ -5,6 +5,7 @@ import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { serializeTrailRun } from '@/lib/serialize'
 import TrailThumbnail from '@/components/TrailThumbnail'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-027: trail log list — off-road mode, Pro-gated, owner-only.
 export default async function TrailLogPage({ params }: { params: { id: string } }) {
@@ -12,8 +13,8 @@ export default async function TrailLogPage({ params }: { params: { id: string } 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle || vehicle.projectType !== 'OFFROAD') notFound()
 
-  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { isPro: true } })
-  const isPro = Boolean(owner?.isPro)
+  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
+  const isPro = hasPro(owner)
 
   const runs = isPro
     ? await prisma.trailRun.findMany({ where: { vehicleId: vehicle.id }, orderBy: { date: 'desc' } }).then((rs) => rs.map(serializeTrailRun))

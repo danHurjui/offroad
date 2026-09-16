@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { requireAdminOrNotFound } from '@/lib/serverAuth'
 import AdminUserActiveToggle from '@/components/AdminUserActiveToggle'
+import AdminCompProToggle from '@/components/AdminCompProToggle'
 
 export const metadata: Metadata = { title: 'Users — RigLog admin', robots: { index: false } }
 export const dynamic = 'force-dynamic'
@@ -40,7 +41,7 @@ export default async function AdminUsersPage({
       take: PAGE_SIZE,
       select: {
         id: true, email: true, displayName: true, username: true,
-        isPro: true, isAdmin: true, active: true, createdAt: true,
+        isPro: true, isProComped: true, isAdmin: true, active: true, createdAt: true,
         _count: { select: { vehicles: true, tickets: true } },
       },
     }),
@@ -102,6 +103,7 @@ export default async function AdminUsersPage({
                     </Link>
                     {u.isAdmin && <span className="badge bg-amber-100 text-amber-800">admin</span>}
                     {u.isPro && <span className="badge bg-brand-100 text-brand-700">Pro</span>}
+                    {u.isProComped && <span className="badge bg-green-100 text-green-800">Pro · comped</span>}
                     {!u.active && <span className="badge bg-red-100 text-red-800">deactivated</span>}
                   </div>
                   <div className="truncate text-sm text-ink-muted">{u.email}</div>
@@ -111,9 +113,14 @@ export default async function AdminUsersPage({
                     {u._count.tickets} ticket{u._count.tickets === 1 ? '' : 's'}
                   </div>
                 </div>
-                <AdminUserActiveToggle
-                  userId={u.id} displayName={u.displayName} active={u.active} disabledReason={reason}
-                />
+                <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-start">
+                  <AdminCompProToggle
+                    userId={u.id} displayName={u.displayName} isProComped={u.isProComped} isPro={u.isPro}
+                  />
+                  <AdminUserActiveToggle
+                    userId={u.id} displayName={u.displayName} active={u.active} disabledReason={reason}
+                  />
+                </div>
               </div>
             )
           })}

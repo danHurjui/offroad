@@ -176,9 +176,67 @@ describe('PATCH /api/admin/users/[userId]', () => {
       params: { userId: 'u1' },
     })
     // Only `active` reaches Prisma — the rest are never merged in.
-    expect(mockUserUpdate).toHaveBeenCalledWith(expect.objectContaining({ data: { active: false } }))
     const data = mockUserUpdate.mock.calls[0][0].data
     expect(Object.keys(data)).toEqual(['active'])
+  })
+
+  describe('complimentary Pro', () => {
+    it('grants a comp and records who and why', async () => {
+      const res = await patchUser(req({ isProComped: true, proCompedReason: 'Beta tester' }), {
+        params: { userId: 'u1' },
+      })
+      expect(res.status).toBe(200)
+      const data = mockUserUpdate.mock.calls[0][0].data
+      expect(data.isProComped).toBe(true)
+      expect(data.proCompedReason).toBe('Beta tester')
+      expect(data.proCompedById).toBe('admin-1')
+      expect(data.proCompedAt).toBeInstanceOf(Date)
+    })
+
+    // The comp exists precisely so Stripe's column is never written here.
+    it('never writes isPro when granting a comp', async () => {
+      await patchUser(req({ isProComped: true, proCompedReason: 'x' }), { params: { userId: 'u1' } })
+      expect(mockUserUpdate.mock.calls[0][0].data.isPro).toBeUndefined()
+    })
+
+    it('clears the justification when revoking, so it cannot read as live', async () => {
+      await patchUser(req({ isProComped: false }), { params: { userId: 'u1' } })
+      const data = mockUserUpdate.mock.calls[0][0].data
+      expect(data.isProComped).toBe(false)
+      expect(data.proCompedAt).toBeNull()
+      expect(data.proCompedById).toBeNull()
+      expect(data.proCompedReason).toBeNull()
+    })
+
+    it('stores no reason rather than an empty string', async () => {
+      await patchUser(req({ isProComped: true, proCompedReason: '   ' }), { params: { userId: 'u1' } })
+      expect(mockUserUpdate.mock.calls[0][0].data.proCompedReason).toBeNull()
+    })
+
+    it('truncates an over-long reason', async () => {
+      await patchUser(req({ isProComped: true, proCompedReason: 'x'.repeat(900) }), {
+        params: { userId: 'u1' },
+      })
+      expect(mockUserUpdate.mock.calls[0][0].data.proCompedReason).toHaveLength(500)
+    })
+
+    it('can change activation and the comp in one call', async () => {
+      await patchUser(req({ active: false, isProComped: true, proCompedReason: 'r' }), {
+        params: { userId: 'u1' },
+      })
+      const data = mockUserUpdate.mock.calls[0][0].data
+      expect(data.active).toBe(false)
+      expect(data.isProComped).toBe(true)
+    })
+
+    it('still refuses isPro smuggled in beside a comp', async () => {
+      await patchUser(req({ isProComped: true, proCompedReason: 'r', isPro: true, isAdmin: true }), {
+        params: { userId: 'u1' },
+      })
+      const data = mockUserUpdate.mock.calls[0][0].data
+      expect(data.isPro).toBeUndefined()
+      expect(data.isAdmin).toBeUndefined()
+    })
   })
 
   it('404s for a user that does not exist', async () => {

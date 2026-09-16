@@ -267,13 +267,29 @@ takes effect within about a minute, not a month. Don't "optimise" that
 revalidation away, and don't assume a flag on the session is fresher than
 that window.
 
-**Two fields are deliberately not editable from the admin UI**, because
-each has a single owner elsewhere: `isPro` (the Stripe webhook) and
-`isAdmin` (a direct database change). `PATCH /api/admin/users/[userId]`
-accepts only `active` and ignores everything else rather than merging the
-body, so it can't become a mass-assignment hole as `User` grows. An admin
-also cannot deactivate themselves (no in-app way back) or another admin
-(deposing an admin needs the same database access as creating one).
+`PATCH /api/admin/users/[userId]` accepts exactly two fields — `active`
+and `isProComped` — and copies only those onto the update rather than
+merging the body, so it can't become a mass-assignment hole as `User`
+grows. `isPro` and `isAdmin` stay uneditable here: the Stripe webhook owns
+one and a direct database change owns the other. An admin also cannot
+deactivate themselves (no in-app way back) or another admin (deposing an
+admin needs the same database access as creating one).
+
+### Pro entitlement (`src/lib/pro.ts`)
+There are **two** independent sources of Pro and they have different
+owners: `isPro` (paid, written only by the Stripe webhook, set false on
+cancellation) and `isProComped` (complimentary, granted by an admin, which
+Stripe never touches). They are separate columns precisely so a
+cancellation event can't quietly revoke a comp.
+
+**Never test either flag directly.** Ask `hasPro()`, and select the
+columns with `PRO_SELECT` so a gate can't read one and miss the other —
+the failure mode is a comped account with half of Pro working, which is
+easy to ship and hard to notice. `proKind()` is the separate,
+human-facing answer: a comped user must not be shown a billing plan they
+never bought, offered a subscription to manage, or nagged to upgrade.
+There is a live suite (`comppro`) that walks a comped account through
+every Pro-gated endpoint and page; extend it when you add a gate.
 
 Ticket triage has **no separate admin write path** — the admin screens
 call the same `PATCH /api/tickets/[id]` the public detail page uses, which

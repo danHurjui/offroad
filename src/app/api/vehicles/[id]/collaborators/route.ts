@@ -5,6 +5,7 @@ import { requireVehicleOwner } from '@/lib/access'
 import { generateInviteToken, isValidEmail, inviteAcceptUrl, FREE_TIER_COLLABORATOR_LIMIT, DAILY_INVITE_LIMIT } from '@/lib/collaborators'
 import { sendEmail, collaboratorInviteEmailHtml } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-030: invite mechanic/specialist as project collaborator. Owner only.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -18,8 +19,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const collaborators = await prisma.projectCollaborator.findMany({
     where: { vehicleId: vehicle.id },
     orderBy: { invitedAt: 'desc' },
-    include: { collaboratorUser: { select: { displayName: true } } },
-  })
+    include: { collaboratorUser: { select: { displayName: true } } } })
 
   return NextResponse.json(
     collaborators.map(({ inviteToken: _inviteToken, ...c }) => c) // never leak the token in a list response
@@ -48,17 +48,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     const alreadyActive = await prisma.projectCollaborator.findFirst({
-      where: { vehicleId: vehicle.id, email, status: 'ACTIVE' },
-    })
+      where: { vehicleId: vehicle.id, email, status: 'ACTIVE' } })
     if (alreadyActive) {
       return NextResponse.json({ error: 'This email is already an active collaborator' }, { status: 400 })
     }
 
-    const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true, displayName: true } })
-    if (!owner?.isPro) {
+    const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT, displayName: true } })
+    if (!hasPro(owner)) {
       const activeOrPendingCount = await prisma.projectCollaborator.count({
-        where: { vehicleId: vehicle.id, status: { in: ['PENDING', 'ACTIVE'] } },
-      })
+        where: { vehicleId: vehicle.id, status: { in: ['PENDING', 'ACTIVE'] } } })
       if (activeOrPendingCount >= FREE_TIER_COLLABORATOR_LIMIT) {
         return NextResponse.json(
           { error: `Free tier is limited to ${FREE_TIER_COLLABORATOR_LIMIT} collaborators. Upgrade to Pro for unlimited.`, code: 'UPGRADE_REQUIRED' },
@@ -69,16 +67,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
     const invitesToday = await prisma.projectCollaborator.count({
-      where: { vehicleId: vehicle.id, invitedAt: { gte: oneDayAgo } },
-    })
+      where: { vehicleId: vehicle.id, invitedAt: { gte: oneDayAgo } } })
     if (invitesToday >= DAILY_INVITE_LIMIT) {
       return NextResponse.json({ error: 'Daily invite limit reached for this vehicle. Try again tomorrow.' }, { status: 429 })
     }
 
     const inviteToken = generateInviteToken()
     const collaborator = await prisma.projectCollaborator.create({
-      data: { vehicleId: vehicle.id, invitedByUserId: session.user.id, email, label, role, inviteToken },
-    })
+      data: { vehicleId: vehicle.id, invitedByUserId: session.user.id, email, label, role, inviteToken } })
 
     const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
     await sendEmail({
@@ -87,9 +83,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       html: collaboratorInviteEmailHtml({
         inviterName: owner?.displayName ?? 'Someone',
         vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-        acceptUrl: inviteAcceptUrl(inviteToken, baseUrl),
-      }),
-    })
+        acceptUrl: inviteAcceptUrl(inviteToken, baseUrl) }) })
 
     const { inviteToken: _inviteToken, ...safe } = collaborator
     return NextResponse.json(safe, { status: 201 })

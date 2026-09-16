@@ -10,6 +10,7 @@ import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { resolveImageDataUri } from '@/lib/pdf'
 import { computeOriginalityScore } from '@/lib/originality'
 import { CARD_WIDTH, CARD_HEIGHT, CARD_FONTS, CARD_COLORS, CardFooter, publicCardUrl } from '@/lib/card'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-021: restoration "transformation card" — before/after, 1200x630
 // PNG. Owner-only, Pro-gated, restoration mode only. Shares its rendering
@@ -27,8 +28,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Transformation cards are restoration mode only' }, { status: 400 })
   }
 
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true, username: true } })
-  if (!owner?.isPro) {
+  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT, username: true } })
+  if (!owner || !hasPro(owner)) {
     return NextResponse.json({ error: 'Share cards are a Pro feature.', code: 'UPGRADE_REQUIRED' }, { status: 403 })
   }
 
@@ -38,12 +39,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const [foundState, tasks] = await Promise.all([
     prisma.foundState.findUnique({
       where: { vehicleId: vehicle.id },
-      include: { photos: { orderBy: { createdAt: 'asc' } } },
-    }),
+      include: { photos: { orderBy: { createdAt: 'asc' } } } }),
     prisma.task.findMany({
       where: { vehicleId: vehicle.id },
-      select: { status: true, originalityCondition: true, photos: { select: { id: true, url: true, createdAt: true } } },
-    }),
+      select: { status: true, originalityCondition: true, photos: { select: { id: true, url: true, createdAt: true } } } }),
   ])
 
   const { searchParams } = new URL(req.url)
@@ -93,8 +92,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             width: CARD_WIDTH,
             height: CARD_HEIGHT,
             display: 'flex',
-            backgroundImage: `linear-gradient(to bottom, ${CARD_COLORS.overlayTop} 0%, transparent 35%, transparent 60%, ${CARD_COLORS.overlayBottom} 100%)`,
-          }}
+            backgroundImage: `linear-gradient(to bottom, ${CARD_COLORS.overlayTop} 0%, transparent 35%, transparent 60%, ${CARD_COLORS.overlayBottom} 100%)` }}
         />
 
         <div style={{ position: 'absolute', top: 40, left: 56, right: 56, display: 'flex', flexDirection: 'column' }}>
@@ -147,8 +145,7 @@ function PhotoHalf({ dataUri, label, full }: { dataUri: string | null; label?: s
             color: CARD_COLORS.text,
             backgroundColor: 'rgba(0,0,0,0.55)',
             padding: '6px 14px',
-            borderRadius: 6,
-          }}
+            borderRadius: 6 }}
         >
           {label}
         </div>

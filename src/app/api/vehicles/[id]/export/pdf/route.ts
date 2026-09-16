@@ -6,6 +6,7 @@ import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
 import { toNumberOrNull } from '@/lib/serialize'
 import { renderPdf, resolveImageDataUri, resolvePhotos, pdfFilename } from '@/lib/pdf'
 import { buildVehicleHistoryDocDefinition, type PdfTaskCategory } from '@/lib/pdfBuildHistory'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-014: build history PDF export, Pro only. Generation can take a few
 // seconds for a large project (up to 50 tasks / 100 photos per the ticket's
@@ -23,8 +24,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true } })
-  if (!owner?.isPro) {
+  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
+  if (!hasPro(owner)) {
     return NextResponse.json(
       { error: 'PDF export is a Pro feature. Upgrade to export your full build history.', code: 'UPGRADE_REQUIRED' },
       { status: 403 }

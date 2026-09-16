@@ -5,6 +5,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { decodeVin, type DecodedVin } from '@/lib/vinDecoder'
 import { readJsonBody } from '@/lib/requestBody'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 function toJsonInput(decoded: DecodedVin): Prisma.InputJsonValue {
   return decoded as unknown as Prisma.InputJsonValue
@@ -16,8 +17,8 @@ async function loadRestorationOwnerVehicle(vehicleId: string, userId: string) {
   if (vehicle.projectType !== 'RESTORATION') {
     return { error: NextResponse.json({ error: 'VIN decoding only applies to restoration projects' }, { status: 400 }) }
   }
-  const owner = await prisma.user.findUnique({ where: { id: userId }, select: { isPro: true } })
-  if (!owner?.isPro) {
+  const owner = await prisma.user.findUnique({ where: { id: userId }, select: { ...PRO_SELECT } })
+  if (!hasPro(owner)) {
     return {
       error: NextResponse.json({ error: 'VIN decoding is a Pro feature.', code: 'UPGRADE_REQUIRED' }, { status: 403 }),
     }

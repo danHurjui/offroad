@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/authz'
 import { PART_CONDITIONS } from '@/lib/projectType'
 import { readJsonBody } from '@/lib/requestBody'
 import { consumeRateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-024: community parts crowdsourcing. Pro only.
 export async function POST(req: NextRequest) {
@@ -15,8 +16,8 @@ export async function POST(req: NextRequest) {
   const limit = await consumeRateLimit('partsRequest', `user:${session.user.id}`)
   if (!limit.ok) return rateLimitResponse(limit)
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true } })
-  if (!user?.isPro) {
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
+  if (!hasPro(user)) {
     return NextResponse.json(
       { error: 'Posting a parts request is a Pro feature.', code: 'UPGRADE_REQUIRED' },
       { status: 403 }

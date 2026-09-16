@@ -6,6 +6,7 @@ import { requireVehicleOwner } from '@/lib/access'
 import { serializeTrailRun } from '@/lib/serialize'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-027: trail log — off-road mode only, Pro-gated, owner-only (like
 // wishlist/documents — this is a personal driving log, not shared build
@@ -16,8 +17,8 @@ async function loadOffroadOwnerVehicle(vehicleId: string, userId: string) {
   if (vehicle.projectType !== 'OFFROAD') {
     return { error: NextResponse.json({ error: 'Trail log only applies to off-road projects' }, { status: 400 }) }
   }
-  const owner = await prisma.user.findUnique({ where: { id: userId }, select: { isPro: true } })
-  if (!owner?.isPro) {
+  const owner = await prisma.user.findUnique({ where: { id: userId }, select: { ...PRO_SELECT } })
+  if (!hasPro(owner)) {
     return { error: NextResponse.json({ error: 'Trail log is a Pro feature.', code: 'UPGRADE_REQUIRED' }, { status: 403 }) }
   }
   return { vehicle }

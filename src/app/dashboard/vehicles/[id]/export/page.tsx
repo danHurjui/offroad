@@ -7,6 +7,7 @@ import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { toNumberOrNull } from '@/lib/serialize'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
 import ExportPdfButton from '@/components/ExportPdfButton'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-014: build history PDF export. Free owners see this same page (it IS
 // the "preview of the first page" the ticket asks for — real data, just no
@@ -17,8 +18,8 @@ export default async function ExportPdfPage({ params }: { params: { id: string }
   if (!vehicle) notFound()
 
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true } })
-  const isPro = Boolean(owner?.isPro)
+  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
+  const isPro = hasPro(owner)
 
   const tasks = await prisma.task.findMany({
     where: { vehicleId: vehicle.id },

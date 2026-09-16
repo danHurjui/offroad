@@ -6,6 +6,7 @@ import { serializeWishlistPriceEntry } from '@/lib/serialize'
 import { toNumberOrNull } from '@/lib/serialize'
 import { decidePriceAlert, notifyPriceAlert } from '@/lib/priceAlert'
 import { readJsonBody } from '@/lib/requestBody'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 async function loadItem(vehicleId: string, itemId: string) {
   const item = await prisma.wishlistItem.findUnique({ where: { id: itemId } })
@@ -43,8 +44,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true } })
-  if (!owner?.isPro) {
+  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
+  if (!hasPro(owner)) {
     return NextResponse.json(
       { error: 'Price alerts are a Pro feature.', code: 'UPGRADE_REQUIRED' },
       { status: 403 }

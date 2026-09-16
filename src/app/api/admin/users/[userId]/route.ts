@@ -19,6 +19,10 @@ export async function GET(_req: NextRequest, { params }: { params: { userId: str
         location: true,
         isPro: true,
         proPlan: true,
+        isProComped: true,
+        proCompedAt: true,
+        proCompedReason: true,
+        proCompedById: true,
         isAdmin: true,
         active: true,
         accountType: true,
@@ -43,18 +47,24 @@ export async function GET(_req: NextRequest, { params }: { params: { userId: str
 }
 
 /**
- * The only user field an admin can change is `active` — the moderation
- * lever. Two things are deliberately *not* editable here:
+ * An admin may change exactly two things here:
  *
- * - **`isPro`**: the Stripe webhook is its only writer. Flipping it by
- *   hand would desync entitlement from what the customer actually paid
- *   for, and the next webhook would overwrite it anyway.
+ * - **`active`** — the moderation lever.
+ * - **`isProComped`** — complimentary Pro.
+ *
+ * Two things remain deliberately *not* editable:
+ *
+ * - **`isPro`**: the Stripe webhook is its only writer. Writing it by hand
+ *   would desync entitlement from what the customer actually paid, and
+ *   the next webhook would overwrite it anyway. That's precisely why a
+ *   comp is a separate column — see src/lib/pro.ts.
  * - **`isAdmin`**: granting admin from an API route means one compromised
  *   admin session can mint more admins. It stays a deliberate database
  *   change (see CLAUDE.md).
  *
- * Anything else in the body is ignored rather than merged, so this can't
- * become a mass-assignment hole as fields are added to User.
+ * Only the recognised fields are copied onto the update; the rest of the
+ * body is ignored rather than merged, so this can't become a
+ * mass-assignment hole as fields are added to User.
  */
 export async function PATCH(req: NextRequest, { params }: { params: { userId: string } }) {
   const auth = await requireAdmin()
@@ -71,29 +81,59 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
   if (!parsed.ok) return parsed.error
   const body = parsed.body
 
-  if (body.active === undefined) {
-    return NextResponse.json({ error: 'Only `active` can be changed here' }, { status: 400 })
-  }
-  const active = Boolean(body.active)
-
-  // Locking yourself out is the one mistake with no in-app way back.
-  if (target.id === session.user.id && !active) {
-    return NextResponse.json({ error: 'You cannot deactivate your own account' }, { status: 400 })
-  }
-  // Admins don't get to depose each other; that needs database access, the
-  // same bar as granting admin in the first place.
-  if (target.isAdmin && !active) {
+  const wantsActive = body.active !== undefined
+  const wantsComp = body.isProComped !== undefined
+  if (!wantsActive && !wantsComp) {
     return NextResponse.json(
-      { error: 'An admin account cannot be deactivated from here' },
+      { error: 'Only `active` and `isProComped` can be changed here' },
       { status: 400 }
     )
+  }
+
+  const data: Record<string, unknown> = {}
+
+  if (wantsActive) {
+    const active = Boolean(body.active)
+    // Locking yourself out is the one mistake with no in-app way back.
+    if (target.id === session.user.id && !active) {
+      return NextResponse.json({ error: 'You cannot deactivate your own account' }, { status: 400 })
+    }
+    // Admins don't get to depose each other; that needs database access,
+    // the same bar as granting admin in the first place.
+    if (target.isAdmin && !active) {
+      return NextResponse.json(
+        { error: 'An admin account cannot be deactivated from here' },
+        { status: 400 }
+      )
+    }
+    data.active = active
+  }
+
+  if (wantsComp) {
+    const isProComped = Boolean(body.isProComped)
+    data.isProComped = isProComped
+    // Granting records who and why, for accountability; revoking clears
+    // the lot so a stale reason can't be read as a live justification.
+    if (isProComped) {
+      const reason = typeof body.proCompedReason === 'string' ? body.proCompedReason.trim().slice(0, 500) : ''
+      data.proCompedAt = new Date()
+      data.proCompedById = session.user.id
+      data.proCompedReason = reason || null
+    } else {
+      data.proCompedAt = null
+      data.proCompedById = null
+      data.proCompedReason = null
+    }
   }
 
   try {
     const updated = await prisma.user.update({
       where: { id: target.id },
-      data: { active },
-      select: { id: true, displayName: true, email: true, active: true },
+      data,
+      select: {
+        id: true, displayName: true, email: true, active: true,
+        isPro: true, isProComped: true, proCompedAt: true, proCompedReason: true,
+      },
     })
     return NextResponse.json(updated)
   } catch {

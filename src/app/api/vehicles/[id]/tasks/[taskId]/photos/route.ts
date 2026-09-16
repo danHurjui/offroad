@@ -6,6 +6,7 @@ import { isValidPhotoType } from '@/lib/projectType'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 import { notifyFollowers } from '@/lib/followNotify'
 import { readFormData } from '@/lib/requestBody'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 const FREE_TIER_PHOTOS_PER_TASK = 10
 
@@ -60,8 +61,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
       return NextResponse.json({ error: `File too large (max ${MAX_UPLOAD_BYTES / 1024 / 1024}MB)` }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-    if (!user?.isPro) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { ...PRO_SELECT },
+    })
+    if (!hasPro(user)) {
       const existingCount = await prisma.taskPhoto.count({ where: { taskId: task.id } })
       if (existingCount >= FREE_TIER_PHOTOS_PER_TASK) {
         return NextResponse.json(

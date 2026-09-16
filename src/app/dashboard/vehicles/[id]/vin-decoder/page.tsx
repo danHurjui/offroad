@@ -5,6 +5,7 @@ import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import VinDecoderPanel from '@/components/VinDecoderPanel'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-028: VIN / chassis decoder — restoration mode, Pro-gated.
 export default async function VinDecoderPage({ params }: { params: { id: string } }) {
@@ -12,8 +13,8 @@ export default async function VinDecoderPage({ params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle || vehicle.projectType !== 'RESTORATION') notFound()
 
-  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { isPro: true } })
-  const isPro = Boolean(owner?.isPro)
+  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
+  const isPro = hasPro(owner)
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
 
   return (

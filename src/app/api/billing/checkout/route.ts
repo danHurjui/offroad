@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { getStripe, isProPlanId, priceIdFor, PRO_PLANS } from '@/lib/stripe'
 import { readJsonBody } from '@/lib/requestBody'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-017: creates a Stripe Checkout session for one of the three Pro
 // purchase options. The webhook (not this route) is what actually flips
@@ -25,10 +26,9 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { id: true, email: true, isPro: true, stripeCustomerId: true },
-    })
+      select: { ...PRO_SELECT, id: true, email: true, stripeCustomerId: true } })
     if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    if (user.isPro) return NextResponse.json({ error: 'Already on Pro' }, { status: 400 })
+    if (hasPro(user)) return NextResponse.json({ error: 'Already on Pro' }, { status: 400 })
 
     const stripe = getStripe()
 
@@ -51,8 +51,7 @@ export async function POST(req: NextRequest) {
       metadata: { userId: user.id, plan },
       ...(planConfig.mode === 'subscription'
         ? { subscription_data: { metadata: { userId: user.id, plan } } }
-        : { payment_intent_data: { metadata: { userId: user.id, plan } } }),
-    })
+        : { payment_intent_data: { metadata: { userId: user.id, plan } } }) })
 
     if (!checkoutSession.url) {
       return NextResponse.json({ error: 'Could not create checkout session' }, { status: 500 })

@@ -6,6 +6,7 @@ import { requireAdminOrNotFound } from '@/lib/serverAuth'
 import { PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
 import { TICKET_TYPES, TICKET_STATUSES, type TicketType, type TicketStatus } from '@/lib/tickets'
 import AdminUserActiveToggle from '@/components/AdminUserActiveToggle'
+import AdminCompProToggle from '@/components/AdminCompProToggle'
 
 export const metadata: Metadata = { title: 'User — RigLog admin', robots: { index: false } }
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,7 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
     select: {
       id: true, email: true, displayName: true, username: true, location: true,
       isPro: true, proPlan: true, isAdmin: true, active: true, accountType: true, createdAt: true,
+      isProComped: true, proCompedAt: true, proCompedReason: true, proCompedById: true,
       vehicles: {
         select: { id: true, make: true, model: true, year: true, projectType: true, isPublic: true },
         orderBy: { createdAt: 'desc' },
@@ -52,6 +54,7 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
             {user.isPro && (
               <span className="badge bg-brand-100 text-brand-700">Pro{user.proPlan ? ` · ${user.proPlan}` : ''}</span>
             )}
+            {user.isProComped && <span className="badge bg-green-100 text-green-800">Pro · comped</span>}
             {!user.active && <span className="badge bg-red-100 text-red-800">deactivated</span>}
           </div>
           <p className="text-sm text-ink-muted">{user.email}</p>
@@ -61,10 +64,30 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
             joined {new Date(user.createdAt).toLocaleDateString('ro-RO')}
           </p>
         </div>
-        <AdminUserActiveToggle
-          userId={user.id} displayName={user.displayName} active={user.active} disabledReason={reason}
-        />
+        <div className="flex flex-col items-end gap-3">
+          <AdminCompProToggle
+            userId={user.id} displayName={user.displayName} isProComped={user.isProComped} isPro={user.isPro}
+          />
+          <AdminUserActiveToggle
+            userId={user.id} displayName={user.displayName} active={user.active} disabledReason={reason}
+          />
+        </div>
       </div>
+
+      {user.isProComped && (
+        <div className="card mb-6 border-green-200 bg-green-50 p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-green-800">
+            Complimentary Pro
+          </div>
+          <p className="mt-1 text-sm text-ink">
+            {user.proCompedReason || 'No reason recorded.'}
+          </p>
+          <p className="mt-1 text-xs text-ink-faint">
+            granted {user.proCompedAt ? new Date(user.proCompedAt).toLocaleDateString('ro-RO') : 'unknown'}
+            {user.proCompedById ? ` by ${user.proCompedById}` : ''}
+          </p>
+        </div>
+      )}
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[

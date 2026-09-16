@@ -12,6 +12,7 @@ import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { toNumberOrNull } from '@/lib/serialize'
 import { resolveImageDataUri } from '@/lib/pdf'
 import { CARD_WIDTH, CARD_HEIGHT, CARD_FONTS, CARD_COLORS, CardFooter, publicCardUrl } from '@/lib/card'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-020: off-road "build card" — 1200x630 PNG for sharing. Owner-only,
 // Pro-gated. next/og's ImageResponse (Satori under the hood) renders fast
@@ -28,8 +29,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true, username: true } })
-  if (!owner?.isPro) {
+  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT, username: true } })
+  if (!owner || !hasPro(owner)) {
     return NextResponse.json(
       { error: 'Share cards are a Pro feature.', code: 'UPGRADE_REQUIRED' },
       { status: 403 }
@@ -41,8 +42,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
   const tasks = await prisma.task.findMany({
     where: { vehicleId: vehicle.id },
-    select: { name: true, status: true, category: true, date: true, workType: true, costRon: true, partsCostRon: true, labourCostRon: true },
-  })
+    select: { name: true, status: true, category: true, date: true, workType: true, costRon: true, partsCostRon: true, labourCostRon: true } })
 
   const completed = tasks.filter((t) => t.status === completeStatus)
   const topMods = [...completed].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 4)
@@ -67,8 +67,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
           height: CARD_HEIGHT,
           display: 'flex',
           position: 'relative',
-          backgroundColor: CARD_COLORS.bg,
-        }}
+          backgroundColor: CARD_COLORS.bg }}
       >
         {coverPhotoDataUri && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -88,8 +87,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
             width: CARD_WIDTH,
             height: CARD_HEIGHT,
             display: 'flex',
-            backgroundImage: `linear-gradient(to bottom, ${CARD_COLORS.overlayTop}, ${CARD_COLORS.overlayBottom})`,
-          }}
+            backgroundImage: `linear-gradient(to bottom, ${CARD_COLORS.overlayTop}, ${CARD_COLORS.overlayBottom})` }}
         />
 
         <div style={{ position: 'absolute', top: 56, left: 56, right: 56, display: 'flex', flexDirection: 'column' }}>

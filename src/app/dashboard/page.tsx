@@ -3,6 +3,7 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 export default async function DashboardPage() {
   const session = await requireSessionOrRedirect()
@@ -13,10 +14,10 @@ export default async function DashboardPage() {
       where: { collaborators: { some: { collaboratorUserId: session.user.id, status: 'ACTIVE' } } },
       orderBy: { updatedAt: 'desc' },
     }),
-    prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } }),
   ])
 
-  const atFreeLimit = !user?.isPro && owned.length >= 1
+  const atFreeLimit = !hasPro(user) && owned.length >= 1
 
   return (
     <div>

@@ -96,6 +96,19 @@ model User {
   /// the Stripe webhook (src/app/api/webhooks/stripe/route.ts) — never set
   /// directly from a client-facing route.
   isPro                Boolean      @default(false)
+  /// Complimentary Pro, granted by an admin (beta testers, support
+  /// goodwill, a contributor). Deliberately a *separate* column from
+  /// `isPro` so the two owners never fight: Stripe owns `isPro` and will
+  /// happily set it false on cancellation, which must not silently revoke
+  /// a comp. Entitlement is `isPro || isProComped` — always read it
+  /// through hasPro() in src/lib/pro.ts rather than testing either flag
+  /// directly.
+  isProComped          Boolean      @default(false)
+  proCompedAt          DateTime?
+  proCompedReason      String?
+  /// The admin who granted it, kept for accountability. Not a relation:
+  /// it must survive that admin's account being deleted.
+  proCompedById        String?
   /// Moderates the public feedback board (src/app/tickets) — changing a
   /// ticket's status and replying as staff. Not a general-purpose admin
   /// role: it grants nothing over other users' vehicles or data, and is

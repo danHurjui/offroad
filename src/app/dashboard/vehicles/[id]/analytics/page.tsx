@@ -14,6 +14,7 @@ import {
   type DateRange,
 } from '@/lib/analytics'
 import CostAnalyticsCharts from '@/components/CostAnalyticsCharts'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 const RANGE_LABELS: Record<DateRange, string> = { '3m': 'Last 3 months', '12m': 'Last 12 months', all: 'All time' }
 
@@ -37,8 +38,8 @@ export default async function CostAnalyticsPage({
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
   // Pro is the vehicle owner's subscription, not the viewer's — a
   // collaborator's own isPro is irrelevant to what they see here.
-  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { isPro: true } })
-  const isPro = Boolean(owner?.isPro)
+  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
+  const isPro = hasPro(owner)
 
   if (!isOwner && vehicle.hideCostsFromCollaborators) {
     return (

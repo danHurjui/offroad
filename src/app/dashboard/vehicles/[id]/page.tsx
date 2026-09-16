@@ -9,6 +9,7 @@ import { getDocumentStatus, isHistoricVehicle } from '@/lib/documents'
 import { computeOriginalityScore } from '@/lib/originality'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
 import OriginalityBadge from '@/components/OriginalityBadge'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-003: project dashboard — build overview screen.
 export default async function VehicleDashboardPage({ params }: { params: { id: string } }) {
@@ -39,10 +40,10 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
   // collaborator's own tier is irrelevant, same as everywhere else).
   const owner =
     vehicle.projectType === 'RESTORATION'
-      ? await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { isPro: true } })
+      ? await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
       : null
   const originalityScore =
-    vehicle.projectType === 'RESTORATION' && owner?.isPro ? computeOriginalityScore(tasks, completeStatus) : undefined
+    vehicle.projectType === 'RESTORATION' && hasPro(owner) ? computeOriginalityScore(tasks, completeStatus) : undefined
   // RL-032: "removed collaborator" tag — a task can outlive the
   // collaborator who logged it once the owner revokes their access. A
   // user with any ACTIVE row (re-invited after removal) is not tagged.

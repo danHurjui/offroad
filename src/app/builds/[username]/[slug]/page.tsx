@@ -9,13 +9,14 @@ import { toNumberOrNull } from '@/lib/serialize'
 import { computeOriginalityScore } from '@/lib/originality'
 import OriginalityBadge from '@/components/OriginalityBadge'
 import FollowButton from '@/components/FollowButton'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // cache() dedupes this within one request — generateMetadata and the page
 // component both need it, and without this they'd each hit the DB.
 const findPublicVehicle = cache(async (username: string, slug: string) => {
   const owner = await prisma.user.findUnique({
     where: { username },
-    select: { id: true, displayName: true, location: true, isPro: true },
+    select: { ...PRO_SELECT, id: true, displayName: true, location: true },
   })
   if (!owner) return null
 
@@ -93,7 +94,7 @@ export default async function PublicVehiclePage({
   }, 0)
 
   const originalityScore =
-    vehicle.projectType === 'RESTORATION' && owner.isPro ? computeOriginalityScore(tasks, completeStatus) : undefined
+    vehicle.projectType === 'RESTORATION' && hasPro(owner) ? computeOriginalityScore(tasks, completeStatus) : undefined
 
   const session = await getServerSession(authOptions)
   const isOwnerViewing = session?.user.id === owner.id
@@ -148,7 +149,7 @@ export default async function PublicVehiclePage({
             </p>
             {vehicle.engine && <p className="mt-1 text-sm text-ink-muted">{vehicle.engine}</p>}
 
-            {vehicle.projectType === 'RESTORATION' && owner.isPro && vehicle.vinDecoded && (
+            {vehicle.projectType === 'RESTORATION' && hasPro(owner) && vehicle.vinDecoded && (
               <FactorySpec decoded={vehicle.vinDecoded as never} />
             )}
 

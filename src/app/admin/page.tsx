@@ -28,7 +28,7 @@ export default async function AdminOverviewPage() {
     await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { active: true } }),
-      prisma.user.count({ where: { isPro: true } }),
+      prisma.user.count({ where: { OR: [{ isPro: true }, { isProComped: true }] } }),
       prisma.vehicle.count(),
       prisma.ticket.count(),
       prisma.ticket.count({ where: { status: { in: ['OPEN', 'PLANNED', 'IN_PROGRESS'] } } }),
@@ -46,7 +46,7 @@ export default async function AdminOverviewPage() {
         <Stat label="Users" value={users} href="/admin/users" />
         <Stat label="Active" value={activeUsers} href="/admin/users?status=active" />
         <Stat label="Deactivated" value={users - activeUsers} href="/admin/users?status=inactive" />
-        <Stat label="Pro" value={proUsers} />
+        <Stat label="Pro (incl. comped)" value={proUsers} />
         <Stat label="Vehicles" value={vehicles} />
         <Stat label="Tickets" value={tickets} href="/admin/tickets" />
         <Stat label="Open tickets" value={openTickets} href="/admin/tickets?status=OPEN" />

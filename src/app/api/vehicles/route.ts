@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/authz'
 import { isProjectType, PROJECT_TYPES } from '@/lib/projectType'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
 import { readJsonBody } from '@/lib/requestBody'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 const FREE_TIER_VEHICLE_LIMIT = 1
@@ -58,8 +59,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'year must be a valid 4-digit year' }, { status: 400 })
     }
 
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-    if (!user?.isPro) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { ...PRO_SELECT },
+    })
+    if (!hasPro(user)) {
       const existingCount = await prisma.vehicle.count({ where: { ownerId: session.user.id } })
       if (existingCount >= FREE_TIER_VEHICLE_LIMIT) {
         return NextResponse.json(

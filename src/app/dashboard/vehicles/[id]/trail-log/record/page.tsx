@@ -4,14 +4,15 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import TrailRecorder from '@/components/TrailRecorder'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 export default async function RecordTrailRunPage({ params }: { params: { id: string } }) {
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle || vehicle.projectType !== 'OFFROAD') notFound()
 
-  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { isPro: true } })
-  if (!owner?.isPro) notFound()
+  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
+  if (!hasPro(owner)) notFound()
 
   return (
     <div className="mx-auto max-w-xl">

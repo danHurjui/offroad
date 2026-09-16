@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { subscribeToPush, unsubscribeFromPush } from '@/lib/pushClient'
+import { proKind } from '@/lib/pro'
 
 interface Profile {
   displayName: string
   location: string | null
   isPublicProfile: boolean
   isPro: boolean
+  isProComped: boolean
   proPlan: 'MONTHLY' | 'ANNUAL' | 'LIFETIME' | null
   stripeCustomerId: string | null
   notifyFollowedEmail: boolean
@@ -31,6 +33,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
   const [displayName, setDisplayName] = useState(profile.displayName)
   const [location, setLocation] = useState(profile.location ?? '')
   const [isPublicProfile, setIsPublicProfile] = useState(profile.isPublicProfile)
+  const kind = proKind(profile)
   const [saved, setSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
@@ -131,12 +134,28 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
 
       <div className="card p-6">
         <h2 className="mb-1 font-semibold text-ink">Plan</h2>
+        {/* Describe what the person actually has. Someone on a comp gets
+            Pro features but has no subscription, so they must not be shown
+            a billing plan they never bought — nor nagged to upgrade. */}
         <p className="text-sm text-ink-muted">
-          {profile.isPro ? (profile.proPlan ? PLAN_LABELS[profile.proPlan] : 'Pro') : 'Free'} —{' '}
-          {profile.isPro ? 'unlimited vehicles and photos.' : '1 vehicle, 10 photos per task.'}
+          {kind === 'paid'
+            ? profile.proPlan
+              ? PLAN_LABELS[profile.proPlan]
+              : 'Pro'
+            : kind === 'comped'
+              ? 'Pro — complimentary'
+              : 'Free'}{' '}
+          —{' '}
+          {kind === 'none' ? '1 vehicle, 10 photos per task.' : 'unlimited vehicles and photos.'}
         </p>
-        {profile.isPro ? (
-          profile.stripeCustomerId && (
+        {kind === 'comped' && (
+          <p className="mt-1 text-xs text-ink-faint">
+            Pro was granted to you by the RigLog team. There is nothing to pay and no subscription to
+            manage.
+          </p>
+        )}
+        {kind !== 'none' ? (
+          kind === 'paid' && profile.stripeCustomerId && (
             <>
               <button type="button" className="btn-secondary mt-3" onClick={onManageBilling} disabled={portalLoading}>
                 {portalLoading ? 'Opening…' : 'Manage subscription'}
