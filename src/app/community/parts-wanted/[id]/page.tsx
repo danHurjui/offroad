@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import PublicHeader from '@/components/PublicHeader'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -30,6 +31,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 export default async function PartsRequestDetailPage({ params }: { params: { id: string } }) {
+  const t = await getTranslations('parts')
   const partConditions = await getPartConditions()
   const request = await findRequest(params.id)
   if (!request) notFound()
@@ -42,14 +44,14 @@ export default async function PartsRequestDetailPage({ params }: { params: { id:
       <PublicHeader />
       <div className="mx-auto max-w-2xl px-4 py-8">
         <Link href="/community/parts-wanted" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-          ← Back to parts wanted
+          {t('backToParts')}
         </Link>
 
         <div className="card p-6">
           <div className="mb-2 flex items-start justify-between gap-3">
             <div>
               <span className={`badge ${request.status === 'OPEN' ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}>
-                {request.status === 'OPEN' ? 'Wanted' : 'Found'}
+                {request.status === 'OPEN' ? t('wanted') : t('found')}
               </span>
               <h1 className="mt-2 text-xl font-bold text-ink">
                 {request.partName} — {request.vehicleMake} {request.vehicleModel}
@@ -61,28 +63,28 @@ export default async function PartsRequestDetailPage({ params }: { params: { id:
           <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
             {request.partNumber && (
               <div>
-                <dt className="text-ink-faint">Part number</dt>
+                <dt className="text-ink-faint">{t('partNumber')}</dt>
                 <dd className="text-ink">{request.partNumber}</dd>
               </div>
             )}
             <div>
-              <dt className="text-ink-faint">Condition accepted</dt>
+              <dt className="text-ink-faint">{t('conditionAccepted')}</dt>
               <dd className="text-ink">{labelFor(partConditions, request.conditionAccepted)}</dd>
             </div>
             <div className="col-span-2">
-              <dt className="text-ink-faint">Location / shipping</dt>
+              <dt className="text-ink-faint">{t('locationShipping')}</dt>
               <dd className="text-ink">{request.location}</dd>
             </div>
             {request.description && (
               <div className="col-span-2">
-                <dt className="text-ink-faint">Description</dt>
+                <dt className="text-ink-faint">{t('descriptionLabel')}</dt>
                 <dd className="whitespace-pre-wrap text-ink">{request.description}</dd>
               </div>
             )}
           </dl>
 
           <p className="mt-4 text-xs text-ink-faint">
-            Posted by {request.user.displayName}
+            {t('postedBy', { name: request.user.displayName })}
             {request.user.location ? ` · ${request.user.location}` : ''} · {request.createdAt.toLocaleDateString('ro-RO')}
           </p>
         </div>

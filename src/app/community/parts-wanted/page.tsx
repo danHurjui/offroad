@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import PublicHeader from '@/components/PublicHeader'
 import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
@@ -7,14 +8,15 @@ import { prisma } from '@/lib/prisma'
 import { labelFor } from '@/lib/projectType'
 import { getPartConditions } from '@/lib/vocabulary'
 
-export const metadata: Metadata = {
-  title: 'Parts wanted — RigLog Community',
-  description: 'Hard-to-find restoration parts the RigLog community is looking for.',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('parts')
+  return { title: t('metaTitle'), description: t('metaDescription') }
 }
 
 // RL-024: "Parts wanted" section of the community feed — every OPEN
 // request, most recent first. Posting is Pro-gated; browsing isn't.
 export default async function PartsWantedPage() {
+  const t = await getTranslations('parts')
   const partConditions = await getPartConditions()
   const session = await getServerSession(authOptions)
 
@@ -32,17 +34,17 @@ export default async function PartsWantedPage() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <Link href="/community" className="mb-1 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-              ← Back to community
+              {t('backToCommunity')}
             </Link>
             <h1 className="text-2xl font-bold text-ink">Parts wanted</h1>
           </div>
           {session ? (
             <Link href="/community/parts-wanted/new" className="btn-primary">
-              Post a request
+              {t('postRequest')}
             </Link>
           ) : (
             <Link href="/login" className="btn-secondary">
-              Log in to post
+              {t('logInToPost')}
             </Link>
           )}
         </div>

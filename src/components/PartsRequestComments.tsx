@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
@@ -22,6 +23,7 @@ export default function PartsRequestComments({
 }) {
   const router = useRouter()
   const { status } = useSession()
+  const t = useTranslations('parts')
   const [comments, setComments] = useState(initialComments)
   const [body, setBody] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -40,7 +42,7 @@ export default function PartsRequestComments({
     setLoading(false)
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? 'Could not post reply')
+      setError(data.error ?? t('replyFailed'))
       return
     }
     const created = await res.json()
@@ -51,9 +53,9 @@ export default function PartsRequestComments({
 
   return (
     <div className="space-y-4">
-      <h2 className="font-semibold text-ink">Replies ({comments.length})</h2>
+      <h2 className="font-semibold text-ink">{t('repliesCount', { count: comments.length })}</h2>
       {comments.length === 0 ? (
-        <p className="text-sm text-ink-faint">No replies yet.</p>
+        <p className="text-sm text-ink-faint">{t('noReplies')}</p>
       ) : (
         <div className="space-y-3">
           {comments.map((c) => (
@@ -72,22 +74,22 @@ export default function PartsRequestComments({
           <textarea
             id="parts-reply"
             name="parts-reply"
-            aria-label="Reply to this parts request"
+            aria-label={t('replyTitle')}
             className="input"
             rows={3}
             autoCapitalize="sentences"
-            placeholder="Know where to find this part? Reply here."
+            placeholder={t('replyPlaceholder')}
             value={body}
             onChange={(e) => setBody(e.target.value)}
           />
           {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <button type="submit" className="btn-primary" disabled={loading || !body.trim()}>
-            {loading ? 'Posting…' : 'Reply'}
+            {loading ? t('posting') : t('reply')}
           </button>
         </form>
       ) : (
         <Link href="/login" className="text-sm text-brand-600 dark:text-brand-300 hover:underline">
-          Log in to reply
+          {t('logInToReply')}
         </Link>
       )}
     </div>
