@@ -31,6 +31,25 @@ export async function POST(req: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const checkoutSession = event.data.object as Stripe.Checkout.Session
+
+        // Donations share this event with Pro purchases. They're settled
+        // first and then we're done — a donation must never fall through
+        // to the Pro branch and grant isPro.
+        if (checkoutSession.metadata?.kind === 'donation') {
+          // updateMany, keyed on the session id, is the idempotency guard:
+          // Stripe retries this event, and `status: PENDING` in the filter
+          // means a redelivery updates nothing the second time round.
+          await prisma.donation.updateMany({
+            where: { stripeSessionId: checkoutSession.id, status: 'PENDING' },
+            data: {
+              status: 'PAID',
+              paidAt: new Date(),
+              email: checkoutSession.customer_details?.email ?? undefined,
+            },
+          })
+          break
+        }
+
         const userId = checkoutSession.metadata?.userId
         const plan = checkoutSession.metadata?.plan
         if (!userId || !isProPlanId(plan)) break

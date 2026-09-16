@@ -15,10 +15,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     select: { slug: true, updatedAt: true, owner: { select: { username: true } } },
   })
 
-  return vehicles
-    .filter((v) => v.owner.username && v.slug)
-    .map((v) => ({
-      url: `${baseUrl}/builds/${v.owner.username}/${v.slug}`,
-      lastModified: v.updatedAt,
-    }))
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: baseUrl, changeFrequency: 'monthly', priority: 1 },
+    { url: `${baseUrl}/community`, changeFrequency: 'daily', priority: 0.8 },
+    { url: `${baseUrl}/tickets`, changeFrequency: 'daily', priority: 0.6 },
+    { url: `${baseUrl}/donate`, changeFrequency: 'monthly', priority: 0.4 },
+  ]
+
+  return [
+    ...staticPages,
+    ...vehicles
+      .filter((v) => v.owner.username && v.slug)
+      .map((v) => ({
+        url: `${baseUrl}/builds/${v.owner.username}/${v.slug}`,
+        lastModified: v.updatedAt,
+      })),
+  ]
 }

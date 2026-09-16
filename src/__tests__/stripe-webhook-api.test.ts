@@ -1,5 +1,5 @@
 jest.mock('@/lib/prisma', () => ({
-  prisma: { user: { update: jest.fn() } },
+  prisma: { user: { update: jest.fn() }, donation: { updateMany: jest.fn() } },
 }))
 jest.mock('@/lib/stripe', () => ({
   ...jest.requireActual('@/lib/stripe'),
@@ -16,6 +16,7 @@ import { sendEmail } from '@/lib/email'
 import { POST } from '@/app/api/webhooks/stripe/route'
 
 const mockUserUpdate = prisma.user.update as jest.Mock
+const mockDonationUpdateMany = prisma.donation.updateMany as jest.Mock
 const mockGetStripe = getStripe as jest.Mock
 const mockConstructEvent = jest.fn()
 
@@ -31,6 +32,7 @@ beforeEach(() => {
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test'
   mockGetStripe.mockReturnValue({ webhooks: { constructEvent: mockConstructEvent } })
   mockUserUpdate.mockResolvedValue({ id: 'u1', email: 'u1@x.com' })
+  mockDonationUpdateMany.mockResolvedValue({ count: 1 })
 })
 
 describe('POST /api/webhooks/stripe', () => {
@@ -151,5 +153,70 @@ describe('POST /api/webhooks/stripe', () => {
     mockConstructEvent.mockReturnValue({ type: 'customer.created', data: { object: {} } })
     const res = await POST(req('{}'))
     expect(res.status).toBe(200)
+  })
+
+  describe('donations share checkout.session.completed with Pro purchases', () => {
+    function donationEvent(overrides: Record<string, unknown> = {}) {
+      return {
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_donation_1',
+            mode: 'payment',
+            metadata: { kind: 'donation', userId: '' },
+            customer_details: { email: 'giver@example.com' },
+            ...overrides,
+          },
+        },
+      }
+    }
+
+    it('marks the donation PAID', async () => {
+      mockConstructEvent.mockReturnValue(donationEvent())
+      const res = await POST(req('{}'))
+      expect(res.status).toBe(200)
+      expect(mockDonationUpdateMany).toHaveBeenCalledWith({
+        where: { stripeSessionId: 'cs_donation_1', status: 'PENDING' },
+        data: expect.objectContaining({ status: 'PAID', email: 'giver@example.com' }),
+      })
+    })
+
+    // The whole point of the `kind` tag: a donation must never grant Pro.
+    it('never touches isPro', async () => {
+      mockConstructEvent.mockReturnValue(donationEvent())
+      await POST(req('{}'))
+      expect(mockUserUpdate).not.toHaveBeenCalled()
+    })
+
+    it('ignores a Pro plan smuggled alongside the donation tag', async () => {
+      mockConstructEvent.mockReturnValue(
+        donationEvent({ metadata: { kind: 'donation', userId: 'u1', plan: 'LIFETIME' } })
+      )
+      await POST(req('{}'))
+      expect(mockUserUpdate).not.toHaveBeenCalled()
+      expect(mockDonationUpdateMany).toHaveBeenCalled()
+    })
+
+    // Stripe retries webhooks; the PENDING filter is what makes that a no-op.
+    it('is idempotent across a redelivery', async () => {
+      mockConstructEvent.mockReturnValue(donationEvent())
+      await POST(req('{}'))
+      mockDonationUpdateMany.mockResolvedValue({ count: 0 })
+      const res = await POST(req('{}'))
+      expect(res.status).toBe(200)
+      expect(mockDonationUpdateMany.mock.calls[1][0].where.status).toBe('PENDING')
+    })
+
+    it('still processes a Pro purchase normally', async () => {
+      mockConstructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: { mode: 'payment', customer: 'cus_1', metadata: { userId: 'u1', plan: 'LIFETIME' } },
+        },
+      })
+      await POST(req('{}'))
+      expect(mockUserUpdate).toHaveBeenCalled()
+      expect(mockDonationUpdateMany).not.toHaveBeenCalled()
+    })
   })
 })

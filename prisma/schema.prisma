@@ -96,6 +96,11 @@ model User {
   /// the Stripe webhook (src/app/api/webhooks/stripe/route.ts) — never set
   /// directly from a client-facing route.
   isPro                Boolean      @default(false)
+  /// Moderates the public feedback board (src/app/tickets) — changing a
+  /// ticket's status and replying as staff. Not a general-purpose admin
+  /// role: it grants nothing over other users' vehicles or data, and is
+  /// set directly in the database, never through an API route.
+  isAdmin              Boolean      @default(false)
   /// Set once a Checkout session creates/reuses a Stripe Customer for this
   /// user — needed to open the Billing Portal (RL-017) and to resolve
   /// incoming webhook events back to a user.
@@ -129,6 +134,10 @@ model User {
   pushSubscriptions    PushSubscription[]
   partsRequests        PartsRequest[]
   partsRequestComments PartsRequestComment[]
+  tickets              Ticket[]              @relation("TicketAuthor")
+  ticketVotes          TicketVote[]
+  ticketComments       TicketComment[]
+  donations            Donation[]
 }
 
 /// RL-023: a user following a public project. Notifications (email/push,
@@ -560,4 +569,124 @@ model ProjectCollaborator {
 
   @@index([vehicleId])
   @@index([collaboratorUserId])
+}
+
+// ---------------------------------------------------------------------------
+// Public site: feedback board + donations
+// ---------------------------------------------------------------------------
+
+enum TicketType {
+  BUG
+  FEATURE
+  IMPROVEMENT
+}
+
+/// OPEN is where every ticket starts. PLANNED/IN_PROGRESS/DONE track work
+/// actually being done; DECLINED/DUPLICATE close a ticket without it. Only
+/// an admin moves a ticket between these (see User.isAdmin) — the author
+/// can edit their own text but never promote their own request to PLANNED.
+enum TicketStatus {
+  OPEN
+  PLANNED
+  IN_PROGRESS
+  DONE
+  DECLINED
+  DUPLICATE
+}
+
+/// A public bug report / feature request. Readable by anyone (the board
+/// doubles as a public roadmap); posting, voting and commenting all
+/// require a session so votes can be attributed one-per-user.
+model Ticket {
+  id          String       @id @default(cuid())
+  authorId    String
+  type        TicketType
+  status      TicketStatus @default(OPEN)
+  title       String
+  description String
+  /// Set by an admin when closing as DECLINED/DUPLICATE, or to explain a
+  /// status change on the ticket itself.
+  adminNote   String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  author   User            @relation("TicketAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  votes    TicketVote[]
+  comments TicketComment[]
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+}
+
+/// One vote per user per ticket. The @@unique is the actual guarantee —
+/// the vote route relies on it rather than a read-then-write check, which
+/// would race under concurrent requests and let one user vote twice.
+model TicketVote {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketId, userId])
+  @@index([ticketId])
+  @@index([userId])
+}
+
+model TicketComment {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  body      String
+  /// Marks a reply from the RigLog side so it reads differently in the
+  /// thread. Set from the author's isAdmin at write time, not read live,
+  /// so revoking admin later doesn't rewrite history.
+  isStaff   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+}
+
+enum DonationStatus {
+  PENDING
+  PAID
+}
+
+/// A one-off contribution via Stripe Checkout. `userId` is null for a
+/// guest donation — donating deliberately doesn't require an account.
+/// Rows are created PENDING when Checkout starts and only move to PAID
+/// from the webhook, which is the single source of truth for payment
+/// (same rule as User.isPro — a client reaching the success URL proves
+/// nothing).
+model Donation {
+  id              String         @id @default(cuid())
+  userId          String?
+  /// Captured from Stripe at webhook time, so a guest donation still has
+  /// something to attribute/receipt against.
+  email           String?
+  /// Stored in bani (RON minor units) to avoid float rounding, same
+  /// reason costs are Decimal elsewhere.
+  amountBani      Int
+  currency        String         @default("ron")
+  status          DonationStatus @default(PENDING)
+  /// Optional public note shown on the supporters list.
+  message         String?
+  /// When true the supporters list shows "Anonymous" instead of a name.
+  isAnonymous     Boolean        @default(false)
+  /// Idempotency key for the webhook — a Stripe retry must not create or
+  /// double-count a second donation row.
+  stripeSessionId String         @unique
+  createdAt       DateTime       @default(now())
+  paidAt          DateTime?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([userId])
 }

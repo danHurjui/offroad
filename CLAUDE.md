@@ -199,6 +199,56 @@ push is not — only email, and only if `RESEND_API_KEY` is set (otherwise
 `sendEmail()` just logs to the console — fine for dev, a silent no-op for
 real users in production if you forget to set it).
 
+### Public site (`/`, `/tickets`, `/donate`)
+`/` used to redirect to `/dashboard` or `/login`; it's now a real marketing
+homepage, and three surfaces are readable with **no session at all**:
+the homepage, the feedback board (`/tickets`) and the donate page. They
+share `PublicHeader`/`PublicFooter` (distinct from `Nav.tsx`, which is the
+in-app header) — `PublicHeader` swaps its CTA to "Dashboard" when a session
+exists. Marketing copy pulls prices from `PRO_PLANS` and mode names from
+`PROJECT_TYPE_CONFIG` rather than restating them, so it can't drift.
+
+**Feedback board** (`src/lib/tickets.ts`, `Ticket`/`TicketVote`/
+`TicketComment`). Reading is public; posting, voting and commenting need a
+session. Two permission rules are load-bearing and separately tested:
+- **an author may edit their own title/description but never their own
+  status** — otherwise anyone could mark their own request PLANNED. The
+  PATCH route checks the author branch and the admin branch independently,
+  so a body carrying both fields is rejected outright rather than
+  part-applied.
+- **`TicketComment.isStaff` is snapshotted from the writer's `isAdmin` at
+  write time**, never taken from the request body and never joined live —
+  a client can't forge the badge, and revoking admin later doesn't rewrite
+  old replies.
+
+**One vote per user is a DB constraint** (`@@unique([ticketId, userId])`),
+not an app-level read-then-write check — the latter races and a
+double-click registers twice. `vote/route.ts` attempts the insert and
+treats Prisma's `P2002` as "already voted", which is also the un-vote half
+of the toggle. Don't replace that with a `findFirst` + branch.
+
+**`User.isAdmin`** moderates this board and nothing else — it grants no
+access to other users' vehicles or data, and is set directly in the
+database, never through a route.
+
+### Donations (`src/lib/donations.ts`, `/donate`)
+One-off Stripe Checkout, deliberately **not** behind `requireSession()` —
+donating needs no account, and a session only attributes the row for the
+public supporters list. Unlike `PRO_PLANS`, donations use inline
+`price_data` rather than configured Price IDs, so the supporter picks the
+amount and **no extra Stripe dashboard setup is needed** beyond the
+existing `STRIPE_SECRET_KEY`. Amounts are held in **bani** (integer minor
+units) and validated server-side by `parseDonationBani()` — that function
+is the only thing between a hand-crafted request and a charge.
+
+A `Donation` row is created `PENDING` at checkout and only the webhook
+marks it `PAID`, the same rule as `User.isPro`: reaching the success URL
+proves nothing. Donations and Pro purchases share the
+`checkout.session.completed` event, told apart by `metadata.kind ===
+'donation'` — **the donation branch returns early so a donation can never
+fall through and grant Pro.** The `status: 'PENDING'` filter in its
+`updateMany` is what makes a Stripe retry idempotent.
+
 ## What's not built yet
 
 Phase 1 (core log) is implemented: auth, vehicle CRUD, dashboard, task CRUD,
@@ -369,7 +419,16 @@ as the rest of this file — see "What this is" above):
     `Vehicle.slug` is unique per owner (`@@unique([ownerId, slug])`), not
     globally — the owner's username in the URL is what disambiguates.
 
-13. **`leaflet`/`react-leaflet` (RL-027) must be loaded client-side only**
+13. **Nothing in this app is rate limited** — not login, registration,
+    password reset, ticket posting, commenting or donations. There is no
+    limiter infrastructure here at all. Voting is bounded per user by its
+    unique constraint, but everything else relies on an attacker not
+    bothering. If you add a public write surface, know that you are adding
+    it to an unthrottled API, and prefer a platform-level WAF rule over
+    hand-rolling a limiter in a serverless function (where in-process
+    counters don't survive between invocations anyway).
+
+14. **`leaflet`/`react-leaflet` (RL-027) must be loaded client-side only**
     — Leaflet touches `window` at import time, so any component that
     imports it directly throws "window is not defined" if it's ever
     reached during SSR. `TrailMap.tsx` is the one file that imports

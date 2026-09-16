@@ -15,6 +15,9 @@ export default function Nav({ displayName }: { displayName: string }) {
           <Link href="/community" className="text-ink-muted hover:text-ink">
             Community
           </Link>
+          <Link href="/tickets" className="hidden text-ink-muted hover:text-ink sm:inline">
+            Feedback
+          </Link>
           <Link href="/dashboard/settings" className="text-ink-muted hover:text-ink">
             {displayName}
           </Link>
