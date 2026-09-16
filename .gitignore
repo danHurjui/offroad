@@ -39,3 +39,8 @@ next-env.d.ts
 # uploaded user content (dev only — served from disk, not committed)
 /public/uploads/*
 !/public/uploads/.gitkeep
+
+# Scratch state written by the live E2E harness (throwaway test accounts and
+# row ids handed between suites). The harness writes it next to itself now,
+# but an older copy run from the project root would land it here.
+/ctx.json
