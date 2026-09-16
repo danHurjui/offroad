@@ -109,6 +109,10 @@ export default function RegisterPage() {
           </button>
           <p className="text-center text-xs text-ink-faint">
             By creating an account you agree to our{' '}
+            <Link href="/terms" className="underline hover:text-ink-muted">
+              terms
+            </Link>{' '}
+            and{' '}
             <Link href="/privacy" className="underline hover:text-ink-muted">
               privacy policy
             </Link>

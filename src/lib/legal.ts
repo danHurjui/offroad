@@ -212,3 +212,70 @@ export const RETENTION: RetentionEntry[] = [
       'At most an hour, after which they are swept away. Depending on what is being limited, the counter’s key contains an email address or an IP address alongside the count.',
   },
 ]
+
+/**
+ * Consumer withdrawal period for a distance contract, in days.
+ *
+ * Romania's OUG 34/2014 (transposing Directive 2011/83/EU) gives a
+ * consumer 14 days to withdraw from a distance purchase. Digital content
+ * supplied immediately is exempt *only* where the buyer has given express
+ * prior consent to immediate performance and acknowledged losing the
+ * right — and this app's Stripe Checkout asks for neither. So the right
+ * applies in full, and /terms says so rather than claiming a "no refunds"
+ * policy that would not survive contact with a consumer-protection
+ * authority.
+ *
+ * If a consent step is ever added to checkout, this is the constant and
+ * the terms section to revisit — not a thing to quietly reword.
+ */
+export const WITHDRAWAL_PERIOD_DAYS = 14
+
+/**
+ * The EU's online dispute resolution portal. Traders selling online to EU
+ * consumers have to link it.
+ */
+export const EU_ODR_URL = 'https://ec.europa.eu/consumers/odr'
+
+/** Romania's consumer protection authority. */
+export const CONSUMER_AUTHORITY = {
+  name: 'ANPC',
+  url: 'https://anpc.ro',
+}
+
+export interface AcceptableUseRule {
+  rule: string
+  /** Why it exists, in plain words. A rule without a reason reads as a threat. */
+  because: string
+}
+
+/**
+ * What you may not do with the account. Kept short and specific: a list
+ * that tries to forbid everything forbids nothing anyone can remember, and
+ * each of these maps to something the app actually exposes.
+ */
+export const ACCEPTABLE_USE: AcceptableUseRule[] = [
+  {
+    rule: 'Upload someone else’s photos, documents or writing as your own',
+    because: 'Public build pages are indexed by search engines, so this puts their work on the open web under your name.',
+  },
+  {
+    rule: 'Post another person’s private information — an address, a phone number, a plate, a VIN that isn’t yours',
+    because: 'A public project page is public to everyone, permanently, and you cannot un-publish something a search engine has already copied.',
+  },
+  {
+    rule: 'Use the feedback board or parts-wanted board for advertising, spam or abuse',
+    because: 'Both are public and unmoderated by default; they only work if they stay readable.',
+  },
+  {
+    rule: 'Try to reach another account’s vehicles, files or settings',
+    because: 'Every route checks ownership, so this is an attempt to break the app rather than a mistake — and it is also a criminal offence.',
+  },
+  {
+    rule: 'Automate sign-ups, logins, posts or exports at volume',
+    because: 'The rate limits exist to keep the free tier affordable; working around them takes the service away from other people.',
+  },
+  {
+    rule: 'Resell access, or share one account between several people',
+    because: 'Pro is priced per person. Collaborator invitations are the supported way to let someone else work on your vehicle.',
+  },
+]

@@ -4,10 +4,9 @@ import { requireSession } from '@/lib/authz'
 import { isProjectType, PROJECT_TYPES } from '@/lib/projectType'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
 import { readJsonBody } from '@/lib/requestBody'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { hasPro, PRO_SELECT, FREE_TIER } from '@/lib/pro'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
-const FREE_TIER_VEHICLE_LIMIT = 1
 
 // RL-002: create a vehicle / project.
 export async function GET() {
@@ -65,9 +64,12 @@ export async function POST(req: NextRequest) {
     })
     if (!hasPro(user)) {
       const existingCount = await prisma.vehicle.count({ where: { ownerId: session.user.id } })
-      if (existingCount >= FREE_TIER_VEHICLE_LIMIT) {
+      if (existingCount >= FREE_TIER.vehicles) {
         return NextResponse.json(
-          { error: 'Free tier is limited to 1 vehicle. Upgrade to Pro for unlimited vehicles.', code: 'UPGRADE_REQUIRED' },
+          {
+            error: `Free tier is limited to ${FREE_TIER.vehicles} vehicle. Upgrade to Pro for unlimited vehicles.`,
+            code: 'UPGRADE_REQUIRED',
+          },
           { status: 403 }
         )
       }
