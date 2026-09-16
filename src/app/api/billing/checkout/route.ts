@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { getStripe, isProPlanId, priceIdFor, PRO_PLANS } from '@/lib/stripe'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-017: creates a Stripe Checkout session for one of the three Pro
 // purchase options. The webhook (not this route) is what actually flips
@@ -12,8 +13,11 @@ export async function POST(req: NextRequest) {
   if (!auth.ok) return auth.error
   const { session } = auth
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const plan = body.plan
     if (!isProPlanId(plan)) {
       return NextResponse.json({ error: 'plan must be one of MONTHLY, ANNUAL, LIFETIME' }, { status: 400 })

@@ -5,6 +5,7 @@ import { requireVehicleOwner } from '@/lib/access'
 import { serializeWishlistPriceEntry } from '@/lib/serialize'
 import { toNumberOrNull } from '@/lib/serialize'
 import { decidePriceAlert, notifyPriceAlert } from '@/lib/priceAlert'
+import { readJsonBody } from '@/lib/requestBody'
 
 async function loadItem(vehicleId: string, itemId: string) {
   const item = await prisma.wishlistItem.findUnique({ where: { id: itemId } })
@@ -53,8 +54,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   const item = await loadItem(params.id, params.itemId)
   if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const priceRon = Number(body.priceRon)
     if (!Number.isFinite(priceRon) || priceRon <= 0) {
       return NextResponse.json({ error: 'priceRon must be a positive number' }, { status: 400 })

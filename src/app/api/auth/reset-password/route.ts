@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, isPasswordStrongEnough } from '@/lib/password'
+import { readJsonBody } from '@/lib/requestBody'
 
 export async function POST(req: NextRequest) {
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const token = typeof body.token === 'string' ? body.token : ''
     const password = typeof body.password === 'string' ? body.password : ''
 

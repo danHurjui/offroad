@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, isPasswordStrongEnough } from '@/lib/password'
 import { generateUsername } from '@/lib/username'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-001: register with email+password, no distinguishing error messages
 // leak which emails exist.
 export async function POST(req: NextRequest) {
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const email = typeof body.email === 'string' ? body.email.toLowerCase().trim() : ''
     const password = typeof body.password === 'string' ? body.password : ''
     const displayName = typeof body.displayName === 'string' ? body.displayName.trim() : ''

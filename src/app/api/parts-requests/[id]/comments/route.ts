@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-024: "respond with a comment" — open to any logged-in user, not just
 // Pro (posting the request itself is Pro-gated; replying to help someone
@@ -13,8 +14,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const partsRequest = await prisma.partsRequest.findUnique({ where: { id: params.id }, select: { id: true } })
   if (!partsRequest) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const commentBody = typeof body.body === 'string' ? body.body.trim() : ''
     if (!commentBody) return NextResponse.json({ error: 'body is required' }, { status: 400 })
 

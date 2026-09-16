@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { decodeVin, type DecodedVin } from '@/lib/vinDecoder'
+import { readJsonBody } from '@/lib/requestBody'
 
 function toJsonInput(decoded: DecodedVin): Prisma.InputJsonValue {
   return decoded as unknown as Prisma.InputJsonValue
@@ -61,8 +62,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { vehicle, error } = await loadRestorationOwnerVehicle(params.id, session.user.id)
   if (error) return error
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const decoded: DecodedVin = {
       manufacturer: body.manufacturer || null,
       modelYear: body.modelYear != null && body.modelYear !== '' ? Number(body.modelYear) : null,

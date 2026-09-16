@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-024: owner marks their own request "Found" — the only mutation this
 // route supports (no general edit). A found request just stops showing
@@ -16,8 +17,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'Only the requester can update this' }, { status: 403 })
   }
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     if (body.status !== 'FOUND') {
       return NextResponse.json({ error: 'status must be FOUND' }, { status: 400 })
     }

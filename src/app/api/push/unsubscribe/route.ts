@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
+import { readJsonBody } from '@/lib/requestBody'
 
 export async function POST(req: NextRequest) {
   const auth = await requireSession()
   if (!auth.ok) return auth.error
   const { session } = auth
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const endpoint = typeof body.endpoint === 'string' ? body.endpoint : ''
     if (!endpoint) return NextResponse.json({ error: 'endpoint is required' }, { status: 400 })
 

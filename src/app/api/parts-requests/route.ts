@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { PART_CONDITIONS } from '@/lib/projectType'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-024: community parts crowdsourcing. Pro only.
 export async function POST(req: NextRequest) {
@@ -17,8 +18,11 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const vehicleMake = typeof body.vehicleMake === 'string' ? body.vehicleMake.trim() : ''
     const vehicleModel = typeof body.vehicleModel === 'string' ? body.vehicleModel.trim() : ''
     const partName = typeof body.partName === 'string' ? body.partName.trim() : ''

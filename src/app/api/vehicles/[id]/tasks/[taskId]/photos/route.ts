@@ -5,6 +5,7 @@ import { requireVehicleAccess } from '@/lib/access'
 import { isValidPhotoType } from '@/lib/projectType'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 import { notifyFollowers } from '@/lib/followNotify'
+import { readFormData } from '@/lib/requestBody'
 
 const FREE_TIER_PHOTOS_PER_TASK = 10
 
@@ -37,8 +38,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
+  const parsedForm = await readFormData(req)
+  if (!parsedForm.ok) return parsedForm.error
+  const formData = parsedForm.form
+
   try {
-    const formData = await req.formData()
     const file = formData.get('file')
     const photoType = formData.get('photoType')
     const caption = formData.get('caption')

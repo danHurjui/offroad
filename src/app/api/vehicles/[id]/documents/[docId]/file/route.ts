@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { saveUpload, deleteUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
+import { readFormData } from '@/lib/requestBody'
 
 // RL-013: optional scan/photo attachment per document.
 export async function POST(req: NextRequest, { params }: { params: { id: string; docId: string } }) {
@@ -16,8 +17,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   const document = await prisma.document.findUnique({ where: { id: params.docId } })
   if (!document || document.vehicleId !== vehicle.id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsedForm = await readFormData(req)
+  if (!parsedForm.ok) return parsedForm.error
+  const formData = parsedForm.form
+
   try {
-    const formData = await req.formData()
     const file = formData.get('file')
 
     if (!(file instanceof File)) {

@@ -34,6 +34,26 @@ export function serializeTask<T extends TaskLike>(task: T) {
   }
 }
 
+/**
+ * RL-031: `Vehicle.hideCostsFromCollaborators` is a privacy control, so it
+ * has to be enforced where the data leaves the server — not only in the
+ * pages that happen to render it. A collaborator calling the JSON API
+ * directly must get the same redacted view the dashboard shows them.
+ * Owners are never redacted.
+ */
+export function stripCosts<T extends ReturnType<typeof serializeTask>>(task: T) {
+  return { ...task, costRon: null, partsCostRon: null, labourCostRon: null, totalCostRon: null }
+}
+
+/** serializeTask + cost redaction for non-owners when the owner hid costs. */
+export function serializeTaskFor<T extends TaskLike>(
+  task: T,
+  { hideCosts }: { hideCosts: boolean },
+) {
+  const serialized = serializeTask(task)
+  return hideCosts ? stripCosts(serialized) : serialized
+}
+
 interface WishlistItemLike {
   estimatedCostRon: Decimal | number | null
   targetPriceRon?: Decimal | number | null

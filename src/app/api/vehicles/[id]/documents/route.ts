@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { isValidDocumentType } from '@/lib/documents'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-013: document reminders — ITP, RCA, CASCO, Rovinieta, and travel docs.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -29,8 +30,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const { type, expiryDate } = body
 
     if (!isValidDocumentType(type)) {

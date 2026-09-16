@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { generateInviteToken, isValidEmail, inviteAcceptUrl, FREE_TIER_COLLABORATOR_LIMIT, DAILY_INVITE_LIMIT } from '@/lib/collaborators'
 import { sendEmail, collaboratorInviteEmailHtml } from '@/lib/email'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-030: invite mechanic/specialist as project collaborator. Owner only.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -33,8 +34,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const email = typeof body.email === 'string' ? body.email.toLowerCase().trim() : ''
     const label = typeof body.label === 'string' ? body.label.trim() : null
     const role = body.role === 'SPECIALIST' ? 'SPECIALIST' : 'MECHANIC'

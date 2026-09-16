@@ -4,6 +4,8 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { serializeWishlistItem } from '@/lib/serialize'
+import { readJsonBody } from '@/lib/requestBody'
+import { invalidAmountResponse } from '@/lib/amounts'
 
 async function loadItem(vehicleId: string, itemId: string) {
   const item = await prisma.wishlistItem.findUnique({ where: { id: itemId } })
@@ -36,8 +38,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const item = await loadItem(params.id, params.itemId)
   if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
+  const badAmount = invalidAmountResponse({
+    estimatedCostRon: body.estimatedCostRon,
+    targetPriceRon: body.targetPriceRon,
+  })
+  if (badAmount) return badAmount
+
   try {
-    const body = await req.json()
     const data: Record<string, unknown> = {}
     const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-009: user profile & settings.
 export async function GET() {
@@ -35,8 +36,11 @@ export async function PATCH(req: NextRequest) {
   if (!auth.ok) return auth.error
   const { session } = auth
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const data: Record<string, unknown> = {}
 
     if (body.displayName !== undefined) {

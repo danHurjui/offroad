@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { isProjectType } from '@/lib/projectType'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
+import { readJsonBody } from '@/lib/requestBody'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 const FREE_TIER_VEHICLE_LIMIT = 1
@@ -33,8 +34,11 @@ export async function POST(req: NextRequest) {
   if (!auth.ok) return auth.error
   const { session } = auth
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const { projectType, make, model, year, generation, engine, vin, coverPhotoUrl } = body
 
     if (!isProjectType(projectType)) {

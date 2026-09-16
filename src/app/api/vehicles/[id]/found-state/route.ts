@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { toNumberOrNull } from '@/lib/serialize'
+import { readJsonBody } from '@/lib/requestBody'
+import { invalidAmountResponse } from '@/lib/amounts'
 
 // RL-008: found state intake — restoration mode only, editable after creation.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -36,8 +38,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Found state only applies to restoration projects' }, { status: 400 })
   }
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const {
       acquisitionDate,
       purchasePriceRon,
@@ -57,6 +62,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!acquisitionDate || Number.isNaN(new Date(acquisitionDate).getTime())) {
       return NextResponse.json({ error: 'acquisitionDate is required' }, { status: 400 })
     }
+    const badAmount = invalidAmountResponse({ purchasePriceRon, odometer })
+    if (badAmount) return badAmount
     if (conditionRating !== undefined && conditionRating !== null) {
       const rating = Number(conditionRating)
       if (!Number.isInteger(rating) || rating < 1 || rating > 5) {

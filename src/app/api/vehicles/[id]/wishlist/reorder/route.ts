@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-011/012: drag-to-reorder. Body: { orderedIds: string[] } — every id
 // in the vehicle's wishlist, in the new order. priority is set to array
@@ -16,8 +17,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const orderedIds = body.orderedIds
     if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
       return NextResponse.json({ error: 'orderedIds must be an array of strings' }, { status: 400 })

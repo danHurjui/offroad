@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { serializeTrailRun } from '@/lib/serialize'
+import { readJsonBody } from '@/lib/requestBody'
+import { invalidAmountResponse } from '@/lib/amounts'
 
 // RL-027: trail log — off-road mode only, Pro-gated, owner-only (like
 // wishlist/documents — this is a personal driving log, not shared build
@@ -58,8 +60,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { vehicle, error } = await loadOffroadOwnerVehicle(params.id, session.user.id)
   if (error) return error
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const { name, date, location, notes, distanceKm, durationMin, elevationGainM, trackGeoJson, waypoints } = body
 
     if (!name || typeof name !== 'string') {
@@ -68,6 +73,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!date || Number.isNaN(new Date(date).getTime())) {
       return NextResponse.json({ error: 'A valid date is required' }, { status: 400 })
     }
+
+    const badAmount = invalidAmountResponse({ distanceKm, durationMin, elevationGainM })
+    if (badAmount) return badAmount
 
     const track: TrackPointInput[] = Array.isArray(trackGeoJson) ? trackGeoJson : []
     const waypointInputs: WaypointInput[] = Array.isArray(waypoints) ? waypoints : []

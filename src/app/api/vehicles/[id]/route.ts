@@ -4,6 +4,8 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess, requireVehicleOwner } from '@/lib/access'
 import { ensureUsername } from '@/lib/username'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
+import { serializeTaskFor } from '@/lib/serialize'
+import { readJsonBody } from '@/lib/requestBody'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 
@@ -27,7 +29,17 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
         ? prisma.foundState.findUnique({ where: { vehicleId: vehicle.id }, include: { photos: true } })
         : Promise.resolve(null),
     ])
-    return NextResponse.json({ vehicle, tasks, foundState, isOwner: vehicle.ownerId === session.user.id })
+    // Costs are Decimal (pitfall #5) so they must go through serializeTask
+    // to reach consumers as numbers, and RL-031's hideCostsFromCollaborators
+    // has to be applied here rather than only in the pages that render them.
+    const isOwner = vehicle.ownerId === session.user.id
+    const hideCosts = !isOwner && vehicle.hideCostsFromCollaborators
+    return NextResponse.json({
+      vehicle,
+      tasks: tasks.map((t) => serializeTaskFor(t, { hideCosts })),
+      foundState,
+      isOwner,
+    })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
@@ -43,8 +55,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const data: Record<string, unknown> = {}
 
     if (body.make !== undefined) data.make = String(body.make)

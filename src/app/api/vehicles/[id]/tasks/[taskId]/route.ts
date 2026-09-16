@@ -3,8 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { isValidTaskVocabulary, PROJECT_TYPE_CONFIG } from '@/lib/projectType'
-import { serializeTask } from '@/lib/serialize'
+import { serializeTask, serializeTaskFor } from '@/lib/serialize'
 import { notifyFollowers } from '@/lib/followNotify'
+import { readJsonBody } from '@/lib/requestBody'
+import { invalidAmountResponse } from '@/lib/amounts'
 
 async function loadTask(vehicleId: string, taskId: string) {
   const task = await prisma.task.findUnique({ where: { id: taskId }, include: { photos: true } })
@@ -24,7 +26,9 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string;
   const task = await loadTask(params.id, params.taskId)
   if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  return NextResponse.json(serializeTask(task))
+  // RL-031: redact costs for a collaborator when the owner hid them.
+  const hideCosts = vehicle.ownerId !== session.user.id && vehicle.hideCostsFromCollaborators
+  return NextResponse.json(serializeTaskFor(task, { hideCosts }))
 }
 
 // RL-004: edit. Collaborators may only edit tasks they added (CLAUDE.md
@@ -45,8 +49,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'You can only edit tasks you added' }, { status: 403 })
   }
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
+  const badAmount = invalidAmountResponse({
+    costRon: body.costRon,
+    partsCostRon: body.partsCostRon,
+    labourCostRon: body.labourCostRon,
+  })
+  if (badAmount) return badAmount
+
   try {
-    const body = await req.json()
     const data: Record<string, unknown> = {}
 
     if (body.name !== undefined) data.name = String(body.name)

@@ -4,6 +4,8 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { serializeWishlistItem } from '@/lib/serialize'
+import { readJsonBody } from '@/lib/requestBody'
+import { invalidAmountResponse } from '@/lib/amounts'
 
 // RL-011 (off-road wishlist) / RL-012 (restoration parts hunt) — same
 // entity, mode-specific status vocabulary and an extra partCondition
@@ -32,13 +34,18 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const { name, category, estimatedCostRon, status, partCondition, supplierUrl, notes, hardToFind } = body
 
     if (!name || typeof name !== 'string') {
       return NextResponse.json({ error: 'name is required' }, { status: 400 })
     }
+    const badAmount = invalidAmountResponse({ estimatedCostRon })
+    if (badAmount) return badAmount
     const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
     const resolvedStatus = status || config.wishlistStatuses[0].value
     if (!config.wishlistStatuses.some((s) => s.value === resolvedStatus)) {

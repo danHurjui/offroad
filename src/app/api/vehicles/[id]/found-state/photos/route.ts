@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
+import { readFormData } from '@/lib/requestBody'
 
 const MAX_FOUND_STATE_PHOTOS = 20 // RL-008
 
@@ -22,8 +23,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'Complete the found state intake before adding photos' }, { status: 400 })
   }
 
+  const parsedForm = await readFormData(req)
+  if (!parsedForm.ok) return parsedForm.error
+  const formData = parsedForm.form
+
   try {
-    const formData = await req.formData()
     const file = formData.get('file')
     const caption = formData.get('caption')
 

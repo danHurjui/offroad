@@ -3,8 +3,10 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { isValidTaskVocabulary } from '@/lib/projectType'
-import { serializeTask } from '@/lib/serialize'
+import { serializeTask, serializeTaskFor } from '@/lib/serialize'
 import { sendEmail, collaboratorTaskAddedEmailHtml } from '@/lib/email'
+import { readJsonBody } from '@/lib/requestBody'
+import { invalidAmountResponse } from '@/lib/amounts'
 
 // RL-004: add / edit a task or modification. RL-029: DIY/workshop split.
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -30,7 +32,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       include: { photos: true },
     })
 
-    return NextResponse.json(tasks.map(serializeTask))
+    // RL-031: redact costs for a collaborator when the owner hid them.
+    const hideCosts = vehicle.ownerId !== session.user.id && vehicle.hideCostsFromCollaborators
+    return NextResponse.json(tasks.map((t) => serializeTaskFor(t, { hideCosts })))
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
@@ -44,8 +48,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const {
       name,
       brand,
@@ -70,6 +77,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!isValidTaskVocabulary(vehicle.projectType, category, status)) {
       return NextResponse.json({ error: 'Invalid category/status for this project type' }, { status: 400 })
     }
+    const badAmount = invalidAmountResponse({ costRon, partsCostRon, labourCostRon })
+    if (badAmount) return badAmount
     if (!date || Number.isNaN(new Date(date).getTime())) {
       return NextResponse.json({ error: 'date is required' }, { status: 400 })
     }

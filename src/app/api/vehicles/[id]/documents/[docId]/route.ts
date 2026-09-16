@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { deleteUpload } from '@/lib/storage'
+import { readJsonBody } from '@/lib/requestBody'
 
 async function loadDocument(vehicleId: string, docId: string) {
   const document = await prisma.document.findUnique({ where: { id: docId } })
@@ -40,8 +41,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const document = await loadDocument(params.id, params.docId)
   if (!document) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const data: Record<string, unknown> = {}
 
     if (body.expiryDate !== undefined) {

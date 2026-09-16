@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { isInviteExpired } from '@/lib/collaborators'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-030: accept a collaborator invite. Authenticated — the logged-in
 // user's account email must match the invited email (case-insensitive; the
@@ -13,8 +14,11 @@ export async function POST(req: NextRequest) {
   if (!auth.ok) return auth.error
   const { session } = auth
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const token = typeof body.token === 'string' ? body.token : ''
     if (!token) {
       return NextResponse.json({ error: 'Missing invite token' }, { status: 400 })

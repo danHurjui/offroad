@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
+import { readFormData } from '@/lib/requestBody'
 
 // RL-002: cover photo upload, owner only.
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -13,8 +14,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsedForm = await readFormData(req)
+  if (!parsedForm.ok) return parsedForm.error
+  const formData = parsedForm.form
+
   try {
-    const formData = await req.formData()
     const file = formData.get('file')
 
     if (!(file instanceof File)) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
+import { readJsonBody } from '@/lib/requestBody'
 
 // RL-023: saves a browser's Web Push subscription (from
 // PushManager.subscribe() client-side). One row per device/browser —
@@ -11,8 +12,11 @@ export async function POST(req: NextRequest) {
   if (!auth.ok) return auth.error
   const { session } = auth
 
+  const parsed = await readJsonBody(req)
+  if (!parsed.ok) return parsed.error
+  const body = parsed.body
+
   try {
-    const body = await req.json()
     const endpoint = typeof body.endpoint === 'string' ? body.endpoint : ''
     const p256dh = typeof body.keys?.p256dh === 'string' ? body.keys.p256dh : ''
     const authKey = typeof body.keys?.auth === 'string' ? body.keys.auth : ''

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
+import { readFormData } from '@/lib/requestBody'
 
 // RL-027: attach a photo to a waypoint after the run is saved — photos
 // are captured live during recording but uploaded here as a separate
@@ -26,8 +27,11 @@ export async function POST(
   const run = await prisma.trailRun.findUnique({ where: { id: params.runId } })
   if (!run || run.vehicleId !== vehicle.id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
+  const parsedForm = await readFormData(req)
+  if (!parsedForm.ok) return parsedForm.error
+  const formData = parsedForm.form
+
   try {
-    const formData = await req.formData()
     const file = formData.get('file')
     if (!(file instanceof File)) return NextResponse.json({ error: 'file is required' }, { status: 400 })
     if (!ALLOWED_UPLOAD_TYPES.includes(file.type)) {

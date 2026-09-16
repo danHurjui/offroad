@@ -30,6 +30,8 @@ const nextConfig = {
   // deployment. Vercel does its own build tracing and explicitly
   // recommends against standalone output on its platform.
   eslint: { ignoreDuringBuilds: true },
+  // Don't advertise the framework in every response.
+  poweredByHeader: false,
   experimental: {
     // RL-014/RL-033: the PDF export routes (src/lib/pdf.ts) read Roboto
     // .ttf files from /fonts at runtime via fs, not an import — Vercel's
