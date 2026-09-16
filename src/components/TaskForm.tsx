@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { type ProjectType } from '@/lib/projectType'
 import { useVocabulary, useOriginalityConditions } from '@/lib/vocabulary'
@@ -46,6 +47,8 @@ export default function TaskForm({
    * only, never a constraint (src/lib/taskSuggestions.ts). */
   suggestions?: TaskFieldSuggestions
 }) {
+  const t = useTranslations('task')
+  const tc = useTranslations('common')
   const router = useRouter()
   const searchParams = useSearchParams()
   const config = useVocabulary(projectType)
@@ -82,7 +85,7 @@ export default function TaskForm({
     e.preventDefault()
     setError(null)
     if (workType === 'WORKSHOP' && !workshopName) {
-      setError('Workshop name is required when work type is Workshop')
+      setError(t('workshopNameRequired'))
       return
     }
     setLoading(true)
@@ -115,7 +118,7 @@ export default function TaskForm({
     const data = await res.json()
     setLoading(false)
     if (!res.ok) {
-      setError(data.error ?? 'Could not save task')
+      setError(data.error ?? t('saveFailed'))
       return
     }
 
@@ -126,7 +129,7 @@ export default function TaskForm({
   return (
     <form onSubmit={onSubmit} className="card space-y-4 p-6">
       <div>
-        <label className="label" htmlFor="name">Name</label>
+        <label className="label" htmlFor="name">{t('name')}</label>
         <input
           id="name"
           name="name"
@@ -144,7 +147,7 @@ export default function TaskForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="category">Category</label>
+          <label className="label" htmlFor="category">{t('category')}</label>
           <select id="category" className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
             {config.categories.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
@@ -152,7 +155,7 @@ export default function TaskForm({
           </select>
         </div>
         <div>
-          <label className="label" htmlFor="status">Status</label>
+          <label className="label" htmlFor="status">{t('status')}</label>
           <select id="status" className="input" value={status} onChange={(e) => setStatus(e.target.value)}>
             {config.statusTags.map((s) => (
               <option key={s.value} value={s.value}>{s.label}</option>
@@ -160,7 +163,7 @@ export default function TaskForm({
           </select>
         </div>
         <div>
-          <label className="label" htmlFor="date">Date</label>
+          <label className="label" htmlFor="date">{t('date')}</label>
           <input
             id="date"
             name="date"
@@ -175,47 +178,47 @@ export default function TaskForm({
           />
         </div>
         <div>
-          <label className="label" htmlFor="brand">Brand (optional)</label>
+          <label className="label" htmlFor="brand">{t('brand')}</label>
           <AutocompleteInput
             id="brand"
             value={brand}
             onChange={setBrand}
             suggestions={suggestions?.brands ?? []}
-            placeholder="e.g. Bilstein"
+            placeholder={t('brandPlaceholder')}
           />
         </div>
       </div>
 
       <div>
-        <label className="label">Work type</label>
+        <label className="label">{t('workType')}</label>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setWorkType('DIY')}
             className={`btn ${workType === 'DIY' ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink'}`}
           >
-            DIY
+            {t('diy')}
           </button>
           <button
             type="button"
             onClick={() => setWorkType('WORKSHOP')}
             className={`btn ${workType === 'WORKSHOP' ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink'}`}
           >
-            Workshop
+            {t('workshop')}
           </button>
         </div>
       </div>
 
       {workType === 'DIY' ? (
         <div>
-          <label className="label" htmlFor="costRon">Cost (RON, optional)</label>
+          <label className="label" htmlFor="costRon">{t('cost')}</label>
           <MoneyInput id="costRon" value={costRon} onChange={setCostRon} />
         </div>
       ) : (
         <div className="space-y-4 rounded-lg border border-surface-border p-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="label" htmlFor="workshopName">Workshop name</label>
+              <label className="label" htmlFor="workshopName">{t('workshopName')}</label>
               <AutocompleteInput
                 id="workshopName"
                 value={workshopName}
@@ -226,7 +229,7 @@ export default function TaskForm({
               />
             </div>
             <div>
-              <label className="label" htmlFor="workshopContact">Workshop contact (optional)</label>
+              <label className="label" htmlFor="workshopContact">{t('workshopContact')}</label>
               <input
                 id="workshopContact"
                 name="workshopContact"
@@ -234,27 +237,27 @@ export default function TaskForm({
                 className="input"
                 value={workshopContact}
                 onChange={(e) => setWorkshopContact(e.target.value)}
-                placeholder="Phone or email"
+                placeholder={t('workshopContactPlaceholder')}
                 inputMode="tel"
                 autoComplete="off"
               />
             </div>
             <div>
-              <label className="label" htmlFor="partsCostRon">Parts cost (RON)</label>
+              <label className="label" htmlFor="partsCostRon">{t('partsCost')}</label>
               <MoneyInput id="partsCostRon" value={partsCostRon} onChange={setPartsCostRon} />
             </div>
             <div>
-              <label className="label" htmlFor="labourCostRon">Labour cost (RON)</label>
+              <label className="label" htmlFor="labourCostRon">{t('labourCost')}</label>
               <MoneyInput id="labourCostRon" value={labourCostRon} onChange={setLabourCostRon} />
             </div>
           </div>
         </div>
       )}
 
-      <p className="text-sm text-ink-muted">Total cost: <span className="font-semibold text-ink">{totalCost.toLocaleString('ro-RO')} RON</span></p>
+      <p className="text-sm text-ink-muted">{t('totalCost')} <span className="font-semibold text-ink">{totalCost.toLocaleString('ro-RO')} RON</span></p>
 
       <div>
-        <label className="label" htmlFor="supplierUrl">Supplier URL (optional)</label>
+        <label className="label" htmlFor="supplierUrl">{t('supplierUrl')}</label>
         <input
           id="supplierUrl"
           name="supplierUrl"
@@ -272,9 +275,9 @@ export default function TaskForm({
 
       {projectType === 'RESTORATION' && (
         <div>
-          <label className="label" htmlFor="originalityCondition">Part condition (optional)</label>
+          <label className="label" htmlFor="originalityCondition">{t('partCondition')}</label>
           <select id="originalityCondition" className="input" value={originalityCondition} onChange={(e) => setOriginalityCondition(e.target.value)}>
-            <option value="">Not rated</option>
+            <option value="">{t('notRated')}</option>
             {originalityConditions.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
@@ -283,13 +286,13 @@ export default function TaskForm({
       )}
 
       <div>
-        <label className="label" htmlFor="notes">Notes (optional)</label>
+        <label className="label" htmlFor="notes">{t('notes')}</label>
         <textarea id="notes" name="notes" className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
 
       <FormError>{error}</FormError>
       <button type="submit" className="btn-primary w-full" disabled={loading}>
-        {loading ? 'Saving…' : isEdit ? 'Save changes' : 'Add task'}
+        {loading ? tc('saving') : isEdit ? t('saveChanges') : t('add')}
       </button>
     </form>
   )
