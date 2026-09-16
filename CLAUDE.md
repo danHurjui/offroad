@@ -282,7 +282,12 @@ to a component is how that stops being true.
 Badges and callouts are named by **meaning**, not hue — `badge-success`,
 `badge-warn`, `note-warn` (globals.css) — because each needs a dark
 counterpart and spraying `dark:` over every call site is how half get
-missed. Recharts can't see CSS variables (it writes literal SVG colour
+missed. They live inside `@layer components` and must stay there:
+**Tailwind silently drops any variant used inside `@apply` outside a
+layer**, with no warning and no build error, so the `dark:` half of every
+badge compiled to nothing and the theme looked finished while every badge
+still rendered its light palette. `globalsCss.test.ts` pins that, and
+checks `:root` and `.dark` define the same variables. Recharts can't see CSS variables (it writes literal SVG colour
 props), so charts call `useChartTheme()`, which watches the class on
 `<html>`.
 
