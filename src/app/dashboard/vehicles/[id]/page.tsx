@@ -92,7 +92,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
     <div>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <span className="badge bg-brand-100 text-brand-700">{config.label}</span>
+          <span className="badge badge-brand">{config.label}</span>
           {originalityScore !== undefined && (
             <span className="ml-2">
               <OriginalityBadge score={originalityScore} />
@@ -191,14 +191,14 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         <div className="card mb-6 border-surface-border bg-surface-subtle p-4 text-sm text-ink-muted">
           This vehicle qualifies for <strong className="text-ink">historic status</strong> (30+ years
           old) — Romanian ITP is required every 2 years instead of annually.{' '}
-          <Link href={`/dashboard/vehicles/${vehicle.id}/documents`} className="text-brand-600 hover:underline">
+          <Link href={`/dashboard/vehicles/${vehicle.id}/documents`} className="text-brand-600 dark:text-brand-300 hover:underline">
             Manage documents
           </Link>
         </div>
       )}
 
       {vehicle.projectType === 'RESTORATION' && !foundState && (
-        <div className="card mb-6 flex items-center justify-between gap-4 border-brand-200 bg-brand-50 p-4">
+        <div className="card mb-6 flex items-center justify-between gap-4 note p-4">
           <p className="text-sm text-ink">
             Complete the found state intake to document this car&apos;s starting point.
           </p>
@@ -247,7 +247,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
             {categoryTasks.length === 0 ? (
               <Link
                 href={`/dashboard/vehicles/${vehicle.id}/tasks/new?category=${categoryValue}`}
-                className="card block p-4 text-sm text-ink-faint hover:text-brand-600"
+                className="card block p-4 text-sm text-ink-faint hover:text-brand-600 dark:hover:text-brand-300"
               >
                 {config.addTaskCta} in this category
               </Link>
@@ -261,10 +261,16 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
                   >
                     <div className="flex items-center gap-2">
                       {task.workType === 'WORKSHOP' && <span title="Workshop task">🔧</span>}
+                      {/* addedByUserId is null once the account that added
+                          the task is deleted — the work stays in the log,
+                          the attribution doesn't. */}
                       {task.addedByUserId !== vehicle.ownerId && (
                         <AddedByBadge
-                          name={task.addedBy.displayName}
-                          removed={removedCollaboratorUserIds.has(task.addedByUserId)}
+                          name={task.addedBy?.displayName ?? null}
+                          removed={
+                            task.addedByUserId === null ||
+                            removedCollaboratorUserIds.has(task.addedByUserId)
+                          }
                         />
                       )}
                       <div>
@@ -293,12 +299,25 @@ function initials(name: string): string {
   return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '?'
 }
 
-function AddedByBadge({ name, removed }: { name: string; removed: boolean }) {
+function AddedByBadge({ name, removed }: { name: string | null; removed: boolean }) {
+  if (!name) {
+    // The account is gone. Saying who added it would be a lie, and hiding
+    // the badge entirely would make the task look like the owner's own.
+    return (
+      <span
+        title="Added by an account that has since been deleted"
+        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ink-faint/20 text-[10px] font-semibold text-ink-faint"
+      >
+        ?
+      </span>
+    )
+  }
+
   return (
     <span
       title={removed ? `${name} (collaborator access removed)` : `Added by ${name}`}
       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
-        removed ? 'bg-ink-faint/20 text-ink-faint line-through' : 'bg-brand-100 text-brand-700'
+        removed ? 'bg-ink-faint/20 text-ink-faint line-through' : 'badge-brand'
       }`}
     >
       {initials(name)}

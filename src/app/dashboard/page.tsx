@@ -68,7 +68,7 @@ function VehicleCard({
       <VehicleCoverImg url={vehicle.coverPhotoUrl} alt={`${vehicle.make} ${vehicle.model}`} />
       <div className="p-4">
         <div className="mb-1 flex items-center gap-2">
-          <span className="badge bg-brand-100 text-brand-700">{config.label}</span>
+          <span className="badge badge-brand">{config.label}</span>
           {collaborator && <span className="badge bg-surface-subtle text-ink-muted">Collaborator</span>}
         </div>
         <h2 className="font-semibold text-ink">

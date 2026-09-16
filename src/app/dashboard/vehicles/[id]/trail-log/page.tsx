@@ -22,7 +22,7 @@ export default async function TrailLogPage({ params }: { params: { id: string } 
 
   return (
     <div>
-      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
         ← Back to dashboard
       </Link>
       <div className="mb-6 flex items-center justify-between">
@@ -35,7 +35,7 @@ export default async function TrailLogPage({ params }: { params: { id: string } 
       </div>
 
       {!isPro ? (
-        <div className="card border-brand-200 bg-brand-50 p-4 text-sm text-ink">
+        <div className="card note p-4 text-sm text-ink">
           Upgrade to Pro to record GPS trail runs for this build.
         </div>
       ) : runs.length === 0 ? (

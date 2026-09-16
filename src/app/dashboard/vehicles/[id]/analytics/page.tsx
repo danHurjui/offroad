@@ -44,7 +44,7 @@ export default async function CostAnalyticsPage({
   if (!isOwner && vehicle.hideCostsFromCollaborators) {
     return (
       <div>
-        <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+        <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
           ← Back to {config.screenTitle}
         </Link>
         <h1 className="mb-6 text-2xl font-bold text-ink">Cost analytics</h1>
@@ -71,7 +71,7 @@ export default async function CostAnalyticsPage({
 
   return (
     <div>
-      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
         ← Back to {config.screenTitle}
       </Link>
       <h1 className="mb-6 text-2xl font-bold text-ink">Cost analytics</h1>
@@ -82,7 +82,7 @@ export default async function CostAnalyticsPage({
             <div className="text-xs text-ink-faint">Total spent</div>
             <div className="text-2xl font-semibold text-ink">{summary.totalSpent.toLocaleString('ro-RO')} RON</div>
           </div>
-          <div className="card border-brand-200 bg-brand-50 p-4 text-sm text-ink">
+          <div className="card note p-4 text-sm text-ink">
             Upgrade to Pro for charts, monthly trends, date filters, and the most expensive task breakdown.
           </div>
         </>

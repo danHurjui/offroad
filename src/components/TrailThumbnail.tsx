@@ -40,7 +40,16 @@ export default function TrailThumbnail({ track, className }: { track: Point[]; c
   return (
     <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className={className} preserveAspectRatio="none">
       <rect width={SIZE} height={SIZE} className="fill-surface-subtle" />
-      <polyline points={points} fill="none" stroke="#2A5D8C" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      {/* Tailwind class rather than a literal stroke, so the track stays
+          readable against the dark card. */}
+      <polyline
+        points={points}
+        fill="none"
+        className="stroke-brand-500 dark:stroke-brand-300"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   )
 }

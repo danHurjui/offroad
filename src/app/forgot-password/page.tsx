@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import FormError from '@/components/FormError'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -45,8 +46,9 @@ export default function ForgotPasswordPage() {
       <div className="card w-full max-w-sm p-6">
         <h1 className="mb-1 text-2xl font-bold text-ink">Reset your password</h1>
         {sent ? (
-          <p className="mt-4 text-sm text-ink-muted">
-            If that email exists, a reset link has been sent.
+          <p className="mt-4 text-sm text-ink-muted" role="status">
+            If that email exists, a reset link has been sent. It expires in an hour — check
+            your spam folder if it hasn&rsquo;t arrived in a few minutes.
           </p>
         ) : (
           <form onSubmit={onSubmit} className="mt-4 space-y-4">
@@ -54,21 +56,30 @@ export default function ForgotPasswordPage() {
               <label className="label" htmlFor="email">Email</label>
               <input
                 id="email"
+                name="email"
                 type="email"
                 className="input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                inputMode="email"
+                enterKeyHint="send"
+                autoCapitalize="off"
+                spellCheck={false}
+                autoFocus
                 required
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? 'forgot-error' : undefined}
               />
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            <FormError id="forgot-error">{error}</FormError>
             <button type="submit" className="btn-primary w-full" disabled={loading}>
               {loading ? 'Sending…' : 'Send reset link'}
             </button>
           </form>
         )}
         <p className="mt-4 text-center text-sm">
-          <Link href="/login" className="text-brand-600 hover:underline">Back to login</Link>
+          <Link href="/login" className="text-brand-600 dark:text-brand-300 hover:underline">Back to login</Link>
         </p>
       </div>
     </div>

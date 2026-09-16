@@ -98,13 +98,13 @@ export default async function AdminUsersPage({
               <div key={u.id} className="flex flex-wrap items-center gap-3 p-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Link href={`/admin/users/${u.id}`} className="font-medium text-ink hover:text-brand-600">
+                    <Link href={`/admin/users/${u.id}`} className="font-medium text-ink hover:text-brand-600 dark:hover:text-brand-300">
                       {u.displayName}
                     </Link>
-                    {u.isAdmin && <span className="badge bg-amber-100 text-amber-800">admin</span>}
-                    {u.isPro && <span className="badge bg-brand-100 text-brand-700">Pro</span>}
-                    {u.isProComped && <span className="badge bg-green-100 text-green-800">Pro · comped</span>}
-                    {!u.active && <span className="badge bg-red-100 text-red-800">deactivated</span>}
+                    {u.isAdmin && <span className="badge badge-warn">admin</span>}
+                    {u.isPro && <span className="badge badge-brand">Pro</span>}
+                    {u.isProComped && <span className="badge badge-success">Pro · comped</span>}
+                    {!u.active && <span className="badge badge-danger">deactivated</span>}
                   </div>
                   <div className="truncate text-sm text-ink-muted">{u.email}</div>
                   <div className="text-xs text-ink-faint">

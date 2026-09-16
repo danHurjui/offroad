@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import FormError from '@/components/FormError'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -37,31 +39,42 @@ export default function LoginPage() {
             <label className="label" htmlFor="email">Email</label>
             <input
               id="email"
+              name="email"
               type="email"
               className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              // The three that make a phone keyboard usable: the right keys,
+              // no capitalisation of the first letter, and a "Go" key instead
+              // of a newline.
+              autoComplete="email"
+              inputMode="email"
+              enterKeyHint="go"
+              autoCapitalize="off"
+              spellCheck={false}
+              autoFocus
               required
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? 'login-error' : undefined}
             />
           </div>
-          <div>
-            <label className="label" htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          <PasswordInput
+            id="password"
+            label="Password"
+            value={password}
+            onChange={setPassword}
+            autoComplete="current-password"
+            invalid={Boolean(error)}
+            describedBy={error ? 'login-error' : undefined}
+          />
+          <FormError id="login-error">{error}</FormError>
           <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? 'Logging in…' : 'Log in'}
           </button>
         </form>
 
         <button
+          type="button"
           className="btn-secondary mt-3 w-full"
           onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
         >
@@ -69,10 +82,10 @@ export default function LoginPage() {
         </button>
 
         <div className="mt-4 flex justify-between text-sm">
-          <Link href="/forgot-password" className="text-brand-600 hover:underline">
+          <Link href="/forgot-password" className="text-brand-600 dark:text-brand-300 hover:underline">
             Forgot password?
           </Link>
-          <Link href="/register" className="text-brand-600 hover:underline">
+          <Link href="/register" className="text-brand-600 dark:text-brand-300 hover:underline">
             Create account
           </Link>
         </div>

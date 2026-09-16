@@ -28,6 +28,9 @@ interface Initial {
 }
 
 // RL-008: found state intake — structured baseline for a restoration.
+import FormError from './FormError'
+import MoneyInput from './MoneyInput'
+
 export default function FoundStateForm({ vehicleId, initial }: { vehicleId: string; initial: Initial | null }) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -96,15 +99,40 @@ export default function FoundStateForm({ vehicleId, initial }: { vehicleId: stri
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="acquisitionDate">Acquisition date</label>
-            <input id="acquisitionDate" type="date" className="input" value={form.acquisitionDate} onChange={(e) => set('acquisitionDate', e.target.value)} required />
+            <input
+              id="acquisitionDate"
+              name="acquisitionDate"
+              type="date"
+              className="input"
+              value={form.acquisitionDate}
+              onChange={(e) => set('acquisitionDate', e.target.value)}
+              max={new Date().toISOString().slice(0, 10)}
+              required
+            />
           </div>
           <div>
             <label className="label" htmlFor="purchasePriceRon">Purchase price (RON)</label>
-            <input id="purchasePriceRon" type="number" step="0.01" className="input" value={form.purchasePriceRon} onChange={(e) => set('purchasePriceRon', e.target.value)} />
+            <MoneyInput
+              id="purchasePriceRon"
+              value={form.purchasePriceRon}
+              onChange={(v) => set('purchasePriceRon', v)}
+            />
           </div>
           <div>
             <label className="label" htmlFor="odometer">Odometer</label>
-            <input id="odometer" type="number" className="input" value={form.odometer} onChange={(e) => set('odometer', e.target.value)} />
+            <input
+              id="odometer"
+              name="odometer"
+              type="number"
+              className="input"
+              value={form.odometer}
+              onChange={(e) => set('odometer', e.target.value)}
+              inputMode="numeric"
+              min={0}
+              step={1}
+              placeholder="km"
+              autoComplete="off"
+            />
           </div>
           <div>
             <label className="label" htmlFor="conditionRating">General condition (1-5)</label>
@@ -152,7 +180,7 @@ export default function FoundStateForm({ vehicleId, initial }: { vehicleId: stri
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        <FormError>{error}</FormError>
         <button type="submit" className="btn-primary w-full" disabled={loading}>
           {loading ? 'Saving…' : initial ? 'Save changes' : 'Save found state'}
         </button>

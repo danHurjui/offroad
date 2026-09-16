@@ -20,6 +20,9 @@ interface InitialItem {
 // required select here (not the free-text-optional field the ticket
 // lists) so every item can always be converted to a task later without
 // an extra "pick a category" step at convert time — see convert/route.ts.
+import FormError from './FormError'
+import MoneyInput from './MoneyInput'
+
 export default function WishlistItemForm({
   vehicleId,
   projectType,
@@ -85,7 +88,19 @@ export default function WishlistItemForm({
     <form onSubmit={onSubmit} className="card space-y-4 p-6">
       <div>
         <label className="label" htmlFor="name">Name</label>
-        <input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} required />
+        <input
+          id="name"
+          name="name"
+          className="input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="What are you after?"
+          autoComplete="off"
+          autoCapitalize="sentences"
+          enterKeyHint="next"
+          autoFocus
+          required
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -107,14 +122,7 @@ export default function WishlistItemForm({
         </div>
         <div>
           <label className="label" htmlFor="estimatedCostRon">Estimated cost (RON)</label>
-          <input
-            id="estimatedCostRon"
-            type="number"
-            step="0.01"
-            className="input"
-            value={estimatedCostRon}
-            onChange={(e) => setEstimatedCostRon(e.target.value)}
-          />
+          <MoneyInput id="estimatedCostRon" value={estimatedCostRon} onChange={setEstimatedCostRon} />
         </div>
         {projectType === 'RESTORATION' && (
           <div>
@@ -131,14 +139,26 @@ export default function WishlistItemForm({
 
       <div>
         <label className="label" htmlFor="supplierUrl">Supplier URL (optional)</label>
-        <input id="supplierUrl" type="url" className="input" value={supplierUrl} onChange={(e) => setSupplierUrl(e.target.value)} />
+        <input
+          id="supplierUrl"
+          name="supplierUrl"
+          type="url"
+          className="input"
+          value={supplierUrl}
+          onChange={(e) => setSupplierUrl(e.target.value)}
+          placeholder="https://"
+          inputMode="url"
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+        />
       </div>
 
       <div>
         <label className="label" htmlFor="notes">
           {projectType === 'RESTORATION' ? 'Sourcing notes (optional)' : 'Notes (optional)'}
         </label>
-        <textarea id="notes" className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <textarea id="notes" name="notes" className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
 
       {projectType === 'RESTORATION' && (
@@ -148,7 +168,7 @@ export default function WishlistItemForm({
         </label>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      <FormError>{error}</FormError>
       <button type="submit" className="btn-primary w-full" disabled={loading}>
         {loading ? 'Saving…' : isEdit ? 'Save changes' : 'Add item'}
       </button>

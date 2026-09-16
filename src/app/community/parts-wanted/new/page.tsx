@@ -10,7 +10,7 @@ export default async function NewPartsRequestPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
-      <Link href="/community/parts-wanted" className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+      <Link href="/community/parts-wanted" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
         ← Back to parts wanted
       </Link>
       <h1 className="mb-6 text-2xl font-bold text-ink">Post a parts request</h1>

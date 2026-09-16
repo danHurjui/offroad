@@ -26,8 +26,12 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
 
   const addedByCollaborator = task.addedByUserId !== vehicle.ownerId
+  // A deleted account leaves addedByUserId null. Looking a null up in
+  // ProjectCollaborator would match any *pending* invite (those have no
+  // collaboratorUserId yet), so the query is skipped entirely.
+  const addedByDeletedAccount = task.addedByUserId === null
   let addedByRemoved = false
-  if (addedByCollaborator) {
+  if (addedByCollaborator && !addedByDeletedAccount) {
     const [activeRow, removedRow] = await Promise.all([
       prisma.projectCollaborator.findFirst({
         where: { vehicleId: vehicle.id, collaboratorUserId: task.addedByUserId, status: 'ACTIVE' },
@@ -48,7 +52,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
 
   return (
     <div className="mx-auto max-w-2xl">
-      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
         ← Back to {config.screenTitle}
       </Link>
 
@@ -58,7 +62,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
             <div className="mb-1 flex items-center gap-2">
               {task.workType === 'WORKSHOP' && <span title="Workshop task">🔧</span>}
               <span className="badge bg-surface-subtle text-ink-muted">{labelFor(config.categories, task.category)}</span>
-              <span className="badge bg-brand-100 text-brand-700">{labelFor(config.statusTags, task.status)}</span>
+              <span className="badge badge-brand">{labelFor(config.statusTags, task.status)}</span>
             </div>
             <h1 className="text-xl font-bold text-ink">{task.name}</h1>
             {task.brand && <p className="text-sm text-ink-muted">{task.brand}</p>}
@@ -82,8 +86,14 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
             <div>
               <dt className="text-ink-faint">Added by</dt>
               <dd className="text-ink">
-                {task.addedBy.displayName}
-                {addedByRemoved && <span className="ml-1 text-xs text-ink-faint">(access removed)</span>}
+                {addedByDeletedAccount ? (
+                  <span className="text-ink-faint">A deleted account</span>
+                ) : (
+                  <>
+                    {task.addedBy?.displayName}
+                    {addedByRemoved && <span className="ml-1 text-xs text-ink-faint">(access removed)</span>}
+                  </>
+                )}
               </dd>
             </div>
           )}
@@ -107,7 +117,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
             <div className="col-span-2">
               <dt className="text-ink-faint">Supplier</dt>
               <dd>
-                <a href={task.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline">
+                <a href={task.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
                   {task.supplierUrl}
                 </a>
               </dd>

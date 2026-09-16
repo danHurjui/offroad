@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { PROJECT_TYPE_CONFIG, ORIGINALITY_CONDITIONS, type ProjectType } from '@/lib/projectType'
+import type { TaskFieldSuggestions } from '@/lib/taskSuggestions'
+import AutocompleteInput from './AutocompleteInput'
+import FormError from './FormError'
+import MoneyInput from './MoneyInput'
 
 interface InitialTask {
   id: string
@@ -27,6 +31,7 @@ export default function TaskForm({
   projectType,
   initialTask,
   collaboratorLabel,
+  suggestions,
 }: {
   vehicleId: string
   projectType: ProjectType
@@ -36,6 +41,9 @@ export default function TaskForm({
    * most mechanic/specialist collaborators are logging their own shop's
    * work, not DIY. Owners never get this prop. */
   collaboratorLabel?: string | null
+  /** Brands and workshops already used on this vehicle — typing shortcuts
+   * only, never a constraint (src/lib/taskSuggestions.ts). */
+  suggestions?: TaskFieldSuggestions
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -117,7 +125,19 @@ export default function TaskForm({
     <form onSubmit={onSubmit} className="card space-y-4 p-6">
       <div>
         <label className="label" htmlFor="name">Name</label>
-        <input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} required />
+        <input
+          id="name"
+          name="name"
+          className="input"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={config.namePlaceholder}
+          autoComplete="off"
+          autoCapitalize="sentences"
+          enterKeyHint="next"
+          autoFocus={!isEdit}
+          required
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -139,11 +159,28 @@ export default function TaskForm({
         </div>
         <div>
           <label className="label" htmlFor="date">Date</label>
-          <input id="date" type="date" className="input" value={date} onChange={(e) => setDate(e.target.value)} required />
+          <input
+            id="date"
+            name="date"
+            type="date"
+            className="input"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            // A job can't have been done tomorrow; a future date here is
+            // always a typo, and it skews every cost-over-time chart.
+            max={new Date().toISOString().slice(0, 10)}
+            required
+          />
         </div>
         <div>
           <label className="label" htmlFor="brand">Brand (optional)</label>
-          <input id="brand" className="input" value={brand} onChange={(e) => setBrand(e.target.value)} />
+          <AutocompleteInput
+            id="brand"
+            value={brand}
+            onChange={setBrand}
+            suggestions={suggestions?.brands ?? []}
+            placeholder="e.g. Bilstein"
+          />
         </div>
       </div>
 
@@ -170,26 +207,43 @@ export default function TaskForm({
       {workType === 'DIY' ? (
         <div>
           <label className="label" htmlFor="costRon">Cost (RON, optional)</label>
-          <input id="costRon" type="number" step="0.01" className="input" value={costRon} onChange={(e) => setCostRon(e.target.value)} />
+          <MoneyInput id="costRon" value={costRon} onChange={setCostRon} />
         </div>
       ) : (
         <div className="space-y-4 rounded-lg border border-surface-border p-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor="workshopName">Workshop name</label>
-              <input id="workshopName" className="input" value={workshopName} onChange={(e) => setWorkshopName(e.target.value)} required={workType === 'WORKSHOP'} />
+              <AutocompleteInput
+                id="workshopName"
+                value={workshopName}
+                onChange={setWorkshopName}
+                suggestions={suggestions?.workshops ?? []}
+                autoCapitalize="words"
+                required={workType === 'WORKSHOP'}
+              />
             </div>
             <div>
               <label className="label" htmlFor="workshopContact">Workshop contact (optional)</label>
-              <input id="workshopContact" className="input" value={workshopContact} onChange={(e) => setWorkshopContact(e.target.value)} />
+              <input
+                id="workshopContact"
+                name="workshopContact"
+                type="tel"
+                className="input"
+                value={workshopContact}
+                onChange={(e) => setWorkshopContact(e.target.value)}
+                placeholder="Phone or email"
+                inputMode="tel"
+                autoComplete="off"
+              />
             </div>
             <div>
               <label className="label" htmlFor="partsCostRon">Parts cost (RON)</label>
-              <input id="partsCostRon" type="number" step="0.01" className="input" value={partsCostRon} onChange={(e) => setPartsCostRon(e.target.value)} />
+              <MoneyInput id="partsCostRon" value={partsCostRon} onChange={setPartsCostRon} />
             </div>
             <div>
               <label className="label" htmlFor="labourCostRon">Labour cost (RON)</label>
-              <input id="labourCostRon" type="number" step="0.01" className="input" value={labourCostRon} onChange={(e) => setLabourCostRon(e.target.value)} />
+              <MoneyInput id="labourCostRon" value={labourCostRon} onChange={setLabourCostRon} />
             </div>
           </div>
         </div>
@@ -199,7 +253,19 @@ export default function TaskForm({
 
       <div>
         <label className="label" htmlFor="supplierUrl">Supplier URL (optional)</label>
-        <input id="supplierUrl" type="url" className="input" value={supplierUrl} onChange={(e) => setSupplierUrl(e.target.value)} />
+        <input
+          id="supplierUrl"
+          name="supplierUrl"
+          type="url"
+          className="input"
+          value={supplierUrl}
+          onChange={(e) => setSupplierUrl(e.target.value)}
+          placeholder="https://"
+          inputMode="url"
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+        />
       </div>
 
       {projectType === 'RESTORATION' && (
@@ -216,10 +282,10 @@ export default function TaskForm({
 
       <div>
         <label className="label" htmlFor="notes">Notes (optional)</label>
-        <textarea id="notes" className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <textarea id="notes" name="notes" className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      <FormError>{error}</FormError>
       <button type="submit" className="btn-primary w-full" disabled={loading}>
         {loading ? 'Saving…' : isEdit ? 'Save changes' : 'Add task'}
       </button>

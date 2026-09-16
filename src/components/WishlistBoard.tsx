@@ -22,23 +22,23 @@ interface WishlistItem {
 // neutral badge below rather than rendering uncoloured.
 const STATUS_COLORS: Record<ProjectType, Record<string, string>> = {
   RESTORATION: {
-    HUNTING: 'bg-amber-100 text-amber-800',
-    LOCATED: 'bg-blue-100 text-blue-800',
-    RESERVED: 'bg-purple-100 text-purple-800',
-    PURCHASED: 'bg-green-100 text-green-800',
+    HUNTING: 'badge-warn',
+    LOCATED: 'badge-info',
+    RESERVED: 'badge-accent',
+    PURCHASED: 'badge-success',
     FITTED: 'bg-surface-subtle text-ink-muted',
   },
   OFFROAD: {
-    RESEARCHING: 'bg-slate-100 text-slate-700',
-    SOURCED: 'bg-blue-100 text-blue-800',
-    ORDERED: 'bg-amber-100 text-amber-800',
-    INSTALLED: 'bg-green-100 text-green-800',
+    RESEARCHING: 'badge-neutral',
+    SOURCED: 'badge-info',
+    ORDERED: 'badge-warn',
+    INSTALLED: 'badge-success',
   },
   DAILY_DRIVER: {
-    RESEARCHING: 'bg-slate-100 text-slate-700',
-    QUOTED: 'bg-blue-100 text-blue-800',
-    ORDERED: 'bg-amber-100 text-amber-800',
-    FITTED: 'bg-green-100 text-green-800',
+    RESEARCHING: 'badge-neutral',
+    QUOTED: 'badge-info',
+    ORDERED: 'badge-warn',
+    FITTED: 'badge-success',
   },
 }
 
@@ -185,7 +185,7 @@ export default function WishlistBoard({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-ink">{item.name}</span>
-                  {item.hardToFind && <span className="badge bg-red-100 text-red-700">Hard to find</span>}
+                  {item.hardToFind && <span className="badge badge-danger">Hard to find</span>}
                   <span className={`badge ${statusColors[item.status] ?? 'bg-surface-subtle text-ink-muted'}`}>
                     {labelFor(config.wishlistStatuses, item.status)}
                   </span>
@@ -194,7 +194,7 @@ export default function WishlistBoard({
                   {item.category && <span>{labelFor(config.categories, item.category)}</span>}
                   {item.estimatedCostRon != null && <span>{item.estimatedCostRon.toLocaleString('ro-RO')} RON</span>}
                   {item.supplierUrl && (
-                    <a href={item.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline">
+                    <a href={item.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
                       Supplier link
                     </a>
                   )}

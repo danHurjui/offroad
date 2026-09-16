@@ -45,7 +45,7 @@ function AcceptCollaborateForm() {
       <div className="card w-full max-w-sm p-6 text-center">
         <h1 className="mb-4 text-2xl font-bold text-ink">RigLog</h1>
 
-        {!token && <p className="text-sm text-red-600">This invite link is missing its token.</p>}
+        {!token && <p className="text-sm text-red-600 dark:text-red-400">This invite link is missing its token.</p>}
 
         {token && status === 'loading' && <p className="text-sm text-ink-muted">Checking your session…</p>}
 
@@ -75,7 +75,7 @@ function AcceptCollaborateForm() {
 
         {token && state === 'error' && (
           <div className="space-y-3">
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             <Link href="/dashboard" className="btn-secondary inline-block">Go to dashboard</Link>
           </div>
         )}

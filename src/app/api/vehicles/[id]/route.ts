@@ -6,6 +6,7 @@ import { ensureUsername } from '@/lib/username'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
 import { serializeTaskFor } from '@/lib/serialize'
 import { readJsonBody } from '@/lib/requestBody'
+import { collectStorageKeys, deleteStoredFiles } from '@/lib/personalData'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 
@@ -108,8 +109,13 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   try {
+    // Gathered before the delete — the rows that name these files are
+    // about to cascade away, and the bytes would otherwise be orphaned in
+    // Blob storage with no way left to find them.
+    const keys = await collectStorageKeys(session.user.id, vehicle.id)
     await prisma.vehicle.delete({ where: { id: vehicle.id } })
-    return NextResponse.json({ message: 'Vehicle deleted' })
+    await deleteStoredFiles(keys)
+    return NextResponse.json({ message: 'Vehicle deleted', filesDeleted: keys.length })
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }

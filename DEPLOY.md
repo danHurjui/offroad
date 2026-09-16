@@ -128,6 +128,28 @@ public endpoint.
    Settings reports "not configured" and email notifications to followers
    keep working on their own.
 
+## 6.7 Set the privacy contact (do this before taking real users)
+
+`/privacy` and `/cookies` are live and readable without a session. Two
+values on them are not hardcoded, because whoever deploys this is the
+data controller — not the author of the code — and printing a contact
+address nobody monitors would be worse than printing none:
+
+- `NEXT_PUBLIC_PRIVACY_CONTROLLER` — the name that appears as the entity
+  responsible for the data.
+- `NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL` — where data requests go.
+
+With neither set the page still renders and still says something true: it
+points readers at the feedback board. The two rights people are most
+likely to want — download everything, delete everything — are buttons in
+Profile & settings and work whether or not these are configured.
+
+Everything else on those pages is generated from `src/lib/legal.ts`,
+which is written from what the code actually does. **If you add a service
+that receives user data, add it to `SUB_PROCESSORS` in the same change** —
+there is a test asserting that every external host the code calls appears
+in that list.
+
 ## Known free-tier constraints
 
 - **Uploads are capped at 4MB** (`MAX_UPLOAD_BYTES` in `src/lib/storage.ts`)

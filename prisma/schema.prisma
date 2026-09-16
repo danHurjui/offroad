@@ -328,7 +328,14 @@ model Vehicle {
 model Task {
   id                   String   @id @default(cuid())
   vehicleId            String
-  addedByUserId        String
+  /// Nullable, and `onDelete: SetNull`, so a collaborator deleting their
+  /// own account cannot take the vehicle owner's service history with
+  /// them. Null means "added by an account that no longer exists" — the
+  /// work still happened, only the attribution is gone. It was previously
+  /// a required relation with Prisma's default `Restrict`, which made
+  /// DELETE /api/me/account fail outright for anyone who had ever logged
+  /// a task.
+  addedByUserId        String?
   name                 String
   brand                String?
   category             String
@@ -349,7 +356,7 @@ model Task {
   updatedAt            DateTime @updatedAt
 
   vehicle  Vehicle     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  addedBy  User        @relation("TaskAddedBy", fields: [addedByUserId], references: [id])
+  addedBy  User?       @relation("TaskAddedBy", fields: [addedByUserId], references: [id], onDelete: SetNull)
   workshop Workshop?   @relation(fields: [workshopId], references: [id])
   photos   TaskPhoto[]
 
@@ -577,8 +584,18 @@ model ProjectCollaborator {
   acceptedAt         DateTime?
 
   vehicle          Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  invitedBy        User    @relation("InvitedBy", fields: [invitedByUserId], references: [id])
-  collaboratorUser User?   @relation("CollaboratorUser", fields: [collaboratorUserId], references: [id])
+  /// Cascade: the inviter is always the vehicle's owner, so their account
+  /// going away takes the vehicle and every invitation on it. Without a
+  /// rule this defaulted to `Restrict` and blocked account deletion the
+  /// same way Task.addedBy did.
+  invitedBy        User    @relation("InvitedBy", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  /// Explicit, though SetNull is also Prisma's default for an optional
+  /// relation: relying on an invisible default is what let Task.addedBy
+  /// silently become `Restrict` and block account deletion entirely. The
+  /// invitation row survives with no user attached, which never grants
+  /// access — requireVehicleAccess() matches on a real id and null is not
+  /// one.
+  collaboratorUser User?   @relation("CollaboratorUser", fields: [collaboratorUserId], references: [id], onDelete: SetNull)
 
   @@index([vehicleId])
   @@index([collaboratorUserId])

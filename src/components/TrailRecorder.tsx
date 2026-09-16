@@ -284,7 +284,7 @@ export default function TrailRecorder({ vehicleId }: { vehicleId: string }) {
           <label className="label" htmlFor="notes">Notes (optional)</label>
           <textarea id="notes" className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </div>
-        {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+        {saveError && <p className="text-sm text-red-600 dark:text-red-400">{saveError}</p>}
         <button type="submit" className="btn-primary w-full" disabled={saving}>{saving ? 'Saving…' : 'Save run'}</button>
       </form>
     )
@@ -292,13 +292,13 @@ export default function TrailRecorder({ vehicleId }: { vehicleId: string }) {
 
   return (
     <div className="space-y-4">
-      <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+      <p className="rounded-lg border note-warn p-3 text-xs text-amber-800 dark:text-amber-300">
         Keep this tab open and in the foreground while recording — a web app can&apos;t track your location in the
         background the way a native app can. Recording pauses if the browser suspends the tab.
       </p>
 
       <TrailMap track={track} liveMarker={liveMarker} />
-      {geoError && <p className="text-sm text-red-600">{geoError}</p>}
+      {geoError && <p className="text-sm text-red-600 dark:text-red-400">{geoError}</p>}
 
       <div className="flex flex-wrap gap-2">
         {state === 'idle' && <button type="button" className="btn-primary" onClick={start}>Start recording</button>}

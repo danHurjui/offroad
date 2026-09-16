@@ -101,7 +101,10 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           <label className="label" htmlFor="displayName">Display name</label>
           <input
             id="displayName"
+            name="displayName"
             className="input"
+            autoComplete="name"
+            autoCapitalize="words"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             onBlur={() => save({ displayName })}
@@ -111,8 +114,11 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           <label className="label" htmlFor="location">Location</label>
           <input
             id="location"
+            name="location"
             className="input"
             placeholder="City, Country"
+            autoComplete="address-level2"
+            autoCapitalize="words"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             onBlur={() => save({ location })}
@@ -129,7 +135,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           />
           Make my profile public (coming soon)
         </label>
-        {saved && <p className="text-sm text-green-600">Saved.</p>}
+        {saved && <p className="text-sm text-green-600 dark:text-green-400">Saved.</p>}
       </div>
 
       <div className="card p-6">
@@ -160,7 +166,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
               <button type="button" className="btn-secondary mt-3" onClick={onManageBilling} disabled={portalLoading}>
                 {portalLoading ? 'Opening…' : 'Manage subscription'}
               </button>
-              {portalError && <p className="mt-2 text-sm text-red-600">{portalError}</p>}
+              {portalError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{portalError}</p>}
             </>
           )
         ) : (
@@ -206,7 +212,10 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
       <div className="card p-6">
         <h2 className="mb-2 font-semibold text-ink">Danger zone</h2>
         <p className="mb-3 text-sm text-ink-muted">
-          Deletes your account and every vehicle, task, and photo you own. This cannot be undone.
+          Deletes your account and every vehicle, task, document and photo you own — including the
+          uploaded files themselves, not just the entries pointing at them. Records of any donations
+          are kept for accounting, with your account detached from them. This cannot be undone, so
+          take a copy of your data first if you want one.
         </p>
         <button type="button" className="btn-danger" onClick={onDeleteAccount} disabled={deleting}>
           {deleting ? 'Deleting…' : 'Delete account'}

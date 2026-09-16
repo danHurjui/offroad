@@ -77,6 +77,14 @@ export const RATE_LIMITS = {
   partsRequest: { limit: 10, windowSeconds: 60 * 60 },
   /** Donation checkout creates a Stripe session and a DB row per call. */
   donationCheckout: { limit: 10, windowSeconds: 60 * 60 },
+  /**
+   * The GDPR data export walks every table belonging to the account and
+   * serialises the lot. It is a legal right, so the budget is generous
+   * enough that nobody exercising it in good faith is ever refused — but
+   * it is also by far the most expensive read in the app, so a script
+   * calling it in a loop shouldn't be free.
+   */
+  dataExport: { limit: 10, windowSeconds: 60 * 60 },
 } as const satisfies Record<string, RateLimitRule>
 
 export type RateLimitName = keyof typeof RATE_LIMITS

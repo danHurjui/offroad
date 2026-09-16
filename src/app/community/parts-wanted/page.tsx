@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import PublicHeader from '@/components/PublicHeader'
 import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -24,10 +25,11 @@ export default async function PartsWantedPage() {
 
   return (
     <div className="min-h-screen bg-surface-muted">
+      <PublicHeader />
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <Link href="/community" className="mb-1 inline-block text-sm text-brand-600 hover:underline">
+            <Link href="/community" className="mb-1 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
               ← Back to community
             </Link>
             <h1 className="text-2xl font-bold text-ink">Parts wanted</h1>

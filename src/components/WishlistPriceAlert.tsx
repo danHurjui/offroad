@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts'
+import { useChartTheme } from './useChartTheme'
+import FormError from './FormError'
 
 interface Item {
   id: string
@@ -35,6 +37,7 @@ export default function WishlistPriceAlert({
   priceHistory: PriceEntry[]
 }) {
   const router = useRouter()
+  const chart = useChartTheme()
   const [targetPriceRon, setTargetPriceRon] = useState(item.targetPriceRon != null ? String(item.targetPriceRon) : '')
   const [savingTarget, setSavingTarget] = useState(false)
 
@@ -90,9 +93,12 @@ export default function WishlistPriceAlert({
         <div className="flex gap-2">
           <input
             id="targetPriceRon"
+            name="targetPriceRon"
             type="number"
             step="0.01"
             min="0"
+            inputMode="decimal"
+            autoComplete="off"
             className="input"
             value={targetPriceRon}
             onChange={(e) => setTargetPriceRon(e.target.value)}
@@ -108,7 +114,7 @@ export default function WishlistPriceAlert({
           {item.supplierUrl && (
             <>
               {' '}
-              <a href={item.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline">
+              <a href={item.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
                 Check the supplier link
               </a>
               .
@@ -130,14 +136,19 @@ export default function WishlistPriceAlert({
           <div className="h-48 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={priceHistory.map((e) => ({ date: new Date(e.recordedAt).toLocaleDateString('ro-RO'), price: e.priceRon }))}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" fontSize={11} />
-                <YAxis fontSize={11} tickFormatter={formatRon} width={70} />
-                <Tooltip formatter={formatRon} />
+                <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
+                <XAxis dataKey="date" fontSize={11} tick={{ fill: chart.axis }} />
+                <YAxis fontSize={11} tickFormatter={formatRon} width={70} tick={{ fill: chart.axis }} />
+                <Tooltip
+                  formatter={formatRon}
+                  contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: 8 }}
+                  itemStyle={{ color: chart.axis }}
+                  labelStyle={{ color: chart.axis }}
+                />
                 {item.targetPriceRon != null && (
-                  <ReferenceLine y={item.targetPriceRon} stroke="#16a34a" strokeDasharray="4 4" label="Target" />
+                  <ReferenceLine y={item.targetPriceRon} stroke={chart.positive} strokeDasharray="4 4" label="Target" />
                 )}
-                <Line type="monotone" dataKey="price" stroke="#2A5D8C" strokeWidth={2} dot />
+                <Line type="monotone" dataKey="price" stroke={chart.accent} strokeWidth={2} dot />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -148,24 +159,33 @@ export default function WishlistPriceAlert({
         <span className="label">I found it at this price</span>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <input
+            id="newPrice"
+            name="newPrice"
             type="number"
             step="0.01"
             min="0.01"
+            inputMode="decimal"
+            autoComplete="off"
             className="input"
             placeholder="Price (RON)"
+            aria-label="Price in RON"
             value={newPrice}
             onChange={(e) => setNewPrice(e.target.value)}
             required
           />
           <input
+            id="newNote"
+            name="newNote"
             type="text"
             className="input"
             placeholder="Note (optional) — e.g. emag.ro"
+            aria-label="Note about where you found this price"
+            autoComplete="off"
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
           />
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        <FormError>{error}</FormError>
         <button type="submit" className="btn-primary w-full" disabled={logging}>
           {logging ? 'Logging…' : 'Log price'}
         </button>

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import PublicHeader from '@/components/PublicHeader'
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import { getServerSession } from 'next-auth'
@@ -118,6 +119,7 @@ export default async function PublicVehiclePage({
 
   return (
     <div className="min-h-screen bg-surface-muted">
+      <PublicHeader />
       <div className="mx-auto max-w-3xl px-4 py-8">
         <div className="card overflow-hidden">
           {vehicle.coverPhotoUrl ? (
@@ -133,7 +135,7 @@ export default async function PublicVehiclePage({
             </div>
           )}
           <div className="p-6">
-            <span className="badge bg-brand-100 text-brand-700">{config.label}</span>
+            <span className="badge badge-brand">{config.label}</span>
             {originalityScore !== undefined && (
               <span className="ml-2">
                 <OriginalityBadge score={originalityScore} />

@@ -18,6 +18,7 @@ export default async function EditVehiclePage({ params }: { params: { id: string
       <VehicleEditForm
         vehicle={{
           id: vehicle.id,
+          projectType: vehicle.projectType,
           make: vehicle.make,
           model: vehicle.model,
           year: vehicle.year,

@@ -94,7 +94,7 @@ export default async function TicketsPage({
             <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">Type</span>
             <Link
               href={filterHref({ type: '' })}
-              className={`badge ${!type ? 'bg-brand-100 text-brand-700' : 'bg-surface-subtle text-ink-muted'}`}
+              className={`badge ${!type ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
             >
               All
             </Link>
@@ -112,7 +112,7 @@ export default async function TicketsPage({
             <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">Status</span>
             <Link
               href={filterHref({ status: '' })}
-              className={`badge ${!status ? 'bg-brand-100 text-brand-700' : 'bg-surface-subtle text-ink-muted'}`}
+              className={`badge ${!status ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
             >
               All
             </Link>
@@ -130,13 +130,13 @@ export default async function TicketsPage({
             <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">Sort</span>
             <Link
               href={filterHref({ sort: 'votes' })}
-              className={`badge ${sort === 'votes' ? 'bg-brand-100 text-brand-700' : 'bg-surface-subtle text-ink-muted'}`}
+              className={`badge ${sort === 'votes' ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
             >
               Most voted
             </Link>
             <Link
               href={filterHref({ sort: 'newest' })}
-              className={`badge ${sort === 'newest' ? 'bg-brand-100 text-brand-700' : 'bg-surface-subtle text-ink-muted'}`}
+              className={`badge ${sort === 'newest' ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
             >
               Newest
             </Link>
@@ -171,7 +171,7 @@ export default async function TicketsPage({
                       {TICKET_STATUSES[ticket.status].label}
                     </span>
                   </div>
-                  <Link href={`/tickets/${ticket.id}`} className="block font-medium text-ink hover:text-brand-600">
+                  <Link href={`/tickets/${ticket.id}`} className="block font-medium text-ink hover:text-brand-600 dark:hover:text-brand-300">
                     {ticket.title}
                   </Link>
                   <p className="mt-1 text-xs text-ink-faint">

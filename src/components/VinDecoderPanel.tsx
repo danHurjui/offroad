@@ -112,14 +112,14 @@ export default function VinDecoderPanel({
         <button type="button" className="btn-primary" onClick={onDecode} disabled={decoding}>
           {decoding ? 'Decoding…' : decoded ? 'Re-decode' : 'Decode VIN'}
         </button>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       </div>
 
       {decoded && !showManualForm && (
         <div className="card p-4">
           <div className="mb-3 flex items-center justify-between">
             <span className="text-sm font-medium text-ink-muted">Decoded spec</span>
-            <button type="button" className="text-xs text-brand-600 hover:underline" onClick={() => setShowManualForm(true)}>
+            <button type="button" className="text-xs text-brand-600 dark:text-brand-300 hover:underline" onClick={() => setShowManualForm(true)}>
               Edit manually
             </button>
           </div>

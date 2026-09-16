@@ -16,6 +16,8 @@ const PLACEHOLDERS: Record<TicketType, string> = {
   IMPROVEMENT: 'What works today but could work better, and what makes it awkward right now?',
 }
 
+import FormError from './FormError'
+
 export default function TicketForm() {
   const router = useRouter()
   const [type, setType] = useState<TicketType>('BUG')
@@ -60,7 +62,7 @@ export default function TicketForm() {
               onClick={() => setType(t)}
               aria-pressed={type === t}
               className={`rounded-xl border-2 p-3 text-left transition-colors ${
-                type === t ? 'border-brand-500 bg-brand-50' : 'border-surface-border'
+                type === t ? 'border-brand-500 bg-brand-50 dark:bg-brand-400/10' : 'border-surface-border'
               }`}
             >
               <div className="font-semibold text-ink">{TICKET_TYPES[t].label}</div>
@@ -76,7 +78,12 @@ export default function TicketForm() {
         </label>
         <input
           id="ticket-title"
+          name="ticket-title"
           className="input"
+          autoComplete="off"
+          autoCapitalize="sentences"
+          enterKeyHint="next"
+          autoFocus
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={TICKET_TITLE_MAX}
@@ -94,7 +101,9 @@ export default function TicketForm() {
         </label>
         <textarea
           id="ticket-description"
+          name="ticket-description"
           className="input"
+          autoCapitalize="sentences"
           rows={7}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -107,7 +116,7 @@ export default function TicketForm() {
         </p>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      <FormError>{error}</FormError>
 
       <div className="flex gap-3">
         <button type="submit" className="btn-primary" disabled={loading || !title.trim() || !description.trim()}>

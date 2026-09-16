@@ -61,7 +61,7 @@ export default function TicketVoteButton({
       title={signedIn ? undefined : 'Log in to vote'}
       className={`flex shrink-0 flex-col items-center justify-center rounded-lg border-2 transition-colors disabled:opacity-60 ${
         size === 'sm' ? 'w-12 px-1 py-1.5' : 'w-14 px-2 py-2'
-      } ${voted ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-surface-border text-ink-muted hover:border-brand-300'}`}
+      } ${voted ? 'border-brand-500 bg-brand-50 dark:bg-brand-400/10 text-brand-700 dark:text-brand-200' : 'border-surface-border text-ink-muted hover:border-brand-300'}`}
     >
       <span aria-hidden className="text-xs leading-none">
         ▲

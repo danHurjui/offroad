@@ -5,6 +5,7 @@ import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { toNumberOrNull } from '@/lib/serialize'
 import TaskForm from '@/components/TaskForm'
+import { taskFieldSuggestions } from '@/lib/taskSuggestions'
 
 export default async function EditTaskPage({ params }: { params: { id: string; taskId: string } }) {
   const session = await requireSessionOrRedirect()
@@ -17,6 +18,8 @@ export default async function EditTaskPage({ params }: { params: { id: string; t
   const isOwner = vehicle.ownerId === session.user.id
   if (!isOwner && task.addedByUserId !== session.user.id) notFound()
 
+  const suggestions = await taskFieldSuggestions(vehicle.id)
+
   return (
     <div className="mx-auto max-w-xl">
       <h1 className="mb-6 text-2xl font-bold text-ink">Edit task</h1>
@@ -24,6 +27,7 @@ export default async function EditTaskPage({ params }: { params: { id: string; t
         <TaskForm
           vehicleId={vehicle.id}
           projectType={vehicle.projectType}
+          suggestions={suggestions}
           initialTask={{
             id: task.id,
             name: task.name,
