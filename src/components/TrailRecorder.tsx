@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import { computeTrackStats, activeDurationMin, type TrackPoint } from '@/lib/trailTrack'
@@ -41,6 +42,8 @@ interface PersistedRecording {
 // data; localStorage persistence (best-effort, wrapped in try/catch) at
 // least survives an accidental reload of the same tab.
 export default function TrailRecorder({ vehicleId }: { vehicleId: string }) {
+  const t = useTranslations('trail')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [state, setState] = useState<RecordingState>('idle')
   const [segments, setSegments] = useState<Segment[]>([])
@@ -92,7 +95,7 @@ export default function TrailRecorder({ vehicleId }: { vehicleId: string }) {
 
   function watchPosition() {
     if (!('geolocation' in navigator)) {
-      setGeoError('Geolocation is not available in this browser.')
+      setGeoError(t('geoUnavailable'))
       return
     }
     watchIdRef.current = navigator.geolocation.watchPosition(
@@ -111,7 +114,7 @@ export default function TrailRecorder({ vehicleId }: { vehicleId: string }) {
           return next
         })
       },
-      () => setGeoError('Could not get your location — check location permissions for this site.'),
+      () => setGeoError(t('geoDenied')),
       { enableHighAccuracy: true, maximumAge: 5000 }
     )
   }
@@ -217,7 +220,7 @@ export default function TrailRecorder({ vehicleId }: { vehicleId: string }) {
     const run = await res.json()
     if (!res.ok) {
       setSaving(false)
-      setSaveError(run.error ?? 'Could not save the run')
+      setSaveError(run.error ?? t('saveFailed'))
       return
     }
 
@@ -253,11 +256,18 @@ export default function TrailRecorder({ vehicleId }: { vehicleId: string }) {
     return (
       <div className="card space-y-3 p-4">
         <p className="text-sm text-ink">
-          You have an unsaved recording from earlier ({recoverable.track.length} points, {recoverable.waypoints.length} waypoints).
+          {t('recovered', {
+            points: recoverable.track.length,
+            waypoints: recoverable.waypoints.length,
+          })}
         </p>
         <div className="flex gap-2">
-          <button type="button" className="btn-primary" onClick={resumeRecovered}>Resume it</button>
-          <button type="button" className="btn-danger" onClick={discardRecovered}>Discard</button>
+          <button type="button" className="btn-primary" onClick={resumeRecovered}>
+            {t('resumeIt')}
+          </button>
+          <button type="button" className="btn-danger" onClick={discardRecovered}>
+            {t('discard')}
+          </button>
         </div>
       </div>
     )
@@ -268,24 +278,26 @@ export default function TrailRecorder({ vehicleId }: { vehicleId: string }) {
     return (
       <form onSubmit={onSave} className="card space-y-4 p-6">
         <div className="grid grid-cols-3 gap-3 text-sm">
-          <div><div className="text-xs text-ink-faint">Distance</div><div className="font-semibold text-ink">{stats.distanceKm} km</div></div>
-          <div><div className="text-xs text-ink-faint">Duration</div><div className="font-semibold text-ink">{activeDurationMin(segments)} min</div></div>
-          <div><div className="text-xs text-ink-faint">Elevation gain</div><div className="font-semibold text-ink">{stats.elevationGainM != null ? `${stats.elevationGainM} m` : '—'}</div></div>
+          <div><div className="text-xs text-ink-faint">{t('distance')}</div><div className="font-semibold text-ink">{stats.distanceKm} km</div></div>
+          <div><div className="text-xs text-ink-faint">{t('duration')}</div><div className="font-semibold text-ink">{activeDurationMin(segments)} min</div></div>
+          <div><div className="text-xs text-ink-faint">{t('elevationGain')}</div><div className="font-semibold text-ink">{stats.elevationGainM != null ? `${stats.elevationGainM} m` : '—'}</div></div>
         </div>
         <div>
-          <label className="label" htmlFor="name">Name</label>
+          <label className="label" htmlFor="name">{t('name')}</label>
           <input id="name" className="input" value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
         <div>
-          <label className="label" htmlFor="location">Location (optional)</label>
+          <label className="label" htmlFor="location">{t('location')}</label>
           <input id="location" className="input" value={location} onChange={(e) => setLocation(e.target.value)} />
         </div>
         <div>
-          <label className="label" htmlFor="notes">Notes (optional)</label>
+          <label className="label" htmlFor="notes">{t('notes')}</label>
           <textarea id="notes" className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </div>
         {saveError && <p className="text-sm text-red-600 dark:text-red-400">{saveError}</p>}
-        <button type="submit" className="btn-primary w-full" disabled={saving}>{saving ? 'Saving…' : 'Save run'}</button>
+        <button type="submit" className="btn-primary w-full" disabled={saving}>
+          {saving ? tc('saving') : t('saveRun')}
+        </button>
       </form>
     )
   }
@@ -293,44 +305,53 @@ export default function TrailRecorder({ vehicleId }: { vehicleId: string }) {
   return (
     <div className="space-y-4">
       <p className="rounded-lg border note-warn p-3 text-xs text-amber-800 dark:text-amber-300">
-        Keep this tab open and in the foreground while recording — a web app can&apos;t track your location in the
-        background the way a native app can. Recording pauses if the browser suspends the tab.
+        {t('foregroundWarning')}
       </p>
 
       <TrailMap track={track} liveMarker={liveMarker} />
       {geoError && <p className="text-sm text-red-600 dark:text-red-400">{geoError}</p>}
 
       <div className="flex flex-wrap gap-2">
-        {state === 'idle' && <button type="button" className="btn-primary" onClick={start}>Start recording</button>}
+        {state === 'idle' && <button type="button" className="btn-primary" onClick={start}>
+            {t('startRecording')}
+          </button>}
         {state === 'recording' && (
           <>
-            <button type="button" className="btn-secondary" onClick={pause}>Pause</button>
-            <button type="button" className="btn-danger" onClick={stop}>Stop</button>
+            <button type="button" className="btn-secondary" onClick={pause}>
+              {t('pause')}
+            </button>
+            <button type="button" className="btn-danger" onClick={stop}>
+              {t('stop')}
+            </button>
           </>
         )}
         {state === 'paused' && (
           <>
-            <button type="button" className="btn-primary" onClick={resume}>Resume</button>
-            <button type="button" className="btn-danger" onClick={stop}>Stop</button>
+            <button type="button" className="btn-primary" onClick={resume}>
+              {t('resume')}
+            </button>
+            <button type="button" className="btn-danger" onClick={stop}>
+              {t('stop')}
+            </button>
           </>
         )}
       </div>
 
       {state !== 'idle' && (
         <div className="card space-y-2 p-4">
-          <div className="text-sm font-medium text-ink-muted">Drop a waypoint</div>
+          <div className="text-sm font-medium text-ink-muted">{t('dropWaypoint')}</div>
           <input
             type="text"
             className="input"
-            placeholder="Note (optional)"
+            placeholder={t('notePlaceholder')}
             value={waypointNote}
             onChange={(e) => setWaypointNote(e.target.value)}
           />
           <input type="file" accept="image/*" capture="environment" onChange={(e) => setWaypointPhoto(e.target.files?.[0] ?? null)} />
           <button type="button" className="btn-secondary" onClick={dropWaypoint} disabled={!liveMarker}>
-            Drop waypoint here
+            {t('dropHere')}
           </button>
-          {waypoints.length > 0 && <p className="text-xs text-ink-faint">{waypoints.length} waypoint(s) dropped</p>}
+          {waypoints.length > 0 && <p className="text-xs text-ink-faint">{t('waypointsDropped', { count: waypoints.length })}</p>}
         </div>
       )}
     </div>
