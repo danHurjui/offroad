@@ -223,5 +223,66 @@
       "MODERN_REPLACEMENT": "Înlocuitor modern",
       "REPRODUCTION": "Reproducere"
     }
+  },
+  "nav": {
+    "dashboardAria": "RigLog — panou de bord",
+    "homeAria": "RigLog — pagina principală",
+    "community": "Comunitate",
+    "feedback": "Sugestii",
+    "admin": "Administrare",
+    "logOut": "Deconectare",
+    "roadmap": "Plan de dezvoltare",
+    "donate": "Donează",
+    "dashboard": "Panou de bord",
+    "logIn": "Autentificare",
+    "signUp": "Creează cont"
+  },
+  "footer": {
+    "tagline": "Jurnal de build, de restaurare și de reparații.",
+    "community": "Comunitate",
+    "roadmap": "Plan de dezvoltare",
+    "reportBug": "Raportează o problemă",
+    "donate": "Donează",
+    "logIn": "Autentificare",
+    "terms": "Termeni",
+    "privacy": "Confidențialitate",
+    "cookies": "Cookie-uri"
+  },
+  "dashboard": {
+    "title": "Vehiculele tale",
+    "freeLimitTitle": "Planul gratuit permite un singur vehicul",
+    "freeLimitBadge": "Plan gratuit — 1/1 vehicule",
+    "addVehicle": "+ Adaugă vehicul",
+    "empty": "Niciun vehicul încă — începe-ți primul build sau prima restaurare.",
+    "collaborator": "Colaborator"
+  },
+  "vehicle": {
+    "photos": "Poze",
+    "documents": "Documente",
+    "analytics": "Analize",
+    "foundState": "Starea la găsire",
+    "vinDecoder": "Decodor VIN",
+    "trailLog": "Jurnal de traseu",
+    "collaborators": "Colaboratori",
+    "exportPdf": "Export PDF",
+    "shareCard": "Card de partajat",
+    "jobReport": "Raport de lucrări",
+    "settings": "Setări",
+    "collaboratorNotice": "Ești colaborator pe acest proiect — poți înregistra lucrări și poze, dar lista de dorințe, documentele și setările vehiculului rămân la proprietar.",
+    "historicNotice": "Acest vehicul se califică pentru <strong>statutul de vehicul istoric</strong> (peste 30 de ani) — ITP-ul este obligatoriu o dată la 2 ani, nu anual.",
+    "manageDocuments": "Gestionează documentele",
+    "foundStatePrompt": "Completează fișa stării la găsire ca să documentezi punctul de plecare al mașinii.",
+    "completeIntake": "Completează fișa",
+    "totalSpent": "Total cheltuit",
+    "hidden": "Ascuns",
+    "completed": "Finalizate",
+    "done": "Gata",
+    "planned": "Planificate",
+    "outstanding": "De făcut",
+    "addInCategory": "{cta} la această categorie",
+    "workshopTask": "Lucrare în service",
+    "addedByDeleted": "Adăugat de un cont care a fost între timp șters",
+    "addedBy": "Adăugat de {name}",
+    "addedByRemoved": "{name} (acces de colaborator revocat)"
   }
 }

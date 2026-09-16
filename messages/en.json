@@ -223,5 +223,66 @@
       "MODERN_REPLACEMENT": "Modern replacement",
       "REPRODUCTION": "Reproduction"
     }
+  },
+  "nav": {
+    "dashboardAria": "RigLog — dashboard",
+    "homeAria": "RigLog — home",
+    "community": "Community",
+    "feedback": "Feedback",
+    "admin": "Admin",
+    "logOut": "Log out",
+    "roadmap": "Roadmap",
+    "donate": "Donate",
+    "dashboard": "Dashboard",
+    "logIn": "Log in",
+    "signUp": "Sign up"
+  },
+  "footer": {
+    "tagline": "Build tracker, restoration journal & repair log.",
+    "community": "Community",
+    "roadmap": "Roadmap",
+    "reportBug": "Report a bug",
+    "donate": "Donate",
+    "logIn": "Log in",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "cookies": "Cookies"
+  },
+  "dashboard": {
+    "title": "Your vehicles",
+    "freeLimitTitle": "Free tier is limited to 1 vehicle",
+    "freeLimitBadge": "Free plan — 1/1 vehicles",
+    "addVehicle": "+ Add vehicle",
+    "empty": "No vehicles yet — log your first build or restoration.",
+    "collaborator": "Collaborator"
+  },
+  "vehicle": {
+    "photos": "Photos",
+    "documents": "Documents",
+    "analytics": "Analytics",
+    "foundState": "Found state",
+    "vinDecoder": "VIN decoder",
+    "trailLog": "Trail log",
+    "collaborators": "Collaborators",
+    "exportPdf": "Export PDF",
+    "shareCard": "Share card",
+    "jobReport": "Job report",
+    "settings": "Settings",
+    "collaboratorNotice": "You’re a collaborator on this build — you can log tasks and photos, but wishlist, documents, and vehicle settings stay with the owner.",
+    "historicNotice": "This vehicle qualifies for <strong>historic status</strong> (30+ years old) — Romanian ITP is required every 2 years instead of annually.",
+    "manageDocuments": "Manage documents",
+    "foundStatePrompt": "Complete the found state intake to document this car’s starting point.",
+    "completeIntake": "Complete intake",
+    "totalSpent": "Total spent",
+    "hidden": "Hidden",
+    "completed": "Completed",
+    "done": "Done",
+    "planned": "Planned",
+    "outstanding": "Outstanding",
+    "addInCategory": "{cta} in this category",
+    "workshopTask": "Workshop task",
+    "addedByDeleted": "Added by an account that has since been deleted",
+    "addedBy": "Added by {name}",
+    "addedByRemoved": "{name} (collaborator access removed)"
   }
 }

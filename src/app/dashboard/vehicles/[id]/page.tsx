@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
@@ -14,6 +15,7 @@ import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-003: project dashboard — build overview screen.
 export default async function VehicleDashboardPage({ params }: { params: { id: string } }) {
+  const t = await getTranslations('vehicle')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -107,7 +109,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={`/dashboard/vehicles/${vehicle.id}/photos`} className="btn-secondary">
-            Photos
+            {t('photos')}
           </Link>
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/wishlist`} className="btn-secondary">
@@ -116,7 +118,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           )}
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/documents`} className="btn-secondary relative">
-              Documents
+              {t('documents')}
               {documentsNeedingAttention > 0 && (
                 <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">
                   {documentsNeedingAttention}
@@ -126,47 +128,47 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           )}
           {(!vehicle.hideCostsFromCollaborators || isOwner) && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/analytics`} className="btn-secondary">
-              Analytics
+              {t('analytics')}
             </Link>
           )}
           {vehicle.projectType === 'RESTORATION' && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/found-state`} className="btn-secondary">
-              Found state
+              {t('foundState')}
             </Link>
           )}
           {isOwner && vehicle.projectType === 'RESTORATION' && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/vin-decoder`} className="btn-secondary">
-              VIN decoder
+              {t('vinDecoder')}
             </Link>
           )}
           {isOwner && vehicle.projectType === 'OFFROAD' && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/trail-log`} className="btn-secondary">
-              Trail log
+              {t('trailLog')}
             </Link>
           )}
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/collaborators`} className="btn-secondary">
-              Collaborators
+              {t('collaborators')}
             </Link>
           )}
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/export`} className="btn-secondary">
-              Export PDF
+              {t('exportPdf')}
             </Link>
           )}
           {isOwner && vehicle.projectType !== 'DAILY_DRIVER' && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/card`} className="btn-secondary">
-              Share card
+              {t('shareCard')}
             </Link>
           )}
           {!isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/job-report`} className="btn-secondary">
-              Job report
+              {t('jobReport')}
             </Link>
           )}
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/edit`} className="btn-secondary">
-              Settings
+              {t('settings')}
             </Link>
           )}
           <Link href={`/dashboard/vehicles/${vehicle.id}/tasks/new`} className="btn-primary">
@@ -177,8 +179,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
 
       {!isOwner && (
         <div className="card mb-6 border-surface-border bg-surface-subtle p-4 text-sm text-ink-muted">
-          You&apos;re a collaborator on this build — you can log tasks and photos, but wishlist, documents, and
-          vehicle settings stay with the owner.
+          {t('collaboratorNotice')}
         </div>
       )}
 
@@ -190,10 +191,11 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
 
       {isHistoric && (
         <div className="card mb-6 border-surface-border bg-surface-subtle p-4 text-sm text-ink-muted">
-          This vehicle qualifies for <strong className="text-ink">historic status</strong> (30+ years
-          old) — Romanian ITP is required every 2 years instead of annually.{' '}
+          {t.rich('historicNotice', {
+            strong: (chunks) => <strong className="text-ink">{chunks}</strong>,
+          })}{' '}
           <Link href={`/dashboard/vehicles/${vehicle.id}/documents`} className="text-brand-600 dark:text-brand-300 hover:underline">
-            Manage documents
+            {t('manageDocuments')}
           </Link>
         </div>
       )}
@@ -201,10 +203,10 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       {vehicle.projectType === 'RESTORATION' && !foundState && (
         <div className="card mb-6 flex items-center justify-between gap-4 note p-4">
           <p className="text-sm text-ink">
-            Complete the found state intake to document this car&apos;s starting point.
+            {t('foundStatePrompt')}
           </p>
           <Link href={`/dashboard/vehicles/${vehicle.id}/found-state`} className="btn-primary shrink-0">
-            Complete intake
+            {t('completeIntake')}
           </Link>
         </div>
       )}
@@ -228,15 +230,21 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
 
       <div className="mb-6 grid grid-cols-3 gap-3">
         <StatCard
-          label="Total spent"
+          label={t('totalSpent')}
           value={
             !isOwner && vehicle.hideCostsFromCollaborators
-              ? 'Hidden'
+              ? t('hidden')
               : `${totalSpent.toLocaleString('ro-RO')} RON`
           }
         />
-        <StatCard label={config.tracksCompletion ? 'Completed' : 'Done'} value={String(completedCount)} />
-        <StatCard label={config.tracksCompletion ? 'Planned' : 'Outstanding'} value={String(plannedCount)} />
+        <StatCard
+          label={config.tracksCompletion ? t('completed') : t('done')}
+          value={String(completedCount)}
+        />
+        <StatCard
+          label={config.tracksCompletion ? t('planned') : t('outstanding')}
+          value={String(plannedCount)}
+        />
       </div>
 
       <div className="space-y-6">
@@ -250,7 +258,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
                 href={`/dashboard/vehicles/${vehicle.id}/tasks/new?category=${categoryValue}`}
                 className="card block p-4 text-sm text-ink-faint hover:text-brand-600 dark:hover:text-brand-300"
               >
-                {config.addTaskCta} in this category
+                {t('addInCategory', { cta: config.addTaskCta })}
               </Link>
             ) : (
               <div className="card divide-y divide-surface-border">
@@ -261,7 +269,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
                     className="flex items-center justify-between gap-3 p-4 hover:bg-surface-muted"
                   >
                     <div className="flex items-center gap-2">
-                      {task.workType === 'WORKSHOP' && <span title="Workshop task">🔧</span>}
+                      {task.workType === 'WORKSHOP' && <span title={t('workshopTask')}>🔧</span>}
                       {/* addedByUserId is null once the account that added
                           the task is deleted — the work stays in the log,
                           the attribution doesn't. */}
@@ -300,13 +308,15 @@ function initials(name: string): string {
   return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '?'
 }
 
-function AddedByBadge({ name, removed }: { name: string | null; removed: boolean }) {
+async function AddedByBadge({ name, removed }: { name: string | null; removed: boolean }) {
+  const t = await getTranslations('vehicle')
+
   if (!name) {
     // The account is gone. Saying who added it would be a lie, and hiding
     // the badge entirely would make the task look like the owner's own.
     return (
       <span
-        title="Added by an account that has since been deleted"
+        title={t('addedByDeleted')}
         className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-ink-faint/20 text-[10px] font-semibold text-ink-faint"
       >
         ?
@@ -316,7 +326,7 @@ function AddedByBadge({ name, removed }: { name: string | null; removed: boolean
 
   return (
     <span
-      title={removed ? `${name} (collaborator access removed)` : `Added by ${name}`}
+      title={removed ? t('addedByRemoved', { name }) : t('addedBy', { name })}
       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${
         removed ? 'bg-ink-faint/20 text-ink-faint line-through' : 'badge-brand'
       }`}
