@@ -1,9 +1,9 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { DOCUMENT_TYPE_OPTIONS, formatDaysUntil, getDocumentStatus, type DocumentStatus } from '@/lib/documents'
-import { labelFor } from '@/lib/projectType'
+import { DOCUMENT_TYPE_OPTIONS, daysUntilMessage, getDocumentStatus, type DocumentStatus } from '@/lib/documents'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 
 interface DocumentRow {
@@ -18,16 +18,16 @@ const STATUS_STYLES: Record<DocumentStatus, string> = {
   expiring: 'badge-warn',
   expired: 'badge-danger',
 }
-const STATUS_LABELS: Record<DocumentStatus, string> = {
-  valid: 'Valid',
-  expiring: 'Expiring soon',
-  expired: 'Expired',
-}
-
 // RL-013: colour-coded document list (valid/expiring <30d/expired),
 // add, renew (update expiry date — re-arms reminders server-side), and
 // attach a scan/photo per document.
 export default function DocumentsBoard({ vehicleId, documents: initialDocuments }: { vehicleId: string; documents: DocumentRow[] }) {
+  const t = useTranslations('documents')
+  const tc = useTranslations('common')
+  // Document names are catalogue lookups by value rather than the config's
+  // own labels: ITP and RCA are Romanian legal documents, and their English
+  // gloss ("technical inspection") is what an English reader needs.
+  const typeLabel = (value: string) => t(`type.${value}`)
   const router = useRouter()
   const [documents, setDocuments] = useState(initialDocuments)
   const [newType, setNewType] = useState(DOCUMENT_TYPE_OPTIONS[0].value)
@@ -42,7 +42,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
     e.preventDefault()
     setError(null)
     if (!newExpiry) {
-      setError('Expiry date is required')
+      setError(t('expiryRequired'))
       return
     }
     setAdding(true)
@@ -96,7 +96,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
   }
 
   async function onDelete(doc: DocumentRow) {
-    if (!confirm(`Delete this ${labelFor(DOCUMENT_TYPE_OPTIONS, doc.type)} record?`)) return
+    if (!confirm(t('confirmDelete', { type: typeLabel(doc.type) }))) return
     setBusyId(doc.id)
     await fetch(`/api/vehicles/${vehicleId}/documents/${doc.id}`, { method: 'DELETE' })
     setBusyId(null)
@@ -108,25 +108,27 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
     <div>
       <form onSubmit={onAdd} className="card mb-6 flex flex-wrap items-end gap-3 p-4">
         <div>
-          <label className="label" htmlFor="newType">Document type</label>
+          <label className="label" htmlFor="newType">{t('documentType')}</label>
           <select id="newType" className="input" value={newType} onChange={(e) => setNewType(e.target.value)}>
-            {DOCUMENT_TYPE_OPTIONS.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
+            {DOCUMENT_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {typeLabel(option.value)}
+              </option>
             ))}
           </select>
         </div>
         <div>
-          <label className="label" htmlFor="newExpiry">Expiry date</label>
+          <label className="label" htmlFor="newExpiry">{t('expiryDate')}</label>
           <input id="newExpiry" type="date" className="input" value={newExpiry} onChange={(e) => setNewExpiry(e.target.value)} required />
         </div>
         <button type="submit" className="btn-primary" disabled={adding}>
-          {adding ? 'Adding…' : '+ Add document'}
+          {adding ? t('adding') : t('addDocument')}
         </button>
         {error && <p className="w-full text-sm text-red-600 dark:text-red-400">{error}</p>}
       </form>
 
       {documents.length === 0 ? (
-        <div className="card p-10 text-center text-ink-muted">No documents tracked yet.</div>
+        <div className="card p-10 text-center text-ink-muted">{t('empty')}</div>
       ) : (
         <div className="card divide-y divide-surface-border">
           {documents.map((doc) => {
@@ -135,15 +137,16 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
               <div key={doc.id} className="flex flex-wrap items-center gap-3 p-4">
                 <div className="min-w-[10rem] flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-ink">{labelFor(DOCUMENT_TYPE_OPTIONS, doc.type)}</span>
-                    <span className={`badge ${STATUS_STYLES[status]}`}>{STATUS_LABELS[status]}</span>
+                    <span className="font-medium text-ink">{typeLabel(doc.type)}</span>
+                    <span className={`badge ${STATUS_STYLES[status]}`}>{t(`status.${status}`)}</span>
                   </div>
                   <div className="text-xs text-ink-faint">
-                    {new Date(doc.expiryDate).toLocaleDateString('ro-RO')} · {formatDaysUntil(daysUntil)}
+                    {new Date(doc.expiryDate).toLocaleDateString('ro-RO')} ·{' '}
+                    {t(daysUntilMessage(daysUntil).key, daysUntilMessage(daysUntil).values)}
                   </div>
                   {doc.fileUrl && (
                     <a href={`/api/uploads/${doc.fileUrl}`} target="_blank" rel="noreferrer" className="text-xs text-brand-600 dark:text-brand-300 hover:underline">
-                      View attached file
+                      {t('viewFile')}
                     </a>
                   )}
                 </div>
@@ -152,12 +155,12 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                   <input
                     type="date"
                     className="input w-auto"
-                    aria-label={`New expiry date for ${labelFor(DOCUMENT_TYPE_OPTIONS, doc.type)}`}
+                    aria-label={t('newExpiryFor', { type: typeLabel(doc.type) })}
                     value={renewDrafts[doc.id] ?? ''}
                     onChange={(e) => setRenewDrafts((prev) => ({ ...prev, [doc.id]: e.target.value }))}
                   />
                   <button type="button" className="btn-secondary" onClick={() => onRenew(doc)} disabled={busyId === doc.id || !renewDrafts[doc.id]}>
-                    Renew
+                    {t('renew')}
                   </button>
                   <button
                     type="button"
@@ -165,7 +168,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                     onClick={() => fileInputRefs.current[doc.id]?.click()}
                     disabled={busyId === doc.id}
                   >
-                    {doc.fileUrl ? 'Replace file' : 'Attach file'}
+                    {doc.fileUrl ? t('replaceFile') : t('attachFile')}
                   </button>
                   <input
                     ref={(el) => { fileInputRefs.current[doc.id] = el }}
@@ -179,7 +182,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                     }}
                   />
                   <button type="button" className="btn-danger" onClick={() => onDelete(doc)} disabled={busyId === doc.id}>
-                    Delete
+                    {tc('delete')}
                   </button>
                 </div>
               </div>

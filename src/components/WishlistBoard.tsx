@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { labelFor, type ProjectType } from '@/lib/projectType'
 import { useVocabulary } from '@/lib/vocabulary'
 
@@ -44,10 +45,12 @@ const STATUS_COLORS: Record<ProjectType, Record<string, string>> = {
 }
 
 // The convert action reads as whatever the mode's terminal status is.
-const CONVERT_LABELS: Record<ProjectType, string> = {
-  RESTORATION: 'Mark as fitted',
-  OFFROAD: 'Mark as installed',
-  DAILY_DRIVER: 'Mark as fitted',
+// Catalogue keys rather than prose — a part is "montată" and a modification
+// is "montat" in Romanian, so the two are not one string with a gender.
+const CONVERT_KEYS: Record<ProjectType, string> = {
+  RESTORATION: 'markAsFitted',
+  OFFROAD: 'markAsInstalled',
+  DAILY_DRIVER: 'markAsFitted',
 }
 
 // RL-011/012: budget total, category breakdown, drag-to-reorder (with
@@ -63,11 +66,13 @@ export default function WishlistBoard({
   projectType: ProjectType
   items: WishlistItem[]
 }) {
+  const t = useTranslations('wishlist')
+  const tc = useTranslations('common')
   const router = useRouter()
   const config = useVocabulary(projectType)
   const statusColors = STATUS_COLORS[projectType]
   const terminalStatus = config.wishlistStatuses[config.wishlistStatuses.length - 1].value
-  const convertLabel = CONVERT_LABELS[projectType]
+  const convertLabel = t(CONVERT_KEYS[projectType])
 
   const [items, setItems] = useState(initialItems)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
@@ -108,7 +113,7 @@ export default function WishlistBoard({
   }
 
   async function onConvert(item: WishlistItem) {
-    if (!confirm(`${convertLabel}? This creates a task from this item.`)) return
+    if (!confirm(t('confirmConvert', { action: convertLabel }))) return
     setBusyId(item.id)
     const res = await fetch(`/api/vehicles/${vehicleId}/wishlist/${item.id}/convert`, {
       method: 'POST',
@@ -123,11 +128,11 @@ export default function WishlistBoard({
       return
     }
     const data = await res.json()
-    alert(data.error ?? 'Could not convert item')
+    alert(data.error ?? t('convertFailed'))
   }
 
   async function onDelete(item: WishlistItem) {
-    if (!confirm(`Delete "${item.name}"?`)) return
+    if (!confirm(t('confirmDelete', { name: item.name }))) return
     setBusyId(item.id)
     await fetch(`/api/vehicles/${vehicleId}/wishlist/${item.id}`, { method: 'DELETE' })
     setBusyId(null)
@@ -139,13 +144,15 @@ export default function WishlistBoard({
     <div>
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="card p-4">
-          <div className="text-xs text-ink-faint">Total {config.wishlistLabel.toLowerCase()} budget</div>
+          <div className="text-xs text-ink-faint">
+            {t('totalBudget', { list: config.wishlistLabel.toLowerCase() })}
+          </div>
           <div className="text-lg font-semibold text-ink">{totalBudget.toLocaleString('ro-RO')} RON</div>
         </div>
         <div className="card p-4">
-          <div className="mb-1 text-xs text-ink-faint">By category</div>
+          <div className="mb-1 text-xs text-ink-faint">{t('byCategory')}</div>
           {byCategory.size === 0 ? (
-            <div className="text-sm text-ink-faint">No items yet</div>
+            <div className="text-sm text-ink-faint">{t('empty')}</div>
           ) : (
             <ul className="space-y-0.5 text-sm">
               {Array.from(byCategory.entries()).map(([category, sum]) => (
@@ -161,7 +168,7 @@ export default function WishlistBoard({
 
       {items.length === 0 ? (
         <div className="card p-10 text-center text-ink-muted">
-          Nothing on your {config.wishlistLabel.toLowerCase()} yet.
+          {t('emptyList', { list: config.wishlistLabel.toLowerCase() })}
         </div>
       ) : (
         <div className="card divide-y divide-surface-border">
@@ -175,10 +182,10 @@ export default function WishlistBoard({
               className="flex items-center gap-3 p-4"
             >
               <div className="flex shrink-0 flex-col text-ink-faint">
-                <button type="button" aria-label="Move up" onClick={() => move(index, -1)} disabled={index === 0} className="disabled:opacity-30">
+                <button type="button" aria-label={t('moveUp')} onClick={() => move(index, -1)} disabled={index === 0} className="disabled:opacity-30">
                   ▲
                 </button>
-                <button type="button" aria-label="Move down" onClick={() => move(index, 1)} disabled={index === items.length - 1} className="disabled:opacity-30">
+                <button type="button" aria-label={t('moveDown')} onClick={() => move(index, 1)} disabled={index === items.length - 1} className="disabled:opacity-30">
                   ▼
                 </button>
               </div>
@@ -186,7 +193,7 @@ export default function WishlistBoard({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-ink">{item.name}</span>
-                  {item.hardToFind && <span className="badge badge-danger">Hard to find</span>}
+                  {item.hardToFind && <span className="badge badge-danger">{t('hardToFind')}</span>}
                   <span className={`badge ${statusColors[item.status] ?? 'bg-surface-subtle text-ink-muted'}`}>
                     {labelFor(config.wishlistStatuses, item.status)}
                   </span>
@@ -196,7 +203,7 @@ export default function WishlistBoard({
                   {item.estimatedCostRon != null && <span>{item.estimatedCostRon.toLocaleString('ro-RO')} RON</span>}
                   {item.supplierUrl && (
                     <a href={item.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
-                      Supplier link
+                      {t('supplierLink')}
                     </a>
                   )}
                 </div>
@@ -209,13 +216,13 @@ export default function WishlistBoard({
                   </button>
                 )}
                 <Link href={`/dashboard/vehicles/${vehicleId}/wishlist/${item.id}`} className="btn-secondary">
-                  Price alert
+                  {t('priceAlert')}
                 </Link>
                 <Link href={`/dashboard/vehicles/${vehicleId}/wishlist/${item.id}/edit`} className="btn-secondary">
-                  Edit
+                  {tc('edit')}
                 </Link>
                 <button type="button" className="btn-danger" onClick={() => onDelete(item)} disabled={busyId === item.id}>
-                  Delete
+                  {tc('delete')}
                 </button>
               </div>
             </div>
