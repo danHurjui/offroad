@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { TICKET_COMMENT_MAX } from '@/lib/tickets'
 
@@ -21,6 +22,8 @@ export default function TicketComments({
   comments: TicketCommentView[]
   signedIn: boolean
 }) {
+  const t = useTranslations('tickets')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [body, setBody] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -38,7 +41,7 @@ export default function TicketComments({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error ?? 'Could not post the comment')
+        setError(data.error ?? t('postFailed'))
         setLoading(false)
         return
       }
@@ -46,7 +49,7 @@ export default function TicketComments({
       setLoading(false)
       router.refresh()
     } catch {
-      setError('Could not reach the server. Please try again.')
+      setError(tc('networkError'))
       setLoading(false)
     }
   }
@@ -54,7 +57,7 @@ export default function TicketComments({
   return (
     <div>
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">
-        {comments.length === 0 ? 'Comments' : `${comments.length} comment${comments.length === 1 ? '' : 's'}`}
+        {comments.length === 0 ? t('comments') : t('commentCount', { count: comments.length })}
       </h2>
 
       {comments.length > 0 && (
@@ -81,14 +84,14 @@ export default function TicketComments({
             name="ticket-comment"
             // Placeholder-only fields have no accessible name once the
             // placeholder disappears on the first keystroke.
-            aria-label="Add a comment"
+            aria-label={t('addComment')}
             className="input"
             rows={3}
             autoCapitalize="sentences"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             maxLength={TICKET_COMMENT_MAX}
-            placeholder="Add a comment — extra detail, a workaround, a me-too with your setup…"
+            placeholder={t('commentPlaceholder')}
           />
           {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <div className="flex items-center justify-between">
@@ -96,16 +99,22 @@ export default function TicketComments({
               {body.length}/{TICKET_COMMENT_MAX}
             </span>
             <button type="submit" className="btn-primary" disabled={loading || !body.trim()}>
-              {loading ? 'Posting…' : 'Comment'}
+              {loading ? t('posting') : t('comment')}
             </button>
           </div>
         </form>
       ) : (
         <p className="card p-4 text-sm text-ink-muted">
-          <a href={`/login?callbackUrl=${encodeURIComponent(`/tickets/${ticketId}`)}`} className="text-brand-600 dark:text-brand-300 hover:underline">
-            Log in
-          </a>{' '}
-          to comment or vote.
+          {t.rich('logInToComment', {
+            login: (chunks) => (
+              <a
+                href={`/login?callbackUrl=${encodeURIComponent(`/tickets/${ticketId}`)}`}
+                className="text-brand-600 dark:text-brand-300 hover:underline"
+              >
+                {chunks}
+              </a>
+            ),
+          })}
         </p>
       )}
     </div>

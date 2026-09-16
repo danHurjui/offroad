@@ -18,6 +18,8 @@ export default function TicketAdminPanel({
   currentStatus: TicketStatus
   currentNote: string | null
 }) {
+  const t = useTranslations('tickets')
+  const tc = useTranslations('common')
   const tv = useTranslations('ticketVocab')
   const router = useRouter()
   const [status, setStatus] = useState<TicketStatus>(currentStatus)
@@ -39,7 +41,7 @@ export default function TicketAdminPanel({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error ?? 'Could not update the ticket')
+        setError(data.error ?? t('updateFailed'))
         setLoading(false)
         return
       }
@@ -47,14 +49,14 @@ export default function TicketAdminPanel({
       setLoading(false)
       router.refresh()
     } catch {
-      setError('Could not reach the server. Please try again.')
+      setError(tc('networkError'))
       setLoading(false)
     }
   }
 
   return (
     <form onSubmit={onSubmit} className="card mb-6 space-y-3 border-brand-200 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-200">Triage</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-200">{t('triage')}</h2>
       <div className="flex flex-wrap gap-2">
         {TICKET_STATUS_VALUES.map((s) => (
           <button
@@ -76,14 +78,14 @@ export default function TicketAdminPanel({
         value={adminNote}
         onChange={(e) => setAdminNote(e.target.value)}
         maxLength={1000}
-        placeholder="Optional note shown on the ticket — why it's declined, what it duplicates, when it shipped…"
+        placeholder={t('triageNotePlaceholder')}
       />
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       <div className="flex items-center gap-3">
         <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? 'Saving…' : 'Save'}
+          {loading ? tc('saving') : tc('save')}
         </button>
-        {saved && <span className="text-sm text-green-700 dark:text-green-300">Saved</span>}
+        {saved && <span className="text-sm text-green-700 dark:text-green-300">{t('saved')}</span>}
       </div>
     </form>
   )

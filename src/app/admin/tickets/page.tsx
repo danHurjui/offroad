@@ -2,11 +2,7 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
-import {
-  TICKET_TYPES, TICKET_STATUSES, TICKET_TYPE_VALUES, TICKET_STATUS_VALUES,
-  isTicketType, isTicketStatus, isTicketSort,
-  type TicketType, type TicketStatus,
-} from '@/lib/tickets'
+import { TICKET_TYPE_VALUES, TICKET_STATUS_VALUES, isTicketType, isTicketStatus, isTicketSort, type TicketType, type TicketStatus } from '@/lib/tickets'
 import AdminTicketRow from '@/components/AdminTicketRow'
 
 export const metadata: Metadata = { title: 'Tickets — RigLog admin', robots: { index: false } }

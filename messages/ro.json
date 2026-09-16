@@ -746,5 +746,48 @@
       "DECLINED": "Respins",
       "DUPLICATE": "Duplicat"
     }
+  },
+  "tickets": {
+    "metaTitle": "Plan de dezvoltare și sugestii — RigLog",
+    "metaDescription": "Raportează o problemă, cere o funcționalitate și votează ce ar trebui construit în RigLog.",
+    "title": "Plan de dezvoltare și sugestii",
+    "intro": "Ai găsit o problemă sau vrei ceva în plus? Deschide o solicitare. Votează ce au cerut alții — ce e cel mai dorit urcă în listă, și de acolo se construiește mai departe.",
+    "open": "Deschide o solicitare",
+    "type": "Tip",
+    "status": "Stare",
+    "sort": "Sortare",
+    "all": "Toate",
+    "mostVoted": "Cele mai votate",
+    "newest": "Cele mai noi",
+    "emptyAll": "Nicio solicitare încă — poți fi primul care deschide una.",
+    "emptyFiltered": "Nimic nu se potrivește cu aceste filtre.",
+    "notFound": "Solicitare inexistentă — RigLog",
+    "metaDetail": "{type} pe planul public de dezvoltare RigLog.",
+    "openedBy": "Deschisă de {author} pe {date}",
+    "noteFromRigLog": "Notă de la RigLog",
+    "comments": "Comentarii",
+    "commentCount": "{count, plural, one {un comentariu} other {# comentarii}}",
+    "addComment": "Adaugă un comentariu",
+    "commentPlaceholder": "Adaugă un comentariu — un detaliu în plus, o soluție de ocolire, un „și la mine” cu configurația ta…",
+    "posting": "Se publică…",
+    "comment": "Comentează",
+    "logInToComment": "<login>Autentifică-te</login> ca să comentezi sau să votezi.",
+    "postFailed": "Nu am putut publica comentariul",
+    "ticketTitle": "Titlu",
+    "titlePlaceholder": "O propoziție care rezumă",
+    "details": "Detalii",
+    "whatKind": "Ce fel de solicitare este?",
+    "submitFailed": "Nu am putut trimite solicitarea",
+    "triage": "Triază",
+    "triageNotePlaceholder": "Notă opțională afișată pe solicitare — de ce a fost respinsă, ce duplică, când a fost livrată…",
+    "saved": "Salvat",
+    "updateFailed": "Nu am putut actualiza",
+    "postTicket": "Trimite solicitarea",
+    "detailsPlaceholder": "Ce ai încercat, ce s-a întâmplat și ce te așteptai să se întâmple. Pentru o problemă: pașii de reproducere.",
+    "placeholder": {
+      "BUG": "Ce ai făcut, ce te așteptai și ce s-a întâmplat în schimb? Pe ce vehicul sau ecran, și pe telefon sau pe calculator?",
+      "FEATURE": "Ce ai vrea să poți face și ce încerci să obții prin asta?",
+      "IMPROVEMENT": "Ce funcționează azi, dar ar putea funcționa mai bine, și ce îl face incomod acum?"
+    }
   }
 }

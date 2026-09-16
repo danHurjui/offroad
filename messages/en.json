@@ -746,5 +746,48 @@
       "DECLINED": "Declined",
       "DUPLICATE": "Duplicate"
     }
+  },
+  "tickets": {
+    "metaTitle": "Roadmap & feedback — RigLog",
+    "metaDescription": "Report a bug, request a feature, and vote on what RigLog should build next.",
+    "title": "Roadmap & feedback",
+    "intro": "Found a bug or want something added? Open a ticket. Vote on what others have asked for — the most wanted rises to the top, and that’s what gets built next.",
+    "open": "Open a ticket",
+    "type": "Type",
+    "status": "Status",
+    "sort": "Sort",
+    "all": "All",
+    "mostVoted": "Most voted",
+    "newest": "Newest",
+    "emptyAll": "No tickets yet — be the first to open one.",
+    "emptyFiltered": "Nothing matches those filters.",
+    "notFound": "Ticket not found — RigLog",
+    "metaDetail": "{type} on the RigLog public roadmap.",
+    "openedBy": "Opened by {author} on {date}",
+    "noteFromRigLog": "Note from RigLog",
+    "comments": "Comments",
+    "commentCount": "{count, plural, one {# comment} other {# comments}}",
+    "addComment": "Add a comment",
+    "commentPlaceholder": "Add a comment — extra detail, a workaround, a me-too with your setup…",
+    "posting": "Posting…",
+    "comment": "Comment",
+    "logInToComment": "<login>Log in</login> to comment or vote.",
+    "postFailed": "Could not post the comment",
+    "ticketTitle": "Title",
+    "titlePlaceholder": "One line summarising it",
+    "details": "Details",
+    "whatKind": "What kind of ticket is this?",
+    "submitFailed": "Could not submit the ticket",
+    "triage": "Triage",
+    "triageNotePlaceholder": "Optional note shown on the ticket — why it’s declined, what it duplicates, when it shipped…",
+    "saved": "Saved",
+    "updateFailed": "Could not update",
+    "postTicket": "Post ticket",
+    "detailsPlaceholder": "What you tried, what happened, and what you expected instead. For a bug: the steps to reproduce.",
+    "placeholder": {
+      "BUG": "What did you do, what did you expect, and what happened instead? Which vehicle/screen, and on phone or desktop?",
+      "FEATURE": "What would you like to be able to do, and what are you trying to achieve by it?",
+      "IMPROVEMENT": "What works today but could work better, and what makes it awkward right now?"
+    }
   }
 }

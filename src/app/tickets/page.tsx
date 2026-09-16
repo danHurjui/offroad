@@ -17,9 +17,9 @@ import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 import TicketVoteButton from '@/components/TicketVoteButton'
 
-export const metadata: Metadata = {
-  title: 'Roadmap & feedback — RigLog',
-  description: 'Report a bug, request a feature, and vote on what RigLog should build next.',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('tickets')
+  return { title: t('metaTitle'), description: t('metaDescription') }
 }
 
 export const dynamic = 'force-dynamic'
@@ -32,6 +32,7 @@ export default async function TicketsPage({
   searchParams: { type?: string; status?: string; sort?: string; page?: string }
 }) {
   const tv = await getTranslations('ticketVocab')
+  const t = await getTranslations('tickets')
   const session = await getServerSession(authOptions)
   const type = isTicketType(searchParams.type) ? searchParams.type : undefined
   const status = isTicketStatus(searchParams.status) ? searchParams.status : undefined
@@ -79,21 +80,20 @@ export default async function TicketsPage({
       <main className="mx-auto max-w-4xl px-4 py-10">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-ink sm:text-3xl">Roadmap &amp; feedback</h1>
+            <h1 className="text-2xl font-bold text-ink sm:text-3xl">{t('title')}</h1>
             <p className="mt-2 max-w-2xl text-ink-muted">
-              Found a bug or want something added? Open a ticket. Vote on what others have asked for —
-              the most wanted rises to the top, and that&apos;s what gets built next.
+              {t('intro')}
             </p>
           </div>
           <Link href="/tickets/new" className="btn-primary shrink-0">
-            Open a ticket
+            {t('open')}
           </Link>
         </div>
 
         {/* Filters */}
         <div className="card mb-6 space-y-3 p-4">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">Type</span>
+            <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('type')}</span>
             <Link
               href={filterHref({ type: '' })}
               className={`badge ${!type ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
@@ -111,7 +111,7 @@ export default async function TicketsPage({
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">Status</span>
+            <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('status')}</span>
             <Link
               href={filterHref({ status: '' })}
               className={`badge ${!status ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
@@ -129,18 +129,18 @@ export default async function TicketsPage({
             ))}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">Sort</span>
+            <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('sort')}</span>
             <Link
               href={filterHref({ sort: 'votes' })}
               className={`badge ${sort === 'votes' ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
             >
-              Most voted
+              {t('mostVoted')}
             </Link>
             <Link
               href={filterHref({ sort: 'newest' })}
               className={`badge ${sort === 'newest' ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
             >
-              Newest
+              {t('newest')}
             </Link>
           </div>
         </div>
@@ -148,10 +148,10 @@ export default async function TicketsPage({
         {tickets.length === 0 ? (
           <div className="card p-8 text-center">
             <p className="text-ink-muted">
-              {total === 0 ? 'No tickets yet — be the first to open one.' : 'Nothing matches those filters.'}
+              {total === 0 ? t('emptyAll') : t('emptyFiltered')}
             </p>
             <Link href="/tickets/new" className="btn-primary mt-4">
-              Open a ticket
+              {t('open')}
             </Link>
           </div>
         ) : (

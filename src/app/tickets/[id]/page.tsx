@@ -20,14 +20,16 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     where: { id: params.id },
     select: { title: true, type: true },
   })
-  if (!ticket) return { title: 'Ticket not found — RigLog' }
+  const t = await getTranslations('tickets')
+  if (!ticket) return { title: t('notFound') }
   return {
     title: `${ticket.title} — RigLog roadmap`,
-    description: `${tv(`type.${ticket.type}.label`)} on the RigLog public roadmap.`,
+    description: t('metaDetail', { type: tv(`type.${ticket.type}.label`) }),
   }
 }
 
 export default async function TicketDetailPage({ params }: { params: { id: string } }) {
+  const t = await getTranslations('tickets')
   const tv = await getTranslations('ticketVocab')
   const session = await getServerSession(authOptions)
 
@@ -77,8 +79,10 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
             </div>
             <h1 className="text-xl font-bold text-ink sm:text-2xl">{ticket.title}</h1>
             <p className="mt-1 text-xs text-ink-faint">
-              Opened by {ticket.author.displayName} on{' '}
-              {new Date(ticket.createdAt).toLocaleDateString('ro-RO')}
+              {t('openedBy', {
+                author: ticket.author.displayName,
+                date: new Date(ticket.createdAt).toLocaleDateString('ro-RO'),
+              })}
             </p>
             <p className="mt-4 whitespace-pre-wrap text-sm text-ink-muted">{ticket.description}</p>
           </div>
@@ -87,7 +91,7 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
         {ticket.adminNote && (
           <div className="card mb-6 note p-4">
             <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-200">
-              Note from RigLog
+              {t('noteFromRigLog')}
             </div>
             <p className="whitespace-pre-wrap text-sm text-ink">{ticket.adminNote}</p>
           </div>
