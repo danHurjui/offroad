@@ -130,3 +130,47 @@ export function isFoundingNumberCollision(error: unknown): boolean {
   if (Array.isArray(target)) return target.includes('foundingNumber')
   return typeof target === 'string' && target.includes('foundingNumber')
 }
+
+/** The account fields every signup path supplies; the grant is added here. */
+export interface NewAccount {
+  email: string
+  displayName: string
+  username: string | null
+  password?: string | null
+  accountType: 'OWNER'
+  active: boolean
+}
+
+/**
+ * Creates an account, taking a founding-member slot if one is free.
+ *
+ * Shared by both signup paths — the credentials route and the Google
+ * `signIn` callback — because the promotion has to mean "the first hundred
+ * accounts", not "the first hundred that happened to use a password".
+ * Google signups silently missed out when this logic lived only in the
+ * register route.
+ *
+ * The slot and the account are taken in one transaction, so a create that
+ * fails afterwards returns the slot instead of burning one of the hundred.
+ * A `foundingNumber` collision — only reachable when the counter is out of
+ * step with the numbers already issued, which is operator error — falls
+ * back to an ordinary account rather than refusing the signup, because a
+ * broken promotion must not stop people joining.
+ */
+export async function createUserWithFoundingGrant(account: NewAccount) {
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const grant = await foundingMemberGrant(tx)
+      return tx.user.create({ data: { ...account, ...grant } })
+    })
+  } catch (e) {
+    if (!isFoundingNumberCollision(e)) throw e
+    console.error(
+      '[founding] foundingNumber collided — the counter is out of step with the numbers already ' +
+        'issued. Creating this account without the promotion. Reset the counter to ' +
+        'MAX("foundingNumber") to fix it.',
+      e
+    )
+    return prisma.user.create({ data: account })
+  }
+}

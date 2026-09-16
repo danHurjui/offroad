@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import FormError from '@/components/FormError'
 import PasswordInput from '@/components/PasswordInput'
+import GoogleSignInButton from '@/components/GoogleSignInButton'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -73,13 +74,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <button
-          type="button"
-          className="btn-secondary mt-3 w-full"
-          onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-        >
-          Continue with Google
-        </button>
+        <GoogleSignInButton />
 
         <div className="mt-4 flex justify-between text-sm">
           <Link href="/forgot-password" className="text-brand-600 dark:text-brand-300 hover:underline">

@@ -7,6 +7,7 @@ import Link from 'next/link'
 import FormError from '@/components/FormError'
 import PasswordInput from '@/components/PasswordInput'
 import PasswordStrengthMeter from '@/components/PasswordStrengthMeter'
+import GoogleSignInButton from '@/components/GoogleSignInButton'
 import { MIN_PASSWORD_LENGTH } from '@/lib/passwordStrength'
 
 export default function RegisterPage() {
@@ -119,6 +120,8 @@ export default function RegisterPage() {
             .
           </p>
         </form>
+
+        <GoogleSignInButton />
 
         <p className="mt-4 text-center text-sm">
           Already have an account?{' '}

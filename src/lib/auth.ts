@@ -4,6 +4,7 @@ import GoogleProvider from 'next-auth/providers/google'
 import { prisma } from './prisma'
 import { verifyPassword } from './password'
 import { generateUsername } from './username'
+import { createUserWithFoundingGrant } from './foundingMembers'
 import { consumeRateLimit, clientIp } from './rateLimit'
 
 /** How long a session token stays valid without re-authenticating. */
@@ -16,12 +17,28 @@ export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60
  */
 export const REVALIDATE_AFTER_SECONDS = 60
 
+/**
+ * Whether Google sign-in is usable. Both halves have to be present — a
+ * provider registered with an empty client id still renders a "Continue
+ * with Google" button that leads to a Google error page, which looks like
+ * the app is broken rather than like a setting is missing.
+ */
+export function isGoogleAuthConfigured(): boolean {
+  return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
-    }),
+    // Registered only when configured, so the button can be hidden rather
+    // than shown and broken.
+    ...(isGoogleAuthConfigured()
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+          }),
+        ]
+      : []),
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -62,21 +79,35 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
         if (!user.email) return false
+
+        // An unverified Google address must never be matched against an
+        // existing account: this callback links by email, so accepting one
+        // would let anyone who can assert an address take over the account
+        // that already owns it. Google verifies consumer addresses, but a
+        // Workspace domain can hand out aliases that are not, so the claim
+        // is checked rather than assumed.
+        if ((profile as { email_verified?: boolean } | undefined)?.email_verified === false) {
+          console.error('[OAuth signIn] refused: Google reports this address as unverified')
+          return false
+        }
+
+        const email = user.email.toLowerCase().trim()
         try {
-          let dbUser = await prisma.user.findUnique({ where: { email: user.email } })
+          let dbUser = await prisma.user.findUnique({ where: { email } })
           if (!dbUser) {
-            const displayName = user.name ?? user.email.split('@')[0]
-            dbUser = await prisma.user.create({
-              data: {
-                email: user.email,
-                displayName,
-                username: await generateUsername(displayName),
-                accountType: 'OWNER',
-                active: true,
-              },
+            const displayName = user.name ?? email.split('@')[0]
+            // Same path as a password signup, so a Google account can be a
+            // founding member too — the promotion is "the first hundred
+            // accounts", not "the first hundred passwords".
+            dbUser = await createUserWithFoundingGrant({
+              email,
+              displayName,
+              username: await generateUsername(displayName),
+              accountType: 'OWNER',
+              active: true,
             })
           }
           if (!dbUser.active) return false
@@ -122,7 +153,11 @@ export const authOptions: NextAuthOptions = {
         if (account?.provider === 'credentials') {
           token.id = user.id
         } else if (account?.provider === 'google') {
-          const dbUser = await prisma.user.findUnique({ where: { email: user.email! } })
+          // Normalised the same way signIn stored it, or a mixed-case
+          // Google address would miss the row it just created.
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email!.toLowerCase().trim() },
+          })
           if (dbUser) token.id = dbUser.id
         }
         token.checkedAt = 0 // force a check on the first request after sign-in

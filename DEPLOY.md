@@ -128,6 +128,40 @@ public endpoint.
    Settings reports "not configured" and email notifications to followers
    keep working on their own.
 
+## 6.8 Configure Google sign-in (optional)
+
+Both halves must be set or the provider is not registered at all —
+`isGoogleAuthConfigured()` in `src/lib/auth.ts` checks for both, and the
+"Continue with Google" button asks NextAuth which providers exist rather
+than reading an env var, so a half-configured deploy hides the button
+instead of sending people to a Google error page.
+
+1. Google Cloud Console -> APIs & Services -> Credentials -> **Create
+   credentials -> OAuth client ID -> Web application**.
+2. **Authorized redirect URI** — this is the field people get wrong. It
+   must be exactly:
+
+   ```
+   https://<your-domain>/api/auth/callback/google
+   ```
+
+   Not the site root, not `/login`. It has to match character for
+   character, including `https` and no trailing slash. Add a second entry
+   for `http://localhost:3000/api/auth/callback/google` if you want it
+   working locally.
+3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`, then redeploy.
+
+`NEXTAUTH_URL` has to be right for this too — NextAuth builds the redirect
+it sends to Google from the same origin, so a wrong value there produces a
+`redirect_uri_mismatch` from Google even when the console entry is
+correct. See `src/lib/appUrl.ts`.
+
+A Google account signing in for the first time creates a RigLog account
+found-or-created by email, and takes a founding-member slot if one is
+free, exactly like a password signup. An address Google itself reports as
+unverified is refused, because this flow matches on email and would
+otherwise be an account-takeover route.
+
 ## 6.7 Set the privacy contact (do this before taking real users)
 
 `/privacy` and `/cookies` are live and readable without a session. Two

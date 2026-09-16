@@ -150,28 +150,47 @@ describe('foundingMemberStatus', () => {
   })
 })
 
-describe('the registration route', () => {
-  const ROUTE = fs.readFileSync(
-    path.join(process.cwd(), 'src', 'app', 'api', 'auth', 'register', 'route.ts'),
-    'utf8'
-  )
+describe('createUserWithFoundingGrant', () => {
+  const SOURCE = fs.readFileSync(path.join(process.cwd(), 'src', 'lib', 'foundingMembers.ts'), 'utf8')
+  const HELPER = SOURCE.slice(SOURCE.indexOf('export async function createUserWithFoundingGrant'))
 
   /**
    * The slot and the account have to be taken together. Claiming outside
-   * the transaction would burn one of the hundred whenever a registration
+   * the transaction would burn one of the hundred whenever the create
    * failed afterwards.
    */
   it('claims the slot inside the transaction that creates the user', () => {
-    expect(ROUTE).toMatch(/\$transaction/)
-    const tx = ROUTE.slice(ROUTE.indexOf('$transaction'))
-    expect(tx).toMatch(/foundingMemberGrant\(tx\)/)
-    expect(tx).toMatch(/tx\.user\.create/)
+    expect(HELPER).toMatch(/\$transaction/)
+    expect(HELPER).toMatch(/foundingMemberGrant\(tx\)/)
+    expect(HELPER).toMatch(/tx\.user\.create/)
   })
 
   it('grants in the same insert as the account, not a follow-up update', () => {
-    const tx = ROUTE.slice(ROUTE.indexOf('$transaction'))
-    expect(tx).toMatch(/\.\.\.grant/)
-    expect(tx).not.toMatch(/user\.update/)
+    expect(HELPER).toMatch(/\.\.\.grant/)
+    expect(HELPER).not.toMatch(/user\.update/)
+  })
+})
+
+/**
+ * The gap this closes: the grant used to live only in the credentials
+ * registration route, so anyone who signed up with Google silently missed
+ * out. "The first hundred accounts" has to mean accounts, not passwords.
+ */
+describe('every signup path grants a founding slot', () => {
+  const read = (...segments: string[]) =>
+    fs.readFileSync(path.join(process.cwd(), 'src', ...segments), 'utf8')
+
+  it('the credentials route creates accounts through the shared helper', () => {
+    const route = read('app', 'api', 'auth', 'register', 'route.ts')
+    expect(route).toMatch(/createUserWithFoundingGrant/)
+    // And does not hand-roll a create that would skip the promotion.
+    expect(route).not.toMatch(/prisma\.user\.create/)
+  })
+
+  it('the Google sign-in callback creates accounts through the same helper', () => {
+    const auth = read('lib', 'auth.ts')
+    expect(auth).toMatch(/createUserWithFoundingGrant/)
+    expect(auth).not.toMatch(/prisma\.user\.create/)
   })
 })
 
@@ -204,21 +223,21 @@ describe('isFoundingNumberCollision', () => {
   })
 })
 
-describe('the registration fallback', () => {
-  const ROUTE = fs.readFileSync(
-    path.join(process.cwd(), 'src', 'app', 'api', 'auth', 'register', 'route.ts'),
-    'utf8'
-  )
+describe('the collision fallback', () => {
+  const SOURCE = fs.readFileSync(path.join(process.cwd(), 'src', 'lib', 'foundingMembers.ts'), 'utf8')
+  const HELPER = SOURCE.slice(SOURCE.indexOf('export async function createUserWithFoundingGrant'))
 
-  it('retries without the promotion rather than failing the signup', () => {
-    expect(ROUTE).toMatch(/isFoundingNumberCollision/)
-    // Rethrows anything that is not that collision.
-    expect(ROUTE).toMatch(/if \(!isFoundingNumberCollision\(e\)\) throw e/)
-    expect(ROUTE).toMatch(/prisma\.user\.create\(\{ data: accountData \}\)/)
+  // It lives in the shared helper, so both signup paths inherit it.
+  it('creates the account without the promotion rather than failing the signup', () => {
+    expect(HELPER).toMatch(/isFoundingNumberCollision/)
+    // Rethrows anything that is not that collision — a duplicate email is
+    // a different answer to the user.
+    expect(HELPER).toMatch(/if \(!isFoundingNumberCollision\(e\)\) throw e/)
+    expect(HELPER).toMatch(/prisma\.user\.create\(\{ data: account \}\)/)
   })
 
   it('says loudly in the log that the counter needs fixing', () => {
-    expect(ROUTE).toMatch(/console\.error\(/)
-    expect(ROUTE).toMatch(/out of step/)
+    expect(HELPER).toMatch(/console\.error\(/)
+    expect(HELPER).toMatch(/out of step/)
   })
 })

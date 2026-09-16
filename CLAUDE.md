@@ -75,6 +75,26 @@ by email and linked via `OAuthAccount` (provider + providerAccountId), not
 NextAuth's full Prisma adapter. Session strategy is `jwt`; `token.id` carries
 the internal user id. See `src/lib/auth.ts`.
 
+**Google is registered only when both `GOOGLE_CLIENT_ID` and
+`GOOGLE_CLIENT_SECRET` are set** (`isGoogleAuthConfigured()`). A provider
+registered with an empty client id still renders a button that leads to a
+Google error page, which reads as a broken app rather than a missing
+setting. `GoogleSignInButton` asks `getProviders()` rather than reading an
+env var — the pages are client components, and a button kept in sync by
+hand eventually isn't.
+
+**The `signIn` callback matches on email, so two things are load-bearing.**
+It refuses an address Google itself reports `email_verified: false` for —
+without that, anyone able to assert an address could take over the account
+that already owns it. And it lowercases before matching, or a mixed-case
+Google address creates a duplicate account alongside the password one.
+
+**Both signup paths go through `createUserWithFoundingGrant()`**, so a
+Google signup can be a founding member too. That helper exists because the
+grant originally lived only in the credentials route, which quietly made
+the promotion "the first hundred passwords" rather than "the first hundred
+accounts"; a test asserts neither path calls `prisma.user.create` directly.
+
 ### API routes (`src/app/api/`)
 Every handler starts with `requireSession()` from `src/lib/authz.ts`, then
 does its own ownership/collaborator check — there are no roles in the
