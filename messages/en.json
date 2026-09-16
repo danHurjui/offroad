@@ -284,5 +284,95 @@
     "addedByDeleted": "Added by an account that has since been deleted",
     "addedBy": "Added by {name}",
     "addedByRemoved": "{name} (collaborator access removed)"
+  },
+  "home": {
+    "metaTitle": "RigLog — build tracker, restoration journal & repair log",
+    "heroTitle": "Every bolt, every lei, every photo — in one place.",
+    "heroBody": "RigLog is a build tracker for off-road rigs, a restoration journal for classics, and a repair log for the car you drive every day. Keep the history your vehicle deserves.",
+    "ctaStart": "Start logging — free",
+    "ctaBrowse": "Browse public builds",
+    "noCard": "One vehicle free, forever. No card needed to start.",
+    "foundingHeadline": "Founding members get Pro free for life.",
+    "foundingRemaining": "{remaining} of {limit} {remaining, plural, one {place} other {places}} left.",
+    "modesEyebrow": "One app, three jobs",
+    "modesTitle": "Pick the mode that fits the vehicle",
+    "tracks": "Tracks:",
+    "tracksMore": " · +{count} more",
+    "featuresEyebrow": "What you get",
+    "featuresTitle": "Built for the way people actually work on cars",
+    "pricingEyebrow": "Pricing",
+    "pricingTitle": "Free to start, Pro when you outgrow it",
+    "free": "Free",
+    "freePrice": "0 RON",
+    "freeOneVehicle": "One vehicle",
+    "freeUnlimited": "Unlimited jobs, photos and receipts",
+    "freeReminders": "Document expiry reminders",
+    "freeTotalSpent": "Total spent",
+    "freeReports": "Job reports and collaborators",
+    "pro": "Pro",
+    "proFrom": "from {price} RON",
+    "perMonth": "/month",
+    "proVehicles": "Unlimited vehicles",
+    "proAnalytics": "Full cost analytics, charts and trends",
+    "proPdf": "PDF build-history export",
+    "proCards": "Shareable build & transformation cards",
+    "proExtras": "Trail log, VIN decoder, originality score",
+    "proAlsoAvailable": "Also available annually ({annual} RON) or as a one-off lifetime purchase ({lifetime} RON).",
+    "proFoundingNote": "The first {limit} accounts pay none of it — {remaining} still open.",
+    "createAccount": "Create an account",
+    "startFree": "Start free, upgrade later",
+    "communityEyebrow": "Open to its users",
+    "communityTitle": "Help decide what gets built next",
+    "roadmapTitle": "Public roadmap",
+    "roadmapBody": "Report a bug or request a feature, then vote on what other people have asked for. The most wanted rises to the top, and you can see what is planned or already in progress.",
+    "seeRoadmap": "See the roadmap",
+    "openTicket": "Open a ticket",
+    "supportTitle": "Support the project",
+    "supportBody": "RigLog is small and self-funded. If it has saved you a spreadsheet or two, a one-off contribution helps cover hosting and keeps the free tier free.",
+    "donate": "Donate",
+    "closingTitle": "Start the logbook you wish you had",
+    "closingBody": "It takes a minute to add your vehicle and your first job. Everything stays private until you decide otherwise.",
+    "closingCta": "Create your free account",
+    "mode": {
+      "OFFROAD": {
+        "headline": "Every mod, logged",
+        "body": "Lift kits, winches, lights, armour — what you fitted, what it cost, and what it looked like going on. Plus a GPS trail log for where it has actually been."
+      },
+      "RESTORATION": {
+        "headline": "From barn find to finished",
+        "body": "Record the found state, then track every stage through to complete. Originality scoring and a VIN decoder help you keep a period-correct build honest."
+      },
+      "DAILY_DRIVER": {
+        "headline": "What you fixed, what is due",
+        "body": "Servicing, brakes, tyres, ITP — a straight repair history for the car you actually drive. No project to finish, just a record worth having at resale."
+      }
+    },
+    "feature": {
+      "costs": {
+        "title": "Real cost tracking",
+        "body": "Split parts from labour, DIY from workshop. See what the build has actually cost you, per category and over time."
+      },
+      "photos": {
+        "title": "Photos on every job",
+        "body": "Before, after, and the bit in between. Compressed on upload, kept private unless you publish the build."
+      },
+      "documents": {
+        "title": "Document reminders",
+        "body": "ITP, RCA, CASCO and rovinietă expiries, with email reminders at 30, 14 and 3 days. Historic vehicles are flagged automatically."
+      },
+      "mechanic": {
+        "title": "Your mechanic can help",
+        "body": "Invite a mechanic or specialist to log their own work. They see the build, not your costs, if you would rather keep those private."
+      },
+      "receipts": {
+        "title": "Receipts and PDF export",
+        "body": "Attach receipts to any job, then export the whole history as a PDF — useful when the car changes hands."
+      },
+      "privacy": {
+        "title": "Share it, or do not",
+        "body": "Every project is private by default. Publish it when you want a public page, a shareable card, and a spot in the community feed."
+      }
+    },
+    "metaDescription": "Log every modification, restoration stage and repair on your vehicle: costs, photos, receipts and document reminders, in one place. Free to start."
   }
 }

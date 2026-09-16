@@ -284,5 +284,95 @@
     "addedByDeleted": "Adăugat de un cont care a fost între timp șters",
     "addedBy": "Adăugat de {name}",
     "addedByRemoved": "{name} (acces de colaborator revocat)"
+  },
+  "home": {
+    "metaTitle": "RigLog — jurnal de build, de restaurare și de reparații",
+    "heroTitle": "Fiecare șurub, fiecare leu, fiecare poză — într-un singur loc.",
+    "heroBody": "RigLog e jurnal de build pentru mașini de off-road, jurnal de restaurare pentru clasice și carnet de reparații pentru mașina cu care mergi zilnic. Păstrează-i istoricul pe care îl merită.",
+    "ctaStart": "Începe gratuit",
+    "ctaBrowse": "Vezi proiecte publice",
+    "noCard": "Un vehicul gratuit, pentru totdeauna. Nu ai nevoie de card ca să începi.",
+    "foundingHeadline": "Membrii fondatori primesc Pro gratuit pe viață.",
+    "foundingRemaining": "{remaining} din {limit} {remaining, plural, one {loc rămas} other {locuri rămase}}.",
+    "modesEyebrow": "O aplicație, trei roluri",
+    "modesTitle": "Alege modul potrivit pentru vehicul",
+    "tracks": "Urmărește:",
+    "tracksMore": " · încă {count}",
+    "featuresEyebrow": "Ce primești",
+    "featuresTitle": "Făcută pentru felul în care se lucrează de fapt la mașini",
+    "pricingEyebrow": "Prețuri",
+    "pricingTitle": "Gratuit la început, Pro când îl depășești",
+    "free": "Gratuit",
+    "freePrice": "0 RON",
+    "freeOneVehicle": "Un vehicul",
+    "freeUnlimited": "Lucrări, poze și bonuri nelimitate",
+    "freeReminders": "Notificări la expirarea documentelor",
+    "freeTotalSpent": "Total cheltuit",
+    "freeReports": "Rapoarte de lucrări și colaboratori",
+    "pro": "Pro",
+    "proFrom": "de la {price} RON",
+    "perMonth": "/lună",
+    "proVehicles": "Vehicule nelimitate",
+    "proAnalytics": "Analize complete de costuri, grafice și tendințe",
+    "proPdf": "Export PDF al istoricului",
+    "proCards": "Carduri de build și de transformare, de partajat",
+    "proExtras": "Jurnal de traseu, decodor VIN, scor de originalitate",
+    "proAlsoAvailable": "Disponibil și anual ({annual} RON) sau ca plată unică pe viață ({lifetime} RON).",
+    "proFoundingNote": "Primele {limit} conturi nu plătesc nimic — încă {remaining} disponibile.",
+    "createAccount": "Creează un cont",
+    "startFree": "Începe gratuit, faci upgrade mai târziu",
+    "communityEyebrow": "Deschisă către utilizatori",
+    "communityTitle": "Ajută-ne să decidem ce construim mai departe",
+    "roadmapTitle": "Plan public de dezvoltare",
+    "roadmapBody": "Raportează o problemă sau cere o funcționalitate, apoi votează ce au cerut ceilalți. Ce e cel mai dorit urcă în listă și vezi ce e planificat sau deja în lucru.",
+    "seeRoadmap": "Vezi planul",
+    "openTicket": "Deschide o solicitare",
+    "supportTitle": "Susține proiectul",
+    "supportBody": "RigLog e mic și finanțat din buzunar propriu. Dacă ți-a scutit un tabel sau două, o contribuție unică acoperă găzduirea și menține gratuit planul gratuit.",
+    "donate": "Donează",
+    "closingTitle": "Începe carnetul de bord pe care ți l-ai fi dorit",
+    "closingBody": "Îți ia un minut să adaugi vehiculul și prima lucrare. Totul rămâne privat până decizi tu altfel.",
+    "closingCta": "Creează-ți contul gratuit",
+    "mode": {
+      "OFFROAD": {
+        "headline": "Fiecare modificare, notată",
+        "body": "Kituri de înălțare, trolii, proiectoare, protecții — ce ai montat, cât a costat și cum arăta în timpul montajului. Plus un jurnal GPS pentru traseele pe care chiar a fost."
+      },
+      "RESTORATION": {
+        "headline": "De la găsită în hambar la terminată",
+        "body": "Notează starea la găsire, apoi urmărește fiecare etapă până la final. Scorul de originalitate și decodorul VIN te ajută să ții un proiect corect pentru epocă."
+      },
+      "DAILY_DRIVER": {
+        "headline": "Ce ai reparat, ce urmează",
+        "body": "Revizii, frâne, anvelope, ITP — un istoric clar de reparații pentru mașina cu care chiar mergi. Fără proiect de terminat, doar o evidență care contează la revânzare."
+      }
+    },
+    "feature": {
+      "costs": {
+        "title": "Costuri reale, urmărite",
+        "body": "Separă piesele de manoperă și lucrul propriu de service. Vezi cât te-a costat de fapt, pe categorii și în timp."
+      },
+      "photos": {
+        "title": "Poze la fiecare lucrare",
+        "body": "Înainte, după și tot ce e între. Comprimate la încărcare, private până când publici proiectul."
+      },
+      "documents": {
+        "title": "Notificări pentru documente",
+        "body": "Expirări de ITP, RCA, CASCO și rovinietă, cu notificări pe e-mail la 30, 14 și 3 zile. Vehiculele istorice sunt marcate automat."
+      },
+      "mechanic": {
+        "title": "Și mecanicul poate contribui",
+        "body": "Invită un mecanic sau un specialist să-și înregistreze propria muncă. Vede proiectul, nu și costurile tale, dacă preferi să le ții private."
+      },
+      "receipts": {
+        "title": "Bonuri și export PDF",
+        "body": "Atașează bonuri la orice lucrare, apoi exportă tot istoricul ca PDF — util când mașina își schimbă proprietarul."
+      },
+      "privacy": {
+        "title": "Publici sau nu",
+        "body": "Fiecare proiect e privat implicit. Îl publici când vrei o pagină publică, un card de partajat și un loc în fluxul comunității."
+      }
+    },
+    "metaDescription": "Notează fiecare modificare, etapă de restaurare și reparație a vehiculului tău: costuri, poze, bonuri și notificări pentru documente, într-un singur loc. Gratuit la început."
   }
 }
