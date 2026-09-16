@@ -6,18 +6,38 @@ import Link from 'next/link'
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setError(null)
     setLoading(true)
-    await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    })
-    setLoading(false)
-    setSent(true)
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      setLoading(false)
+      // This used to set `sent` unconditionally, so a 500 (or a 429, or an
+      // unconfigured mail provider) still showed "a reset link has been
+      // sent" — the user waited for an email that was never going to come.
+      if (res.ok) {
+        setSent(true)
+        return
+      }
+      const data = await res.json().catch(() => ({}))
+      if (res.status === 429) {
+        const mins = Math.ceil((data.retryAfterSeconds ?? 60) / 60)
+        setError(`Too many reset requests. Please try again in about ${mins} minute${mins === 1 ? '' : 's'}.`)
+        return
+      }
+      setError(data.error ?? 'Something went wrong. Please try again.')
+    } catch {
+      setLoading(false)
+      setError('Could not reach the server. Please check your connection and try again.')
+    }
   }
 
   return (
@@ -41,6 +61,7 @@ export default function ForgotPasswordPage() {
                 required
               />
             </div>
+            {error && <p className="text-sm text-red-600">{error}</p>}
             <button type="submit" className="btn-primary w-full" disabled={loading}>
               {loading ? 'Sending…' : 'Send reset link'}
             </button>

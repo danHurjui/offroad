@@ -61,8 +61,8 @@ Project Settings → Environment Variables:
 | `NEXTAUTH_SECRET` | `openssl rand -base64 32` |
 | `NEXTAUTH_URL` | `https://<your-project>.vercel.app` (or custom domain) — see note below |
 | `CRON_SECRET` | Another random string (`openssl rand -base64 32`) |
-| `RESEND_API_KEY` | Optional — from [resend.com](https://resend.com) (free tier). Without it, password-reset and document-reminder emails just log to the function's console instead of sending, which is invisible to real users. |
-| `EMAIL_FROM` | Optional, e.g. `RigLog <no-reply@yourdomain.com>` (needs a domain verified in Resend) |
+| `RESEND_API_KEY` | **Required for password reset to work at all** — from [resend.com](https://resend.com) (free tier). Without it, `/forgot-password` now refuses with a 503 rather than silently pretending to send; document-reminder and follow emails are dropped with an error in the function log. |
+| `EMAIL_FROM` | e.g. `RigLog <no-reply@yourdomain.com>`. **The domain must be verified in Resend**, or every send is rejected with a 403. The default is `no-reply@riglog.ro`, which will fail unless you own and have verified that domain. |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional — Google OAuth login |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_ANNUAL`, `STRIPE_PRICE_LIFETIME` | Optional — Pro upgrade (RL-017). Without `STRIPE_SECRET_KEY`, `/dashboard/upgrade` checkout requests fail with a 500; the rest of the app works fine without it. See step 6.5 below. |
 
@@ -146,3 +146,29 @@ public endpoint.
 - **Resend free tier**: 3,000 emails/month, 100/day, and requires a
   verified sending domain for `EMAIL_FROM` (their default onboarding
   domain works for testing but not for real users).
+
+## Troubleshooting: password reset emails aren't arriving
+
+The reset flow itself (token → link → new password) is covered by tests;
+in practice a missing email is almost always one of these three, in order
+of likelihood:
+
+1. **`RESEND_API_KEY` is not set.** `/forgot-password` answers `503` with
+   `code: "EMAIL_NOT_CONFIGURED"` and logs
+   `[email] RESEND_API_KEY is not set` in the function log. Set the
+   variable and **redeploy** — env changes don't apply to a running
+   deployment.
+
+2. **`EMAIL_FROM` uses a domain you haven't verified in Resend.** Resend
+   rejects the send with a 403; the route answers `502` with
+   `code: "EMAIL_SEND_FAILED"` and the function log carries Resend's own
+   reason plus the `from` address it tried. Either verify your domain in
+   Resend, or set `EMAIL_FROM` to Resend's onboarding sender for testing.
+
+3. **You've hit the per-address limit** while testing — 3 requests per
+   hour for the same email. The response is a `429` with `Retry-After`,
+   and the page now says so instead of claiming a link was sent.
+
+On the free Resend tier you can only send to your own verified address
+until a domain is verified, so "it works for my email but not for a test
+address" is expected until then.

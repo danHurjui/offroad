@@ -2,6 +2,13 @@
  * Thin Resend wrapper. Falls back to console logging in dev when
  * RESEND_API_KEY is unset, so the password reset flow works without
  * signing up for anything.
+ *
+ * In **production** that fallback is a trap rather than a convenience: the
+ * app would tell someone "a reset link has been sent" while nothing was
+ * sent, leaving them locked out with no way to tell why. So an unset key
+ * is logged as an error there, and callers for whom a missing email means
+ * the operation genuinely failed (password reset) check
+ * `isEmailConfigured()` first and refuse rather than pretending.
  */
 
 interface SendEmailInput {
@@ -10,26 +17,53 @@ interface SendEmailInput {
   html: string
 }
 
+/** True when real email can actually be sent (i.e. Resend is configured). */
+export function isEmailConfigured(): boolean {
+  return Boolean(process.env.RESEND_API_KEY)
+}
+
 export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.EMAIL_FROM ?? 'RigLog <no-reply@riglog.ro>'
 
   if (!apiKey) {
+    if (process.env.NODE_ENV === 'production') {
+      // Loud, because this is silent data loss from the user's point of
+      // view — and the fix is one environment variable.
+      console.error(
+        `[email] RESEND_API_KEY is not set — DROPPED an email to ${to} ("${subject}"). ` +
+          `Set RESEND_API_KEY (and EMAIL_FROM on a domain verified in Resend) to actually send mail.`
+      )
+      return
+    }
     console.log(`[email:dev] to=${to} subject="${subject}"\n${html}`)
     return
   }
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ from, to, subject, html }),
-  })
+  let res: Response
+  try {
+    res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from, to, subject, html }),
+    })
+  } catch (e) {
+    console.error(`[email] could not reach Resend for ${to} ("${subject}"):`, e)
+    throw new Error('Could not reach the email provider')
+  }
 
   if (!res.ok) {
-    const body = await res.text()
+    const body = await res.text().catch(() => '')
+    // Log the provider's own reason. The usual culprit is a 403 because
+    // EMAIL_FROM uses a domain that isn't verified in Resend — without
+    // this line the operator sees only a generic 500.
+    console.error(
+      `[email] Resend rejected the message to ${to} ("${subject}"): ${res.status} ${body} ` +
+        `(from=${from} — check this domain is verified in Resend)`
+    )
     throw new Error(`Resend send failed: ${res.status} ${body}`)
   }
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
-import { sendEmail, passwordResetEmailHtml } from '@/lib/email'
+import { sendEmail, passwordResetEmailHtml, isEmailConfigured } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
 import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
 
@@ -28,23 +28,63 @@ export async function POST(req: NextRequest) {
     const emailLimit = await consumeRateLimit('forgotPassword', `email:${email}`)
     if (!emailLimit.ok) return rateLimitResponse(emailLimit)
 
+    // Without a mail provider this route would hand back its reassuring
+    // "check your inbox" message while sending nothing, stranding someone
+    // out of their account with no way to tell why. Fail honestly instead.
+    // Checked before the lookup so the answer can't vary by whether the
+    // address exists.
+    if (!isEmailConfigured()) {
+      console.error('[forgot-password] RESEND_API_KEY is not set — cannot send reset emails.')
+      return NextResponse.json(
+        {
+          error:
+            'Password reset is temporarily unavailable because email is not configured. Please contact support.',
+          code: 'EMAIL_NOT_CONFIGURED',
+        },
+        { status: 503 }
+      )
+    }
+
     const user = await prisma.user.findUnique({ where: { email } })
     if (user && user.active) {
       const token = randomBytes(32).toString('hex')
-      await prisma.passwordResetToken.create({
+      const created = await prisma.passwordResetToken.create({
         data: { userId: user.id, token, expiresAt: new Date(Date.now() + TOKEN_TTL_MS) },
       })
       const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
       const resetUrl = `${baseUrl}/reset-password?token=${token}`
-      await sendEmail({
-        to: user.email,
-        subject: 'Reset your RigLog password',
-        html: passwordResetEmailHtml(resetUrl),
-      })
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: 'Reset your RigLog password',
+          html: passwordResetEmailHtml(resetUrl),
+        })
+      } catch (e) {
+        // sendEmail has already logged the provider's reason. Drop the
+        // token rather than leaving a live credential nobody received.
+        //
+        // This branch is only reachable for an address that *does* have an
+        // account, so answering 502 here (rather than the neutral 200)
+        // distinguishes a real account from an unknown one while the mail
+        // provider is failing. That is a deliberate, narrow trade: the
+        // common misconfiguration is caught by the isEmailConfigured()
+        // check above, which runs before the lookup and so answers
+        // identically either way. The remaining window needs the provider
+        // to be actively broken — during which the reset flow is down for
+        // everyone anyway — and telling someone "check your inbox" when we
+        // already know the message bounced is the worse failure.
+        console.error('[forgot-password] send failed for an existing account:', e)
+        await prisma.passwordResetToken.delete({ where: { id: created.id } }).catch(() => {})
+        return NextResponse.json(
+          { error: 'We could not send the reset email. Please try again shortly.', code: 'EMAIL_SEND_FAILED' },
+          { status: 502 }
+        )
+      }
     }
 
     return NextResponse.json({ message: 'If that email exists, a reset link has been sent.' })
-  } catch {
+  } catch (e) {
+    console.error('[forgot-password] unexpected failure:', e)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
