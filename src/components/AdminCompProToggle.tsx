@@ -66,7 +66,7 @@ export default function AdminCompProToggle({
         {/* Paid Pro is untouched by this, so say so rather than implying
             the person loses access. */}
         {isPro && <p className="mt-1 text-xs text-ink-faint">Paid Pro stays</p>}
-        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
     )
   }
@@ -77,7 +77,7 @@ export default function AdminCompProToggle({
         <button type="button" className="btn-secondary py-1 text-xs" onClick={() => setOpen(true)} disabled={busy}>
           Comp Pro
         </button>
-        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
     )
   }
@@ -109,7 +109,7 @@ export default function AdminCompProToggle({
           Cancel
         </button>
       </div>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   )
 }

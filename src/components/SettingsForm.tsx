@@ -129,7 +129,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           />
           Make my profile public (coming soon)
         </label>
-        {saved && <p className="text-sm text-green-600">Saved.</p>}
+        {saved && <p className="text-sm text-green-600 dark:text-green-400">Saved.</p>}
       </div>
 
       <div className="card p-6">
@@ -160,7 +160,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
               <button type="button" className="btn-secondary mt-3" onClick={onManageBilling} disabled={portalLoading}>
                 {portalLoading ? 'Opening…' : 'Manage subscription'}
               </button>
-              {portalError && <p className="mt-2 text-sm text-red-600">{portalError}</p>}
+              {portalError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{portalError}</p>}
             </>
           )
         ) : (

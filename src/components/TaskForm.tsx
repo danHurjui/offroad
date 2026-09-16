@@ -219,7 +219,7 @@ export default function TaskForm({
         <textarea id="notes" className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       <button type="submit" className="btn-primary w-full" disabled={loading}>
         {loading ? 'Saving…' : isEdit ? 'Save changes' : 'Add task'}
       </button>

@@ -62,7 +62,7 @@ export default async function DonatePage({
         </div>
 
         {searchParams.canceled && (
-          <div className="card mx-auto mb-6 max-w-xl border-amber-200 bg-amber-50 p-4 text-sm text-ink">
+          <div className="card mx-auto mb-6 max-w-xl note-warn p-4 text-sm text-ink">
             Checkout was cancelled — nothing was charged. No hard feelings.
           </div>
         )}
@@ -73,7 +73,7 @@ export default async function DonatePage({
             {!session && (
               <p className="mt-4 text-center text-sm text-ink-muted">
                 You don&apos;t need an account to donate.{' '}
-                <Link href="/login" className="text-brand-600 hover:underline">
+                <Link href="/login" className="text-brand-600 dark:text-brand-300 hover:underline">
                   Log in
                 </Link>{' '}
                 first if you&apos;d like it credited to your name.
@@ -92,7 +92,7 @@ export default async function DonatePage({
               <p className="mt-4 text-xs text-ink-faint">
                 A donation is a contribution, not a purchase — it doesn&apos;t unlock Pro. If you want the
                 Pro features, the{' '}
-                <Link href="/dashboard/upgrade" className="text-brand-600 hover:underline">
+                <Link href="/dashboard/upgrade" className="text-brand-600 dark:text-brand-300 hover:underline">
                   upgrade page
                 </Link>{' '}
                 is the place for that.

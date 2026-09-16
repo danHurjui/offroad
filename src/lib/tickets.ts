@@ -15,25 +15,25 @@ export const TICKET_TYPES: Record<TicketType, TicketTypeConfig> = {
   BUG: {
     label: 'Bug',
     blurb: 'Something is broken or behaving wrongly',
-    badgeClass: 'bg-red-100 text-red-800',
+    badgeClass: 'badge-danger',
   },
   FEATURE: {
     label: 'Feature request',
     blurb: "Something RigLog doesn't do yet",
-    badgeClass: 'bg-brand-100 text-brand-700',
+    badgeClass: 'badge-brand',
   },
   IMPROVEMENT: {
     label: 'Improvement',
     blurb: 'Something that exists but could work better',
-    badgeClass: 'bg-amber-100 text-amber-800',
+    badgeClass: 'badge-warn',
   },
 }
 
 export const TICKET_STATUSES: Record<TicketStatus, TicketStatusConfig> = {
   OPEN: { label: 'Open', badgeClass: 'bg-surface-subtle text-ink-muted', open: true },
-  PLANNED: { label: 'Planned', badgeClass: 'bg-brand-100 text-brand-700', open: true },
-  IN_PROGRESS: { label: 'In progress', badgeClass: 'bg-amber-100 text-amber-800', open: true },
-  DONE: { label: 'Done', badgeClass: 'bg-green-100 text-green-800', open: false },
+  PLANNED: { label: 'Planned', badgeClass: 'badge-brand', open: true },
+  IN_PROGRESS: { label: 'In progress', badgeClass: 'badge-warn', open: true },
+  DONE: { label: 'Done', badgeClass: 'badge-success', open: false },
   DECLINED: { label: 'Declined', badgeClass: 'bg-surface-subtle text-ink-faint', open: false },
   DUPLICATE: { label: 'Duplicate', badgeClass: 'bg-surface-subtle text-ink-faint', open: false },
 }

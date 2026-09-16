@@ -185,7 +185,7 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
                   </div>
                 )}
                 <div className="p-4">
-                  <span className="badge bg-brand-100 text-brand-700">{config.label}</span>
+                  <span className="badge badge-brand">{config.label}</span>
                   <h2 className="mt-2 font-semibold text-ink">
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </h2>

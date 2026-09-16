@@ -22,7 +22,7 @@ export default async function TrailRunDetailPage({ params }: { params: { id: str
 
   return (
     <div className="mx-auto max-w-2xl">
-      <Link href={`/dashboard/vehicles/${vehicle.id}/trail-log`} className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+      <Link href={`/dashboard/vehicles/${vehicle.id}/trail-log`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
         ← Back to trail log
       </Link>
       <div className="mb-4 flex items-start justify-between gap-3">

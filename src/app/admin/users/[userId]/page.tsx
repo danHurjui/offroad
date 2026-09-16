@@ -42,7 +42,7 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
 
   return (
     <div>
-      <Link href="/admin/users" className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+      <Link href="/admin/users" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
         ← Back to users
       </Link>
 
@@ -50,12 +50,12 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
         <div>
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-bold text-ink">{user.displayName}</h1>
-            {user.isAdmin && <span className="badge bg-amber-100 text-amber-800">admin</span>}
+            {user.isAdmin && <span className="badge badge-warn">admin</span>}
             {user.isPro && (
-              <span className="badge bg-brand-100 text-brand-700">Pro{user.proPlan ? ` · ${user.proPlan}` : ''}</span>
+              <span className="badge badge-brand">Pro{user.proPlan ? ` · ${user.proPlan}` : ''}</span>
             )}
-            {user.isProComped && <span className="badge bg-green-100 text-green-800">Pro · comped</span>}
-            {!user.active && <span className="badge bg-red-100 text-red-800">deactivated</span>}
+            {user.isProComped && <span className="badge badge-success">Pro · comped</span>}
+            {!user.active && <span className="badge badge-danger">deactivated</span>}
           </div>
           <p className="text-sm text-ink-muted">{user.email}</p>
           <p className="text-xs text-ink-faint">
@@ -75,8 +75,8 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
       </div>
 
       {user.isProComped && (
-        <div className="card mb-6 border-green-200 bg-green-50 p-4">
-          <div className="text-xs font-semibold uppercase tracking-wide text-green-800">
+        <div className="card mb-6 note-success p-4">
+          <div className="text-xs font-semibold uppercase tracking-wide text-green-800 dark:text-green-300">
             Complimentary Pro
           </div>
           <p className="mt-1 text-sm text-ink">
@@ -117,7 +117,7 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
                 <span className="badge bg-surface-subtle text-ink-muted">
                   {PROJECT_TYPE_CONFIG[v.projectType as ProjectType].label}
                 </span>
-                {v.isPublic && <span className="badge bg-green-100 text-green-800">public</span>}
+                {v.isPublic && <span className="badge badge-success">public</span>}
               </span>
             </div>
           ))}

@@ -52,7 +52,7 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
       <PublicHeader />
 
       <main className="mx-auto max-w-3xl px-4 py-10">
-        <Link href="/tickets" className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+        <Link href="/tickets" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
           ← Back to the roadmap
         </Link>
 
@@ -82,8 +82,8 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
         </div>
 
         {ticket.adminNote && (
-          <div className="card mb-6 border-brand-200 bg-brand-50 p-4">
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-700">
+          <div className="card mb-6 note p-4">
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-200">
               Note from RigLog
             </div>
             <p className="whitespace-pre-wrap text-sm text-ink">{ticket.adminNote}</p>

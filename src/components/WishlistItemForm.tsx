@@ -148,7 +148,7 @@ export default function WishlistItemForm({
         </label>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       <button type="submit" className="btn-primary w-full" disabled={loading}>
         {loading ? 'Saving…' : isEdit ? 'Save changes' : 'Add item'}
       </button>

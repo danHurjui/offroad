@@ -52,7 +52,7 @@ export default function TicketAdminPanel({
 
   return (
     <form onSubmit={onSubmit} className="card mb-6 space-y-3 border-brand-200 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-700">Triage</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-brand-700 dark:text-brand-200">Triage</h2>
       <div className="flex flex-wrap gap-2">
         {TICKET_STATUS_VALUES.map((s) => (
           <button
@@ -76,12 +76,12 @@ export default function TicketAdminPanel({
         maxLength={1000}
         placeholder="Optional note shown on the ticket — why it's declined, what it duplicates, when it shipped…"
       />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       <div className="flex items-center gap-3">
         <button type="submit" className="btn-primary" disabled={loading}>
           {loading ? 'Saving…' : 'Save'}
         </button>
-        {saved && <span className="text-sm text-green-700">Saved</span>}
+        {saved && <span className="text-sm text-green-700 dark:text-green-300">Saved</span>}
       </div>
     </form>
   )

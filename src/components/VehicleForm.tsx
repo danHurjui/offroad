@@ -69,7 +69,7 @@ export default function VehicleForm() {
               onClick={() => setProjectType(type)}
               aria-pressed={projectType === type}
               className={`rounded-xl border-2 p-4 text-left transition-colors ${
-                projectType === type ? 'border-brand-500 bg-brand-50' : 'border-surface-border'
+                projectType === type ? 'border-brand-500 bg-brand-50 dark:bg-brand-400/10' : 'border-surface-border'
               }`}
             >
               <div className="font-semibold text-ink">{PROJECT_TYPE_CONFIG[type].label}</div>
@@ -121,7 +121,7 @@ export default function VehicleForm() {
         </div>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       <button type="submit" className="btn-primary w-full" disabled={loading}>
         {loading ? 'Creating…' : 'Create vehicle'}
       </button>

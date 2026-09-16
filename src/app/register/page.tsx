@@ -85,7 +85,7 @@ export default function RegisterPage() {
             />
             <p className="mt-1 text-xs text-ink-faint">At least 8 characters.</p>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? 'Creating account…' : 'Create account'}
           </button>
@@ -93,7 +93,7 @@ export default function RegisterPage() {
 
         <p className="mt-4 text-center text-sm">
           Already have an account?{' '}
-          <Link href="/login" className="text-brand-600 hover:underline">
+          <Link href="/login" className="text-brand-600 dark:text-brand-300 hover:underline">
             Log in
           </Link>
         </p>

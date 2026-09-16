@@ -45,11 +45,11 @@ function ResetPasswordForm() {
             required
           />
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         <button type="submit" className="btn-primary w-full" disabled={loading || !token}>
           {loading ? 'Saving…' : 'Save new password'}
         </button>
-        {!token && <p className="text-sm text-red-600">Missing reset token.</p>}
+        {!token && <p className="text-sm text-red-600 dark:text-red-400">Missing reset token.</p>}
       </form>
     </div>
   )

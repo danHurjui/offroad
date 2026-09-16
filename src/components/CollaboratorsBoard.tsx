@@ -17,8 +17,8 @@ interface CollaboratorRow {
 }
 
 const STATUS_STYLES: Record<CollaboratorRow['status'], string> = {
-  PENDING: 'bg-amber-100 text-amber-800',
-  ACTIVE: 'bg-green-100 text-green-800',
+  PENDING: 'badge-warn',
+  ACTIVE: 'badge-success',
   REMOVED: 'bg-ink-faint/20 text-ink-faint',
 }
 
@@ -127,7 +127,7 @@ export default function CollaboratorsBoard({
             <option value="SPECIALIST">Specialist</option>
           </select>
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         <button type="submit" className="btn-primary" disabled={inviting}>
           {inviting ? 'Sending…' : 'Send invite'}
         </button>
@@ -169,7 +169,7 @@ export default function CollaboratorsBoard({
                     </button>
                   )}
                   <button
-                    className="btn-secondary text-red-600"
+                    className="btn-secondary text-red-600 dark:text-red-400"
                     disabled={busyId === c.id}
                     onClick={() => onRevoke(c.id)}
                   >

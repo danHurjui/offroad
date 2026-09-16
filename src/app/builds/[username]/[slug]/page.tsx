@@ -133,7 +133,7 @@ export default async function PublicVehiclePage({
             </div>
           )}
           <div className="p-6">
-            <span className="badge bg-brand-100 text-brand-700">{config.label}</span>
+            <span className="badge badge-brand">{config.label}</span>
             {originalityScore !== undefined && (
               <span className="ml-2">
                 <OriginalityBadge score={originalityScore} />

@@ -20,7 +20,7 @@ export default async function WishlistPage({ params }: { params: { id: string } 
 
   return (
     <div>
-      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
         ← Back to {config.screenTitle}
       </Link>
       <div className="mb-6 flex items-center justify-between">

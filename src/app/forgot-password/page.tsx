@@ -61,14 +61,14 @@ export default function ForgotPasswordPage() {
                 required
               />
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
             <button type="submit" className="btn-primary w-full" disabled={loading}>
               {loading ? 'Sending…' : 'Send reset link'}
             </button>
           </form>
         )}
         <p className="mt-4 text-center text-sm">
-          <Link href="/login" className="text-brand-600 hover:underline">Back to login</Link>
+          <Link href="/login" className="text-brand-600 dark:text-brand-300 hover:underline">Back to login</Link>
         </p>
       </div>
     </div>

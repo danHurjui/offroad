@@ -23,7 +23,7 @@ export default async function NewTicketPage() {
       <PublicHeader />
 
       <main className="mx-auto max-w-2xl px-4 py-10">
-        <Link href="/tickets" className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+        <Link href="/tickets" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
           ← Back to the roadmap
         </Link>
         <h1 className="mb-2 text-2xl font-bold text-ink">Open a ticket</h1>

@@ -67,7 +67,7 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
                 setCustom('')
               }}
               className={`rounded-lg border-2 px-2 py-3 text-sm font-semibold transition-colors ${
-                preset === value ? 'border-brand-500 bg-brand-50 text-ink' : 'border-surface-border text-ink-muted'
+                preset === value ? 'border-brand-500 bg-brand-50 dark:bg-brand-400/10 text-ink' : 'border-surface-border text-ink-muted'
               }`}
             >
               {value} RON
@@ -127,7 +127,7 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
         </span>
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       <button type="submit" className="btn-primary w-full py-3 text-base" disabled={loading || !valid}>
         {loading ? 'Redirecting to checkout…' : `Donate ${valid ? `${amountRon} RON` : ''}`.trim()}

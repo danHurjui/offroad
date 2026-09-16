@@ -48,7 +48,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
 
   return (
     <div className="mx-auto max-w-2xl">
-      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
         ← Back to {config.screenTitle}
       </Link>
 
@@ -58,7 +58,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
             <div className="mb-1 flex items-center gap-2">
               {task.workType === 'WORKSHOP' && <span title="Workshop task">🔧</span>}
               <span className="badge bg-surface-subtle text-ink-muted">{labelFor(config.categories, task.category)}</span>
-              <span className="badge bg-brand-100 text-brand-700">{labelFor(config.statusTags, task.status)}</span>
+              <span className="badge badge-brand">{labelFor(config.statusTags, task.status)}</span>
             </div>
             <h1 className="text-xl font-bold text-ink">{task.name}</h1>
             {task.brand && <p className="text-sm text-ink-muted">{task.brand}</p>}
@@ -107,7 +107,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
             <div className="col-span-2">
               <dt className="text-ink-faint">Supplier</dt>
               <dd>
-                <a href={task.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 hover:underline">
+                <a href={task.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
                   {task.supplierUrl}
                 </a>
               </dd>

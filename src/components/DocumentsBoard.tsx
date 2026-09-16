@@ -14,9 +14,9 @@ interface DocumentRow {
 }
 
 const STATUS_STYLES: Record<DocumentStatus, string> = {
-  valid: 'bg-green-100 text-green-800',
-  expiring: 'bg-amber-100 text-amber-800',
-  expired: 'bg-red-100 text-red-800',
+  valid: 'badge-success',
+  expiring: 'badge-warn',
+  expired: 'badge-danger',
 }
 const STATUS_LABELS: Record<DocumentStatus, string> = {
   valid: 'Valid',
@@ -122,7 +122,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
         <button type="submit" className="btn-primary" disabled={adding}>
           {adding ? 'Adding…' : '+ Add document'}
         </button>
-        {error && <p className="w-full text-sm text-red-600">{error}</p>}
+        {error && <p className="w-full text-sm text-red-600 dark:text-red-400">{error}</p>}
       </form>
 
       {documents.length === 0 ? (
@@ -142,7 +142,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                     {new Date(doc.expiryDate).toLocaleDateString('ro-RO')} · {formatDaysUntil(daysUntil)}
                   </div>
                   {doc.fileUrl && (
-                    <a href={`/api/uploads/${doc.fileUrl}`} target="_blank" rel="noreferrer" className="text-xs text-brand-600 hover:underline">
+                    <a href={`/api/uploads/${doc.fileUrl}`} target="_blank" rel="noreferrer" className="text-xs text-brand-600 dark:text-brand-300 hover:underline">
                       View attached file
                     </a>
                   )}

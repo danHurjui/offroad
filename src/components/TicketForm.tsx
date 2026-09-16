@@ -60,7 +60,7 @@ export default function TicketForm() {
               onClick={() => setType(t)}
               aria-pressed={type === t}
               className={`rounded-xl border-2 p-3 text-left transition-colors ${
-                type === t ? 'border-brand-500 bg-brand-50' : 'border-surface-border'
+                type === t ? 'border-brand-500 bg-brand-50 dark:bg-brand-400/10' : 'border-surface-border'
               }`}
             >
               <div className="font-semibold text-ink">{TICKET_TYPES[t].label}</div>
@@ -107,7 +107,7 @@ export default function TicketForm() {
         </p>
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       <div className="flex gap-3">
         <button type="submit" className="btn-primary" disabled={loading || !title.trim() || !description.trim()}>

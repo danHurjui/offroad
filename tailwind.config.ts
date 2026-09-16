@@ -1,6 +1,9 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  // Theme is an explicit user choice (light / dark / system), persisted and
+  // applied by ThemeScript before paint — not `media`, which would ignore it.
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -29,19 +32,26 @@ const config: Config = {
           900: "#0C1A29",
           950: "#060D14",
         },
+        // Surface and ink resolve through CSS variables (see globals.css) so
+        // that flipping `.dark` on <html> re-themes every existing
+        // `bg-surface` / `text-ink` class in the app without touching a
+        // single component. Brand stays fixed hex — the accent reads the
+        // same on both themes.
         surface: {
-          DEFAULT: "#FFFFFF",
-          muted: "#F2F4F6",
-          subtle: "#E6EAEE",
-          border: "#D3D9E0",
+          DEFAULT: "rgb(var(--surface) / <alpha-value>)",
+          muted: "rgb(var(--surface-muted) / <alpha-value>)",
+          subtle: "rgb(var(--surface-subtle) / <alpha-value>)",
+          border: "rgb(var(--surface-border) / <alpha-value>)",
         },
         ink: {
-          DEFAULT: "#13171C",
-          muted: "#545C68",
-          faint: "#88919C",
+          DEFAULT: "rgb(var(--ink) / <alpha-value>)",
+          muted: "rgb(var(--ink-muted) / <alpha-value>)",
+          faint: "rgb(var(--ink-faint) / <alpha-value>)",
         },
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        // Same triplet form as surface/ink — `bg-background` on the public
+        // page wrappers has to re-theme too. (There is no `foreground`
+        // token: `text-ink` is the one way to colour text.)
+        background: "rgb(var(--background) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],

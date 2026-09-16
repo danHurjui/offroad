@@ -89,11 +89,11 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
               {ticket.commentCount === 1 ? '' : 's'}
             </span>
           </div>
-          <Link href={`/tickets/${ticket.id}`} className="font-medium text-ink hover:text-brand-600">
+          <Link href={`/tickets/${ticket.id}`} className="font-medium text-ink hover:text-brand-600 dark:hover:text-brand-300">
             {ticket.title}
           </Link>
           <div className="text-xs text-ink-faint">
-            <Link href={`/admin/users/${ticket.authorId}`} className="hover:text-brand-600">
+            <Link href={`/admin/users/${ticket.authorId}`} className="hover:text-brand-600 dark:hover:text-brand-300">
               {ticket.authorName}
             </Link>{' '}
             · {ticket.authorEmail} · {new Date(ticket.createdAt).toLocaleDateString('ro-RO')}
@@ -135,12 +135,12 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
             <button type="button" className="btn-primary py-1 text-xs" onClick={save} disabled={busy}>
               {busy ? 'Saving…' : 'Save'}
             </button>
-            {error && <span className="text-xs text-red-600">{error}</span>}
+            {error && <span className="text-xs text-red-600 dark:text-red-400">{error}</span>}
           </div>
         </div>
       )}
 
-      {!open && error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {!open && error && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   )
 }

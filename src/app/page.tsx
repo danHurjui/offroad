@@ -67,7 +67,7 @@ function Section({
   return (
     <section className="mx-auto max-w-5xl px-4 py-14">
       {eyebrow && (
-        <div className="mb-2 text-sm font-semibold uppercase tracking-wide text-brand-600">{eyebrow}</div>
+        <div className="mb-2 text-sm font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">{eyebrow}</div>
       )}
       <h2 className="mb-8 text-2xl font-bold text-ink sm:text-3xl">{title}</h2>
       {children}
@@ -112,7 +112,7 @@ export default function Home() {
             const pitch = MODE_PITCH[type]
             return (
               <div key={type} className="card flex flex-col p-6">
-                <span className="badge mb-3 self-start bg-brand-100 text-brand-700">{config.label}</span>
+                <span className="badge mb-3 self-start badge-brand">{config.label}</span>
                 <h3 className="mb-2 text-lg font-semibold text-ink">{pitch.headline}</h3>
                 <p className="text-sm text-ink-muted">{pitch.body}</p>
                 <div className="mt-4 border-t border-surface-border pt-4 text-xs text-ink-faint">

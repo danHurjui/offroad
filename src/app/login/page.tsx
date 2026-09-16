@@ -55,7 +55,7 @@ export default function LoginPage() {
               required
             />
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? 'Logging in…' : 'Log in'}
           </button>
@@ -69,10 +69,10 @@ export default function LoginPage() {
         </button>
 
         <div className="mt-4 flex justify-between text-sm">
-          <Link href="/forgot-password" className="text-brand-600 hover:underline">
+          <Link href="/forgot-password" className="text-brand-600 dark:text-brand-300 hover:underline">
             Forgot password?
           </Link>
-          <Link href="/register" className="text-brand-600 hover:underline">
+          <Link href="/register" className="text-brand-600 dark:text-brand-300 hover:underline">
             Create account
           </Link>
         </div>

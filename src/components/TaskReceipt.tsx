@@ -68,10 +68,10 @@ export default function TaskReceipt({
           </button>
         )}
       </div>
-      {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
       {receiptUrl ? (
         isPdf ? (
-          <a href={`/api/uploads/${receiptUrl}`} target="_blank" rel="noreferrer" className="text-sm text-brand-600 hover:underline">
+          <a href={`/api/uploads/${receiptUrl}`} target="_blank" rel="noreferrer" className="text-sm text-brand-600 dark:text-brand-300 hover:underline">
             View receipt (PDF)
           </a>
         ) : (

@@ -37,14 +37,14 @@ export default async function PartsRequestDetailPage({ params }: { params: { id:
   return (
     <div className="min-h-screen bg-surface-muted">
       <div className="mx-auto max-w-2xl px-4 py-8">
-        <Link href="/community/parts-wanted" className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+        <Link href="/community/parts-wanted" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
           ← Back to parts wanted
         </Link>
 
         <div className="card p-6">
           <div className="mb-2 flex items-start justify-between gap-3">
             <div>
-              <span className={`badge ${request.status === 'OPEN' ? 'bg-brand-100 text-brand-700' : 'bg-surface-subtle text-ink-muted'}`}>
+              <span className={`badge ${request.status === 'OPEN' ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}>
                 {request.status === 'OPEN' ? 'Wanted' : 'Found'}
               </span>
               <h1 className="mt-2 text-xl font-bold text-ink">

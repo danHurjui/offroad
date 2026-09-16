@@ -76,13 +76,13 @@ export default function PartsRequestComments({
             value={body}
             onChange={(e) => setBody(e.target.value)}
           />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           <button type="submit" className="btn-primary" disabled={loading || !body.trim()}>
             {loading ? 'Posting…' : 'Reply'}
           </button>
         </form>
       ) : (
-        <Link href="/login" className="text-sm text-brand-600 hover:underline">
+        <Link href="/login" className="text-sm text-brand-600 dark:text-brand-300 hover:underline">
           Log in to reply
         </Link>
       )}

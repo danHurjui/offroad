@@ -63,7 +63,7 @@ export default function AdminUserActiveToggle({
       >
         {busy ? '…' : active ? 'Deactivate' : 'Reactivate'}
       </button>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   )
 }

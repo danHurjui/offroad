@@ -19,7 +19,7 @@ export default async function VinDecoderPage({ params }: { params: { id: string 
 
   return (
     <div className="mx-auto max-w-xl">
-      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 hover:underline">
+      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
         ← Back to {config.screenTitle}
       </Link>
       <h1 className="mb-6 text-2xl font-bold text-ink">VIN decoder</h1>
@@ -32,7 +32,7 @@ export default async function VinDecoderPage({ params }: { params: { id: string 
           source={vehicle.vinDecodeSource}
         />
       ) : (
-        <div className="card border-brand-200 bg-brand-50 p-4 text-sm text-ink">
+        <div className="card note p-4 text-sm text-ink">
           Upgrade to Pro to decode this vehicle&apos;s VIN into its original factory specification.
         </div>
       )}
