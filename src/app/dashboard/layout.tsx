@@ -12,7 +12,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-surface-muted">
-      <Nav displayName={user?.displayName ?? 'Account'} />
+      <Nav displayName={user?.displayName ?? 'Account'} isAdmin={session.user.isAdmin} />
       {user?.proPaymentFailedAt && (
         <div className="bg-red-600 px-4 py-2 text-center text-sm text-white">
           Your last RigLog Pro payment failed.{' '}

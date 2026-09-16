@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 
-export default function Nav({ displayName }: { displayName: string }) {
+export default function Nav({ displayName, isAdmin }: { displayName: string; isAdmin?: boolean }) {
   return (
     <header className="sticky top-0 z-10 border-b border-surface-border bg-surface/90 backdrop-blur"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
@@ -18,6 +18,11 @@ export default function Nav({ displayName }: { displayName: string }) {
           <Link href="/tickets" className="hidden text-ink-muted hover:text-ink sm:inline">
             Feedback
           </Link>
+          {isAdmin && (
+            <Link href="/admin" className="text-amber-700 hover:text-amber-800">
+              Admin
+            </Link>
+          )}
           <Link href="/dashboard/settings" className="text-ink-muted hover:text-ink">
             {displayName}
           </Link>

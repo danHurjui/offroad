@@ -249,6 +249,36 @@ proves nothing. Donations and Pro purchases share the
 fall through and grant Pro.** The `status: 'PENDING'` filter in its
 `updateMany` is what makes a Stripe retry idempotent.
 
+### Admin surface (`/admin`, `src/lib/authz.ts`)
+Gated by `requireAdmin()` (API) / `requireAdminOrNotFound()` (pages), both
+of which **404 rather than 403** for a non-admin — the admin area doesn't
+confirm its own existence to someone guessing URLs. The `/admin` layout
+runs the gate too, so a child page never queries anything for a
+non-admin.
+
+**Sessions are revalidated, and that is load-bearing.** Sessions are JWTs,
+so nothing is re-read from the database once a token is minted:
+`User.active = false` used to block only *new* logins while the existing
+token kept working for the full 30-day `maxAge`. Since deactivation is the
+moderation lever behind these screens, the `jwt` callback re-reads
+`active`/`isAdmin` every `REVALIDATE_AFTER_SECONDS` (60) and
+`requireSession()` rejects an inactive session with 403. A ban therefore
+takes effect within about a minute, not a month. Don't "optimise" that
+revalidation away, and don't assume a flag on the session is fresher than
+that window.
+
+**Two fields are deliberately not editable from the admin UI**, because
+each has a single owner elsewhere: `isPro` (the Stripe webhook) and
+`isAdmin` (a direct database change). `PATCH /api/admin/users/[userId]`
+accepts only `active` and ignores everything else rather than merging the
+body, so it can't become a mass-assignment hole as `User` grows. An admin
+also cannot deactivate themselves (no in-app way back) or another admin
+(deposing an admin needs the same database access as creating one).
+
+Ticket triage has **no separate admin write path** — the admin screens
+call the same `PATCH /api/tickets/[id]` the public detail page uses, which
+already separates author edits from admin status changes.
+
 ## What's not built yet
 
 Phase 1 (core log) is implemented: auth, vehicle CRUD, dashboard, task CRUD,
