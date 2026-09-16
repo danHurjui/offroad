@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   DONATION_PRESETS_RON,
   DONATION_MESSAGE_MAX,
@@ -10,6 +11,8 @@ import {
 } from '@/lib/donations'
 
 export default function DonateForm({ signedIn }: { signedIn: boolean }) {
+  const t = useTranslations('donate')
+  const tc = useTranslations('common')
   const [preset, setPreset] = useState<number | null>(DONATION_PRESETS_RON[1])
   const [custom, setCustom] = useState('')
   const [message, setMessage] = useState('')
@@ -41,13 +44,13 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok || !data.url) {
-        setError(data.error ?? 'Could not start checkout')
+        setError(data.error ?? t('checkoutFailed'))
         setLoading(false)
         return
       }
       window.location.href = data.url
     } catch {
-      setError('Could not reach the server. Please try again.')
+      setError(tc('networkError'))
       setLoading(false)
     }
   }
@@ -55,7 +58,7 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
   return (
     <form onSubmit={onSubmit} className="card space-y-5 p-6">
       <div>
-        <label className="label">Amount</label>
+        <label className="label">{t('amount')}</label>
         <div className="grid grid-cols-4 gap-2">
           {DONATION_PRESETS_RON.map((value) => (
             <button
@@ -76,7 +79,7 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
         </div>
         <div className="mt-3">
           <label className="label" htmlFor="custom-amount">
-            Or another amount (RON)
+            {t('otherAmount')}
           </label>
           <input
             id="custom-amount"
@@ -86,7 +89,7 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
             max={baniToRon(MAX_DONATION_BANI)}
             step="1"
             inputMode="decimal"
-            placeholder="e.g. 75"
+            placeholder={t('otherPlaceholder')}
             value={custom}
             onChange={(e) => {
               setCustom(e.target.value)
@@ -98,7 +101,7 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
 
       <div>
         <label className="label" htmlFor="donate-message">
-          Message (optional, shown publicly)
+          {t('message')}
         </label>
         <textarea
           id="donate-message"
@@ -107,7 +110,7 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
           maxLength={DONATION_MESSAGE_MAX}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Keep it up!"
+          placeholder={t('messagePlaceholder')}
         />
         <p className="mt-1 text-xs text-ink-faint">
           {message.length}/{DONATION_MESSAGE_MAX}
@@ -122,20 +125,23 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
           onChange={(e) => setIsAnonymous(e.target.checked)}
         />
         <span>
-          Show me as Anonymous on the supporters list
-          {!signedIn && ' (you are not logged in, so this is already the case)'}
+          {t('anonymous')}
+          {!signedIn && t('anonymousAlready')}
         </span>
       </label>
 
       {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       <button type="submit" className="btn-primary w-full py-3 text-base" disabled={loading || !valid}>
-        {loading ? 'Redirecting to checkout…' : `Donate ${valid ? `${amountRon} RON` : ''}`.trim()}
+        {loading
+          ? t('redirecting')
+          : valid
+            ? t('donateAmount', { amount: amountRon })
+            : t('donateNoAmount')}
       </button>
 
       <p className="text-center text-xs text-ink-faint">
-        Payments are handled by Stripe. RigLog never sees your card details, and this is a one-off
-        payment — nothing recurring is set up.
+        {t('stripeNote')}
       </p>
     </form>
   )
