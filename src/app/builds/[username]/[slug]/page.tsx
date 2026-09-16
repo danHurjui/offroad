@@ -161,7 +161,9 @@ export default async function PublicVehiclePage({
             <div className="mt-4 flex flex-wrap gap-4">
               <div>
                 <div className="text-xs text-ink-faint">{config.progressLabel}</div>
-                <div className="text-lg font-semibold text-ink">{progressPct}%</div>
+                <div className="text-lg font-semibold text-ink">
+                  {config.tracksCompletion ? `${progressPct}%` : tasks.length}
+                </div>
               </div>
               {!vehicle.hidePublicCost && (
                 <div>

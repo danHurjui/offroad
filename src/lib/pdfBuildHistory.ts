@@ -1,7 +1,14 @@
 import type { Content } from 'pdfmake'
 import type { PdfDocDefinition, PdfPhoto } from '@/lib/pdf'
+import type { ProjectType } from '@/lib/projectType'
 
 export type PdfTaskPhoto = PdfPhoto
+
+const PDF_SUBTITLES: Record<ProjectType, string> = {
+  OFFROAD: 'Off-road build log',
+  RESTORATION: 'Restoration journal',
+  DAILY_DRIVER: 'Service & repair history',
+}
 
 export interface PdfTask {
   name: string
@@ -31,7 +38,7 @@ export interface PdfFoundState {
 
 export interface VehicleHistoryPdfInput {
   vehicleName: string
-  projectType: 'OFFROAD' | 'RESTORATION'
+  projectType: ProjectType
   generation: string | null
   engine: string | null
   vin: string | null
@@ -94,7 +101,7 @@ function detailTable(rows: [string, string][]): Content {
 export function buildVehicleHistoryDocDefinition(input: VehicleHistoryPdfInput): PdfDocDefinition {
   const content: Content[] = [
     { text: input.vehicleName, style: 'title' },
-    { text: input.projectType === 'RESTORATION' ? 'Restoration journal' : 'Off-road build log', style: 'subtitle' },
+    { text: PDF_SUBTITLES[input.projectType], style: 'subtitle' },
   ]
 
   if (input.coverPhotoDataUri) {

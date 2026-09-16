@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-RigLog — off-road build tracker & classic car restoration journal. A single
-Next.js 14 (App Router) PWA. One `Vehicle` can be in `OFFROAD` or
-`RESTORATION` mode; the mode is a config flag (`src/lib/projectType.ts`) that
-reconfigures category taxonomy, status tags, and photo type labels — the
-data model and screens are identical for both.
+RigLog — off-road build tracker, classic car restoration journal, and
+everyday repair log. A single Next.js 14 (App Router) PWA. One `Vehicle` is
+in `OFFROAD`, `RESTORATION` or `DAILY_DRIVER` mode; the mode is a config flag
+(`src/lib/projectType.ts`) that reconfigures category taxonomy, status tags,
+and photo type labels — the data model and screens are identical for all
+three.
 
 Infrastructure and conventions are carried over from the kids-heaven-education
 admin app: Next.js App Router + Prisma (direct, no ORM-agnostic layer) +
@@ -99,6 +100,28 @@ The single source of truth for category/status-tag/photo-type vocabulary per
 mode. Never hardcode a category or status string in a route or component —
 import `PROJECT_TYPE_CONFIG[vehicle.projectType]` and validate against it.
 This is what RL-003/RL-004/RL-006 mean by "vocabulary adapts to project type."
+
+`PROJECT_TYPES` and `isProjectType()` are **derived from the config's keys**,
+not hand-written literal unions — adding a mode to `PROJECT_TYPE_CONFIG` (plus
+the Prisma enum) is what makes it selectable, and the create form, the
+community filter and the API validators pick it up without edits. Typing a
+per-mode lookup as `Record<ProjectType, T>` makes `tsc` name any mode you
+forgot; prefer that over an `if/else` on two of the three.
+
+`config.tracksCompletion` says whether the mode works towards a finished
+state. `OFFROAD`/`RESTORATION` do, so they show a completion % bar and can
+read as "complete" in the community feed. `DAILY_DRIVER` does not — a repair
+log just accumulates — so it shows a running job count and never reports
+complete. Gate any new "how far along is this?" UI on that flag.
+
+**`DAILY_DRIVER` deliberately has no project-only features**: no found state,
+VIN decoder, trail log, originality score, or shareable build/transformation
+card. Those are already gated by explicit `=== 'RESTORATION'` / `=== 'OFFROAD'`
+checks, so a new mode is excluded by default — which is the behaviour you
+want; don't "helpfully" widen those checks to `!== 'OFFROAD'` and the like.
+It keeps everything else: tasks, photos, documents/reminders, costs and
+analytics, wishlist (as "Planned work"), collaborators, PDF export, and the
+public profile.
 
 ### Photo / file storage (`src/lib/storage.ts`)
 No Supabase Storage — `saveUpload()`/`readUpload()`/`deleteUpload()` are a
@@ -278,7 +301,10 @@ as the rest of this file — see "What this is" above):
    underlying rows** — a Task's `category`/`status`/`photoType` are plain
    strings chosen from the vehicle's mode at write time. Changing a
    vehicle's `projectType` after tasks exist would orphan their vocabulary;
-   the vehicle edit form does not expose it as editable.
+   the vehicle edit form does not expose it as editable. This matters more
+   now there are three modes: the vocabularies don't overlap (a
+   `DAILY_DRIVER` task is `BRAKES`/`DUE`, a `RESTORATION` one is
+   `PAINT`/`PRIMED`), so there is no "compatible" mode to switch to.
 
 3. **`FoundState` is 1:1 with a `Vehicle`, restoration mode only** — off-road
    vehicles never get one. Don't assume `vehicle.foundState` exists; check

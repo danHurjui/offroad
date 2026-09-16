@@ -5,7 +5,7 @@
  * validate against this.
  */
 
-export type ProjectType = 'OFFROAD' | 'RESTORATION'
+export type ProjectType = 'OFFROAD' | 'RESTORATION' | 'DAILY_DRIVER'
 
 export type Option = { value: string; label: string }
 
@@ -25,6 +25,14 @@ interface ProjectTypeConfig {
    * which puts DONE first, not last.
    */
   completeStatus: string
+  /**
+   * Whether the mode has an end state worth showing as a completion %.
+   * A build gets finished and a restoration gets completed, so "60% of
+   * categories done" reads as real progress. A daily driver's repair log
+   * never finishes — it just accumulates — so it shows a running job
+   * count instead of a progress bar, and never claims to be "complete".
+   */
+  tracksCompletion: boolean
   categories: Option[]
   photoTypes: Option[]
   wishlistStatuses: Option[]
@@ -46,6 +54,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
       { value: 'SOURCED', label: 'Sourced' },
     ],
     completeStatus: 'DONE',
+    tracksCompletion: true,
     categories: [
       { value: 'SUSPENSION', label: 'Suspension' },
       { value: 'PROTECTION', label: 'Protection' },
@@ -87,6 +96,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
       { value: 'COMPLETE', label: 'Complete' },
     ],
     completeStatus: 'COMPLETE',
+    tracksCompletion: true,
     categories: [
       { value: 'BODY_PANELS', label: 'Body & Panels' },
       { value: 'PAINT', label: 'Paint' },
@@ -113,6 +123,54 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
       { value: 'FITTED', label: 'Fitted' },
     ],
   },
+  // A car in daily use. The vocabulary is servicing/repair work rather
+  // than build or restoration stages, and the statuses describe what a
+  // job needs next ("due", "booked in") instead of how far through a
+  // rebuild it is. Deliberately keeps the wishlist — the everyday
+  // equivalent is a list of jobs to get around to.
+  DAILY_DRIVER: {
+    label: 'Daily driver',
+    screenTitle: 'My Car',
+    progressLabel: 'Jobs logged',
+    addTaskCta: '+ Log a repair',
+    wishlistLabel: 'Planned work',
+    communityTabLabel: 'Daily drivers',
+    statusTags: [
+      { value: 'DONE', label: 'Done' },
+      { value: 'DUE', label: 'Due' },
+      { value: 'BOOKED', label: 'Booked in' },
+      { value: 'IN_PROGRESS', label: 'In Progress' },
+      { value: 'DEFERRED', label: 'Deferred' },
+    ],
+    completeStatus: 'DONE',
+    tracksCompletion: false,
+    categories: [
+      { value: 'SERVICING', label: 'Servicing & Fluids' },
+      { value: 'BRAKES', label: 'Brakes' },
+      { value: 'TYRES', label: 'Tyres & Wheels' },
+      { value: 'SUSPENSION', label: 'Suspension & Steering' },
+      { value: 'ENGINE', label: 'Engine' },
+      { value: 'TRANSMISSION', label: 'Transmission & Clutch' },
+      { value: 'ELECTRICAL', label: 'Electrical' },
+      { value: 'COOLING', label: 'Cooling & Heating' },
+      { value: 'EXHAUST', label: 'Exhaust & Emissions' },
+      { value: 'BODYWORK', label: 'Bodywork & Glass' },
+      { value: 'INSPECTION', label: 'ITP & Inspection' },
+      { value: 'OTHER', label: 'Other' },
+    ],
+    photoTypes: [
+      { value: 'FAULT', label: 'Fault' },
+      { value: 'REPAIR', label: 'Repair' },
+      { value: 'PART', label: 'Part' },
+      { value: 'OTHER', label: 'Other' },
+    ],
+    wishlistStatuses: [
+      { value: 'RESEARCHING', label: 'Researching' },
+      { value: 'QUOTED', label: 'Quoted' },
+      { value: 'ORDERED', label: 'Ordered' },
+      { value: 'FITTED', label: 'Fitted' },
+    ],
+  },
 }
 
 export const PART_CONDITIONS: Option[] = [
@@ -129,8 +187,13 @@ export const ORIGINALITY_CONDITIONS: Option[] = [
   { value: 'REPRODUCTION', label: 'Reproduction' },
 ]
 
+/** Every mode, in the order they're offered in the UI. */
+export const PROJECT_TYPES = Object.keys(PROJECT_TYPE_CONFIG) as ProjectType[]
+
+// Derived from the config rather than a hand-written list of literals, so
+// adding a mode above can't leave a validator behind still rejecting it.
 export function isProjectType(value: unknown): value is ProjectType {
-  return value === 'OFFROAD' || value === 'RESTORATION'
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(PROJECT_TYPE_CONFIG, value)
 }
 
 export function isValidCategory(projectType: ProjectType, category: string): boolean {

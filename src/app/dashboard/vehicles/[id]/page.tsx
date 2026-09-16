@@ -152,7 +152,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
               Export PDF
             </Link>
           )}
-          {isOwner && (
+          {isOwner && vehicle.projectType !== 'DAILY_DRIVER' && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/card`} className="btn-secondary">
               Share card
             </Link>
@@ -207,14 +207,21 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         </div>
       )}
 
+      {/* A build or restoration works towards a finished state, so it gets a
+          completion bar. A daily driver's log just accumulates — showing it
+          as "17% complete" would be meaningless — so it gets a running count. */}
       <div className="card mb-6 p-5">
-        <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <span className="text-sm font-medium text-ink-muted">{config.progressLabel}</span>
-          <span className="text-sm font-semibold text-ink">{progressPct}%</span>
+          <span className="text-sm font-semibold text-ink">
+            {config.tracksCompletion ? `${progressPct}%` : tasks.length}
+          </span>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-surface-subtle">
-          <div className="h-full rounded-full bg-brand-500" style={{ width: `${progressPct}%` }} />
-        </div>
+        {config.tracksCompletion && (
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-subtle">
+            <div className="h-full rounded-full bg-brand-500" style={{ width: `${progressPct}%` }} />
+          </div>
+        )}
       </div>
 
       <div className="mb-6 grid grid-cols-3 gap-3">
@@ -226,8 +233,8 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
               : `${totalSpent.toLocaleString('ro-RO')} RON`
           }
         />
-        <StatCard label="Completed" value={String(completedCount)} />
-        <StatCard label="Planned" value={String(plannedCount)} />
+        <StatCard label={config.tracksCompletion ? 'Completed' : 'Done'} value={String(completedCount)} />
+        <StatCard label={config.tracksCompletion ? 'Planned' : 'Outstanding'} value={String(plannedCount)} />
       </div>
 
       <div className="space-y-6">

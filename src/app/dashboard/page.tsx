@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
 
 export default async function DashboardPage() {
@@ -58,7 +58,7 @@ function VehicleCard({
   vehicle,
   collaborator,
 }: {
-  vehicle: { id: string; make: string; model: string; year: number; projectType: 'OFFROAD' | 'RESTORATION'; coverPhotoUrl: string | null }
+  vehicle: { id: string; make: string; model: string; year: number; projectType: ProjectType; coverPhotoUrl: string | null }
   collaborator?: boolean
 }) {
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]

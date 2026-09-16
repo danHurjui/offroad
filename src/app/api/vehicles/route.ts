@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
-import { isProjectType } from '@/lib/projectType'
+import { isProjectType, PROJECT_TYPES } from '@/lib/projectType'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
 import { readJsonBody } from '@/lib/requestBody'
 
@@ -42,7 +42,10 @@ export async function POST(req: NextRequest) {
     const { projectType, make, model, year, generation, engine, vin, coverPhotoUrl } = body
 
     if (!isProjectType(projectType)) {
-      return NextResponse.json({ error: 'projectType must be OFFROAD or RESTORATION' }, { status: 400 })
+      return NextResponse.json(
+        { error: `projectType must be one of: ${PROJECT_TYPES.join(', ')}` },
+        { status: 400 }
+      )
     }
     if (!make || typeof make !== 'string') {
       return NextResponse.json({ error: 'make is required' }, { status: 400 })

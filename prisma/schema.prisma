@@ -21,6 +21,11 @@ datasource db {
 enum ProjectType {
   OFFROAD
   RESTORATION
+  /// A car in regular use — a repair/maintenance log rather than a build
+  /// with an end state. Gets the same tasks/photos/documents/costs as the
+  /// other modes, but none of the project-only features (found state, VIN
+  /// decoder, trail log, showcase cards).
+  DAILY_DRIVER
 }
 
 enum WorkType {

@@ -17,18 +17,36 @@ interface WishlistItem {
   hardToFind: boolean
 }
 
-const RESTORATION_STATUS_COLORS: Record<string, string> = {
-  HUNTING: 'bg-amber-100 text-amber-800',
-  LOCATED: 'bg-blue-100 text-blue-800',
-  RESERVED: 'bg-purple-100 text-purple-800',
-  PURCHASED: 'bg-green-100 text-green-800',
-  FITTED: 'bg-surface-subtle text-ink-muted',
+// Keyed per mode because the wishlist status vocabularies don't overlap
+// (see PROJECT_TYPE_CONFIG). An unmapped status still falls back to the
+// neutral badge below rather than rendering uncoloured.
+const STATUS_COLORS: Record<ProjectType, Record<string, string>> = {
+  RESTORATION: {
+    HUNTING: 'bg-amber-100 text-amber-800',
+    LOCATED: 'bg-blue-100 text-blue-800',
+    RESERVED: 'bg-purple-100 text-purple-800',
+    PURCHASED: 'bg-green-100 text-green-800',
+    FITTED: 'bg-surface-subtle text-ink-muted',
+  },
+  OFFROAD: {
+    RESEARCHING: 'bg-slate-100 text-slate-700',
+    SOURCED: 'bg-blue-100 text-blue-800',
+    ORDERED: 'bg-amber-100 text-amber-800',
+    INSTALLED: 'bg-green-100 text-green-800',
+  },
+  DAILY_DRIVER: {
+    RESEARCHING: 'bg-slate-100 text-slate-700',
+    QUOTED: 'bg-blue-100 text-blue-800',
+    ORDERED: 'bg-amber-100 text-amber-800',
+    FITTED: 'bg-green-100 text-green-800',
+  },
 }
-const OFFROAD_STATUS_COLORS: Record<string, string> = {
-  RESEARCHING: 'bg-slate-100 text-slate-700',
-  SOURCED: 'bg-blue-100 text-blue-800',
-  ORDERED: 'bg-amber-100 text-amber-800',
-  INSTALLED: 'bg-green-100 text-green-800',
+
+// The convert action reads as whatever the mode's terminal status is.
+const CONVERT_LABELS: Record<ProjectType, string> = {
+  RESTORATION: 'Mark as fitted',
+  OFFROAD: 'Mark as installed',
+  DAILY_DRIVER: 'Mark as fitted',
 }
 
 // RL-011/012: budget total, category breakdown, drag-to-reorder (with
@@ -46,9 +64,9 @@ export default function WishlistBoard({
 }) {
   const router = useRouter()
   const config = PROJECT_TYPE_CONFIG[projectType]
-  const statusColors = projectType === 'RESTORATION' ? RESTORATION_STATUS_COLORS : OFFROAD_STATUS_COLORS
+  const statusColors = STATUS_COLORS[projectType]
   const terminalStatus = config.wishlistStatuses[config.wishlistStatuses.length - 1].value
-  const convertLabel = projectType === 'RESTORATION' ? 'Mark as fitted' : 'Mark as installed'
+  const convertLabel = CONVERT_LABELS[projectType]
 
   const [items, setItems] = useState(initialItems)
   const [dragIndex, setDragIndex] = useState<number | null>(null)

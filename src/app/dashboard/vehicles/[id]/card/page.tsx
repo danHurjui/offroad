@@ -12,11 +12,14 @@ import TransformationCardPicker from '@/components/TransformationCardPicker'
 // preview-then-share flow against a sibling PNG-generating route.
 // Restoration additionally lets the owner pick which before/after photos
 // appear (see TransformationCardPicker) — off-road doesn't need that,
-// it auto-picks the 4 most recent completed mods.
+// it auto-picks the 4 most recent completed mods. A daily driver has
+// neither card: both are showcase pieces for a project, and a repair log
+// isn't one, so the page 404s (the dashboard hides the link too).
 export default async function ShareCardPage({ params }: { params: { id: string } }) {
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
+  if (vehicle.projectType === 'DAILY_DRIVER') notFound()
 
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { isPro: true } })

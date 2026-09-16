@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
+import { isProjectType } from '@/lib/projectType'
 
 // RL-009: user profile & settings.
 export async function GET() {
@@ -51,7 +52,7 @@ export async function PATCH(req: NextRequest) {
     if (body.avatarUrl !== undefined) data.avatarUrl = body.avatarUrl || null
     if (body.isPublicProfile !== undefined) data.isPublicProfile = Boolean(body.isPublicProfile)
     if (body.preferredMode !== undefined) {
-      if (body.preferredMode !== null && body.preferredMode !== 'OFFROAD' && body.preferredMode !== 'RESTORATION') {
+      if (body.preferredMode !== null && !isProjectType(body.preferredMode)) {
         return NextResponse.json({ error: 'Invalid preferredMode' }, { status: 400 })
       }
       data.preferredMode = body.preferredMode

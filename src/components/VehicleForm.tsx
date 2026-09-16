@@ -2,11 +2,17 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { ProjectType } from '@/lib/projectType'
+import { PROJECT_TYPES, PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 
 // RL-002: create a vehicle / project. Project type selector is prominent —
-// two large buttons, not a dropdown.
+// large buttons, not a dropdown. Driven by PROJECT_TYPE_CONFIG so a new
+// mode shows up here without editing this component.
+const PROJECT_TYPE_BLURBS: Record<ProjectType, string> = {
+  OFFROAD: 'What have I bolted on?',
+  RESTORATION: 'What stage is the car at?',
+  DAILY_DRIVER: "What's been fixed, and what's due?",
+}
 export default function VehicleForm() {
   const router = useRouter()
   const [projectType, setProjectType] = useState<ProjectType | null>(null)
@@ -23,7 +29,7 @@ export default function VehicleForm() {
     e.preventDefault()
     setError(null)
     if (!projectType) {
-      setError('Choose off-road build or restoration project')
+      setError('Choose what kind of vehicle this is')
       return
     }
     setLoading(true)
@@ -55,27 +61,21 @@ export default function VehicleForm() {
     <form onSubmit={onSubmit} className="card space-y-5 p-6">
       <div>
         <label className="label">Project type</label>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setProjectType('OFFROAD')}
-            className={`rounded-xl border-2 p-4 text-left transition-colors ${
-              projectType === 'OFFROAD' ? 'border-brand-500 bg-brand-50' : 'border-surface-border'
-            }`}
-          >
-            <div className="font-semibold text-ink">Off-road build</div>
-            <div className="text-sm text-ink-muted">What have I bolted on?</div>
-          </button>
-          <button
-            type="button"
-            onClick={() => setProjectType('RESTORATION')}
-            className={`rounded-xl border-2 p-4 text-left transition-colors ${
-              projectType === 'RESTORATION' ? 'border-brand-500 bg-brand-50' : 'border-surface-border'
-            }`}
-          >
-            <div className="font-semibold text-ink">Restoration project</div>
-            <div className="text-sm text-ink-muted">What stage is the car at?</div>
-          </button>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {PROJECT_TYPES.map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => setProjectType(type)}
+              aria-pressed={projectType === type}
+              className={`rounded-xl border-2 p-4 text-left transition-colors ${
+                projectType === type ? 'border-brand-500 bg-brand-50' : 'border-surface-border'
+              }`}
+            >
+              <div className="font-semibold text-ink">{PROJECT_TYPE_CONFIG[type].label}</div>
+              <div className="text-sm text-ink-muted">{PROJECT_TYPE_BLURBS[type]}</div>
+            </button>
+          ))}
         </div>
       </div>
 
