@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import ShareImageButton from '@/components/ShareImageButton'
 
 interface PhotoOption {
@@ -22,6 +23,7 @@ export default function TransformationCardPicker({
   beforeOptions: PhotoOption[]
   afterOptions: PhotoOption[]
 }) {
+  const t = useTranslations('card')
   const [before, setBefore] = useState(beforeOptions[0]?.id ?? '')
   const [after, setAfter] = useState(afterOptions[0]?.id ?? '')
 
@@ -34,14 +36,14 @@ export default function TransformationCardPicker({
     <div className="space-y-4">
       <div className="card overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={endpoint} alt="Transformation card preview" className="w-full" />
+        <img src={endpoint} alt={t('transformationPreview')} className="w-full" />
       </div>
 
       <div className="card grid grid-cols-1 gap-4 p-4 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="before-photo">Before photo</label>
+          <label className="label" htmlFor="before-photo">{t('beforePhoto')}</label>
           {beforeOptions.length === 0 ? (
-            <p className="text-xs text-ink-faint">No found state photos yet.</p>
+            <p className="text-xs text-ink-faint">{t('noFoundStatePhotos')}</p>
           ) : (
             <select id="before-photo" className="input" value={before} onChange={(e) => setBefore(e.target.value)}>
               {beforeOptions.map((p) => (
@@ -51,9 +53,9 @@ export default function TransformationCardPicker({
           )}
         </div>
         <div>
-          <label className="label" htmlFor="after-photo">After photo</label>
+          <label className="label" htmlFor="after-photo">{t('afterPhoto')}</label>
           {afterOptions.length === 0 ? (
-            <p className="text-xs text-ink-faint">No task photos yet.</p>
+            <p className="text-xs text-ink-faint">{t('noTaskPhotos')}</p>
           ) : (
             <select id="after-photo" className="input" value={after} onChange={(e) => setAfter(e.target.value)}>
               {afterOptions.map((p) => (

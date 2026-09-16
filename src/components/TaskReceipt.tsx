@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 
 // RL-016: one receipt/document scan per task.
@@ -15,6 +16,7 @@ export default function TaskReceipt({
   receiptUrl: string | null
   canEdit: boolean
 }) {
+  const t = useTranslations('receipt')
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -32,14 +34,14 @@ export default function TaskReceipt({
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? 'Upload failed')
+      setError(data.error ?? t('uploadFailed'))
       return
     }
     router.refresh()
   }
 
   async function onDelete() {
-    if (!confirm('Remove this receipt?')) return
+    if (!confirm(t('confirmRemove'))) return
     await fetch(`/api/vehicles/${vehicleId}/tasks/${taskId}/receipt`, { method: 'DELETE' })
     router.refresh()
   }
@@ -51,7 +53,7 @@ export default function TaskReceipt({
       <div className="mb-3 flex items-center gap-2">
         {canEdit && (
           <label className="btn-secondary cursor-pointer">
-            {uploading ? 'Uploading…' : receiptUrl ? 'Replace receipt' : 'Attach receipt'}
+            {uploading ? t('uploading') : receiptUrl ? t('replace') : t('attach')}
             <input
               ref={fileInputRef}
               type="file"
@@ -64,7 +66,7 @@ export default function TaskReceipt({
         )}
         {canEdit && receiptUrl && (
           <button type="button" className="btn-danger" onClick={onDelete}>
-            Remove
+            {t('remove')}
           </button>
         )}
       </div>
@@ -72,14 +74,14 @@ export default function TaskReceipt({
       {receiptUrl ? (
         isPdf ? (
           <a href={`/api/uploads/${receiptUrl}`} target="_blank" rel="noreferrer" className="text-sm text-brand-600 dark:text-brand-300 hover:underline">
-            View receipt (PDF)
+            {t('viewPdf')}
           </a>
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={`/api/uploads/${receiptUrl}`} alt="Receipt" className="max-h-64 rounded-lg border border-surface-border object-contain" />
         )
       ) : (
-        <p className="text-sm text-ink-faint">No receipt attached.</p>
+        <p className="text-sm text-ink-faint">{t('none')}</p>
       )}
     </div>
   )

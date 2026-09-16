@@ -882,5 +882,76 @@
     "locationShipping": "Locație / expediere",
     "descriptionLabel": "Descriere",
     "repliesCount": "Răspunsuri ({count})"
+  },
+  "publicBuild": {
+    "noCover": "Fără poză de copertă",
+    "completedTasks": "Lucrări finalizate",
+    "totalSpent": "Total cheltuit",
+    "documentedWith": "Documentat cu <b>RigLog</b>",
+    "noCompletedWork": "Nicio lucrare finalizată înregistrată încă."
+  },
+  "vin": {
+    "field": {
+      "manufacturer": "Producător",
+      "modelYear": "An de model",
+      "factory": "Uzină",
+      "engineCode": "Cod motor",
+      "bodyStyle": "Tip caroserie",
+      "colorCode": "Cod de culoare original"
+    },
+    "source": {
+      "local": "Decodat local (tabel VIN Dacia/Renault-România)",
+      "nhtsa": "Decodat prin NHTSA vPIC",
+      "manual": "Introdus manual"
+    },
+    "noVin": "Adaugă întâi o serie VIN / de șasiu în setările vehiculului.",
+    "decoding": "Se decodează…",
+    "redecode": "Decodează din nou",
+    "decode": "Decodează VIN-ul",
+    "editManually": "Completează manual",
+    "decodedSpec": "Specificații decodate",
+    "correctFields": "Corectează sau completează orice câmp.",
+    "couldNotDecode": "Acest VIN nu a putut fi decodat automat — completează ce știi.",
+    "decodeFailed": "Nu am putut decoda VIN-ul",
+    "vinLabel": "Serie VIN / șasiu"
+  },
+  "receipt": {
+    "title": "Bon / factură",
+    "uploading": "Se încarcă…",
+    "replace": "Înlocuiește bonul",
+    "attach": "Atașează un bon",
+    "remove": "Elimină",
+    "viewPdf": "Vezi bonul (PDF)",
+    "none": "Niciun bon atașat.",
+    "uploadFailed": "Încărcarea a eșuat",
+    "confirmRemove": "Elimini acest bon?"
+  },
+  "taskPhotos": {
+    "uploading": "Se încarcă…",
+    "addPhoto": "Adaugă poză",
+    "prev": "‹ Anterioară",
+    "next": "Următoarea ›",
+    "empty": "Nicio poză încă.",
+    "uploadFailed": "Încărcarea a eșuat",
+    "confirmDelete": "Ștergi această poză?"
+  },
+  "card": {
+    "beforePhoto": "Poză „înainte”",
+    "afterPhoto": "Poză „după”",
+    "noFoundStatePhotos": "Nicio poză cu starea la găsire încă.",
+    "noTaskPhotos": "Nicio poză de lucrare încă.",
+    "transformationPreview": "Previzualizare card de transformare"
+  },
+  "trailLog": {
+    "title": "Jurnal de traseu",
+    "backToDashboard": "← Înapoi la panoul de bord",
+    "backToTrailLog": "← Înapoi la jurnalul de traseu",
+    "recordRun": "Înregistrează un traseu",
+    "proOnly": "Treci la Pro ca să înregistrezi trasee GPS pentru acest proiect.",
+    "empty": "Niciun traseu înregistrat încă.",
+    "distance": "Distanță",
+    "duration": "Durată",
+    "elevationGain": "Diferență de nivel",
+    "waypoints": "Repere"
   }
 }

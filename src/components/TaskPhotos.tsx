@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { labelFor, type ProjectType } from '@/lib/projectType'
 import { useVocabulary } from '@/lib/vocabulary'
@@ -27,6 +28,8 @@ export default function TaskPhotos({
   projectType: ProjectType
   photos: Photo[]
 }) {
+  const t = useTranslations('taskPhotos')
+  const tc = useTranslations('common')
   const router = useRouter()
   const config = useVocabulary(projectType)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -55,14 +58,14 @@ export default function TaskPhotos({
 
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? 'Upload failed')
+      setError(data.error ?? t('uploadFailed'))
       return
     }
     router.refresh()
   }
 
   async function onDelete(photoId: string) {
-    if (!confirm('Delete this photo?')) return
+    if (!confirm(t('confirmDelete'))) return
     await fetch(`/api/vehicles/${vehicleId}/tasks/${taskId}/photos/${photoId}`, { method: 'DELETE' })
     setLightboxIndex(null)
     router.refresh()
@@ -77,7 +80,7 @@ export default function TaskPhotos({
           ))}
         </select>
         <label className="btn-secondary cursor-pointer">
-          {uploading ? 'Uploading…' : 'Add photo'}
+          {uploading ? t('uploading') : t('addPhoto')}
           <input
             ref={fileInputRef}
             type="file"
@@ -91,7 +94,7 @@ export default function TaskPhotos({
       {error && <p className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       {photos.length === 0 ? (
-        <p className="text-sm text-ink-faint">No photos yet.</p>
+        <p className="text-sm text-ink-faint">{t('empty')}</p>
       ) : (
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {photos.map((photo, i) => (
@@ -129,21 +132,21 @@ export default function TaskPhotos({
               className="btn bg-white/10 text-white hover:bg-white/20"
               onClick={(e) => { e.stopPropagation(); setLightboxIndex((i) => (i !== null ? (i + photos.length - 1) % photos.length : null)) }}
             >
-              ‹ Prev
+              {t('prev')}
             </button>
             <button
               type="button"
               className="btn-danger"
               onClick={(e) => { e.stopPropagation(); onDelete(photos[lightboxIndex].id) }}
             >
-              Delete
+              {tc('delete')}
             </button>
             <button
               type="button"
               className="btn bg-white/10 text-white hover:bg-white/20"
               onClick={(e) => { e.stopPropagation(); setLightboxIndex((i) => (i !== null ? (i + 1) % photos.length : null)) }}
             >
-              Next ›
+              {t('next')}
             </button>
           </div>
         </div>

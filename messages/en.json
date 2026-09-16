@@ -882,5 +882,76 @@
     "locationShipping": "Location / shipping",
     "descriptionLabel": "Description",
     "repliesCount": "Replies ({count})"
+  },
+  "publicBuild": {
+    "noCover": "No cover photo",
+    "completedTasks": "Completed tasks",
+    "totalSpent": "Total spent",
+    "documentedWith": "Documented with <b>RigLog</b>",
+    "noCompletedWork": "No completed work logged yet."
+  },
+  "vin": {
+    "field": {
+      "manufacturer": "Manufacturer",
+      "modelYear": "Model year",
+      "factory": "Factory",
+      "engineCode": "Engine code",
+      "bodyStyle": "Body style",
+      "colorCode": "Original colour code"
+    },
+    "source": {
+      "local": "Decoded locally (Dacia/Renault-Romania VIN table)",
+      "nhtsa": "Decoded via NHTSA vPIC",
+      "manual": "Entered manually"
+    },
+    "noVin": "Add a VIN / chassis number on this vehicle’s settings page first.",
+    "decoding": "Decoding…",
+    "redecode": "Re-decode",
+    "decode": "Decode VIN",
+    "editManually": "Edit manually",
+    "decodedSpec": "Decoded spec",
+    "correctFields": "Correct or fill in any field.",
+    "couldNotDecode": "This VIN couldn’t be decoded automatically — enter what you know.",
+    "decodeFailed": "Could not decode VIN",
+    "vinLabel": "VIN / chassis number"
+  },
+  "receipt": {
+    "title": "Receipt",
+    "uploading": "Uploading…",
+    "replace": "Replace receipt",
+    "attach": "Attach receipt",
+    "remove": "Remove",
+    "viewPdf": "View receipt (PDF)",
+    "none": "No receipt attached.",
+    "uploadFailed": "Upload failed",
+    "confirmRemove": "Remove this receipt?"
+  },
+  "taskPhotos": {
+    "uploading": "Uploading…",
+    "addPhoto": "Add photo",
+    "prev": "‹ Prev",
+    "next": "Next ›",
+    "empty": "No photos yet.",
+    "uploadFailed": "Upload failed",
+    "confirmDelete": "Delete this photo?"
+  },
+  "card": {
+    "beforePhoto": "Before photo",
+    "afterPhoto": "After photo",
+    "noFoundStatePhotos": "No found state photos yet.",
+    "noTaskPhotos": "No task photos yet.",
+    "transformationPreview": "Transformation card preview"
+  },
+  "trailLog": {
+    "title": "Trail log",
+    "backToDashboard": "← Back to dashboard",
+    "backToTrailLog": "← Back to trail log",
+    "recordRun": "Record a run",
+    "proOnly": "Upgrade to Pro to record GPS trail runs for this build.",
+    "empty": "No trail runs recorded yet.",
+    "distance": "Distance",
+    "duration": "Duration",
+    "elevationGain": "Elevation gain",
+    "waypoints": "Waypoints"
   }
 }
