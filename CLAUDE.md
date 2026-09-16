@@ -222,6 +222,32 @@ Provider rejections are logged with the provider's own response body and
 the `from` address that was tried; without that the operator sees only a
 generic 500 and the usual cause (an unverified sender) is invisible.
 
+### Absolute URLs (`src/lib/appUrl.ts`)
+Every absolute link the server builds — reset emails, invitations, follow
+and price notifications, document reminders, Stripe redirects, the sitemap,
+public build URLs — comes from here. It used to be fourteen copies of
+`process.env.NEXTAUTH_URL ?? 'http://localhost:3000'`, which meant one bad
+variable broke all of them at once with nothing to notice (issue #21: a
+base64 secret in `NEXTAUTH_URL` produced reset links to
+`http://drrisq1f…echq=/reset-password?token=…`).
+
+**`new URL()` is not validation** — the WHATWG parser accepts that string
+as a hostname. Hence the explicit hostname regex. A test asserts no file
+outside this module reads `process.env.NEXTAUTH_URL`.
+
+**Never derive the origin from the request `Host` header.** That is
+password-reset poisoning: an attacker sends `Host: evil.com`, the victim
+gets a real token at the attacker's domain. Every source here is
+configuration or platform-provided (`VERCEL_PROJECT_PRODUCTION_URL` before
+`VERCEL_URL` — the latter changes every deploy and dies in an email opened
+a week later).
+
+Three callers, three behaviours, deliberately: `requireAppUrl()` throws
+(Stripe redirects), `appUrlForNotification()` returns null and logs which
+notification was skipped, `appUrlForMetadata()` falls back to localhost.
+Outside production `resolveAppUrl()` falls back to localhost; in production
+it returns null, because an email linking to localhost looks like it worked.
+
 ### Public site (`/`, `/tickets`, `/donate`)
 `/` used to redirect to `/dashboard` or `/login`; it's now a real marketing
 homepage, and three surfaces are readable with **no session at all**:

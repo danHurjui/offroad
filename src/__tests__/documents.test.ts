@@ -65,7 +65,13 @@ describe('formatDaysUntil', () => {
 })
 
 describe('decideReminder', () => {
-  const unsent = { reminder30SentAt: null, reminder14SentAt: null, reminder3SentAt: null }
+  const unsent = {
+    reminder30SentAt: null,
+    reminder14SentAt: null,
+    reminder7SentAt: null,
+    reminder3SentAt: null,
+    reminder1SentAt: null,
+  }
 
   it('does not send when no threshold is reached', () => {
     const result = decideReminder(45, unsent)
@@ -94,26 +100,87 @@ describe('decideReminder', () => {
   it('sends one catch-up reminder and marks every reached-but-unsent field when multiple thresholds are crossed at once', () => {
     const result = decideReminder(10, unsent)
     expect(result.shouldSend).toBe(true)
-    expect(result.milestoneDays).toBe(14) // most urgent reached: min(30,14) since 10<=14 but 10>3
+    expect(result.milestoneDays).toBe(14) // most urgent reached: 10 <= 14 but 10 > 7
     expect(result.fieldsToMarkSent).toEqual(['reminder30SentAt', 'reminder14SentAt'])
   })
 
-  it('still sends after expiry if the 3-day mark was never sent', () => {
+  it('still sends after expiry if the last marks were never sent', () => {
     const result = decideReminder(-2, {
+      ...unsent,
       reminder30SentAt: new Date(),
       reminder14SentAt: new Date(),
-      reminder3SentAt: null,
     })
     expect(result.shouldSend).toBe(true)
-    expect(result.milestoneDays).toBe(3)
-    expect(result.fieldsToMarkSent).toEqual(['reminder3SentAt'])
+    // Everything below 14 is reached once expired; the email is worded
+    // with the most urgent of them.
+    expect(result.milestoneDays).toBe(1)
+    expect(result.fieldsToMarkSent).toEqual([
+      'reminder7SentAt',
+      'reminder3SentAt',
+      'reminder1SentAt',
+    ])
   })
 
-  it('sends nothing once all three milestones are sent', () => {
+  /**
+   * Issue #21: an ITP or RCA is worth chasing a week out and again the day
+   * before, which is when people actually book one.
+   */
+  it('sends the 7-day reminder a week before expiry', () => {
+    const result = decideReminder(7, {
+      ...unsent,
+      reminder30SentAt: new Date(),
+      reminder14SentAt: new Date(),
+    })
+    expect(result.shouldSend).toBe(true)
+    expect(result.milestoneDays).toBe(7)
+    expect(result.fieldsToMarkSent).toEqual(['reminder7SentAt'])
+  })
+
+  it('sends the 24-hour reminder the day before expiry', () => {
+    const result = decideReminder(1, {
+      ...unsent,
+      reminder30SentAt: new Date(),
+      reminder14SentAt: new Date(),
+      reminder7SentAt: new Date(),
+      reminder3SentAt: new Date(),
+    })
+    expect(result.shouldSend).toBe(true)
+    expect(result.milestoneDays).toBe(1)
+    expect(result.fieldsToMarkSent).toEqual(['reminder1SentAt'])
+  })
+
+  it('does not fire the 24-hour reminder while more than a day remains', () => {
+    const result = decideReminder(2, {
+      ...unsent,
+      reminder30SentAt: new Date(),
+      reminder14SentAt: new Date(),
+      reminder7SentAt: new Date(),
+      reminder3SentAt: new Date(),
+    })
+    expect(result.shouldSend).toBe(false)
+  })
+
+  // Five thresholds now, and each must fire exactly once over a document's
+  // life — no duplicates, none skipped.
+  it('fires each milestone exactly once as expiry approaches', () => {
+    const state: { [K in keyof typeof unsent]: Date | null } = { ...unsent }
+    const fired: number[] = []
+    for (let days = 40; days >= -1; days--) {
+      const result = decideReminder(days, state)
+      if (!result.shouldSend) continue
+      fired.push(result.milestoneDays!)
+      for (const field of result.fieldsToMarkSent) state[field] = new Date()
+    }
+    expect(fired).toEqual([30, 14, 7, 3, 1])
+  })
+
+  it('sends nothing once every milestone is sent', () => {
     const allSent = {
       reminder30SentAt: new Date(),
       reminder14SentAt: new Date(),
+      reminder7SentAt: new Date(),
       reminder3SentAt: new Date(),
+      reminder1SentAt: new Date(),
     }
     expect(decideReminder(-5, allSent).shouldSend).toBe(false)
   })

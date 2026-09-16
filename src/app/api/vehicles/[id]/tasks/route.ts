@@ -7,6 +7,7 @@ import { serializeTask, serializeTaskFor } from '@/lib/serialize'
 import { sendEmail, collaboratorTaskAddedEmailHtml } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
+import { appUrlForNotification } from '@/lib/appUrl'
 
 // RL-004: add / edit a task or modification. RL-029: DIY/workshop split.
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -118,8 +119,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { email: true } }),
         prisma.user.findUnique({ where: { id: session.user.id }, select: { displayName: true } }),
       ])
-      if (owner) {
-        const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+      const baseUrl = appUrlForNotification('the follower notification for a new task')
+      if (owner && baseUrl) {
         await sendEmail({
           to: owner.email,
           subject: `${collaboratorUser?.displayName ?? 'A collaborator'} added a task to your build`,

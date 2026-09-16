@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { sendEmail, followedProjectUpdateEmailHtml } from '@/lib/email'
 import { sendPushNotification } from '@/lib/webpush'
+import { appUrlForNotification } from '@/lib/appUrl'
 
 /**
  * RL-023: notifies everyone following `vehicleId` — email and/or push per
@@ -33,7 +34,8 @@ export async function notifyFollowers(vehicleId: string, message: string): Promi
   if (!vehicle || follows.length === 0) return
 
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+  const baseUrl = appUrlForNotification('the follower notification')
+  if (!baseUrl) return
   // A follower is never the owner or a collaborator, so this has to be
   // the public profile URL — /dashboard/vehicles/[id] would 404 for them.
   const vehicleUrl = `${baseUrl}/builds/${vehicle.owner.username}/${vehicle.slug}`

@@ -15,7 +15,13 @@ export function isValidDocumentType(value: unknown): boolean {
   return DOCUMENT_TYPE_OPTIONS.some((o) => o.value === value)
 }
 
-const REMINDER_MILESTONES_DAYS = [30, 14, 3] as const
+/**
+ * Descending, and `decideReminder` relies on that order to pick the most
+ * urgent threshold crossed. 7 and 1 were added for issue #21 — an ITP or
+ * RCA is worth chasing a week out and again the day before, which is when
+ * people actually book one.
+ */
+const REMINDER_MILESTONES_DAYS = [30, 14, 7, 3, 1] as const
 export type ReminderMilestone = (typeof REMINDER_MILESTONES_DAYS)[number]
 export { REMINDER_MILESTONES_DAYS }
 
@@ -36,15 +42,46 @@ export function getDocumentStatus(expiryDate: Date, now: Date = new Date()): { d
 interface ReminderState {
   reminder30SentAt: Date | null
   reminder14SentAt: Date | null
+  reminder7SentAt: Date | null
   reminder3SentAt: Date | null
+  reminder1SentAt: Date | null
 }
 
-type ReminderField = 'reminder30SentAt' | 'reminder14SentAt' | 'reminder3SentAt'
+type ReminderField =
+  | 'reminder30SentAt'
+  | 'reminder14SentAt'
+  | 'reminder7SentAt'
+  | 'reminder3SentAt'
+  | 'reminder1SentAt'
 
+/**
+ * Typed `Record<ReminderMilestone, …>`, so adding a day to
+ * REMINDER_MILESTONES_DAYS without adding its column makes tsc name this
+ * object rather than failing at runtime on an undefined field.
+ */
 const MILESTONE_FIELDS: Record<ReminderMilestone, ReminderField> = {
   30: 'reminder30SentAt',
   14: 'reminder14SentAt',
+  7: 'reminder7SentAt',
   3: 'reminder3SentAt',
+  1: 'reminder1SentAt',
+}
+
+/**
+ * Every `reminderNSentAt` column, derived from the milestone list.
+ *
+ * The cron's "any threshold still unsent" filter and the PATCH that
+ * re-arms reminders on renewal both build from this, so adding a
+ * milestone is one edit rather than three — and cannot half-land, which
+ * would leave a new threshold that never fires or never resets.
+ */
+export const REMINDER_FIELDS: readonly ReminderField[] = REMINDER_MILESTONES_DAYS.map(
+  (m) => MILESTONE_FIELDS[m]
+)
+
+/** `{ reminder30SentAt: null, … }` — re-arms every reminder on renewal. */
+export function clearedReminderFields(): Record<ReminderField, null> {
+  return Object.fromEntries(REMINDER_FIELDS.map((f) => [f, null])) as Record<ReminderField, null>
 }
 
 export interface ReminderDecision {

@@ -92,7 +92,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
     if (!confirm('This is permanent. Are you absolutely sure?')) return
     setDeleting(true)
     await fetch('/api/me/account', { method: 'DELETE' })
-    await signOut({ callbackUrl: '/login' })
+    await signOut({ callbackUrl: '/' })
   }
 
   return (

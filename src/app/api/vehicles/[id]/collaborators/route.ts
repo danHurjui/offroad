@@ -6,6 +6,7 @@ import { generateInviteToken, isValidEmail, inviteAcceptUrl, FREE_TIER_COLLABORA
 import { sendEmail, collaboratorInviteEmailHtml } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { appUrlForNotification } from '@/lib/appUrl'
 
 // RL-030: invite mechanic/specialist as project collaborator. Owner only.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -76,14 +77,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const collaborator = await prisma.projectCollaborator.create({
       data: { vehicleId: vehicle.id, invitedByUserId: session.user.id, email, label, role, inviteToken } })
 
-    const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
-    await sendEmail({
-      to: email,
-      subject: `${owner?.displayName ?? 'Someone'} invited you to collaborate on RigLog`,
-      html: collaboratorInviteEmailHtml({
-        inviterName: owner?.displayName ?? 'Someone',
-        vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-        acceptUrl: inviteAcceptUrl(inviteToken, baseUrl) }) })
+    // The invitation row is created either way — the owner can resend it
+    // once the URL is configured. An email carrying a dead accept link is
+    // worse than no email: it burns the recipient's trust and the token.
+    const baseUrl = appUrlForNotification('the collaborator invitation email')
+    if (baseUrl) {
+      await sendEmail({
+        to: email,
+        subject: `${owner?.displayName ?? 'Someone'} invited you to collaborate on RigLog`,
+        html: collaboratorInviteEmailHtml({
+          inviterName: owner?.displayName ?? 'Someone',
+          vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+          acceptUrl: inviteAcceptUrl(inviteToken, baseUrl) }) })
+    }
 
     const { inviteToken: _inviteToken, ...safe } = collaborator
     return NextResponse.json(safe, { status: 201 })

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { appUrlForMetadata } from '@/lib/appUrl'
 
 // RL-018: public build pages should be crawlable, as are the marketing
 // homepage, the community feed and the public roadmap. Everything else
@@ -22,6 +23,6 @@ export default function robots(): MetadataRoute.Robots {
         '/tickets/new',
       ],
     },
-    sitemap: `${process.env.NEXTAUTH_URL ?? 'http://localhost:3000'}/sitemap.xml`,
+    sitemap: `${appUrlForMetadata()}/sitemap.xml`,
   }
 }

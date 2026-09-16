@@ -550,10 +550,10 @@ model TrailWaypoint {
 }
 
 /// ITP/RCA/CASCO/Rovinieta reminders, both modes — RL-013. Reminders fire
-/// at 30/14/3 days before expiryDate; the `reminderNSentAt` fields make
+/// at 30/14/7/3/1 days before expiryDate; the `reminderNSentAt` fields make
 /// that idempotent across cron runs and reset to null whenever expiryDate
 /// changes (see PATCH /api/vehicles/[id]/documents/[docId]) so renewing a
-/// document re-arms all three reminders.
+/// document re-arms every reminder.
 model Document {
   id               String       @id @default(cuid())
   vehicleId        String
@@ -562,7 +562,9 @@ model Document {
   fileUrl          String?
   reminder30SentAt DateTime?
   reminder14SentAt DateTime?
+  reminder7SentAt  DateTime?
   reminder3SentAt  DateTime?
+  reminder1SentAt  DateTime?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 

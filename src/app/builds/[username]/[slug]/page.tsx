@@ -11,6 +11,7 @@ import { computeOriginalityScore } from '@/lib/originality'
 import OriginalityBadge from '@/components/OriginalityBadge'
 import FollowButton from '@/components/FollowButton'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { appUrlForMetadata } from '@/lib/appUrl'
 
 // cache() dedupes this within one request — generateMetadata and the page
 // component both need it, and without this they'd each hit the DB.
@@ -41,7 +42,7 @@ export async function generateMetadata({
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
   const title = `${vehicle.year} ${vehicle.make} ${vehicle.model} — RigLog`
   const description = `${config.label} by ${owner.displayName} on RigLog.`
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+  const baseUrl = appUrlForMetadata()
   const ogImage = vehicle.coverPhotoUrl ? `${baseUrl}/api/uploads/${vehicle.coverPhotoUrl}` : undefined
 
   return {

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { sendEmail, priceAlertEmailHtml } from '@/lib/email'
 import { sendPushNotification } from '@/lib/webpush'
+import { appUrlForNotification } from '@/lib/appUrl'
 
 /**
  * RL-026: pure decision helper (same idempotency pattern as
@@ -54,7 +55,11 @@ export async function notifyPriceAlert(
   if (!vehicle) return
 
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+  // Without an origin every link in this notification would read
+  // "null/dashboard/..." — template strings stringify null happily, which
+  // is how the old inline fallback hid this class of bug.
+  const baseUrl = appUrlForNotification('the price-alert notification')
+  if (!baseUrl) return
   const vehicleUrl = `${baseUrl}/dashboard/vehicles/${vehicle.id}/wishlist`
 
   await sendEmail({

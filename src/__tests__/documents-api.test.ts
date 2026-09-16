@@ -72,7 +72,7 @@ describe('GET /api/vehicles/[id]/documents', () => {
 describe('PATCH /api/vehicles/[id]/documents/[docId]', () => {
   const docParams = { id: 'v1', docId: 'd1' }
 
-  it('resets all three reminder-sent fields when expiryDate changes', async () => {
+  it('re-arms every reminder-sent field when expiryDate changes', async () => {
     mockDocFindUnique.mockResolvedValue({ id: 'd1', vehicleId: 'v1', expiryDate: new Date('2026-01-01') })
     mockDocUpdate.mockResolvedValue({ id: 'd1' })
     await docPatch(req({ expiryDate: '2027-01-01' }), { params: docParams })
@@ -82,7 +82,9 @@ describe('PATCH /api/vehicles/[id]/documents/[docId]', () => {
         expiryDate: new Date('2027-01-01'),
         reminder30SentAt: null,
         reminder14SentAt: null,
+        reminder7SentAt: null,
         reminder3SentAt: null,
+        reminder1SentAt: null,
       },
     })
   })

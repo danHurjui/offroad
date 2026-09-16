@@ -30,7 +30,7 @@ export default function Nav({ displayName, isAdmin }: { displayName: string; isA
           <Link href="/dashboard/settings" className="text-ink-muted hover:text-ink">
             {displayName}
           </Link>
-          <button className="text-ink-muted hover:text-ink" onClick={() => signOut({ callbackUrl: '/login' })}>
+          <button className="text-ink-muted hover:text-ink" onClick={() => signOut({ callbackUrl: '/' })}>
             Log out
           </button>
           <QuickAddButton />

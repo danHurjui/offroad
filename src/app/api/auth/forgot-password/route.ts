@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { sendEmail, passwordResetEmailHtml, isEmailConfigured } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
 import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
+import { resolveAppUrl } from '@/lib/appUrl'
 
 const TOKEN_TTL_MS = 60 * 60 * 1000 // 1 hour
 
@@ -47,13 +48,34 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Same reasoning as the email check, and the same placement — before
+    // the lookup, so the answer cannot vary by whether the address exists.
+    // A reset email whose link points at a bogus host (issue #21: a base64
+    // secret had been pasted into NEXTAUTH_URL) is worse than no email:
+    // the token is spent, the person is told to check their inbox, and the
+    // link they find there goes nowhere.
+    const baseUrl = resolveAppUrl()
+    if (!baseUrl) {
+      console.error(
+        '[forgot-password] no usable public URL — set NEXTAUTH_URL to the origin this app is ' +
+          'served from (e.g. https://riglog.ro). Reset links cannot be built, so none were sent.'
+      )
+      return NextResponse.json(
+        {
+          error:
+            'Password reset is temporarily unavailable because the site URL is not configured. Please contact support.',
+          code: 'APP_URL_NOT_CONFIGURED',
+        },
+        { status: 503 }
+      )
+    }
+
     const user = await prisma.user.findUnique({ where: { email } })
     if (user && user.active) {
       const token = randomBytes(32).toString('hex')
       const created = await prisma.passwordResetToken.create({
         data: { userId: user.id, token, expiresAt: new Date(Date.now() + TOKEN_TTL_MS) },
       })
-      const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
       const resetUrl = `${baseUrl}/reset-password?token=${token}`
       try {
         await sendEmail({

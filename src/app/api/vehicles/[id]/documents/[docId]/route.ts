@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { deleteUpload } from '@/lib/storage'
 import { readJsonBody } from '@/lib/requestBody'
+import { clearedReminderFields } from '@/lib/documents'
 
 async function loadDocument(vehicleId: string, docId: string) {
   const document = await prisma.document.findUnique({ where: { id: docId } })
@@ -53,9 +54,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         return NextResponse.json({ error: 'Invalid expiryDate' }, { status: 400 })
       }
       data.expiryDate = new Date(body.expiryDate)
-      data.reminder30SentAt = null
-      data.reminder14SentAt = null
-      data.reminder3SentAt = null
+      // Renewing re-arms every threshold. Derived, so a milestone added to
+      // documents.ts cannot leave one stuck as already-sent.
+      Object.assign(data, clearedReminderFields())
     }
 
     const updated = await prisma.document.update({ where: { id: document.id }, data })

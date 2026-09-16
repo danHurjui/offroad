@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { getStripe } from '@/lib/stripe'
+import { requireAppUrl } from '@/lib/appUrl'
 
 // RL-017: opens the Stripe Customer Portal — subscription cancel/update
 // card, linked from account settings.
@@ -17,7 +18,7 @@ export async function POST(_req: NextRequest) {
 
   try {
     const stripe = getStripe()
-    const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+    const baseUrl = requireAppUrl()
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
       return_url: `${baseUrl}/dashboard/settings`,

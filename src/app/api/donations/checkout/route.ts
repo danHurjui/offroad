@@ -6,6 +6,7 @@ import { getStripe } from '@/lib/stripe'
 import { readJsonBody } from '@/lib/requestBody'
 import { parseDonationBani, DONATION_CURRENCY, DONATION_MESSAGE_MAX } from '@/lib/donations'
 import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
+import { requireAppUrl } from '@/lib/appUrl'
 
 /**
  * Starts a Stripe Checkout session for a one-off donation.
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
       : null
 
     const stripe = getStripe()
-    const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+    const baseUrl = requireAppUrl()
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'payment',

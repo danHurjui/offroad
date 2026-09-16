@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/authz'
 import { getStripe, isProPlanId, priceIdFor, PRO_PLANS } from '@/lib/stripe'
 import { readJsonBody } from '@/lib/requestBody'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { requireAppUrl } from '@/lib/appUrl'
 
 // RL-017: creates a Stripe Checkout session for one of the three Pro
 // purchase options. The webhook (not this route) is what actually flips
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
       await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId: customerId } })
     }
 
-    const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+    const baseUrl = requireAppUrl()
     const planConfig = PRO_PLANS[plan]
 
     const checkoutSession = await stripe.checkout.sessions.create({

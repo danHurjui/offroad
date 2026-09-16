@@ -3,6 +3,7 @@ import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { getStripe, isProPlanId } from '@/lib/stripe'
 import { sendEmail, paymentFailedEmailHtml } from '@/lib/email'
+import { appUrlForNotification } from '@/lib/appUrl'
 
 /**
  * RL-017: Stripe webhook — the only place `User.isPro` is ever written.
@@ -85,8 +86,10 @@ export async function POST(req: NextRequest) {
           data: { proPaymentFailedAt: new Date() },
         }).catch(() => null)
 
-        if (user) {
-          const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+        const baseUrl = appUrlForNotification('the payment-failed email')
+        // proPaymentFailedAt is already written above, so the in-app banner
+        // still warns them even if this email cannot be built.
+        if (user && baseUrl) {
           await sendEmail({
             to: user.email,
             subject: 'Your RigLog Pro payment failed',

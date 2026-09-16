@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { decideReminder, formatDaysUntil, getDocumentStatus, DOCUMENT_TYPE_OPTIONS } from '@/lib/documents'
+import { decideReminder, formatDaysUntil, getDocumentStatus, DOCUMENT_TYPE_OPTIONS, REMINDER_FIELDS } from '@/lib/documents'
 import { labelFor } from '@/lib/projectType'
 import { sendEmail, documentReminderEmailHtml } from '@/lib/email'
 import { purgeExpiredRateLimits } from '@/lib/rateLimit'
+import { appUrlForNotification } from '@/lib/appUrl'
 
 /**
  * RL-013: document reminders at 30/14/3 days before expiry, delivered by
@@ -28,17 +29,25 @@ async function handle(req: NextRequest) {
 
   const documents = await prisma.document.findMany({
     where: {
-      OR: [{ reminder30SentAt: null }, { reminder14SentAt: null }, { reminder3SentAt: null }],
+      // Any threshold still unsent. Derived from the milestone list so a
+      // new one is picked up without editing this filter.
+      OR: REMINDER_FIELDS.map((field) => ({ [field]: null })),
     },
     include: {
       vehicle: { select: { id: true, make: true, model: true, year: true, owner: { select: { email: true } } } },
     },
   })
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+  const baseUrl = appUrlForNotification('the document reminder email')
   let sent = 0
 
-  for (const doc of documents) {
+  // Bail out of the whole loop rather than skipping sends inside it. The
+  // reminderNSentAt fields are marked *before* the email goes out, so
+  // marking without sending would consume the reminder permanently — the
+  // owner would simply never be told their ITP was expiring. Doing nothing
+  // leaves every threshold unmarked for the next run to pick up once the
+  // URL is configured.
+  for (const doc of baseUrl ? documents : []) {
     const { daysUntil } = getDocumentStatus(doc.expiryDate)
     const decision = decideReminder(daysUntil, doc)
     if (!decision.shouldSend) continue
@@ -65,7 +74,14 @@ async function handle(req: NextRequest) {
   // Hobby plan allows only a limited number of cron jobs.
   const purgedRateLimits = await purgeExpiredRateLimits()
 
-  return NextResponse.json({ checked: documents.length, sent, purgedRateLimits })
+  return NextResponse.json({
+    checked: documents.length,
+    sent,
+    purgedRateLimits,
+    // Surfaced so a scheduled run that silently sent nothing is visible in
+    // the cron log rather than looking like a quiet success.
+    ...(baseUrl ? {} : { skipped: 'No usable public URL configured; no reminders were sent or marked.' }),
+  })
 }
 
 export { handle as GET, handle as POST }

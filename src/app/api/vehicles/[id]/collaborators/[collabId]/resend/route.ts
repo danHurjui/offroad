@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { generateInviteToken, inviteAcceptUrl } from '@/lib/collaborators'
 import { sendEmail, collaboratorInviteEmailHtml } from '@/lib/email'
+import { appUrlForNotification } from '@/lib/appUrl'
 
 // RL-030: resend/refresh a still-pending invite — regenerates the token and
 // resets invitedAt so a stale 7-day-old link doesn't expire on the invitee
@@ -32,16 +33,19 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     data: { inviteToken, invitedAt: new Date() },
   })
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
-  await sendEmail({
-    to: collaborator.email,
-    subject: `${owner?.displayName ?? 'Someone'} invited you to collaborate on RigLog`,
-    html: collaboratorInviteEmailHtml({
-      inviterName: owner?.displayName ?? 'Someone',
-      vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-      acceptUrl: inviteAcceptUrl(inviteToken, baseUrl),
-    }),
-  })
+  // Same as the initial invite: a dead accept link is worse than silence.
+  const baseUrl = appUrlForNotification('the collaborator invitation email')
+  if (baseUrl) {
+    await sendEmail({
+      to: collaborator.email,
+      subject: `${owner?.displayName ?? 'Someone'} invited you to collaborate on RigLog`,
+      html: collaboratorInviteEmailHtml({
+        inviterName: owner?.displayName ?? 'Someone',
+        vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+        acceptUrl: inviteAcceptUrl(inviteToken, baseUrl),
+      }),
+    })
+  }
 
   const { inviteToken: _inviteToken, ...safe } = updated
   return NextResponse.json(safe)
