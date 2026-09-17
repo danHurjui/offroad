@@ -16,6 +16,9 @@ import { hasPro, PRO_SELECT } from '@/lib/pro'
 // RL-003: project dashboard — build overview screen.
 export default async function VehicleDashboardPage({ params }: { params: { id: string } }) {
   const t = await getTranslations('vehicle')
+  const tc = await getTranslations('common')
+  const td = await getTranslations('dashboard')
+  const tCover = await getTranslations('cover')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -93,6 +96,12 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
 
   return (
     <div>
+      {/* Every screen under a vehicle links back to the vehicle; the vehicle
+          itself had nothing, so the only way back to the garage was the
+          logo in the header, which does not read as a link. */}
+      <Link href="/dashboard" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
+        {tc('backTo', { screen: td('title') })}
+      </Link>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="badge badge-brand">{config.label}</span>
@@ -183,10 +192,22 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         </div>
       )}
 
-      {vehicle.coverPhotoUrl && (
+      {vehicle.coverPhotoUrl ? (
         <div className="card mb-6 overflow-hidden">
           <VehicleCoverImg url={vehicle.coverPhotoUrl} alt={`${vehicle.make} ${vehicle.model}`} />
         </div>
+      ) : (
+        // Shown empty rather than not at all, so the cover is discoverable:
+        // it could only be set while creating the vehicle, and nothing on
+        // this screen ever hinted that it existed.
+        isOwner && (
+          <Link
+            href={`/dashboard/vehicles/${vehicle.id}/edit`}
+            className="card mb-6 flex h-24 items-center justify-center text-sm text-ink-faint hover:text-brand-600 dark:hover:text-brand-300"
+          >
+            + {tCover('addFromVehicle')}
+          </Link>
+        )
       )}
 
       {isHistoric && (
@@ -261,6 +282,12 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
                 {t('addInCategory', { cta: config.addTaskCta })}
               </Link>
             ) : (
+              /* The same prefilled link stays at the foot of a category that
+                 already has entries. It used to render only while the
+                 category was empty, which left no way to log a second job
+                 under it — a daily driver gets its brakes done more than
+                 once, and the header's + button starts with no category
+                 chosen. */
               <div className="card divide-y divide-surface-border">
                 {categoryTasks.map((task) => (
                   <Link
@@ -294,6 +321,12 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
                     </span>
                   </Link>
                 ))}
+                <Link
+                  href={`/dashboard/vehicles/${vehicle.id}/tasks/new?category=${categoryValue}`}
+                  className="block p-4 text-sm text-ink-faint hover:bg-surface-muted hover:text-brand-600 dark:hover:text-brand-300"
+                >
+                  {t('addInCategory', { cta: config.addTaskCta })}
+                </Link>
               </div>
             )}
           </div>

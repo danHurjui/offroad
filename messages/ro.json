@@ -72,6 +72,19 @@
     "next": "Următor →",
     "pageOf": "Pagina {page} din {total}"
   },
+  "cover": {
+    "label": "Fotografie de copertă",
+    "none": "Încă nu există o fotografie de copertă",
+    "current": "Coperta actuală",
+    "chosen": "Fotografie nouă aleasă — salvează pentru a o aplica",
+    "choose": "Alege o fotografie",
+    "replace": "Înlocuiește",
+    "remove": "Elimină",
+    "removing": "Se elimină…",
+    "uploadFailed": "Fotografia de copertă nu a putut fi încărcată",
+    "removeFailed": "Fotografia de copertă nu a putut fi eliminată",
+    "addFromVehicle": "Adaugă o fotografie de copertă"
+  },
   "auth": {
     "login": {
       "subtitle": "Intră în contul tău.",
@@ -567,6 +580,13 @@
     "confirmDelete": "Ștergi înregistrarea {type}?",
     "replaceFile": "Înlocuiește fișierul",
     "attachFile": "Atașează fișier",
+    "renewLabel": "Data nouă de expirare",
+    "fileAttached": "Scan atașat",
+    "noFile": "Niciun scan atașat",
+    "attaching": "Se atașează…",
+    "attachFailed": "Fișierul nu a putut fi atașat",
+    "renewFailed": "Data de expirare nu a putut fi actualizată",
+    "deleteFailed": "Documentul nu a putut fi șters",
     "pageTitle": "Documente"
   },
   "wishlist": {
@@ -608,7 +628,6 @@
     "generationPlaceholder": "ex. Mk2 / faza 2",
     "engine": "Motor (opțional)",
     "enginePlaceholder": "ex. 1.5 dCi 110 CP",
-    "coverPhoto": "Poză de copertă (opțional)",
     "chooseType": "Alege ce fel de vehicul este",
     "createFailed": "Nu am putut crea vehiculul",
     "creating": "Se creează…",
@@ -647,7 +666,8 @@
     "saveFailed": "Nu am putut salva",
     "saveChanges": "Salvează modificările",
     "add": "Adaugă articolul",
-    "editTitle": "Editează articolul"
+    "editTitle": "Editează articolul",
+    "addTitle": "Adaugă în {list}"
   },
   "trail": {
     "recovered": "Ai o înregistrare nesalvată de mai devreme ({points} puncte, {waypoints} repere).",
@@ -1405,6 +1425,12 @@
     "unauthorized": "Neautorizat",
     "invalidBody": "Cerere invalidă",
     "fileRequired": "Fișierul este obligatoriu",
+    "fileTooLarge": "Fișier prea mare (maximum {maxMb} MB)",
+    "collaboratorLimit": "Planul gratuit permite {limit} colaboratori. Treci la Pro pentru număr nelimitat.",
+    "taskPhotoLimit": "Planul gratuit permite {limit} fotografii per lucrare. Treci la Pro pentru număr nelimitat.",
+    "vehicleLimit": "Planul gratuit permite {limit} vehicul. Treci la Pro pentru vehicule nelimitate.",
+    "foundStatePhotoLimit": "Starea găsită este limitată la {limit} fotografii",
+    "projectTypeInvalid": "projectType trebuie să fie unul dintre: {types}",
     "unsupportedFileType": "Tip de fișier neacceptat",
     "savePhotoFailed": "Nu am putut salva poza",
     "saveFileFailed": "Nu am putut salva fișierul",

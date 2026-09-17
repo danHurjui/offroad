@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { Suspense } from 'react'
@@ -10,6 +11,7 @@ import { taskFieldSuggestions } from '@/lib/taskSuggestions'
 
 export default async function EditTaskPage({ params }: { params: { id: string; taskId: string } }) {
   const t = await getTranslations('task')
+  const tc = await getTranslations('common')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -24,6 +26,9 @@ export default async function EditTaskPage({ params }: { params: { id: string; t
 
   return (
     <div className="mx-auto max-w-xl">
+      <Link href={`/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
+        {tc('backTo', { screen: task.name })}
+      </Link>
       <h1 className="mb-6 text-2xl font-bold text-ink">{t('editTitle')}</h1>
       <Suspense fallback={null}>
         <TaskForm

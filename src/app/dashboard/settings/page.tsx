@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
@@ -8,6 +9,8 @@ import DataExportCard from '@/components/DataExportCard'
 
 export default async function SettingsPage() {
   const t = await getTranslations('settings')
+  const tc = await getTranslations('common')
+  const td = await getTranslations('dashboard')
   const tl = await getTranslations('settings.language')
   const session = await requireSessionOrRedirect()
   const user = await prisma.user.findUniqueOrThrow({
@@ -28,6 +31,9 @@ export default async function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-xl">
+      <Link href="/dashboard" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
+        {tc('backTo', { screen: td('title') })}
+      </Link>
       <h1 className="mb-6 text-2xl font-bold text-ink">{t('title')}</h1>
 
       {/* Appearance lives outside SettingsForm: the theme is a per-device

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/apiError'
+import { apiError, apiErrorWith } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -39,7 +39,7 @@ export async function POST(
       return await apiError('unsupportedFileType', 400)
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      return NextResponse.json({ error: `File too large (max ${MAX_UPLOAD_BYTES / 1024 / 1024}MB)` }, { status: 400 })
+      return await apiErrorWith('fileTooLarge', { maxMb: MAX_UPLOAD_BYTES / 1024 / 1024 }, 400)
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())

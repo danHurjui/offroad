@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import AutocompleteInput from './AutocompleteInput'
+import CoverPhotoField from './CoverPhotoField'
 import FormError from './FormError'
+import { compressImageIfNeeded } from '@/lib/compressImage'
 import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
 import type { ProjectType } from '@/lib/projectType'
 
@@ -19,6 +21,7 @@ interface Vehicle {
   generation: string | null
   engine: string | null
   vin: string | null
+  coverPhotoUrl: string | null
   isPublic: boolean
   hideCostsFromCollaborators: boolean
   hidePublicCost: boolean
@@ -29,6 +32,7 @@ interface Vehicle {
 export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
   const t = useTranslations('vehicleEdit')
   const tc = useTranslations('common')
+  const tCover = useTranslations('cover')
   const router = useRouter()
   const [form, setForm] = useState({
     make: vehicle.make,
@@ -45,6 +49,26 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // The cover could previously only be set while creating the vehicle, and
+  // was shown nowhere afterwards — so a vehicle added without one could
+  // never get one, and one added with the wrong photo kept it.
+  const [coverUrl, setCoverUrl] = useState(vehicle.coverPhotoUrl)
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [removingCover, setRemovingCover] = useState(false)
+
+  async function onRemoveCover() {
+    setError(null)
+    setRemovingCover(true)
+    const res = await fetch(`/api/vehicles/${vehicle.id}/cover-photo`, { method: 'DELETE' })
+    setRemovingCover(false)
+    if (!res.ok) {
+      const data = await res.json().catch(() => null)
+      setError(data?.error ?? tCover('removeFailed'))
+      return
+    }
+    setCoverUrl(null)
+    router.refresh()
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -55,12 +79,28 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, year: Number(form.year) }),
     })
-    setLoading(false)
     if (!res.ok) {
+      setLoading(false)
       const data = await res.json()
       setError(data.error ?? t('saveFailed'))
       return
     }
+
+    // After the field save, so a rejected cover (over the 4MB ceiling, say)
+    // reports itself rather than silently losing the rest of the edit.
+    if (coverFile) {
+      const formData = new FormData()
+      formData.append('file', await compressImageIfNeeded(coverFile))
+      const coverRes = await fetch(`/api/vehicles/${vehicle.id}/cover-photo`, { method: 'POST', body: formData })
+      if (!coverRes.ok) {
+        setLoading(false)
+        const data = await coverRes.json().catch(() => null)
+        setError(data?.error ?? tCover('uploadFailed'))
+        return
+      }
+    }
+
+    setLoading(false)
     router.push(`/dashboard/vehicles/${vehicle.id}`)
     router.refresh()
   }
@@ -154,6 +194,15 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
             />
           </div>
         </div>
+
+        <CoverPhotoField
+          currentUrl={coverUrl}
+          file={coverFile}
+          onFile={setCoverFile}
+          onRemove={onRemoveCover}
+          removing={removingCover}
+          disabled={loading}
+        />
 
         <div>
           <label className="flex items-center gap-2 text-sm text-ink">
