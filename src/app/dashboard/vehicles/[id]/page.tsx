@@ -48,6 +48,15 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
     vehicle.projectType === 'RESTORATION'
       ? await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
       : null
+  // The page anyone else sees. Only reachable from the edit form until
+  // now, and only as unlinked text — so an owner could publish a build and
+  // never see what had been published.
+  const publicOwner = vehicle.isPublic
+    ? await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { username: true } })
+    : null
+  const publicUrl =
+    publicOwner?.username && vehicle.slug ? `/builds/${publicOwner.username}/${vehicle.slug}` : null
+
   const originalityScore =
     vehicle.projectType === 'RESTORATION' && hasPro(owner) ? computeOriginalityScore(tasks, completeStatus) : undefined
   // RL-032: "removed collaborator" tag — a task can outlive the
@@ -178,6 +187,11 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/edit`} className="btn-secondary">
               {t('settings')}
+            </Link>
+          )}
+          {publicUrl && (
+            <Link href={publicUrl} target="_blank" rel="noreferrer" className="btn-secondary">
+              {t('viewPublicPage')} ↗
             </Link>
           )}
           <Link href={`/dashboard/vehicles/${vehicle.id}/tasks/new`} className="btn-primary">

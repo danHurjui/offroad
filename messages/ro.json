@@ -89,6 +89,16 @@
     "pickFailed": "Fotografia nu a putut fi folosită",
     "picked": "Fotografie aleasă — salvează pentru a o aplica"
   },
+  "install": {
+    "title": "Instalează RigLog",
+    "body": "Adaug-o pe ecranul principal — se deschide pe tot ecranul și funcționează ca o aplicație.",
+    "button": "Instalează",
+    "installing": "Se instalează…",
+    "installed": "RigLog este instalată pe acest dispozitiv.",
+    "dismissed": "Nu acum. O poți instala de aici oricând.",
+    "iosTitle": "Instalează pe iPhone sau iPad",
+    "iosBody": "Safari nu oferă un buton de instalare. Apasă Partajează, apoi „Adaugă la ecranul principal”."
+  },
   "auth": {
     "login": {
       "subtitle": "Intră în contul tău.",
@@ -300,7 +310,10 @@
     "accountAria": "Cont și setări",
     "sections": "Secțiuni",
     "addTask": "Adaugă o lucrare la acest vehicul",
-    "addVehicle": "Adaugă un vehicul"
+    "addVehicle": "Adaugă un vehicul",
+    "menu": "Meniu",
+    "closeMenu": "Închide meniul",
+    "openMenu": "Deschide meniul"
   },
   "footer": {
     "tagline": "Jurnal de build, de restaurare și de reparații.",
@@ -350,7 +363,8 @@
     "workshopTask": "Lucrare în service",
     "addedByDeleted": "Adăugat de un cont care a fost între timp șters",
     "addedBy": "Adăugat de {name}",
-    "addedByRemoved": "{name} (acces de colaborator revocat)"
+    "addedByRemoved": "{name} (acces de colaborator revocat)",
+    "viewPublicPage": "Vezi pagina publică"
   },
   "home": {
     "metaTitle": "RigLog — jurnal de build, de restaurare și de reparații",

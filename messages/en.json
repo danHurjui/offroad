@@ -89,6 +89,16 @@
     "pickFailed": "Could not use that photo",
     "picked": "Photo chosen — save to apply"
   },
+  "install": {
+    "title": "Install RigLog",
+    "body": "Add it to your home screen — it opens full screen and works like an app.",
+    "button": "Install",
+    "installing": "Installing…",
+    "installed": "RigLog is installed on this device.",
+    "dismissed": "Not now. You can install it from here any time.",
+    "iosTitle": "Install on iPhone or iPad",
+    "iosBody": "Safari does not offer an install button. Tap Share, then \"Add to Home Screen\"."
+  },
   "auth": {
     "login": {
       "subtitle": "Log in to your build.",
@@ -300,7 +310,10 @@
     "accountAria": "Account and settings",
     "sections": "Sections",
     "addTask": "Add a task to this vehicle",
-    "addVehicle": "Add a vehicle"
+    "addVehicle": "Add a vehicle",
+    "menu": "Menu",
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu"
   },
   "footer": {
     "tagline": "Build tracker, restoration journal & repair log.",
@@ -350,7 +363,8 @@
     "workshopTask": "Workshop task",
     "addedByDeleted": "Added by an account that has since been deleted",
     "addedBy": "Added by {name}",
-    "addedByRemoved": "{name} (collaborator access removed)"
+    "addedByRemoved": "{name} (collaborator access removed)",
+    "viewPublicPage": "View public page"
   },
   "home": {
     "metaTitle": "RigLog — build tracker, restoration journal & repair log",
