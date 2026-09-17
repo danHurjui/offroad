@@ -1,5 +1,5 @@
 import type { Content } from 'pdfmake'
-import type { PdfDocDefinition, PdfPhoto } from '@/lib/pdf'
+import { PDF_COLORS, PDF_PAGE, pdfRule, pdfStatTile, type PdfDocDefinition, type PdfPhoto } from '@/lib/pdf'
 
 export interface JobReportTask {
   name: string
@@ -64,7 +64,7 @@ function taskRow(strings: PdfJobReportStrings, task: JobReportTask): Content {
   ]
   const photos = photoRow(task.photos)
   if (photos) content.push(photos)
-  return { stack: content, style: 'taskBlock' }
+  return { stack: content, style: 'taskBlock', unbreakable: true }
 }
 
 /**
@@ -79,9 +79,17 @@ export function buildJobReportDocDefinition(input: JobReportInput): PdfDocDefini
   const totalPartsCost = input.tasks.reduce((sum, t) => sum + t.partsCostRon, 0)
 
   const { strings } = input
+  // The same masthead, rule and tokens as the build history: two documents
+  // from one product should not look like two products.
   const content: Content[] = [
-    { text: strings.title, style: 'title' },
-    { text: input.vehicleName, style: 'subtitle' },
+    {
+      columns: [
+        { text: 'RigLog', style: 'brand', width: '*' },
+        { text: strings.title, style: 'brandSubtitle', width: 'auto' },
+      ],
+    },
+    pdfRule(PDF_COLORS.brand, 4, 14),
+    { text: input.vehicleName, style: 'title' },
     {
       table: {
         widths: ['auto', '*'],
@@ -91,15 +99,18 @@ export function buildJobReportDocDefinition(input: JobReportInput): PdfDocDefini
         ],
       },
       layout: 'noBorders',
-      margin: [0, 0, 0, 10],
+      margin: [0, 6, 0, 12],
     },
     {
+      // The two figures this document exists to communicate, set as
+      // figures rather than as two bold sentences facing each other.
       columns: [
-        { text: strings.totalLabour(totalLabourCost), style: 'summary' },
-        { text: strings.totalParts(totalPartsCost), style: 'summary', alignment: 'right' },
+        pdfStatTile(strings.totalLabour(totalLabourCost), RON(totalLabourCost), 180),
+        pdfStatTile(strings.totalParts(totalPartsCost), RON(totalPartsCost), '*'),
       ],
-      margin: [0, 0, 0, 16],
+      margin: [0, 0, 0, 6],
     },
+    pdfRule(PDF_COLORS.rule, 8, 14),
   ]
 
   if (input.tasks.length === 0) {
@@ -115,20 +126,20 @@ export function buildJobReportDocDefinition(input: JobReportInput): PdfDocDefini
         { text: strings.documentedWith, style: 'footer' },
         { text: `${currentPage} / ${pageCount}`, style: 'footer', alignment: 'right' },
       ],
-      margin: [40, 0, 40, 0],
+      margin: [PDF_PAGE.marginX, 0, PDF_PAGE.marginX, 0],
     }),
     styles: {
-      title: { fontSize: 20, bold: true, margin: [0, 0, 0, 2], color: '#2A5D8C' },
-      subtitle: { fontSize: 13, bold: true, margin: [0, 0, 0, 10] },
-      summary: { fontSize: 12, bold: true },
-      detailKey: { fontSize: 9, color: '#6b6b6b' },
-      detailValue: { fontSize: 9 },
+      brand: { fontSize: 12, bold: true, color: PDF_COLORS.brand, characterSpacing: 0.6 },
+      brandSubtitle: { fontSize: 9, color: PDF_COLORS.inkMuted, margin: [0, 3, 0, 0] },
+      title: { fontSize: 22, bold: true, color: PDF_COLORS.ink, margin: [0, 0, 0, 2] },
+      detailKey: { fontSize: 9, color: PDF_COLORS.inkMuted },
+      detailValue: { fontSize: 9, color: PDF_COLORS.ink },
       taskBlock: { margin: [0, 0, 0, 12] },
-      taskName: { fontSize: 11, bold: true },
-      taskCost: { fontSize: 11, bold: true },
-      taskMeta: { fontSize: 8, color: '#6b6b6b', margin: [0, 2, 0, 2] },
-      taskNotes: { fontSize: 9, italics: true },
-      footer: { fontSize: 8, color: '#999999' },
+      taskName: { fontSize: 10.5, bold: true, color: PDF_COLORS.ink },
+      taskCost: { fontSize: 10.5, bold: true, color: PDF_COLORS.ink, alignment: 'right' },
+      taskMeta: { fontSize: 8, color: PDF_COLORS.inkMuted, margin: [0, 2, 0, 2] },
+      taskNotes: { fontSize: 9, italics: true, color: PDF_COLORS.inkMuted },
+      footer: { fontSize: 7.5, color: PDF_COLORS.inkFaint },
     },
   }
 }

@@ -113,11 +113,29 @@ export function appUrlForNotification(context: string): string | null {
   return url
 }
 
+let warnedAboutMetadataFallback = false
+
 /**
  * For metadata — sitemap, robots, canonical URLs. These are wrong rather
  * than dangerous without a real origin, and a page that throws is worse
  * than one carrying a placeholder a crawler will ignore.
+ *
+ * In production it is not something a crawler shrugs off, though: a
+ * sitemap full of `http://localhost:3000/...` is rejected outright by
+ * Google Search Console ("URL not allowed"), and the rejection names the
+ * URLs rather than the cause. So the fallback says so once, the same way
+ * the storage and push modules do — this is a configuration fault whose
+ * only symptom otherwise appears in somebody else's dashboard.
  */
 export function appUrlForMetadata(): string {
-  return resolveAppUrl() ?? 'http://localhost:3000'
+  const url = resolveAppUrl()
+  if (!url && process.env.NODE_ENV === 'production' && !warnedAboutMetadataFallback) {
+    warnedAboutMetadataFallback = true
+    console.error(
+      '[appUrl] No public origin resolved, so sitemap.xml and robots.txt are being written with ' +
+        'http://localhost:3000. Google Search Console rejects a sitemap of localhost URLs. Set ' +
+        'NEXTAUTH_URL to the origin this app is served from (https://example.com, no trailing path).'
+    )
+  }
+  return url ?? 'http://localhost:3000'
 }

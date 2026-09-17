@@ -36,6 +36,9 @@ export default async function PublicFooter() {
           <Link href="/cookies" className="hover:text-ink">
             {t('cookies')}
           </Link>
+          <Link href="/sitemap" className="hover:text-ink">
+            {t('sitemap')}
+          </Link>
         </nav>
       </div>
     </footer>

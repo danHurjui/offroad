@@ -5,7 +5,8 @@ import { localeFromRequest } from '@/i18n/requestLocale'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
-import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { translateConfig } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import { renderPdf, resolvePhotos, pdfFilename } from '@/lib/pdf'
 import { buildJobReportDocDefinition, type JobReportTask } from '@/lib/pdfJobReport'
@@ -51,7 +52,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   if (!collaboratorRow) return await apiError('notACollaborator', 404)
 
   try {
-    const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+    // Translated, for the same reason as the build-history export: the
+    // raw config is the English source of truth, not the reader's words.
+    const config = translateConfig(vehicle.projectType, await translator(localeFromRequest(), 'vocab'))
     const cutoff = range === '30d' ? new Date(Date.now() - THIRTY_DAYS_MS) : null
 
     const tasks = await prisma.task.findMany({
