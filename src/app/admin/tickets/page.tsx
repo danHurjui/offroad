@@ -15,6 +15,8 @@ export default async function AdminTicketsPage({
 }: {
   searchParams: { type?: string; status?: string; q?: string; sort?: string; page?: string }
 }) {
+  const tc = await getTranslations('common')
+  const t = await getTranslations('admin')
   const tv = await getTranslations('ticketVocab')
   const type = isTicketType(searchParams.type) ? searchParams.type : undefined
   const status = isTicketStatus(searchParams.status) ? searchParams.status : undefined
@@ -61,34 +63,38 @@ export default async function AdminTicketsPage({
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
-        <h1 className="text-2xl font-bold text-ink">Tickets</h1>
-        <span className="text-sm text-ink-muted">{total} total</span>
+        <h1 className="text-2xl font-bold text-ink">{t('tickets')}</h1>
+        <span className="text-sm text-ink-muted">{t('total', { count: total })}</span>
       </div>
 
       <form className="card mb-3 flex flex-wrap gap-3 p-4" method="get">
-        <input type="text" name="q" defaultValue={q} placeholder="Search title or description…" className="input min-w-48 flex-1" />
+        <input type="text" name="q" defaultValue={q} placeholder={t('searchTickets')} className="input min-w-48 flex-1" />
         <select name="type" defaultValue={type ?? ''} className="input w-44">
-          <option value="">All types</option>
+          <option value="">{t('allTypes')}</option>
           {TICKET_TYPE_VALUES.map((t) => (
             <option key={t} value={t}>{tv(`type.${t}.label`)}</option>
           ))}
         </select>
         <select name="status" defaultValue={status ?? ''} className="input w-40">
-          <option value="">All statuses</option>
+          <option value="">{t('allStatuses')}</option>
           {TICKET_STATUS_VALUES.map((s) => (
             <option key={s} value={s}>{tv(`status.${s}`)}</option>
           ))}
         </select>
         <select name="sort" defaultValue={sort} className="input w-36">
-          <option value="newest">Newest</option>
-          <option value="votes">Most voted</option>
+          <option value="newest">{t('newest')}</option>
+          <option value="votes">{t('mostVoted')}</option>
         </select>
-        <button type="submit" className="btn-primary">Filter</button>
-        {(q || type || status) && <Link href="/admin/tickets" className="btn-secondary">Clear</Link>}
+        <button type="submit" className="btn-primary">
+          {t('filter')}
+        </button>
+        {(q || type || status) && <Link href="/admin/tickets" className="btn-secondary">
+            {t('clear')}
+          </Link>}
       </form>
 
       {tickets.length === 0 ? (
-        <p className="card p-8 text-center text-ink-muted">No tickets match those filters.</p>
+        <p className="card p-8 text-center text-ink-muted">{t('noTickets')}</p>
       ) : (
         <div className="card divide-y divide-surface-border">
           {tickets.map((t) => (
@@ -114,9 +120,13 @@ export default async function AdminTicketsPage({
 
       {totalPages > 1 && (
         <div className="mt-5 flex items-center justify-between text-sm">
-          {page > 1 ? <Link href={href({ page: String(page - 1) })} className="btn-secondary">← Previous</Link> : <span />}
-          <span className="text-ink-muted">Page {page} of {totalPages}</span>
-          {page < totalPages ? <Link href={href({ page: String(page + 1) })} className="btn-secondary">Next →</Link> : <span />}
+          {page > 1 ? <Link href={href({ page: String(page - 1) })} className="btn-secondary">
+              {tc('previous')}
+            </Link> : <span />}
+          <span className="text-ink-muted">{tc('pageOf', { page, total: totalPages })}</span>
+          {page < totalPages ? <Link href={href({ page: String(page + 1) })} className="btn-secondary">
+              {tc('next')}
+            </Link> : <span />}
         </div>
       )}
     </div>

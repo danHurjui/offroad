@@ -15,7 +15,11 @@ const SOURCE = fs.readFileSync(path.join(process.cwd(), 'src', 'lib', 'apiError.
 /** The ApiErrorKey union, read from the type rather than re-listed here. */
 const KEYS = (() => {
   const union = SOURCE.slice(SOURCE.indexOf('export type ApiErrorKey ='), SOURCE.indexOf('/**', SOURCE.indexOf('export type ApiErrorKey =')))
-  return [...union.matchAll(/'([a-zA-Z]+)'/g)].map((m) => m[1])
+  const found: string[] = []
+  const pattern = /'([a-zA-Z]+)'/g
+  let match: RegExpExecArray | null
+  while ((match = pattern.exec(union)) !== null) found.push(match[1])
+  return found
 })()
 
 const CATALOGUES = Object.fromEntries(

@@ -78,6 +78,7 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
   // Every mode's labels, resolved once: the map below is synchronous
   // and would otherwise await per row.
   const t = await getTranslations('community')
+  const tc = await getTranslations('common')
   const tEra = await getTranslations('era')
   const vocabulary = await getAllVocabulary()
 
@@ -228,7 +229,7 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
               </Link>
             )}
             <span className="text-ink-muted">
-              {t('pageOf', { page, total: totalPages })}
+              {tc('pageOf', { page, total: totalPages })}
             </span>
             {page < totalPages && (
               <Link href={buildHref({ page: String(page + 1) })} className="btn-secondary">

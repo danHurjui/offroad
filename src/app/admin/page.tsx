@@ -25,6 +25,7 @@ function Stat({ label, value, href }: { label: string; value: string | number; h
 }
 
 export default async function AdminOverviewPage() {
+  const t = await getTranslations('admin')
   const tv = await getTranslations('ticketVocab')
   const [users, activeUsers, proUsers, vehicles, tickets, openTickets, donations, statusCounts] =
     await Promise.all([
@@ -42,24 +43,24 @@ export default async function AdminOverviewPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-ink">Overview</h1>
+      <h1 className="mb-6 text-2xl font-bold text-ink">{t('overview')}</h1>
 
       <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        <Stat label="Users" value={users} href="/admin/users" />
-        <Stat label="Active" value={activeUsers} href="/admin/users?status=active" />
-        <Stat label="Deactivated" value={users - activeUsers} href="/admin/users?status=inactive" />
-        <Stat label="Pro (incl. comped)" value={proUsers} />
-        <Stat label="Vehicles" value={vehicles} />
-        <Stat label="Tickets" value={tickets} href="/admin/tickets" />
-        <Stat label="Open tickets" value={openTickets} href="/admin/tickets?status=OPEN" />
+        <Stat label={t('statUsers')} value={users} href="/admin/users" />
+        <Stat label={t('statActive')} value={activeUsers} href="/admin/users?status=active" />
+        <Stat label={t('statDeactivated')} value={users - activeUsers} href="/admin/users?status=inactive" />
+        <Stat label={t('statPro')} value={proUsers} />
+        <Stat label={t('statVehicles')} value={vehicles} />
+        <Stat label={t('statTickets')} value={tickets} href="/admin/tickets" />
+        <Stat label={t('statOpenTickets')} value={openTickets} href="/admin/tickets?status=OPEN" />
         <Stat
-          label="Donated"
+          label={t('statDonated')}
           value={donations._count === 0 ? '—' : formatRon(donations._sum.amountBani ?? 0)}
         />
       </div>
 
       <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink-muted">
-        Tickets by status
+        {t('ticketsByStatus')}
       </h2>
       <div className="card divide-y divide-surface-border">
         {TICKET_STATUS_VALUES.map((status) => (
@@ -77,8 +78,7 @@ export default async function AdminOverviewPage() {
       </div>
 
       <p className="mt-6 text-xs text-ink-faint">
-        Pro status is set by the Stripe webhook and admin rights are granted directly in the database
-        — neither can be changed from these screens. See CLAUDE.md for why.
+        {t('overviewNote')}
       </p>
     </div>
   )

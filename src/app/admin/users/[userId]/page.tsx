@@ -14,6 +14,7 @@ export const metadata: Metadata = { title: 'User — RigLog admin', robots: { in
 export const dynamic = 'force-dynamic'
 
 export default async function AdminUserDetailPage({ params }: { params: { userId: string } }) {
+  const t = await getTranslations('admin')
   const tv = await getTranslations('ticketVocab')
   const session = await requireAdminOrNotFound()
 
@@ -39,37 +40,39 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
 
   const reason =
     user.id === session.user.id
-      ? 'This is you'
+      ? t('thisIsYou')
       : user.isAdmin
-        ? 'Admin — change in the database'
+        ? t('adminChangeInDb')
         : undefined
 
   return (
     <div>
       <Link href="/admin/users" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to users
+        {t('backToUsers')}
       </Link>
 
       <div className="card mb-6 flex flex-wrap items-start justify-between gap-4 p-5">
         <div>
           <div className="mb-1 flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-bold text-ink">{user.displayName}</h1>
-            {user.isAdmin && <span className="badge badge-warn">admin</span>}
+            {user.isAdmin && <span className="badge badge-warn">{t('adminBadge')}</span>}
             {user.isPro && (
               <span className="badge badge-brand">Pro{user.proPlan ? ` · ${user.proPlan}` : ''}</span>
             )}
             {user.isProComped && (
               <span className="badge badge-success">
-                {user.foundingNumber !== null ? `Founding member #${user.foundingNumber}` : 'Pro · comped'}
+                {user.foundingNumber !== null
+                  ? t('foundingMemberNumber', { number: user.foundingNumber })
+                  : t('proComped')}
               </span>
             )}
-            {!user.active && <span className="badge badge-danger">deactivated</span>}
+            {!user.active && <span className="badge badge-danger">{t('deactivatedBadge')}</span>}
           </div>
           <p className="text-sm text-ink-muted">{user.email}</p>
           <p className="text-xs text-ink-faint">
             {user.username ? `@${user.username} · ` : ''}
             {user.location ? `${user.location} · ` : ''}
-            joined {new Date(user.createdAt).toLocaleDateString('ro-RO')}
+            {t('joined', { date: new Date(user.createdAt).toLocaleDateString('ro-RO') })}
           </p>
         </div>
         <div className="flex flex-col items-end gap-3">
@@ -85,24 +88,28 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
       {user.isProComped && (
         <div className="card mb-6 note-success p-4">
           <div className="text-xs font-semibold uppercase tracking-wide text-green-800 dark:text-green-300">
-            Complimentary Pro
+            {t('complimentaryPro')}
           </div>
           <p className="mt-1 text-sm text-ink">
-            {user.proCompedReason || 'No reason recorded.'}
+            {user.proCompedReason || t('noReasonRecorded')}
           </p>
           <p className="mt-1 text-xs text-ink-faint">
-            granted {user.proCompedAt ? new Date(user.proCompedAt).toLocaleDateString('ro-RO') : 'unknown'}
-            {user.proCompedById ? ` by ${user.proCompedById}` : ''}
+            {t('grantedOn', {
+              date: user.proCompedAt
+                ? new Date(user.proCompedAt).toLocaleDateString('ro-RO')
+                : t('unknownDate'),
+            })}
+            {user.proCompedById ? t('grantedBy', { who: user.proCompedById }) : ''}
           </p>
         </div>
       )}
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          ['Vehicles', user._count.vehicles],
-          ['Tickets', user._count.tickets],
-          ['Comments', user._count.ticketComments],
-          ['Donations', user._count.donations],
+          [t('countVehicles'), user._count.vehicles],
+          [t('countTickets'), user._count.tickets],
+          [t('countComments'), user._count.ticketComments],
+          [t('countDonations'), user._count.donations],
         ].map(([label, value]) => (
           <div key={String(label)} className="card p-4">
             <div className="text-xs uppercase tracking-wide text-ink-faint">{label}</div>
@@ -111,9 +118,9 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
         ))}
       </div>
 
-      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">Vehicles</h2>
+      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('countVehicles')}</h2>
       {user.vehicles.length === 0 ? (
-        <p className="card mb-6 p-4 text-sm text-ink-faint">No vehicles.</p>
+        <p className="card mb-6 p-4 text-sm text-ink-faint">{t('noVehicles')}</p>
       ) : (
         <div className="card mb-6 divide-y divide-surface-border">
           {user.vehicles.map((v) => (
@@ -132,9 +139,9 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
         </div>
       )}
 
-      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">Tickets</h2>
+      <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('countTickets')}</h2>
       {user.tickets.length === 0 ? (
-        <p className="card p-4 text-sm text-ink-faint">No tickets.</p>
+        <p className="card p-4 text-sm text-ink-faint">{t('noTicketsShort')}</p>
       ) : (
         <div className="card divide-y divide-surface-border">
           {user.tickets.map((t) => (

@@ -27,6 +27,8 @@ export type AdminTicketView = {
  * admin write path to keep in sync.
  */
 export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) {
+  const tc = useTranslations('common')
+  const t = useTranslations('admin')
   const tv = useTranslations('ticketVocab')
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -46,7 +48,7 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error ?? 'Could not update')
+        setError(data.error ?? t('updateFailed'))
         setBusy(false)
         return
       }
@@ -54,7 +56,7 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
       setOpen(false)
       router.refresh()
     } catch {
-      setError('Could not reach the server')
+      setError(tc('networkError'))
       setBusy(false)
     }
   }
@@ -66,13 +68,13 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
       const res = await fetch(`/api/tickets/${ticket.id}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        setError(data.error ?? 'Could not delete')
+        setError(data.error ?? t('deleteFailed'))
         setBusy(false)
         return
       }
       router.refresh()
     } catch {
-      setError('Could not reach the server')
+      setError(tc('networkError'))
       setBusy(false)
     }
   }
@@ -103,10 +105,10 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
         </div>
         <div className="flex shrink-0 gap-2">
           <button type="button" className="btn-secondary py-1 text-xs" onClick={() => setOpen(!open)} disabled={busy}>
-            {open ? 'Cancel' : 'Triage'}
+            {open ? tc('cancel') : t('triage')}
           </button>
           <button type="button" className="btn-danger py-1 text-xs" onClick={remove} disabled={busy}>
-            Delete
+            {tc('delete')}
           </button>
         </div>
       </div>
@@ -131,11 +133,11 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
           <textarea
             className="input" rows={2} value={note} maxLength={1000}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Optional note shown publicly on the ticket…"
+            placeholder={t('triageNotePlaceholder')}
           />
           <div className="mt-2 flex items-center gap-3">
             <button type="button" className="btn-primary py-1 text-xs" onClick={save} disabled={busy}>
-              {busy ? 'Saving…' : 'Save'}
+              {busy ? tc('saving') : tc('save')}
             </button>
             {error && <span className="text-xs text-red-600 dark:text-red-400">{error}</span>}
           </div>
