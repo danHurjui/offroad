@@ -18,6 +18,26 @@ export default async function EditVehiclePage({ params }: { params: { id: string
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { username: true } })
   const config = await getVocabulary(vehicle.projectType)
 
+  // Offered as cover choices. Task photos carry a denormalised vehicleId;
+  // found-state photos hang off the restoration's 1:1 FoundState. Bounded
+  // because this is a picker, not a gallery — the photo timeline is where
+  // you go to see them all.
+  const [taskPhotos, foundStatePhotos] = await Promise.all([
+    prisma.taskPhoto.findMany({
+      where: { vehicleId: vehicle.id },
+      orderBy: { createdAt: 'desc' },
+      select: { url: true, caption: true },
+      take: 24,
+    }),
+    prisma.foundStatePhoto.findMany({
+      where: { foundState: { vehicleId: vehicle.id } },
+      orderBy: { createdAt: 'desc' },
+      select: { url: true, caption: true },
+      take: 12,
+    }),
+  ])
+  const coverCandidates = [...taskPhotos, ...foundStatePhotos]
+
   return (
     <div className="mx-auto max-w-xl">
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
@@ -41,6 +61,7 @@ export default async function EditVehiclePage({ params }: { params: { id: string
           slug: vehicle.slug,
           ownerUsername: owner?.username ?? null,
         }}
+        coverCandidates={coverCandidates}
       />
     </div>
   )

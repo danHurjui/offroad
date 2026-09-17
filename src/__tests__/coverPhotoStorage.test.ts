@@ -40,3 +40,30 @@ describe('the cover photo route', () => {
     expect(SOURCE).not.toMatch(/requireVehicleAccess/)
   })
 })
+
+/**
+ * Picking an existing photo as the cover must not make two rows share one
+ * storage key. If it did, replacing or removing the cover would delete the
+ * task photo's file along with it — the row would survive, pointing at
+ * nothing, and the photo would be gone from the timeline for good.
+ */
+describe('choosing an existing photo as the cover', () => {
+  const FIELD = fs.readFileSync(
+    path.join(process.cwd(), 'src', 'components', 'CoverPhotoField.tsx'),
+    'utf8'
+  )
+
+  it('re-uploads the image rather than reusing its key', () => {
+    // It fetches the bytes and hands them back as a File, so the pick goes
+    // through the ordinary upload and the cover ends up owning its copy.
+    expect(FIELD).toMatch(/new File\(\[blob\]/)
+    expect(FIELD).toMatch(/onFile\(new File/)
+  })
+
+  it('never hands a storage key straight to the caller as the new cover', () => {
+    // `onFile` takes a File or null; a candidate's `url` reaching it would
+    // mean the key was being adopted rather than the bytes copied.
+    expect(FIELD).not.toMatch(/onFile\(\s*candidate\.url/)
+    expect(FIELD).not.toMatch(/coverPhotoUrl:\s*candidate/)
+  })
+})
