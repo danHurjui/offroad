@@ -18,6 +18,45 @@ const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN)
 
 export class StorageError extends Error {}
 
+/**
+ * True when uploads have somewhere durable to go.
+ *
+ * On Vercel the serverless filesystem is read-only apart from /tmp, and
+ * /tmp is neither shared between invocations nor persistent — so local-disk
+ * storage there is not "degraded", it is broken: every single upload throws.
+ * Anywhere else, local disk is the normal development setup and fine.
+ */
+export function isStorageConfigured(): boolean {
+  return useBlob || !process.env.VERCEL
+}
+
+const MISCONFIGURED =
+  '[storage] BLOB_READ_WRITE_TOKEN is not set while running on Vercel, so uploads are being written ' +
+  "to the serverless filesystem, which is read-only. Every upload will fail with a 500 until a Blob " +
+  'store is linked to the project — see DEPLOY.md, "Create a free Vercel Blob store".'
+
+// Said once per cold start as well as per failure, so the cause is in the
+// log before the first user hits it — the same reasoning as email.ts
+// logging an unset provider key at error level in production.
+if (!isStorageConfigured()) console.error(MISCONFIGURED)
+
+/**
+ * Why an upload failed, with the backend named and the underlying error
+ * kept.
+ *
+ * Every route that writes a file catches StorageError and answers with a
+ * translated 500, which is right for the person but left the operator with
+ * a generic failure and no cause at all — the same hole email.ts closed by
+ * logging the provider's own response body. The usual cause here is
+ * configuration (no Blob token on Vercel, an unwritable UPLOADS_DIR), and
+ * configuration problems are invisible from the outside.
+ */
+function reportStorageFailure(operation: string, key: string, error: unknown): void {
+  const backend = useBlob ? 'Vercel Blob' : `local disk (UPLOADS_DIR=${UPLOADS_DIR})`
+  console.error(`[storage] ${operation} failed on ${backend} for "${key}": ${(error as Error)?.message ?? error}`)
+  if (!isStorageConfigured()) console.error(MISCONFIGURED)
+}
+
 function safeSegment(segment: string): string {
   if (!/^[a-zA-Z0-9_-]+$/.test(segment)) {
     throw new StorageError(`Invalid path segment: ${segment}`)
@@ -65,6 +104,7 @@ export async function saveUpload(
       await writeFile(path.join(dir, filename), buffer)
     }
   } catch (e) {
+    reportStorageFailure('save', key, e)
     throw new StorageError(`Failed to save upload: ${(e as Error).message}`)
   }
 
@@ -79,10 +119,16 @@ async function findBlob(storagePath: string) {
 /** Reads a stored file's bytes back, from Blob or local disk depending on which backend saved it. */
 export async function readUpload(storagePath: string): Promise<{ buffer: Buffer; contentType: string | null }> {
   if (useBlob) {
-    const blob = await findBlob(storagePath)
+    const blob = await findBlob(storagePath).catch((e) => {
+      reportStorageFailure('list', storagePath, e)
+      throw new StorageError('Failed to reach blob storage')
+    })
     if (!blob) throw new StorageError('Not found')
     const res = await fetch(blob.url)
-    if (!res.ok) throw new StorageError('Failed to fetch from blob storage')
+    if (!res.ok) {
+      reportStorageFailure('read', storagePath, new Error(`blob fetch returned ${res.status}`))
+      throw new StorageError('Failed to fetch from blob storage')
+    }
     // list()'s result doesn't carry contentType (only put()/head() do) —
     // Blob serves the file with the Content-Type it was uploaded with, so
     // the fetch response's own header is the simplest source of truth.
@@ -94,6 +140,8 @@ export async function readUpload(storagePath: string): Promise<{ buffer: Buffer;
     return { buffer, contentType: null }
   } catch (e) {
     if (e instanceof StorageError) throw e
+    // Not reported: a missing file on read is the ordinary 404 path (a
+    // stale key, a deleted row), not a fault worth an error line.
     throw new StorageError('Not found')
   }
 }

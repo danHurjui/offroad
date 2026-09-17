@@ -1,5 +1,12 @@
 {
   "compilerOptions": {
+    // Explicit, because the default is ES5 and `class StorageError extends
+    // Error` does not survive that downlevel: `instanceof StorageError`
+    // silently returns false, so an upload failure would fall through to
+    // the generic branch instead of its own. Next compiles with SWC and
+    // was never affected; anything driven by tsc (ts-node scripts, editor
+    // tooling) was.
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
