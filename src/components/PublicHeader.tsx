@@ -2,20 +2,35 @@ import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { getTranslations } from 'next-intl/server'
 import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+import Nav from './Nav'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 import LanguageToggle from './LanguageToggle'
 
 /**
- * Header for the logged-out marketing site (/, /donate, /tickets). Distinct
- * from Nav.tsx, which is the in-app header for the dashboard: this one
- * points at the public pages and adapts its final CTA to whether there's a
- * session, so a signed-in visitor landing on the homepage gets a route back
- * into the app instead of being asked to log in again.
+ * Header for the logged-out marketing site (/, /donate, /tickets).
+ *
+ * For a signed-in visitor it hands over to Nav.tsx, the in-app header,
+ * rather than swapping only its final CTA. The app nav offers Community
+ * and Feedback as sections, and those pages are public ones — so following
+ * either link used to replace the whole header with this marketing bar and
+ * drop the reader out of the app they were in. One session, one header.
+ *
+ * Signed out, nothing changes: this is still the marketing chrome, with
+ * log in and sign up.
  */
 export default async function PublicHeader() {
   const t = await getTranslations('nav')
   const session = await getServerSession(authOptions)
+
+  if (session?.user) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { displayName: true },
+    })
+    return <Nav displayName={user?.displayName ?? t('dashboard')} isAdmin={session.user.isAdmin} />
+  }
 
   return (
     <header
@@ -35,20 +50,13 @@ export default async function PublicHeader() {
           <Link href="/donate" className="hidden text-ink-muted hover:text-ink sm:inline">
             {t('donate')}
           </Link>
-          {session ? (
-            <Link href="/dashboard" className="btn-primary">
-              {t('dashboard')}
-            </Link>
-          ) : (
-            <>
-              <Link href="/login" className="text-ink-muted hover:text-ink">
-                {t('logIn')}
-              </Link>
-              <Link href="/register" className="btn-primary">
-                {t('signUp')}
-              </Link>
-            </>
-          )}
+          {/* No signed-in branch here any more: that case returned above. */}
+          <Link href="/login" className="text-ink-muted hover:text-ink">
+            {t('logIn')}
+          </Link>
+          <Link href="/register" className="btn-primary">
+            {t('signUp')}
+          </Link>
         </nav>
       </div>
     </header>

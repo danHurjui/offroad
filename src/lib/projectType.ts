@@ -9,6 +9,21 @@ export type ProjectType = 'OFFROAD' | 'RESTORATION' | 'DAILY_DRIVER'
 
 export type Option = { value: string; label: string }
 
+/**
+ * Which badge palette a status wears, named by meaning rather than hue —
+ * the same vocabulary globals.css uses, so light and dark both come for
+ * free (see the Theme section of CLAUDE.md).
+ *
+ * Statuses used to render as one flat grey, which made a finished job and
+ * one still on the ramp look identical down a list. The tone is declared
+ * here beside the status rather than in a component, for the same reason
+ * the labels are: a mode's vocabulary is this file's business, and being
+ * required means a new status has to answer the question.
+ */
+export type StatusTone = 'neutral' | 'info' | 'accent' | 'warn' | 'danger' | 'success'
+
+export type StatusOption = Option & { tone: StatusTone }
+
 interface ProjectTypeConfig {
   label: string
   screenTitle: string
@@ -22,7 +37,7 @@ interface ProjectTypeConfig {
   namePlaceholder: string
   wishlistLabel: string
   communityTabLabel: string
-  statusTags: Option[]
+  statusTags: StatusOption[]
   /**
    * The status value that counts as "done" for progress % and for
    * wishlist "mark as installed/fitted" conversion. NOT necessarily
@@ -54,11 +69,15 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     wishlistLabel: 'Wishlist',
     communityTabLabel: 'Builds',
     statusTags: [
-      { value: 'DONE', label: 'Done' },
-      { value: 'PLANNED', label: 'Planned' },
-      { value: 'BROKEN', label: 'Broken' },
-      { value: 'IN_PROGRESS', label: 'In Progress' },
-      { value: 'SOURCED', label: 'Sourced' },
+      { value: 'DONE', label: 'Done', tone: 'success' },
+      { value: 'PLANNED', label: 'Planned', tone: 'neutral' },
+      // Broken is the one status that wants the eye: it is the only one
+      // that means something is wrong rather than unfinished.
+      { value: 'BROKEN', label: 'Broken', tone: 'danger' },
+      { value: 'IN_PROGRESS', label: 'In Progress', tone: 'info' },
+      // The part is in hand but not on the vehicle — further along than
+      // planned, not yet done.
+      { value: 'SOURCED', label: 'Sourced', tone: 'accent' },
     ],
     completeStatus: 'DONE',
     tracksCompletion: true,
@@ -95,13 +114,17 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     namePlaceholder: 'e.g. Strip and re-chrome front bumper',
     wishlistLabel: 'Parts hunt',
     communityTabLabel: 'Restorations',
+    // Six ordered stages against four usable tones, so colour groups them
+    // coarsely — not started, underway, nearly there, done — rather than
+    // giving each stage a hue of its own. The label still says which stage
+    // it is; the colour is for reading a long list at a glance.
     statusTags: [
-      { value: 'STRIPPED', label: 'Stripped' },
-      { value: 'IN_PROGRESS', label: 'In Progress' },
-      { value: 'PRIMED', label: 'Primed' },
-      { value: 'PAINTED', label: 'Painted' },
-      { value: 'REBUILT', label: 'Rebuilt' },
-      { value: 'COMPLETE', label: 'Complete' },
+      { value: 'STRIPPED', label: 'Stripped', tone: 'neutral' },
+      { value: 'IN_PROGRESS', label: 'In Progress', tone: 'info' },
+      { value: 'PRIMED', label: 'Primed', tone: 'info' },
+      { value: 'PAINTED', label: 'Painted', tone: 'accent' },
+      { value: 'REBUILT', label: 'Rebuilt', tone: 'accent' },
+      { value: 'COMPLETE', label: 'Complete', tone: 'success' },
     ],
     completeStatus: 'COMPLETE',
     tracksCompletion: true,
@@ -145,11 +168,13 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     wishlistLabel: 'Planned work',
     communityTabLabel: 'Daily drivers',
     statusTags: [
-      { value: 'DONE', label: 'Done' },
-      { value: 'DUE', label: 'Due' },
-      { value: 'BOOKED', label: 'Booked in' },
-      { value: 'IN_PROGRESS', label: 'In Progress' },
-      { value: 'DEFERRED', label: 'Deferred' },
+      { value: 'DONE', label: 'Done', tone: 'success' },
+      // Due is a nag, not a failure: something needs booking.
+      { value: 'DUE', label: 'Due', tone: 'warn' },
+      { value: 'BOOKED', label: 'Booked in', tone: 'accent' },
+      { value: 'IN_PROGRESS', label: 'In Progress', tone: 'info' },
+      // Knowingly put off, so it should not shout like a due job.
+      { value: 'DEFERRED', label: 'Deferred', tone: 'neutral' },
     ],
     completeStatus: 'DONE',
     tracksCompletion: false,
@@ -224,4 +249,29 @@ export function labelFor(options: Option[], value: string): string {
 export function isValidTaskVocabulary(projectType: unknown, category: string, status: string): boolean {
   if (!isProjectType(projectType)) return false
   return isValidCategory(projectType, category) && isValidStatus(projectType, status)
+}
+
+/** The globals.css class for a tone. Kept beside the tones themselves so
+ *  adding one makes tsc name this map. */
+const STATUS_TONE_CLASS: Record<StatusTone, string> = {
+  neutral: 'badge-neutral',
+  info: 'badge-info',
+  accent: 'badge-accent',
+  warn: 'badge-warn',
+  danger: 'badge-danger',
+  success: 'badge-success',
+}
+
+/**
+ * The badge classes for a task's status.
+ *
+ * Takes the status options rather than the mode so it works with the
+ * translated vocabulary too — those carry the tone through unchanged,
+ * since a colour is not something to translate. An unknown status (a row
+ * written under a vocabulary that has since changed) falls back to
+ * neutral rather than throwing.
+ */
+export function statusBadgeClass(options: StatusOption[], value: string): string {
+  const tone = options.find((o) => o.value === value)?.tone ?? 'neutral'
+  return `badge ${STATUS_TONE_CLASS[tone]}`
 }

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { labelFor } from '@/lib/projectType'
+import { labelFor, statusBadgeClass } from '@/lib/projectType'
 import { getVocabulary, getOriginalityConditions } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import TaskPhotos from '@/components/TaskPhotos'
@@ -68,7 +68,11 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
             <div className="mb-1 flex items-center gap-2">
               {task.workType === 'WORKSHOP' && <span title={tv('workshopTask')}>🔧</span>}
               <span className="badge bg-surface-subtle text-ink-muted">{labelFor(config.categories, task.category)}</span>
-              <span className="badge badge-brand">{labelFor(config.statusTags, task.status)}</span>
+              {/* Was always badge-brand, which said "status" but never which
+                  one — the colour carried no information at all. */}
+              <span className={statusBadgeClass(config.statusTags, task.status)}>
+                {labelFor(config.statusTags, task.status)}
+              </span>
             </div>
             <h1 className="text-xl font-bold text-ink">{task.name}</h1>
             {task.brand && <p className="text-sm text-ink-muted">{task.brand}</p>}
