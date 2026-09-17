@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -24,7 +25,7 @@ import { requireAppUrl } from '@/lib/appUrl'
  */
 export async function POST(req: NextRequest) {
   const limit = await consumeRateLimit('donationCheckout', `ip:${clientIp(req.headers)}`)
-  if (!limit.ok) return rateLimitResponse(limit)
+  if (!limit.ok) return await rateLimitResponse(limit)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   const amountBani = parseDonationBani(body.amountRon)
   if (amountBani === undefined) {
-    return NextResponse.json({ error: 'Please choose a valid donation amount' }, { status: 400 })
+    return await apiError('donationAmountInvalid', 400)
   }
 
   const message =
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (!checkoutSession.url) {
-      return NextResponse.json({ error: 'Could not create checkout session' }, { status: 500 })
+      return await apiError('checkoutCreateFailed', 500)
     }
 
     await prisma.donation.create({
@@ -106,6 +107,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: checkoutSession.url })
   } catch (e) {
     console.error('Donation checkout failed:', e)
-    return NextResponse.json({ error: 'Could not start checkout' }, { status: 500 })
+    return await apiError('checkoutStartFailed', 500)
   }
 }

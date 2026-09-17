@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { translator } from '@/i18n/translator'
 import { requireSession } from '@/lib/authz'
@@ -16,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const collaborators = await prisma.projectCollaborator.findMany({
     where: { vehicleId: vehicle.id },
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -46,13 +47,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const role = body.role === 'SPECIALIST' ? 'SPECIALIST' : 'MECHANIC'
 
     if (!isValidEmail(email)) {
-      return NextResponse.json({ error: 'A valid email is required' }, { status: 400 })
+      return await apiError('emailInvalid', 400)
     }
 
     const alreadyActive = await prisma.projectCollaborator.findFirst({
       where: { vehicleId: vehicle.id, email, status: 'ACTIVE' } })
     if (alreadyActive) {
-      return NextResponse.json({ error: 'This email is already an active collaborator' }, { status: 400 })
+      return await apiError('alreadyCollaborator', 400)
     }
 
     const owner = await prisma.user.findUnique({
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const invitesToday = await prisma.projectCollaborator.count({
       where: { vehicleId: vehicle.id, invitedAt: { gte: oneDayAgo } } })
     if (invitesToday >= DAILY_INVITE_LIMIT) {
-      return NextResponse.json({ error: 'Daily invite limit reached for this vehicle. Try again tomorrow.' }, { status: 429 })
+      return await apiError('inviteLimitReached', 429)
     }
 
     const inviteToken = generateInviteToken()
@@ -104,6 +105,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const { inviteToken: _inviteToken, ...safe } = collaborator
     return NextResponse.json(safe, { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

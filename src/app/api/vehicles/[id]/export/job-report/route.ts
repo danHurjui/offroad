@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { translator } from '@/i18n/translator'
 import { localeFromRequest } from '@/i18n/requestLocale'
 import { prisma } from '@/lib/prisma'
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const isOwner = vehicle.ownerId === session.user.id
   const { searchParams } = new URL(req.url)
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   let collaboratorUserId: string
   if (isOwner) {
     const requested = searchParams.get('collaboratorId')
-    if (!requested) return NextResponse.json({ error: 'collaboratorId is required' }, { status: 400 })
+    if (!requested) return await apiError('collaboratorIdRequired', 400)
     collaboratorUserId = requested
   } else {
     collaboratorUserId = session.user.id
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     orderBy: { invitedAt: 'desc' },
     include: { collaboratorUser: { select: { displayName: true } } },
   })
-  if (!collaboratorRow) return NextResponse.json({ error: 'Not a collaborator on this vehicle' }, { status: 404 })
+  if (!collaboratorRow) return await apiError('notACollaborator', 404)
 
   try {
     const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
@@ -128,6 +129,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     })
   } catch (e) {
     console.error('Job report export failed:', e)
-    return NextResponse.json({ error: 'Could not generate job report' }, { status: 500 })
+    return await apiError('jobReportFailed', 500)
   }
 }

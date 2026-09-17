@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { requireSession } from '@/lib/authz'
 import { collectUserData } from '@/lib/personalData'
 import { consumeRateLimit, rateLimitResponse } from '@/lib/rateLimit'
@@ -22,7 +23,7 @@ export async function GET() {
   const { session } = auth
 
   const limit = await consumeRateLimit('dataExport', `user:${session.user.id}`)
-  if (!limit.ok) return rateLimitResponse(limit)
+  if (!limit.ok) return await rateLimitResponse(limit)
 
   try {
     const data = await collectUserData(session.user.id)
@@ -38,6 +39,6 @@ export async function GET() {
       },
     })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

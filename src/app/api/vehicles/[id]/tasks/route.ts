@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { translator } from '@/i18n/translator'
 import { requireSession } from '@/lib/authz'
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   try {
     const { searchParams } = new URL(req.url)
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const hideCosts = vehicle.ownerId !== session.user.id && vehicle.hideCostsFromCollaborators
     return NextResponse.json(tasks.map((t) => serializeTaskFor(t, { hideCosts })))
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -74,19 +75,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     } = body
 
     if (!name || typeof name !== 'string') {
-      return NextResponse.json({ error: 'name is required' }, { status: 400 })
+      return await apiError('nameRequired', 400)
     }
     if (!isValidTaskVocabulary(vehicle.projectType, category, status)) {
-      return NextResponse.json({ error: 'Invalid category/status for this project type' }, { status: 400 })
+      return await apiError('invalidCategoryStatus', 400)
     }
-    const badAmount = invalidAmountResponse({ costRon, partsCostRon, labourCostRon })
+    const badAmount = await invalidAmountResponse({ costRon, partsCostRon, labourCostRon })
     if (badAmount) return badAmount
     if (!date || Number.isNaN(new Date(date).getTime())) {
-      return NextResponse.json({ error: 'date is required' }, { status: 400 })
+      return await apiError('dateRequired', 400)
     }
     const resolvedWorkType = workType === 'WORKSHOP' ? 'WORKSHOP' : 'DIY'
     if (resolvedWorkType === 'WORKSHOP' && !workshopName) {
-      return NextResponse.json({ error: 'workshopName is required when work type is Workshop' }, { status: 400 })
+      return await apiError('workshopNameRequired', 400)
     }
 
     const task = await prisma.task.create({
@@ -140,6 +141,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json(serializeTask(task), { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

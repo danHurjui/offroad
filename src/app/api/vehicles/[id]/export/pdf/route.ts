@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { translator } from '@/i18n/translator'
 import { localeFromRequest } from '@/i18n/requestLocale'
 import { prisma } from '@/lib/prisma'
@@ -24,14 +25,11 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
   if (!hasPro(owner)) {
-    return NextResponse.json(
-      { error: 'PDF export is a Pro feature. Upgrade to export your full build history.', code: 'UPGRADE_REQUIRED' },
-      { status: 403 }
-    )
+    return await apiError('proPdfExport', 403, { code: 'UPGRADE_REQUIRED' })
   }
 
   try {
@@ -145,6 +143,6 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     })
   } catch (e) {
     console.error('PDF export failed:', e)
-    return NextResponse.json({ error: 'Could not generate PDF' }, { status: 500 })
+    return await apiError('pdfFailed', 500)
   }
 }

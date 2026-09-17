@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
@@ -14,10 +15,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   // Keyed on the user id, not the IP: a session id can't be rotated the
   // way a spoofed x-forwarded-for can.
   const limit = await consumeRateLimit('ticketComment', `user:${session.user.id}`)
-  if (!limit.ok) return rateLimitResponse(limit)
+  if (!limit.ok) return await rateLimitResponse(limit)
 
   const ticket = await prisma.ticket.findUnique({ where: { id: params.id }, select: { id: true } })
-  if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!ticket) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -55,6 +56,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       { status: 201 }
     )
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

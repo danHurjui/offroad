@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { apiErrorMessage } from './apiError'
 
 /**
  * Fixed-window rate limiting, backed by Postgres.
@@ -171,10 +172,11 @@ export function clientIp(headers?: Headers | null): string {
 }
 
 /** Standard 429 body + Retry-After, so clients can back off properly. */
-export function rateLimitResponse(result: RateLimitResult): Response {
+export async function rateLimitResponse(result: RateLimitResult): Promise<Response> {
   return new Response(
     JSON.stringify({
-      error: 'Too many requests. Please slow down and try again shortly.',
+      error: await apiErrorMessage('rateLimited'),
+      // The historic code, kept: clients already switch on it.
       code: 'RATE_LIMITED',
       retryAfterSeconds: result.retryAfterSeconds,
     }),

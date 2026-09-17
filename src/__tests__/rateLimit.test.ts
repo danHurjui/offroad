@@ -148,7 +148,7 @@ describe('clientIp', () => {
 
 describe('rateLimitResponse', () => {
   it('is a 429 carrying Retry-After', async () => {
-    const res = rateLimitResponse({ ok: false, remaining: 0, retryAfterSeconds: 42 })
+    const res = await rateLimitResponse({ ok: false, remaining: 0, retryAfterSeconds: 42 })
     expect(res.status).toBe(429)
     expect(res.headers.get('Retry-After')).toBe('42')
     await expect(res.json()).resolves.toMatchObject({ code: 'RATE_LIMITED', retryAfterSeconds: 42 })

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
@@ -21,10 +22,10 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const task = await loadTask(params.id, params.taskId)
-  if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!task) return await apiError('notFound', 404)
 
   // RL-031: redact costs for a collaborator when the owner hid them.
   const hideCosts = vehicle.ownerId !== session.user.id && vehicle.hideCostsFromCollaborators
@@ -39,21 +40,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const task = await loadTask(params.id, params.taskId)
-  if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!task) return await apiError('notFound', 404)
 
   const isOwner = vehicle.ownerId === session.user.id
   if (!isOwner && task.addedByUserId !== session.user.id) {
-    return NextResponse.json({ error: 'You can only edit tasks you added' }, { status: 403 })
+    return await apiError('editOwnTasksOnly', 403)
   }
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
   const body = parsed.body
 
-  const badAmount = invalidAmountResponse({
+  const badAmount = await invalidAmountResponse({
     costRon: body.costRon,
     partsCostRon: body.partsCostRon,
     labourCostRon: body.labourCostRon,
@@ -69,14 +70,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       const category = body.category ?? task.category
       const status = body.status ?? task.status
       if (!isValidTaskVocabulary(vehicle.projectType, category, status)) {
-        return NextResponse.json({ error: 'Invalid category/status for this project type' }, { status: 400 })
+        return await apiError('invalidCategoryStatus', 400)
       }
       data.category = category
       data.status = status
     }
     if (body.date !== undefined) {
       if (Number.isNaN(new Date(body.date).getTime())) {
-        return NextResponse.json({ error: 'Invalid date' }, { status: 400 })
+        return await apiError('invalidDate', 400)
       }
       data.date = new Date(body.date)
     }
@@ -89,7 +90,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       data.workType = resolvedWorkType
       if (resolvedWorkType === 'WORKSHOP') {
         if (!body.workshopName && !task.workshopName) {
-          return NextResponse.json({ error: 'workshopName is required when work type is Workshop' }, { status: 400 })
+          return await apiError('workshopNameRequired', 400)
         }
         data.workshopName = body.workshopName ?? task.workshopName
         data.workshopContact = body.workshopContact ?? task.workshopContact
@@ -121,7 +122,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json(serializeTask(updated))
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -132,18 +133,18 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
   if (vehicle.ownerId !== session.user.id) {
-    return NextResponse.json({ error: 'Only the owner can delete a task' }, { status: 403 })
+    return await apiError('onlyOwnerDeletesTask', 403)
   }
 
   const task = await loadTask(params.id, params.taskId)
-  if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!task) return await apiError('notFound', 404)
 
   try {
     await prisma.task.delete({ where: { id: task.id } })
     return NextResponse.json({ message: 'Task deleted' })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

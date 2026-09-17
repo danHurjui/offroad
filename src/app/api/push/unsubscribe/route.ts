@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const endpoint = typeof body.endpoint === 'string' ? body.endpoint : ''
-    if (!endpoint) return NextResponse.json({ error: 'endpoint is required' }, { status: 400 })
+    if (!endpoint) return await apiError('endpointRequired', 400)
 
     // Scoped to the caller's own userId so one user can't unsubscribe
     // another's device by guessing/reusing an endpoint string.
@@ -22,6 +23,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

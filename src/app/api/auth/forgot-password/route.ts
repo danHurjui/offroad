@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { sendEmail, passwordResetEmail, emailLocale, isEmailConfigured } from '@/lib/email'
@@ -12,7 +13,7 @@ const TOKEN_TTL_MS = 60 * 60 * 1000 // 1 hour
 // whether the email exists, to avoid leaking account existence.
 export async function POST(req: NextRequest) {
   const ipLimit = await consumeRateLimit('forgotPasswordIp', `ip:${clientIp(req.headers)}`)
-  if (!ipLimit.ok) return rateLimitResponse(ipLimit)
+  if (!ipLimit.ok) return await rateLimitResponse(ipLimit)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -20,14 +21,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const email = typeof body.email === 'string' ? body.email.toLowerCase().trim() : ''
-    if (!email) return NextResponse.json({ error: 'Email is required' }, { status: 400 })
+    if (!email) return await apiError('emailRequired', 400)
 
     // Per-address limit: this is what stops someone's inbox being flooded
     // with reset mail. It counts regardless of whether the account exists,
     // so a 429 here still leaks nothing about account existence — the same
     // reason this route always 200s below.
     const emailLimit = await consumeRateLimit('forgotPassword', `email:${email}`)
-    if (!emailLimit.ok) return rateLimitResponse(emailLimit)
+    if (!emailLimit.ok) return await rateLimitResponse(emailLimit)
 
     // Without a mail provider this route would hand back its reassuring
     // "check your inbox" message while sending nothing, stranding someone
@@ -38,14 +39,7 @@ export async function POST(req: NextRequest) {
       console.error(
         '[forgot-password] no email provider configured (BREVO_API_KEY / RESEND_API_KEY) — cannot send reset emails.'
       )
-      return NextResponse.json(
-        {
-          error:
-            'Password reset is temporarily unavailable because email is not configured. Please contact support.',
-          code: 'EMAIL_NOT_CONFIGURED',
-        },
-        { status: 503 }
-      )
+      return await apiError('resetEmailNotConfigured', 503, { code: 'EMAIL_NOT_CONFIGURED' })
     }
 
     // Same reasoning as the email check, and the same placement — before
@@ -60,14 +54,7 @@ export async function POST(req: NextRequest) {
         '[forgot-password] no usable public URL — set NEXTAUTH_URL to the origin this app is ' +
           'served from (e.g. https://riglog.ro). Reset links cannot be built, so none were sent.'
       )
-      return NextResponse.json(
-        {
-          error:
-            'Password reset is temporarily unavailable because the site URL is not configured. Please contact support.',
-          code: 'APP_URL_NOT_CONFIGURED',
-        },
-        { status: 503 }
-      )
+      return await apiError('resetUrlNotConfigured', 503, { code: 'APP_URL_NOT_CONFIGURED' })
     }
 
     const user = await prisma.user.findUnique({ where: { email } })
@@ -96,16 +83,13 @@ export async function POST(req: NextRequest) {
         // already know the message bounced is the worse failure.
         console.error('[forgot-password] send failed for an existing account:', e)
         await prisma.passwordResetToken.delete({ where: { id: created.id } }).catch(() => {})
-        return NextResponse.json(
-          { error: 'We could not send the reset email. Please try again shortly.', code: 'EMAIL_SEND_FAILED' },
-          { status: 502 }
-        )
+        return await apiError('resetSendFailed', 502, { code: 'EMAIL_SEND_FAILED' })
       }
     }
 
     return NextResponse.json({ message: 'If that email exists, a reset link has been sent.' })
   } catch (e) {
     console.error('[forgot-password] unexpected failure:', e)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

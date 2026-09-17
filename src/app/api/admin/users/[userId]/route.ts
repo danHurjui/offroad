@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
@@ -39,10 +40,10 @@ export async function GET(_req: NextRequest, { params }: { params: { userId: str
         _count: { select: { vehicles: true, tickets: true, ticketComments: true, donations: true } },
       },
     })
-    if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (!user) return await apiError('notFound', 404)
     return NextResponse.json(user)
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -75,7 +76,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
     where: { id: params.userId },
     select: { id: true, active: true, isAdmin: true, displayName: true },
   })
-  if (!target) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!target) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -84,10 +85,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
   const wantsActive = body.active !== undefined
   const wantsComp = body.isProComped !== undefined
   if (!wantsActive && !wantsComp) {
-    return NextResponse.json(
-      { error: 'Only `active` and `isProComped` can be changed here' },
-      { status: 400 }
-    )
+    return await apiError('adminFieldsLimited', 400)
   }
 
   const data: Record<string, unknown> = {}
@@ -96,15 +94,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
     const active = Boolean(body.active)
     // Locking yourself out is the one mistake with no in-app way back.
     if (target.id === session.user.id && !active) {
-      return NextResponse.json({ error: 'You cannot deactivate your own account' }, { status: 400 })
+      return await apiError('cannotDeactivateSelf', 400)
     }
     // Admins don't get to depose each other; that needs database access,
     // the same bar as granting admin in the first place.
     if (target.isAdmin && !active) {
-      return NextResponse.json(
-        { error: 'An admin account cannot be deactivated from here' },
-        { status: 400 }
-      )
+      return await apiError('cannotDeactivateAdmin', 400)
     }
     data.active = active
   }
@@ -137,6 +132,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
     })
     return NextResponse.json(updated)
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

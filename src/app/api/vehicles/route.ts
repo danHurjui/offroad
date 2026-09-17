@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { isProjectType, PROJECT_TYPES } from '@/lib/projectType'
@@ -25,7 +26,7 @@ export async function GET() {
     })
     return NextResponse.json({ owned, collaborating })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -48,14 +49,14 @@ export async function POST(req: NextRequest) {
       )
     }
     if (!make || typeof make !== 'string') {
-      return NextResponse.json({ error: 'make is required' }, { status: 400 })
+      return await apiError('makeRequired', 400)
     }
     if (!model || typeof model !== 'string') {
-      return NextResponse.json({ error: 'model is required' }, { status: 400 })
+      return await apiError('modelRequired', 400)
     }
     const yearNum = Number(year)
     if (!Number.isInteger(yearNum) || yearNum < 1886 || yearNum > CURRENT_YEAR_PLUS_ONE) {
-      return NextResponse.json({ error: 'year must be a valid 4-digit year' }, { status: 400 })
+      return await apiError('yearInvalid', 400)
     }
 
     const user = await prisma.user.findUnique({
@@ -94,6 +95,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(vehicle, { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

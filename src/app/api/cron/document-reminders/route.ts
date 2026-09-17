@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { translator } from '@/i18n/translator'
 import { decideReminder, daysUntilMessage, getDocumentStatus, REMINDER_FIELDS } from '@/lib/documents'
@@ -24,7 +25,7 @@ async function handle(req: NextRequest) {
   const bearer = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   const secret = bearer ?? req.headers.get('x-cron-secret')
   if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return await apiError('unauthorized', 401)
   }
 
   const documents = await prisma.document.findMany({

@@ -36,22 +36,29 @@ describe('parseAmount', () => {
 })
 
 describe('invalidAmountResponse', () => {
-  it('returns null when every field is acceptable', () => {
-    expect(invalidAmountResponse({ costRon: 100, partsCostRon: null, labourCostRon: undefined })).toBeNull()
+  it('returns null when every field is acceptable', async () => {
+    expect(await invalidAmountResponse({ costRon: 100, partsCostRon: null, labourCostRon: undefined })).toBeNull()
   })
 
+  /**
+   * The message is translated now, so what is asserted is the field name
+   * reaching it and the stable `code` — the sentence around them belongs
+   * to the catalogue, and i18n.test.ts checks it exists in both languages.
+   */
   it('returns a 400 naming the offending field', async () => {
-    const res = invalidAmountResponse({ costRon: 10, partsCostRon: -3 })
+    const res = await invalidAmountResponse({ costRon: 10, partsCostRon: -3 })
     expect(res).not.toBeNull()
     expect(res!.status).toBe(400)
-    await expect(res!.json()).resolves.toEqual({
-      error: 'partsCostRon must be a non-negative number',
-    })
+    const body = await res!.json()
+    expect(body.code).toBe('amountNegative')
+    expect(body.error).toContain('partsCostRon')
   })
 
   it('rejects a cost that would silently become NaN', async () => {
-    const res = invalidAmountResponse({ costRon: 'abc' })
+    const res = await invalidAmountResponse({ costRon: 'abc' })
     expect(res!.status).toBe(400)
-    await expect(res!.json()).resolves.toEqual({ error: 'costRon must be a non-negative number' })
+    const body = await res!.json()
+    expect(body.code).toBe('amountNegative')
+    expect(body.error).toContain('costRon')
   })
 })

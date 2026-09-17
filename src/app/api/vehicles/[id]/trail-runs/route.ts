@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
@@ -13,13 +14,13 @@ import { hasPro, PRO_SELECT } from '@/lib/pro'
 // documentation collaborators need to edit).
 async function loadOffroadOwnerVehicle(vehicleId: string, userId: string) {
   const vehicle = await requireVehicleOwner(vehicleId, userId)
-  if (!vehicle) return { error: NextResponse.json({ error: 'Not found' }, { status: 404 }) }
+  if (!vehicle) return { error: await apiError('notFound', 404) }
   if (vehicle.projectType !== 'OFFROAD') {
-    return { error: NextResponse.json({ error: 'Trail log only applies to off-road projects' }, { status: 400 }) }
+    return { error: await apiError('trailOffroadOnly', 400) }
   }
   const owner = await prisma.user.findUnique({ where: { id: userId }, select: { ...PRO_SELECT } })
   if (!hasPro(owner)) {
-    return { error: NextResponse.json({ error: 'Trail log is a Pro feature.', code: 'UPGRADE_REQUIRED' }, { status: 403 }) }
+    return { error: await apiError('proTrailLog', 403, { code: 'UPGRADE_REQUIRED' }) }
   }
   return { vehicle }
 }
@@ -69,13 +70,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const { name, date, location, notes, distanceKm, durationMin, elevationGainM, trackGeoJson, waypoints } = body
 
     if (!name || typeof name !== 'string') {
-      return NextResponse.json({ error: 'name is required' }, { status: 400 })
+      return await apiError('nameRequired', 400)
     }
     if (!date || Number.isNaN(new Date(date).getTime())) {
-      return NextResponse.json({ error: 'A valid date is required' }, { status: 400 })
+      return await apiError('validDateRequired', 400)
     }
 
-    const badAmount = invalidAmountResponse({ distanceKm, durationMin, elevationGainM })
+    const badAmount = await invalidAmountResponse({ distanceKm, durationMin, elevationGainM })
     if (badAmount) return badAmount
 
     const track: TrackPointInput[] = Array.isArray(trackGeoJson) ? trackGeoJson : []
@@ -106,6 +107,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json(serializeTrailRun(run), { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

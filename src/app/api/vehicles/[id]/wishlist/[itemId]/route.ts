@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -19,10 +20,10 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const item = await loadItem(params.id, params.itemId)
-  if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!item) return await apiError('notFound', 404)
 
   return NextResponse.json(serializeWishlistItem(item))
 }
@@ -33,16 +34,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const item = await loadItem(params.id, params.itemId)
-  if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!item) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
   const body = parsed.body
 
-  const badAmount = invalidAmountResponse({
+  const badAmount = await invalidAmountResponse({
     estimatedCostRon: body.estimatedCostRon,
     targetPriceRon: body.targetPriceRon,
   })
@@ -53,7 +54,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
 
     if (body.name !== undefined) {
-      if (!body.name) return NextResponse.json({ error: 'name cannot be empty' }, { status: 400 })
+      if (!body.name) return await apiError('nameEmpty', 400)
       data.name = String(body.name)
     }
     if (body.category !== undefined) data.category = body.category || null
@@ -62,7 +63,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
     if (body.status !== undefined) {
       if (!config.wishlistStatuses.some((s) => s.value === body.status)) {
-        return NextResponse.json({ error: 'Invalid status for this project type' }, { status: 400 })
+        return await apiError('invalidStatusForType', 400)
       }
       data.status = body.status
     }
@@ -82,7 +83,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const updated = await prisma.wishlistItem.update({ where: { id: item.id }, data })
     return NextResponse.json(serializeWishlistItem(updated))
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -92,15 +93,15 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const item = await loadItem(params.id, params.itemId)
-  if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!item) return await apiError('notFound', 404)
 
   try {
     await prisma.wishlistItem.delete({ where: { id: item.id } })
     return NextResponse.json({ message: 'Item deleted' })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

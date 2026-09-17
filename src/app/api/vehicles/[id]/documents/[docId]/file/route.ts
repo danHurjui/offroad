@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -12,10 +13,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const document = await prisma.document.findUnique({ where: { id: params.docId } })
-  if (!document || document.vehicleId !== vehicle.id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!document || document.vehicleId !== vehicle.id) return await apiError('notFound', 404)
 
   const parsedForm = await readFormData(req)
   if (!parsedForm.ok) return parsedForm.error
@@ -25,10 +26,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
     const file = formData.get('file')
 
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'file is required' }, { status: 400 })
+      return await apiError('fileRequired', 400)
     }
     if (!ALLOWED_UPLOAD_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 })
+      return await apiError('unsupportedFileType', 400)
     }
     if (file.size > MAX_UPLOAD_BYTES) {
       return NextResponse.json({ error: `File too large (max ${MAX_UPLOAD_BYTES / 1024 / 1024}MB)` }, { status: 400 })
@@ -44,8 +45,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
     return NextResponse.json(updated)
   } catch (e) {
     if (e instanceof StorageError) {
-      return NextResponse.json({ error: 'Failed to save file' }, { status: 500 })
+      return await apiError('saveFileFailed', 500)
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

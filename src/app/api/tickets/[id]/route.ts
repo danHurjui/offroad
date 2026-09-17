@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
@@ -19,7 +20,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
         _count: { select: { votes: true } },
       },
     })
-    if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (!ticket) return await apiError('notFound', 404)
 
     return NextResponse.json({
       id: ticket.id,
@@ -33,7 +34,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       createdAt: ticket.createdAt,
     })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -56,7 +57,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     where: { id: params.id },
     select: { id: true, authorId: true },
   })
-  if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!ticket) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -74,7 +75,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     if (body.title !== undefined || body.description !== undefined) {
       if (!isAuthor) {
-        return NextResponse.json({ error: 'Only the author can edit a ticket' }, { status: 403 })
+        return await apiError('onlyTicketAuthor', 403)
       }
       if (body.title !== undefined) {
         const title = validateText(body.title, 'title', TICKET_TITLE_MAX)
@@ -90,11 +91,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     if (body.status !== undefined || body.adminNote !== undefined) {
       if (!isAdmin) {
-        return NextResponse.json({ error: 'Only an admin can triage a ticket' }, { status: 403 })
+        return await apiError('onlyAdminTriage', 403)
       }
       if (body.status !== undefined) {
         if (!isTicketStatus(body.status)) {
-          return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+          return await apiError('invalidStatus', 400)
         }
         data.status = body.status
       }
@@ -104,7 +105,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     if (Object.keys(data).length === 0) {
-      return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+      return await apiError('nothingToUpdate', 400)
     }
 
     const updated = await prisma.ticket.update({ where: { id: ticket.id }, data })
@@ -117,7 +118,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       adminNote: updated.adminNote,
     })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -131,20 +132,20 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     where: { id: params.id },
     select: { id: true, authorId: true },
   })
-  if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!ticket) return await apiError('notFound', 404)
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
     select: { isAdmin: true },
   })
   if (ticket.authorId !== session.user.id && !user?.isAdmin) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return await apiError('notFound', 404)
   }
 
   try {
     await prisma.ticket.delete({ where: { id: ticket.id } })
     return NextResponse.json({ message: 'Ticket deleted' })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

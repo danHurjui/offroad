@@ -18,12 +18,19 @@ describe('requireSession', () => {
     if (!result.ok) expect(result.error.status).toBe(401)
   })
 
+  /**
+   * The sentence is translated, so the assertion is on `code` — the half
+   * a client can act on, and the half that does not change when the
+   * wording does. The default locale here is Romanian, which is why the
+   * old check on the English string stopped holding.
+   */
   it('returns proper JSON body on 401', async () => {
     mockGetSession.mockResolvedValue(null)
     const result = await requireSession()
     if (!result.ok) {
       const body = await result.error.json()
-      expect(body.error).toBe('Unauthorized')
+      expect(body.code).toBe('unauthorized')
+      expect(body.error).toMatch(/\S/)
     }
   })
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
@@ -68,7 +69,7 @@ export async function GET(req: NextRequest) {
       pageSize: PAGE_SIZE,
     })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
   // Keyed on the user id, not the IP: a session id can't be rotated the
   // way a spoofed x-forwarded-for can.
   const limit = await consumeRateLimit('ticketCreate', `user:${session.user.id}`)
-  if (!limit.ok) return rateLimitResponse(limit)
+  if (!limit.ok) return await rateLimitResponse(limit)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
 
   try {
     if (!isTicketType(body.type)) {
-      return NextResponse.json({ error: 'type must be BUG, FEATURE or IMPROVEMENT' }, { status: 400 })
+      return await apiError('invalidTicketType', 400)
     }
     const title = validateText(body.title, 'title', TICKET_TITLE_MAX)
     if (!title.ok) return NextResponse.json({ error: title.error }, { status: 400 })
@@ -113,6 +114,6 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     )
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

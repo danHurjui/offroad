@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
@@ -12,7 +13,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const partsRequest = await prisma.partsRequest.findUnique({ where: { id: params.id }, select: { id: true } })
-  if (!partsRequest) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!partsRequest) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   try {
     const commentBody = typeof body.body === 'string' ? body.body.trim() : ''
-    if (!commentBody) return NextResponse.json({ error: 'body is required' }, { status: 400 })
+    if (!commentBody) return await apiError('bodyRequired', 400)
 
     const comment = await prisma.partsRequestComment.create({
       data: { partsRequestId: partsRequest.id, userId: session.user.id, body: commentBody },
@@ -29,6 +30,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json(comment, { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

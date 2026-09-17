@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess, requireVehicleOwner } from '@/lib/access'
@@ -17,7 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   try {
     const [tasks, foundState] = await Promise.all([
@@ -42,7 +43,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       isOwner,
     })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -54,7 +55,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -68,7 +69,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.year !== undefined) {
       const yearNum = Number(body.year)
       if (!Number.isInteger(yearNum) || yearNum < 1886 || yearNum > CURRENT_YEAR_PLUS_ONE) {
-        return NextResponse.json({ error: 'year must be a valid 4-digit year' }, { status: 400 })
+        return await apiError('yearInvalid', 400)
       }
       data.year = yearNum
     }
@@ -96,7 +97,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const updated = await prisma.vehicle.update({ where: { id: vehicle.id }, data })
     return NextResponse.json(updated)
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -106,7 +107,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   try {
     // Gathered before the delete — the rows that name these files are
@@ -117,6 +118,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     await deleteStoredFiles(keys)
     return NextResponse.json({ message: 'Vehicle deleted', filesDeleted: keys.length })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

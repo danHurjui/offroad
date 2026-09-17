@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -12,7 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const documents = await prisma.document.findMany({
     where: { vehicleId: vehicle.id },
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -38,10 +39,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const { type, expiryDate } = body
 
     if (!isValidDocumentType(type)) {
-      return NextResponse.json({ error: 'Invalid document type' }, { status: 400 })
+      return await apiError('invalidDocumentType', 400)
     }
     if (!expiryDate || Number.isNaN(new Date(expiryDate).getTime())) {
-      return NextResponse.json({ error: 'expiryDate is required' }, { status: 400 })
+      return await apiError('expiryDateRequired', 400)
     }
 
     const document = await prisma.document.create({
@@ -50,6 +51,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json(document, { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

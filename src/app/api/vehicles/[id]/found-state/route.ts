@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
@@ -13,9 +14,9 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
   if (vehicle.projectType !== 'RESTORATION') {
-    return NextResponse.json({ error: 'Found state only applies to restoration projects' }, { status: 400 })
+    return await apiError('foundStateRestorationOnly', 400)
   }
 
   const foundState = await prisma.foundState.findUnique({
@@ -33,9 +34,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
   if (vehicle.projectType !== 'RESTORATION') {
-    return NextResponse.json({ error: 'Found state only applies to restoration projects' }, { status: 400 })
+    return await apiError('foundStateRestorationOnly', 400)
   }
 
   const parsed = await readJsonBody(req)
@@ -60,14 +61,14 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     } = body
 
     if (!acquisitionDate || Number.isNaN(new Date(acquisitionDate).getTime())) {
-      return NextResponse.json({ error: 'acquisitionDate is required' }, { status: 400 })
+      return await apiError('acquisitionDateRequired', 400)
     }
-    const badAmount = invalidAmountResponse({ purchasePriceRon, odometer })
+    const badAmount = await invalidAmountResponse({ purchasePriceRon, odometer })
     if (badAmount) return badAmount
     if (conditionRating !== undefined && conditionRating !== null) {
       const rating = Number(conditionRating)
       if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-        return NextResponse.json({ error: 'conditionRating must be 1-5' }, { status: 400 })
+        return await apiError('conditionRatingRange', 400)
       }
     }
 
@@ -96,6 +97,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     return NextResponse.json({ ...foundState, purchasePriceRon: toNumberOrNull(foundState.purchasePriceRon) })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

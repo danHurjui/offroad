@@ -1,7 +1,8 @@
 // See the matching comment in ../build/route.tsx — Jest's classic JSX
 // transform needs this even though Next's real build doesn't.
 import React from 'react'
-import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
+import { NextRequest } from 'next/server'
 import { ImageResponse } from 'next/og'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
@@ -23,14 +24,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
   if (vehicle.projectType !== 'RESTORATION') {
-    return NextResponse.json({ error: 'Transformation cards are restoration mode only' }, { status: 400 })
+    return await apiError('transformationRestorationOnly', 400)
   }
 
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT, username: true } })
   if (!owner || !hasPro(owner)) {
-    return NextResponse.json({ error: 'Share cards are a Pro feature.', code: 'UPGRADE_REQUIRED' }, { status: 403 })
+    return await apiError('proShareCards', 403, { code: 'UPGRADE_REQUIRED' })
   }
 
   const config = PROJECT_TYPE_CONFIG[vehicle.projectType]

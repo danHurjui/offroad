@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -17,10 +18,10 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const run = await loadRun(params.id, params.runId)
-  if (!run) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!run) return await apiError('notFound', 404)
 
   return NextResponse.json(serializeTrailRun(run))
 }
@@ -31,16 +32,16 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const run = await loadRun(params.id, params.runId)
-  if (!run) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!run) return await apiError('notFound', 404)
 
   try {
     await Promise.all(run.waypoints.filter((w) => w.photoUrl).map((w) => deleteUpload(w.photoUrl!)))
     await prisma.trailRun.delete({ where: { id: run.id } })
     return NextResponse.json({ message: 'Trail run deleted' })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

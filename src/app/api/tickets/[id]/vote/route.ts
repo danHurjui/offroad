@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
@@ -22,7 +23,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
   const { session } = auth
 
   const ticket = await prisma.ticket.findUnique({ where: { id: params.id }, select: { id: true } })
-  if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!ticket) return await apiError('notFound', 404)
 
   let voted: boolean
   try {
@@ -36,7 +37,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
       await prisma.ticketVote.deleteMany({ where: { ticketId: ticket.id, userId: session.user.id } })
       voted = false
     } else {
-      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      return await apiError('internalError', 500)
     }
   }
 

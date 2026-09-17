@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
@@ -13,14 +14,14 @@ function toJsonInput(decoded: DecodedVin): Prisma.InputJsonValue {
 
 async function loadRestorationOwnerVehicle(vehicleId: string, userId: string) {
   const vehicle = await requireVehicleOwner(vehicleId, userId)
-  if (!vehicle) return { error: NextResponse.json({ error: 'Not found' }, { status: 404 }) }
+  if (!vehicle) return { error: await apiError('notFound', 404) }
   if (vehicle.projectType !== 'RESTORATION') {
-    return { error: NextResponse.json({ error: 'VIN decoding only applies to restoration projects' }, { status: 400 }) }
+    return { error: await apiError('vinRestorationOnly', 400) }
   }
   const owner = await prisma.user.findUnique({ where: { id: userId }, select: { ...PRO_SELECT } })
   if (!hasPro(owner)) {
     return {
-      error: NextResponse.json({ error: 'VIN decoding is a Pro feature.', code: 'UPGRADE_REQUIRED' }, { status: 403 }),
+      error: await apiError('proVinDecoder', 403, { code: 'UPGRADE_REQUIRED' }),
     }
   }
   return { vehicle }
@@ -39,7 +40,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
   if (error) return error
 
   if (!vehicle!.vin) {
-    return NextResponse.json({ error: 'This vehicle has no VIN on file yet.' }, { status: 400 })
+    return await apiError('noVinOnFile', 400)
   }
 
   const result = await decodeVin(vehicle!.vin, vehicle!.year)
@@ -84,6 +85,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     return NextResponse.json({ decoded: updated.vinDecoded, source: updated.vinDecodeSource })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

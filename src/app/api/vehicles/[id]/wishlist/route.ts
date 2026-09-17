@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -16,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const items = await prisma.wishlistItem.findMany({
     where: { vehicleId: vehicle.id },
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -42,14 +43,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const { name, category, estimatedCostRon, status, partCondition, supplierUrl, notes, hardToFind } = body
 
     if (!name || typeof name !== 'string') {
-      return NextResponse.json({ error: 'name is required' }, { status: 400 })
+      return await apiError('nameRequired', 400)
     }
-    const badAmount = invalidAmountResponse({ estimatedCostRon })
+    const badAmount = await invalidAmountResponse({ estimatedCostRon })
     if (badAmount) return badAmount
     const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
     const resolvedStatus = status || config.wishlistStatuses[0].value
     if (!config.wishlistStatuses.some((s) => s.value === resolvedStatus)) {
-      return NextResponse.json({ error: 'Invalid status for this project type' }, { status: 400 })
+      return await apiError('invalidStatusForType', 400)
     }
 
     const maxPriority = await prisma.wishlistItem.aggregate({
@@ -74,6 +75,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json(serializeWishlistItem(item), { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

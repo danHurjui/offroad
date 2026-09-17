@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   try {
     const orderedIds = body.orderedIds
     if (!Array.isArray(orderedIds) || orderedIds.some((id) => typeof id !== 'string')) {
-      return NextResponse.json({ error: 'orderedIds must be an array of strings' }, { status: 400 })
+      return await apiError('orderedIdsInvalid', 400)
     }
 
     const existing = await prisma.wishlistItem.findMany({
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     })
     const existingIds = new Set(existing.map((i) => i.id))
     if (orderedIds.length !== existingIds.size || orderedIds.some((id) => !existingIds.has(id))) {
-      return NextResponse.json({ error: 'orderedIds must match this vehicle\'s wishlist exactly' }, { status: 400 })
+      return await apiError('orderedIdsMismatch', 400)
     }
 
     await prisma.$transaction(
@@ -44,6 +45,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     return NextResponse.json({ message: 'Reordered' })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

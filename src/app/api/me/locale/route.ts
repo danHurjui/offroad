@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -28,13 +29,13 @@ export async function POST(req: NextRequest) {
   try {
     locale = (await req.json())?.locale
   } catch {
-    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    return await apiError('invalidBody', 400)
   }
 
   // Allow-listed against LOCALES rather than trusted: the value goes
   // straight into a Set-Cookie and into the database.
   if (!isLocale(locale)) {
-    return NextResponse.json({ error: 'Unsupported language' }, { status: 400 })
+    return await apiError('unsupportedLanguage', 400)
   }
 
   const session = await getServerSession(authOptions)

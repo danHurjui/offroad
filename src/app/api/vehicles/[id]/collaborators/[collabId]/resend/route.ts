@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { translator } from '@/i18n/translator'
 import { requireSession } from '@/lib/authz'
@@ -16,14 +17,14 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const collaborator = await prisma.projectCollaborator.findUnique({ where: { id: params.collabId } })
   if (!collaborator || collaborator.vehicleId !== vehicle.id) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return await apiError('notFound', 404)
   }
   if (collaborator.status !== 'PENDING') {
-    return NextResponse.json({ error: 'Only pending invites can be resent' }, { status: 400 })
+    return await apiError('onlyPendingResend', 400)
   }
 
   const owner = await prisma.user.findUnique({

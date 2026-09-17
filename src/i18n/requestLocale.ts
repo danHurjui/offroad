@@ -16,10 +16,20 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE, type Locale, isLocale, localeFromAcceptL
  * for why that cost was accepted.
  */
 export function localeFromRequest(): Locale {
-  const chosen = cookies().get(LOCALE_COOKIE)?.value
-  if (isLocale(chosen)) return chosen
+  try {
+    const chosen = cookies().get(LOCALE_COOKIE)?.value
+    if (isLocale(chosen)) return chosen
 
-  // No cookie yet: a first-time visitor whose browser asks for English
-  // should get English rather than having to find the switcher first.
-  return localeFromAcceptLanguage(headers().get('accept-language')) ?? DEFAULT_LOCALE
+    // No cookie yet: a first-time visitor whose browser asks for English
+    // should get English rather than having to find the switcher first.
+    return localeFromAcceptLanguage(headers().get('accept-language')) ?? DEFAULT_LOCALE
+  } catch {
+    // No request scope. In production that cannot happen inside a route
+    // handler or a render; it happens in the unit tests, which invoke
+    // handlers directly with a hand-built request (CLAUDE.md pitfall #8)
+    // and do not care which language an error comes back in. Throwing
+    // here would turn every one of those into a 500 and hide whatever
+    // they were actually testing.
+    return DEFAULT_LOCALE
+  }
 }

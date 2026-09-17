@@ -82,7 +82,11 @@ describe('GET /api/me/export', () => {
     mockCollect.mockRejectedValue(new Error('column "x" does not exist'))
     const res = await GET()
     expect(res.status).toBe(500)
-    expect(await res.json()).toEqual({ error: 'Internal server error' })
+    // The sentence is translated; the code is the part a client can act
+    // on, and neither may carry the underlying database error.
+    const body = await res.json()
+    expect(body.code).toBe('internalError')
+    expect(JSON.stringify(body)).not.toContain('column')
   })
 })
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
@@ -27,7 +28,7 @@ export async function GET() {
       createdAt: true,
     },
   })
-  if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!user) return await apiError('notFound', 404)
 
   return NextResponse.json(user)
 }
@@ -45,7 +46,7 @@ export async function PATCH(req: NextRequest) {
     const data: Record<string, unknown> = {}
 
     if (body.displayName !== undefined) {
-      if (!body.displayName) return NextResponse.json({ error: 'displayName cannot be empty' }, { status: 400 })
+      if (!body.displayName) return await apiError('displayNameEmpty', 400)
       data.displayName = String(body.displayName)
     }
     if (body.location !== undefined) data.location = body.location || null
@@ -53,7 +54,7 @@ export async function PATCH(req: NextRequest) {
     if (body.isPublicProfile !== undefined) data.isPublicProfile = Boolean(body.isPublicProfile)
     if (body.preferredMode !== undefined) {
       if (body.preferredMode !== null && !isProjectType(body.preferredMode)) {
-        return NextResponse.json({ error: 'Invalid preferredMode' }, { status: 400 })
+        return await apiError('invalidPreferredMode', 400)
       }
       data.preferredMode = body.preferredMode
     }
@@ -78,6 +79,6 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json(updated)
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

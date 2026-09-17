@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
@@ -14,11 +15,11 @@ export async function DELETE(
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const photo = await prisma.taskPhoto.findUnique({ where: { id: params.photoId } })
   if (!photo || photo.taskId !== params.taskId || photo.vehicleId !== params.id) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return await apiError('notFound', 404)
   }
 
   // CLAUDE.md pitfall #4: collaborator access is read-mostly — a
@@ -28,7 +29,7 @@ export async function DELETE(
   const task = await prisma.task.findUnique({ where: { id: photo.taskId } })
   const isOwner = vehicle.ownerId === session.user.id
   if (!isOwner && task?.addedByUserId !== session.user.id) {
-    return NextResponse.json({ error: 'You can only remove photos from tasks you added' }, { status: 403 })
+    return await apiError('photoRemoveOwnOnly', 403)
   }
 
   try {
@@ -36,6 +37,6 @@ export async function DELETE(
     await deleteUpload(photo.url)
     return NextResponse.json({ message: 'Photo deleted' })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

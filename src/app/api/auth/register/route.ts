@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { hashPassword, isPasswordStrongEnough } from '@/lib/password'
 import { generateUsername } from '@/lib/username'
@@ -10,7 +11,7 @@ import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
 // leak which emails exist.
 export async function POST(req: NextRequest) {
   const limit = await consumeRateLimit('register', `ip:${clientIp(req.headers)}`)
-  if (!limit.ok) return rateLimitResponse(limit)
+  if (!limit.ok) return await rateLimitResponse(limit)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -22,18 +23,18 @@ export async function POST(req: NextRequest) {
     const displayName = typeof body.displayName === 'string' ? body.displayName.trim() : ''
 
     if (!email || !email.includes('@')) {
-      return NextResponse.json({ error: 'A valid email is required' }, { status: 400 })
+      return await apiError('emailInvalid', 400)
     }
     if (!isPasswordStrongEnough(password)) {
-      return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
+      return await apiError('passwordTooShort', 400)
     }
     if (!displayName) {
-      return NextResponse.json({ error: 'Display name is required' }, { status: 400 })
+      return await apiError('displayNameRequired', 400)
     }
 
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing) {
-      return NextResponse.json({ error: 'Registration failed' }, { status: 400 })
+      return await apiError('registrationFailed', 400)
     }
 
     const hashed = await hashPassword(password)
@@ -62,6 +63,6 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     )
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

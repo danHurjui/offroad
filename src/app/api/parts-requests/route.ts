@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { PART_CONDITIONS } from '@/lib/projectType'
@@ -14,14 +15,11 @@ export async function POST(req: NextRequest) {
   // Keyed on the user id, not the IP: a session id can't be rotated the
   // way a spoofed x-forwarded-for can.
   const limit = await consumeRateLimit('partsRequest', `user:${session.user.id}`)
-  if (!limit.ok) return rateLimitResponse(limit)
+  if (!limit.ok) return await rateLimitResponse(limit)
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
   if (!hasPro(user)) {
-    return NextResponse.json(
-      { error: 'Posting a parts request is a Pro feature.', code: 'UPGRADE_REQUIRED' },
-      { status: 403 }
-    )
+    return await apiError('proPartsRequest', 403, { code: 'UPGRADE_REQUIRED' })
   }
 
   const parsed = await readJsonBody(req)
@@ -38,13 +36,13 @@ export async function POST(req: NextRequest) {
     const description = typeof body.description === 'string' ? body.description.trim() : ''
 
     if (!vehicleMake || !vehicleModel) {
-      return NextResponse.json({ error: 'vehicleMake and vehicleModel are required' }, { status: 400 })
+      return await apiError('vehicleMakeModelRequired', 400)
     }
-    if (!partName) return NextResponse.json({ error: 'partName is required' }, { status: 400 })
+    if (!partName) return await apiError('partNameRequired', 400)
     if (!PART_CONDITIONS.some((c) => c.value === conditionAccepted)) {
-      return NextResponse.json({ error: 'Invalid conditionAccepted' }, { status: 400 })
+      return await apiError('invalidCondition', 400)
     }
-    if (!location) return NextResponse.json({ error: 'location is required' }, { status: 400 })
+    if (!location) return await apiError('locationRequired', 400)
 
     const partsRequest = await prisma.partsRequest.create({
       data: {
@@ -61,6 +59,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(partsRequest, { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
