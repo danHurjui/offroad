@@ -10,7 +10,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const session = await requireSessionOrRedirect()
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { displayName: true, proPaymentFailedAt: true },
+    select: { id: true, displayName: true, avatarUrl: true, proPaymentFailedAt: true },
   })
 
   return (
@@ -20,7 +20,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <a href="#main" className="skip-link">
         {tc('skipToContent')}
       </a>
-      <Nav displayName={user?.displayName ?? t('accountFallback')} isAdmin={session.user.isAdmin} />
+      <Nav
+        userId={session.user.id}
+        displayName={user?.displayName ?? t('accountFallback')}
+        avatarUrl={user?.avatarUrl}
+        isAdmin={session.user.isAdmin}
+      />
       {user?.proPaymentFailedAt && (
         <div className="bg-red-600 px-4 py-2 text-center text-sm text-white">
           {t.rich('paymentFailed', {

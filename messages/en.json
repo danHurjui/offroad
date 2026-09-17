@@ -89,6 +89,16 @@
     "pickFailed": "Could not use that photo",
     "picked": "Photo chosen — save to apply"
   },
+  "avatar": {
+    "label": "Profile picture",
+    "none": "No picture",
+    "hint": "Shown next to your name and on your public builds.",
+    "chosen": "New picture chosen — saving…",
+    "remove": "Remove",
+    "removing": "Removing…",
+    "uploadFailed": "Could not upload the picture",
+    "removeFailed": "Could not remove the picture"
+  },
   "install": {
     "title": "Install RigLog",
     "body": "Add it to your home screen — it opens full screen and works like an app.",
@@ -881,7 +891,14 @@
       "all": "All time"
     },
     "averagePerMonth": "Average per month",
-    "mostExpensive": "Most expensive task"
+    "mostExpensive": "Most expensive task",
+    "garageTitle": "Garage spend",
+    "garageSubtitle": "Everything you have spent across every vehicle you own.",
+    "garageTotal": "Total across the garage",
+    "perVehicle": "By vehicle",
+    "vehicleCount": "{count, plural, one {# vehicle} other {# vehicles}}",
+    "garageEmpty": "No vehicles yet — add one and its costs show up here.",
+    "viewGarageSpend": "Garage spend"
   },
   "photos": {
     "title": "Photos",
@@ -953,7 +970,8 @@
     "completedTasks": "Completed tasks",
     "totalSpent": "Total spent",
     "documentedWith": "Documented with <b>RigLog</b>",
-    "noCompletedWork": "No completed work logged yet."
+    "noCompletedWork": "No completed work logged yet.",
+    "byOwner": "by {name}"
   },
   "vin": {
     "field": {

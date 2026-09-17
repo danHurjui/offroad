@@ -18,6 +18,8 @@ export default async function SettingsPage() {
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: session.user.id },
     select: {
+      id: true,
+      avatarUrl: true,
       displayName: true,
       location: true,
       isPublicProfile: true,

@@ -26,7 +26,17 @@ import InstallAppButton from './InstallAppButton'
  * menu now, which also gives the install-as-an-app offer somewhere to be
  * on the device where installing actually matters.
  */
-export default function Nav({ displayName, isAdmin }: { displayName: string; isAdmin?: boolean }) {
+export default function Nav({
+  userId,
+  displayName,
+  avatarUrl,
+  isAdmin,
+}: {
+  userId: string
+  displayName: string
+  avatarUrl?: string | null
+  isAdmin?: boolean
+}) {
   const t = useTranslations('nav')
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -101,13 +111,21 @@ export default function Nav({ displayName, isAdmin }: { displayName: string; isA
             href="/dashboard/settings"
             aria-label={t('accountAria')}
             aria-current={settingsActive ? 'page' : undefined}
-            className={`hidden max-w-[10rem] truncate rounded-lg px-2.5 py-1.5 text-sm transition-colors sm:block ${
+            className={`hidden max-w-[12rem] items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors sm:flex ${
               settingsActive
                 ? 'bg-surface-subtle font-medium text-ink'
                 : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'
             }`}
           >
-            {displayName}
+            {avatarUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/avatars/${userId}`}
+                alt=""
+                className="h-6 w-6 shrink-0 rounded-full object-cover"
+              />
+            )}
+            <span className="truncate">{displayName}</span>
           </Link>
           <button
             type="button"
