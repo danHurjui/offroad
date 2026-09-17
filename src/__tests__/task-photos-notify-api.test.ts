@@ -57,7 +57,10 @@ describe('POST /api/vehicles/[id]/tasks/[taskId]/photos — follow notifications
   it('notifies followers when a photo is added', async () => {
     const res = await POST(fileReq(new File(['x'], 'p.jpg', { type: 'image/jpeg' })), { params })
     expect(res.status).toBe(201)
-    expect(mockNotifyFollowers).toHaveBeenCalledWith('v1', 'added new photos to "Lift kit"')
+    expect(mockNotifyFollowers).toHaveBeenCalledWith('v1', {
+      key: 'photosAdded',
+      values: { task: 'Lift kit' },
+    })
   })
 
   it('does not notify when the upload is rejected', async () => {

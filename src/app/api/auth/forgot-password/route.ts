@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
-import { sendEmail, passwordResetEmailHtml, isEmailConfigured } from '@/lib/email'
+import { sendEmail, passwordResetEmail, emailLocale, isEmailConfigured } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
 import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
 import { resolveAppUrl } from '@/lib/appUrl'
@@ -78,11 +78,8 @@ export async function POST(req: NextRequest) {
       })
       const resetUrl = `${baseUrl}/reset-password?token=${token}`
       try {
-        await sendEmail({
-          to: user.email,
-          subject: 'Reset your RigLog password',
-          html: passwordResetEmailHtml(resetUrl),
-        })
+        const { subject, html } = await passwordResetEmail(emailLocale(user), resetUrl)
+        await sendEmail({ to: user.email, subject, html })
       } catch (e) {
         // sendEmail has already logged the provider's reason. Drop the
         // token rather than leaving a live credential nobody received.

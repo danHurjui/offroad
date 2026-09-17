@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { translator } from '@/i18n/translator'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { isValidTaskVocabulary } from '@/lib/projectType'
 import { serializeTask, serializeTaskFor } from '@/lib/serialize'
-import { sendEmail, collaboratorTaskAddedEmailHtml } from '@/lib/email'
+import { sendEmail, collaboratorTaskAddedEmail, emailLocale } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
 import { appUrlForNotification } from '@/lib/appUrl'
@@ -116,21 +117,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // RL-032: notify the owner when a collaborator (not the owner) logs a task.
     if (session.user.id !== vehicle.ownerId) {
       const [owner, collaboratorUser] = await Promise.all([
-        prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { email: true } }),
+        prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { email: true, locale: true } }),
         prisma.user.findUnique({ where: { id: session.user.id }, select: { displayName: true } }),
       ])
       const baseUrl = appUrlForNotification('the follower notification for a new task')
       if (owner && baseUrl) {
-        await sendEmail({
-          to: owner.email,
-          subject: `${collaboratorUser?.displayName ?? 'A collaborator'} added a task to your build`,
-          html: collaboratorTaskAddedEmailHtml({
-            collaboratorName: collaboratorUser?.displayName ?? 'A collaborator',
-            taskName: name,
-            vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-            vehicleUrl: `${baseUrl}/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`,
-          }),
+        // The owner is the one reading this, so it renders in their
+        // language — not the collaborator's, who triggered it.
+        const locale = emailLocale(owner)
+        const tEmail = await translator(locale, 'email')
+        const collaboratorName = collaboratorUser?.displayName ?? tEmail('taskAdded.aCollaborator')
+
+        const { subject, html } = await collaboratorTaskAddedEmail(locale, {
+          collaboratorName,
+          taskName: name,
+          vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+          vehicleUrl: `${baseUrl}/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`,
         })
+        await sendEmail({ to: owner.email, subject, html })
       }
     }
 

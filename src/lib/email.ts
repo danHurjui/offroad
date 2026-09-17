@@ -1,3 +1,5 @@
+import { isLocale, toLocale, type Locale } from '@/i18n/config'
+import { translator } from '@/i18n/translator'
 /**
  * Transactional email, over Brevo or Resend.
  *
@@ -131,76 +133,203 @@ export async function sendEmail(input: SendEmailInput): Promise<void> {
   }
 }
 
-export function passwordResetEmailHtml(resetUrl: string): string {
-  return `
-    <p>Someone requested a password reset for your RigLog account.</p>
-    <p><a href="${resetUrl}">Reset your password</a></p>
-    <p>If you didn't request this, you can safely ignore this email.</p>
-  `
+/**
+ * ## The templates
+ *
+ * Every builder below takes the **recipient's** locale and returns both
+ * the subject and the body, because those two always have to agree: a
+ * Romanian subject over an English body is worse than either alone.
+ *
+ * The locale is the recipient's `User.locale`, not the browser cookie of
+ * whoever caused the send. A document reminder is dispatched by a nightly
+ * cron job with no browser anywhere near it, and a collaborator invite is
+ * sent by one person to another. `getTranslations({ locale })` is what
+ * makes that explicit — see src/i18n/request.ts, which honours a
+ * requested locale ahead of the request's own.
+ *
+ * `emailLocale()` is the one place that turns a possibly-null column into
+ * a language, so a row that predates the chooser falls to Romanian rather
+ * than rendering `email.passwordReset.subject` into someone's inbox.
+ */
+
+export interface EmailContent {
+  subject: string
+  html: string
 }
 
-export function documentReminderEmailHtml(input: {
-  documentLabel: string
-  vehicleName: string
-  daysUntilLabel: string
-  vehicleUrl: string
-}): string {
-  return `
-    <p>${input.documentLabel} for your <strong>${input.vehicleName}</strong> ${input.daysUntilLabel}.</p>
-    <p><a href="${input.vehicleUrl}">Update it in RigLog</a></p>
-  `
+/** The recipient's language, tolerating a null or unknown column. */
+export function emailLocale(user: { locale?: string | null } | null | undefined): Locale {
+  return toLocale(user?.locale)
 }
 
-export function collaboratorInviteEmailHtml(input: {
-  inviterName: string
-  vehicleName: string
-  acceptUrl: string
-}): string {
-  return `
-    <p>${input.inviterName} has invited you to collaborate on their <strong>${input.vehicleName}</strong> on RigLog.</p>
-    <p><a href="${input.acceptUrl}">Accept the invite</a></p>
-    <p>This link expires in 7 days. Collaborator accounts are always free.</p>
-  `
+/**
+ * The language to write to an address that may not have an account yet —
+ * a collaborator invitation.
+ *
+ * Their own preference when they have one; otherwise the sender's, which
+ * is the only signal there is: somebody inviting their mechanic knows
+ * which language that mechanic reads better than a default does.
+ */
+export function inviteeLocale(
+  invitee: { locale?: string | null } | null | undefined,
+  inviter: { locale?: string | null } | null | undefined
+): Locale {
+  return isLocale(invitee?.locale) ? invitee.locale : emailLocale(inviter)
 }
 
-export function collaboratorTaskAddedEmailHtml(input: {
-  collaboratorName: string
-  taskName: string
-  vehicleName: string
-  vehicleUrl: string
-}): string {
-  return `
-    <p>${input.collaboratorName} added a new task to your <strong>${input.vehicleName}</strong>: ${input.taskName}</p>
-    <p><a href="${input.vehicleUrl}">View it in RigLog</a></p>
-  `
+/** The `email` namespace in a given language. */
+async function strings(locale: Locale) {
+  return translator(locale, 'email')
 }
 
-export function paymentFailedEmailHtml(billingUrl: string): string {
-  return `
-    <p>We couldn't process your latest RigLog Pro payment.</p>
-    <p>Stripe will automatically retry the charge — if it keeps failing, your Pro access may be paused. You can
-    update your card any time from account settings.</p>
-    <p><a href="${billingUrl}">Update payment method</a></p>
-  `
+/**
+ * Escapes a value before it is interpolated into email HTML.
+ *
+ * Vehicle names, task names and display names are all user-typed, and
+ * they end up inside a `<p>` in somebody else's inbox — a collaborator
+ * invite carries the *inviter's* chosen name to a stranger. Mail clients
+ * sanitise aggressively, so this is belt-and-braces rather than a live
+ * hole, but the values are untrusted and this is where they stop being
+ * treated as markup.
+ */
+function esc(value: string | number): string {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 }
 
-export function priceAlertEmailHtml(input: {
-  itemName: string
-  priceRon: number
-  targetPriceRon: number
-  vehicleUrl: string
-}): string {
-  return `
-    <p>You found <strong>${input.itemName}</strong> at <strong>${input.priceRon.toLocaleString('ro-RO')} RON</strong>,
-    at or below your target of ${input.targetPriceRon.toLocaleString('ro-RO')} RON.</p>
-    <p><a href="${input.vehicleUrl}">View it in RigLog</a></p>
-  `
+/** Bold, after escaping — the catalogue carries no markup of its own. */
+function strong(value: string | number): string {
+  return `<strong>${esc(value)}</strong>`
 }
 
-export function followedProjectUpdateEmailHtml(input: { vehicleName: string; message: string; vehicleUrl: string }): string {
-  return `
-    <p><strong>${input.vehicleName}</strong>, a project you follow on RigLog, just ${input.message}.</p>
-    <p><a href="${input.vehicleUrl}">See what's new</a></p>
-    <p style="color:#888;font-size:12px">You're getting this because you follow this project. Turn it off any time in your RigLog account settings.</p>
-  `
+function layout(paragraphs: string[]): string {
+  return `\n${paragraphs.map((line) => `    ${line}`).join('\n')}\n  `
+}
+
+export async function passwordResetEmail(locale: Locale, resetUrl: string): Promise<EmailContent> {
+  const t = await strings(locale)
+  return {
+    subject: t('passwordReset.subject'),
+    html: layout([
+      `<p>${t('passwordReset.intro')}</p>`,
+      `<p><a href="${resetUrl}">${t('passwordReset.cta')}</a></p>`,
+      `<p>${t('passwordReset.ignore')}</p>`,
+    ]),
+  }
+}
+
+export async function documentReminderEmail(
+  locale: Locale,
+  input: { documentLabel: string; vehicleName: string; daysUntilLabel: string; vehicleUrl: string }
+): Promise<EmailContent> {
+  const t = await strings(locale)
+  return {
+    subject: t('documentReminder.subject', {
+      document: input.documentLabel,
+      daysUntil: input.daysUntilLabel,
+    }),
+    html: layout([
+      `<p>${t('documentReminder.body', {
+        document: esc(input.documentLabel),
+        vehicle: strong(input.vehicleName),
+        daysUntil: esc(input.daysUntilLabel),
+      })}</p>`,
+      `<p><a href="${input.vehicleUrl}">${t('documentReminder.cta')}</a></p>`,
+    ]),
+  }
+}
+
+export async function collaboratorInviteEmail(
+  locale: Locale,
+  input: { inviterName: string; vehicleName: string; acceptUrl: string }
+): Promise<EmailContent> {
+  const t = await strings(locale)
+  return {
+    subject: t('collaboratorInvite.subject', { inviter: input.inviterName }),
+    html: layout([
+      `<p>${t('collaboratorInvite.body', {
+        inviter: esc(input.inviterName),
+        vehicle: strong(input.vehicleName),
+      })}</p>`,
+      `<p><a href="${input.acceptUrl}">${t('collaboratorInvite.cta')}</a></p>`,
+      `<p>${t('collaboratorInvite.expiry')}</p>`,
+    ]),
+  }
+}
+
+export async function collaboratorTaskAddedEmail(
+  locale: Locale,
+  input: { collaboratorName: string; taskName: string; vehicleName: string; vehicleUrl: string }
+): Promise<EmailContent> {
+  const t = await strings(locale)
+  return {
+    subject: t('taskAdded.subject', { collaborator: input.collaboratorName }),
+    html: layout([
+      `<p>${t('taskAdded.body', {
+        collaborator: esc(input.collaboratorName),
+        vehicle: strong(input.vehicleName),
+        task: esc(input.taskName),
+      })}</p>`,
+      `<p><a href="${input.vehicleUrl}">${t('taskAdded.cta')}</a></p>`,
+    ]),
+  }
+}
+
+export async function paymentFailedEmail(locale: Locale, billingUrl: string): Promise<EmailContent> {
+  const t = await strings(locale)
+  return {
+    subject: t('paymentFailed.subject'),
+    html: layout([
+      `<p>${t('paymentFailed.intro')}</p>`,
+      `<p>${t('paymentFailed.body')}</p>`,
+      `<p><a href="${billingUrl}">${t('paymentFailed.cta')}</a></p>`,
+    ]),
+  }
+}
+
+export async function priceAlertEmail(
+  locale: Locale,
+  input: {
+    itemName: string
+    vehicleName: string
+    priceRon: number
+    targetPriceRon: number
+    vehicleUrl: string
+  }
+): Promise<EmailContent> {
+  const t = await strings(locale)
+  // Amounts stay in Romanian formatting in both languages, like every
+  // other RON figure in the app.
+  return {
+    subject: t('priceAlert.subject', { item: input.itemName, vehicle: input.vehicleName }),
+    html: layout([
+      `<p>${t('priceAlert.body', {
+        item: strong(input.itemName),
+        price: strong(input.priceRon.toLocaleString('ro-RO')),
+        target: esc(input.targetPriceRon.toLocaleString('ro-RO')),
+      })}</p>`,
+      `<p><a href="${input.vehicleUrl}">${t('priceAlert.cta')}</a></p>`,
+    ]),
+  }
+}
+
+export async function followedProjectUpdateEmail(
+  locale: Locale,
+  input: { vehicleName: string; message: string; vehicleUrl: string }
+): Promise<EmailContent> {
+  const t = await strings(locale)
+  return {
+    subject: t('followedUpdate.subject', { vehicle: input.vehicleName }),
+    html: layout([
+      `<p>${t('followedUpdate.body', {
+        vehicle: strong(input.vehicleName),
+        message: esc(input.message),
+      })}</p>`,
+      `<p><a href="${input.vehicleUrl}">${t('followedUpdate.cta')}</a></p>`,
+      `<p style="color:#888;font-size:12px">${t('followedUpdate.footer')}</p>`,
+    ]),
+  }
 }

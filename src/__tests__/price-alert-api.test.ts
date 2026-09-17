@@ -9,7 +9,17 @@ jest.mock('@/lib/prisma', () => ({
     pushSubscription: { delete: jest.fn() },
   },
 }))
-jest.mock('@/lib/email', () => ({ sendEmail: jest.fn(), priceAlertEmailHtml: jest.fn(() => '<p>alert</p>') }))
+jest.mock('@/lib/email', () => ({
+  sendEmail: jest.fn(),
+  priceAlertEmail: jest.fn().mockResolvedValue({ subject: 's', html: '<p>x</p>' }),
+  emailLocale: jest.fn().mockReturnValue('ro'),
+}))
+// The email/notification path builds its translator directly from the
+// catalogue (src/i18n/translator.ts), so there is no request context to
+// stub — only a locale to pass.
+jest.mock('@/i18n/translator', () => ({
+  translator: jest.fn().mockResolvedValue((key: string) => `t:${key}`),
+}))
 jest.mock('@/lib/webpush', () => ({ sendPushNotification: jest.fn() }))
 
 import { getServerSession } from 'next-auth'

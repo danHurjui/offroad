@@ -7,7 +7,8 @@ jest.mock('@/lib/prisma', () => ({
 jest.mock('@/lib/email', () => ({
   sendEmail: jest.fn(),
   isEmailConfigured: jest.fn(),
-  passwordResetEmailHtml: jest.fn().mockReturnValue('<p>reset</p>'),
+  passwordResetEmail: jest.fn().mockResolvedValue({ subject: 's', html: '<p>x</p>' }),
+  emailLocale: jest.fn().mockReturnValue('ro'),
 }))
 jest.mock('@/lib/rateLimit', () => ({
   consumeRateLimit: jest.fn().mockResolvedValue({ ok: true, remaining: 5, retryAfterSeconds: 0 }),
@@ -50,7 +51,7 @@ describe('POST /api/auth/forgot-password — happy path', () => {
     expect(res.status).toBe(200)
     expect(mockTokenCreate).toHaveBeenCalled()
     expect(mockSendEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ to: 'dan@example.com', subject: 'Reset your RigLog password' })
+      expect.objectContaining({ to: 'dan@example.com', subject: expect.any(String) })
     )
   })
 
@@ -60,8 +61,9 @@ describe('POST /api/auth/forgot-password — happy path', () => {
       Promise.resolve({ id: 'tok1', token: data.token })
     )
     await POST(req({ email: 'dan@example.com' }))
-    const { passwordResetEmailHtml } = jest.requireMock('@/lib/email')
-    const url = passwordResetEmailHtml.mock.calls[0][0]
+    const { passwordResetEmail } = jest.requireMock('@/lib/email')
+    // (locale, resetUrl) — the locale is the recipient's, from User.locale.
+    const url = passwordResetEmail.mock.calls[0][1]
     expect(url).toMatch(/^https:\/\/riglog\.example\/reset-password\?token=[a-f0-9]{64}$/)
   })
 

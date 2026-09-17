@@ -87,7 +87,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
       },
     })
 
-    await notifyFollowers(vehicle.id, `added new photos to "${task.name}"`)
+    await notifyFollowers(vehicle.id, { key: 'photosAdded', values: { task: task.name } })
 
     return NextResponse.json(photo, { status: 201 })
   } catch (e) {

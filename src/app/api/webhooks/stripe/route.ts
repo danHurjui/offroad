@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { getStripe, isProPlanId } from '@/lib/stripe'
-import { sendEmail, paymentFailedEmailHtml } from '@/lib/email'
+import { sendEmail, paymentFailedEmail, emailLocale } from '@/lib/email'
 import { appUrlForNotification } from '@/lib/appUrl'
 
 /**
@@ -90,11 +90,11 @@ export async function POST(req: NextRequest) {
         // proPaymentFailedAt is already written above, so the in-app banner
         // still warns them even if this email cannot be built.
         if (user && baseUrl) {
-          await sendEmail({
-            to: user.email,
-            subject: 'Your RigLog Pro payment failed',
-            html: paymentFailedEmailHtml(`${baseUrl}/dashboard/settings`),
-          })
+          const { subject, html } = await paymentFailedEmail(
+            emailLocale(user),
+            `${baseUrl}/dashboard/settings`
+          )
+          await sendEmail({ to: user.email, subject, html })
         }
         break
       }

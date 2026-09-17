@@ -1032,5 +1032,54 @@
     "pdfFailed": "Nu am putut genera PDF-ul",
     "shareUnsupported": "Distribuirea nu este acceptată pe acest dispozitiv — folosește Descarcă.",
     "originalityHelp": "Scorul de originalitate = piese originale OEM / toate lucrările finalizate. Util pentru cumpărători și pentru juriile de concurs — o măsură aproximativă a cât din mașină mai este de fabrică."
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "Resetare parolă RigLog",
+      "intro": "Cineva a cerut resetarea parolei pentru contul tău RigLog.",
+      "cta": "Resetează-ți parola",
+      "ignore": "Dacă nu ai cerut tu asta, poți ignora liniștit acest e-mail."
+    },
+    "documentReminder": {
+      "subject": "{document} {daysUntil}",
+      "body": "{document} pentru {vehicle} {daysUntil}.",
+      "cta": "Actualizează în RigLog"
+    },
+    "collaboratorInvite": {
+      "subject": "{inviter} te-a invitat să colaborezi pe RigLog",
+      "body": "{inviter} te-a invitat să colaborezi la {vehicle} pe RigLog.",
+      "cta": "Acceptă invitația",
+      "expiry": "Linkul expiră în 7 zile. Conturile de colaborator sunt întotdeauna gratuite.",
+      "someone": "Cineva"
+    },
+    "taskAdded": {
+      "subject": "{collaborator} a adăugat o lucrare la proiectul tău",
+      "body": "{collaborator} a adăugat o lucrare nouă la {vehicle}: {task}",
+      "cta": "Vezi în RigLog",
+      "aCollaborator": "Un colaborator"
+    },
+    "paymentFailed": {
+      "subject": "Plata RigLog Pro a eșuat",
+      "intro": "Nu am putut procesa ultima plată pentru RigLog Pro.",
+      "body": "Stripe va reîncerca automat plata — dacă eșuează în continuare, accesul Pro poate fi suspendat. Îți poți actualiza cardul oricând din setările contului.",
+      "cta": "Actualizează metoda de plată"
+    },
+    "priceAlert": {
+      "subject": "Alertă de preț: {item} — {vehicle}",
+      "body": "Ai găsit {item} la {price} RON, la sau sub ținta ta de {target} RON.",
+      "cta": "Vezi în RigLog"
+    },
+    "followedUpdate": {
+      "subject": "{vehicle} — noutăți pe RigLog",
+      "body": "{vehicle}, un proiect pe care îl urmărești pe RigLog, tocmai {message}.",
+      "cta": "Vezi ce e nou",
+      "footer": "Primești acest mesaj pentru că urmărești acest proiect. Îl poți opri oricând din setările contului RigLog."
+    }
+  },
+  "notify": {
+    "taskDone": "a marcat „{task}” ca finalizată",
+    "photosAdded": "a adăugat poze noi la „{task}”",
+    "priceAlertTitle": "{item} a atins prețul tău țintă",
+    "priceAlertBody": "Găsit la {price} RON (țintă {target} RON)"
   }
 }

@@ -3,7 +3,14 @@ jest.mock('@/lib/prisma', () => ({
 }))
 jest.mock('@/lib/email', () => ({
   sendEmail: jest.fn().mockResolvedValue(undefined),
-  documentReminderEmailHtml: jest.fn().mockReturnValue('<p>reminder</p>'),
+  documentReminderEmail: jest.fn().mockResolvedValue({ subject: 's', html: '<p>x</p>' }),
+  emailLocale: jest.fn().mockReturnValue('ro'),
+}))
+// The email/notification path builds its translator directly from the
+// catalogue (src/i18n/translator.ts), so there is no request context to
+// stub — only a locale to pass.
+jest.mock('@/i18n/translator', () => ({
+  translator: jest.fn().mockResolvedValue((key: string) => `t:${key}`),
 }))
 
 import { prisma } from '@/lib/prisma'

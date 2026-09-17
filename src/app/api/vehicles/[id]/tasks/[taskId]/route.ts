@@ -116,7 +116,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     // not on every edit of an already-complete task.
     const completeStatus = PROJECT_TYPE_CONFIG[vehicle.projectType].completeStatus
     if (updated.status === completeStatus && task.status !== completeStatus) {
-      await notifyFollowers(vehicle.id, `marked "${updated.name}" as done`)
+      await notifyFollowers(vehicle.id, { key: 'taskDone', values: { task: updated.name } })
     }
 
     return NextResponse.json(serializeTask(updated))

@@ -1032,5 +1032,54 @@
     "pdfFailed": "Could not generate PDF",
     "shareUnsupported": "Sharing is not supported on this device — use Download instead.",
     "originalityHelp": "Originality score = OEM original parts / all completed tasks. Useful for buyers and concours judges — a rough measure of how much of the car is still factory-original."
+  },
+  "email": {
+    "passwordReset": {
+      "subject": "Reset your RigLog password",
+      "intro": "Someone requested a password reset for your RigLog account.",
+      "cta": "Reset your password",
+      "ignore": "If you didn’t request this, you can safely ignore this email."
+    },
+    "documentReminder": {
+      "subject": "{document} {daysUntil}",
+      "body": "{document} for your {vehicle} {daysUntil}.",
+      "cta": "Update it in RigLog"
+    },
+    "collaboratorInvite": {
+      "subject": "{inviter} invited you to collaborate on RigLog",
+      "body": "{inviter} has invited you to collaborate on their {vehicle} on RigLog.",
+      "cta": "Accept the invite",
+      "expiry": "This link expires in 7 days. Collaborator accounts are always free.",
+      "someone": "Someone"
+    },
+    "taskAdded": {
+      "subject": "{collaborator} added a task to your build",
+      "body": "{collaborator} added a new task to your {vehicle}: {task}",
+      "cta": "View it in RigLog",
+      "aCollaborator": "A collaborator"
+    },
+    "paymentFailed": {
+      "subject": "Your RigLog Pro payment failed",
+      "intro": "We couldn’t process your latest RigLog Pro payment.",
+      "body": "Stripe will automatically retry the charge — if it keeps failing, your Pro access may be paused. You can update your card any time from account settings.",
+      "cta": "Update payment method"
+    },
+    "priceAlert": {
+      "subject": "Price alert: {item} — {vehicle}",
+      "body": "You found {item} at {price} RON, at or below your target of {target} RON.",
+      "cta": "View it in RigLog"
+    },
+    "followedUpdate": {
+      "subject": "{vehicle} — update on RigLog",
+      "body": "{vehicle}, a project you follow on RigLog, just {message}.",
+      "cta": "See what’s new",
+      "footer": "You’re getting this because you follow this project. Turn it off any time in your RigLog account settings."
+    }
+  },
+  "notify": {
+    "taskDone": "marked “{task}” as done",
+    "photosAdded": "added new photos to “{task}”",
+    "priceAlertTitle": "{item} hit your target price",
+    "priceAlertBody": "Found at {price} RON (target {target} RON)"
   }
 }

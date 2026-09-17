@@ -38,7 +38,10 @@ describe('PATCH /api/vehicles/[id]/tasks/[taskId] — follow notifications', () 
     mockTaskUpdate.mockResolvedValue({ id: 't1', name: 'Lift kit', status: 'DONE', photos: [] })
     const res = await PATCH(req({ status: 'DONE' }), { params })
     expect(res.status).toBe(200)
-    expect(mockNotifyFollowers).toHaveBeenCalledWith('v1', 'marked "Lift kit" as done')
+    expect(mockNotifyFollowers).toHaveBeenCalledWith('v1', {
+      key: 'taskDone',
+      values: { task: 'Lift kit' },
+    })
   })
 
   it('does not notify when the task was already DONE', async () => {
