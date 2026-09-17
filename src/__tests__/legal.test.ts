@@ -1,14 +1,58 @@
 import fs from 'fs'
 import path from 'path'
-import { COOKIES, LEGAL_LAST_UPDATED, LOCAL_STORAGE_ENTRIES, RETENTION, SUB_PROCESSORS } from '@/lib/legal'
+import {
+  ACCEPTABLE_USE,
+  COOKIES,
+  LEGAL_LAST_UPDATED,
+  LOCAL_STORAGE_ENTRIES,
+  RETENTION,
+  SUB_PROCESSORS,
+} from '@/lib/legal'
 import { THEME_STORAGE_KEY } from '@/lib/theme'
+import { LOCALE_COOKIE, LOCALES } from '@/i18n/config'
 
 /**
  * A privacy policy that contradicts the code is worse than none: it is a
  * statement to users that happens to be false. These tests check the
  * claims that a reader could verify, against the code that makes them
  * true or not.
+ *
+ * The prose moved to the catalogue when the pages became bilingual, so
+ * what used to be a check on one string is now a check on both: an entry
+ * that exists in the data but has no sentence in one language would
+ * render its dotted key into a published policy.
  */
+
+const CATALOGUES = Object.fromEntries(
+  LOCALES.map((locale) => [
+    locale,
+    JSON.parse(fs.readFileSync(path.join(process.cwd(), 'messages', `${locale}.json`), 'utf8')),
+  ])
+) as Record<string, Record<string, unknown>>
+
+/** A dotted lookup into one catalogue. */
+function text(locale: string, dotted: string): string {
+  const value = dotted
+    .split('.')
+    .reduce<unknown>(
+      (acc, part) =>
+        typeof acc === 'object' && acc !== null ? (acc as Record<string, unknown>)[part] : undefined,
+      CATALOGUES[locale]
+    )
+  return typeof value === 'string' ? value : ''
+}
+
+/**
+ * Asserts the same key says something substantial in every language. The
+ * locale and the key are in the assertion's own value so a failure names
+ * which one is missing rather than just printing a length.
+ */
+function expectSaysSomething(dotted: string, minLength = 20) {
+  for (const locale of LOCALES) {
+    const said = text(locale, dotted).trim()
+    expect({ locale, dotted, ok: said.length > minLength }).toEqual({ locale, dotted, ok: true })
+  }
+}
 
 describe('the cookie list', () => {
   it('is not empty — the app does set cookies', () => {
@@ -26,12 +70,21 @@ describe('the cookie list', () => {
     expect(optional.map((c) => c.name)).toEqual([])
   })
 
-  it('describes each one and how long it lasts', () => {
+  it('describes each one and how long it lasts, in every language', () => {
     for (const cookie of COOKIES) {
       expect(cookie.name.trim()).not.toBe('')
-      expect(cookie.purpose.trim().length).toBeGreaterThan(20)
-      expect(cookie.duration.trim()).not.toBe('')
+      expectSaysSomething(`legal.cookie.${cookie.id}.purpose`)
+      expectSaysSomething(`legal.cookie.${cookie.id}.duration`, 3)
     }
+  })
+
+  /**
+   * The language choice is the one cookie this app sets itself, and the
+   * page has to disclose it like any other. A reader checking devtools
+   * finds `riglog-locale` there and must find it here.
+   */
+  it('lists the language cookie under the name the code sets', () => {
+    expect(COOKIES.map((c) => c.name)).toContain(LOCALE_COOKIE)
   })
 
   it('covers the session and CSRF cookies NextAuth actually sets', () => {
@@ -48,19 +101,24 @@ describe('local storage disclosures', () => {
     expect(names).toContain(THEME_STORAGE_KEY)
   })
 
-  it('explains each entry', () => {
+  it('explains each entry, in every language', () => {
     for (const entry of LOCAL_STORAGE_ENTRIES) {
-      expect(entry.purpose.trim().length).toBeGreaterThan(20)
+      expectSaysSomething(`legal.storage.${entry.id}.purpose`)
     }
   })
 })
 
 describe('sub-processors', () => {
-  it('says what each one receives', () => {
+  it('says what each one receives, in every language', () => {
     for (const processor of SUB_PROCESSORS) {
-      expect(processor.name.trim()).not.toBe('')
-      expect(processor.purpose.trim().length).toBeGreaterThan(10)
-      expect(processor.dataShared.trim().length).toBeGreaterThan(10)
+      expectSaysSomething(`legal.subProcessor.${processor.id}.name`, 2)
+      expectSaysSomething(`legal.subProcessor.${processor.id}.purpose`, 10)
+      expectSaysSomething(`legal.subProcessor.${processor.id}.dataShared`, 10)
+      // A conditional entry claims the sharing only happens sometimes, so
+      // it owes the reader the condition.
+      if (processor.conditional) {
+        expectSaysSomething(`legal.subProcessor.${processor.id}.when`, 10)
+      }
     }
   })
 
@@ -78,7 +136,9 @@ describe('sub-processors', () => {
     }
 
     const sources = collectSources(path.join(process.cwd(), 'src'))
-    const listed = SUB_PROCESSORS.map((p) => p.name).join(' ')
+    // Checked against the English names, which is where the proper nouns
+    // are; the Romanian page renders the same entries.
+    const listed = SUB_PROCESSORS.map((p) => text('en', `legal.subProcessor.${p.id}.name`)).join(' ')
 
     for (const [host, expectedName] of Object.entries(hosts)) {
       const used = sources.some((content) => content.includes(host))
@@ -89,25 +149,39 @@ describe('sub-processors', () => {
   })
 
   it('names the payment processor, since the app takes money', () => {
-    expect(SUB_PROCESSORS.map((p) => p.name)).toContain('Stripe')
+    expect(SUB_PROCESSORS.map((p) => p.id)).toContain('stripe')
+    for (const locale of LOCALES) {
+      expect(text(locale, 'legal.subProcessor.stripe.name')).toContain('Stripe')
+    }
   })
 })
 
 describe('retention', () => {
-  it('explains how long each category is kept', () => {
+  it('explains how long each category is kept, in every language', () => {
     expect(RETENTION.length).toBeGreaterThan(0)
     for (const entry of RETENTION) {
-      expect(entry.what.trim()).not.toBe('')
-      expect(entry.howLong.trim().length).toBeGreaterThan(20)
+      expectSaysSomething(`legal.retention.${entry.id}.what`, 5)
+      expectSaysSomething(`legal.retention.${entry.id}.howLong`)
     }
   })
 
   // Donations survive account deletion (the relation is onDelete: SetNull),
   // so the policy has to say so rather than promising a clean sweep.
   it('discloses that donation records outlive the account', () => {
-    const donationEntry = RETENTION.find((e) => /donation/i.test(e.what))
-    expect(donationEntry).toBeDefined()
-    expect(donationEntry!.howLong).toMatch(/kept/i)
+    expect(RETENTION.map((e) => e.id)).toContain('donations')
+    expect(text('en', 'legal.retention.donations.howLong')).toMatch(/kept/i)
+    expect(text('ro', 'legal.retention.donations.howLong')).toMatch(/păstrează/i)
+  })
+})
+
+/** A rule without a reason reads as a threat, in either language. */
+describe('acceptable use', () => {
+  it('gives every rule its reason, in every language', () => {
+    expect(ACCEPTABLE_USE.length).toBeGreaterThan(0)
+    for (const rule of ACCEPTABLE_USE) {
+      expectSaysSomething(`legal.acceptableUse.${rule.id}.rule`, 10)
+      expectSaysSomething(`legal.acceptableUse.${rule.id}.because`, 20)
+    }
   })
 })
 

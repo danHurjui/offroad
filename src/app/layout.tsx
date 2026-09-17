@@ -6,6 +6,7 @@ import Providers from '@/components/Providers'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts'
 import CookieNotice from '@/components/CookieNotice'
 import { THEME_SCRIPT } from '@/lib/theme'
+import { messagesForClient } from '@/i18n/config'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 
 /**
@@ -27,6 +28,21 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+/**
+ * The language comes from a cookie (src/i18n/config.ts), and reading a
+ * cookie is by definition per-request — so nothing under this layout can
+ * be prerendered at build time. Declaring it here rather than on each
+ * route says so once: without it Next tries to prerender the handful of
+ * pages that do not read the session, and each fails with "used
+ * `headers`" instead of simply rendering per request.
+ *
+ * This is the cost of the cookie, and it was priced in: 35 of the app's
+ * 48 pages already rendered dynamically because they read the session.
+ * `/robots.txt` and `/sitemap.xml` are route handlers outside this
+ * layout and stay as they were.
+ */
+export const dynamic = 'force-dynamic'
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -39,7 +55,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // phonetics and the browser offers to translate a page that is already
   // in the reader's language.
   const locale = await getLocale()
-  const messages = await getMessages()
+  // Trimmed before it crosses to the browser: the provider serialises
+  // whatever it is given into every page's HTML, and the legal, email and
+  // notification namespaces only ever render on the server.
+  const messages = messagesForClient(await getMessages())
 
   return (
     <html lang={locale} suppressHydrationWarning>

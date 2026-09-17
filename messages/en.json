@@ -1081,5 +1081,290 @@
     "photosAdded": "added new photos to “{task}”",
     "priceAlertTitle": "{item} hit your target price",
     "priceAlertBody": "Found at {price} RON (target {target} RON)"
+  },
+  "legal": {
+    "cookie": {
+      "session": {
+        "purpose": "Keeps you logged in. It holds a signed token identifying your account — without it every page would ask you to log in again.",
+        "duration": "30 days, or until you log out"
+      },
+      "csrf": {
+        "purpose": "Protects sign-in and sign-out from cross-site request forgery — it stops another site submitting those forms on your behalf.",
+        "duration": "The browser session"
+      },
+      "callbackUrl": {
+        "purpose": "Remembers which page to return you to after logging in.",
+        "duration": "The browser session"
+      },
+      "oauthState": {
+        "purpose": "Set only if you sign in with Google. They tie the response from Google back to the request you started, which is what stops that exchange being hijacked.",
+        "duration": "A few minutes, during sign-in only"
+      },
+      "locale": {
+        "purpose": "Remembers whether you chose Romanian or English. The server renders the text, so it cannot answer in your language without being told which one. It holds no identifier and nothing is authorised by it.",
+        "duration": "One year, or until you change it"
+      }
+    },
+    "storage": {
+      "theme": {
+        "purpose": "Your light/dark/system choice (src/lib/theme.ts). Never sent to the server."
+      },
+      "cookieNotice": {
+        "purpose": "Remembers that you have seen the cookie notice, so it stops reappearing."
+      },
+      "trailRecording": {
+        "purpose": "A crash-recovery copy of a GPS track while you are recording one, so closing the tab by accident does not lose the run. Cleared once the run is saved."
+      }
+    },
+    "subProcessor": {
+      "vercel": {
+        "name": "Vercel",
+        "purpose": "Hosting, and Blob storage for uploaded photos, receipts and documents.",
+        "dataShared": "Everything the app stores, plus the usual server-log data (IP address, browser user agent, requested URL)."
+      },
+      "database": {
+        "name": "The database host",
+        "purpose": "The Postgres database itself.",
+        "dataShared": "Everything the app stores."
+      },
+      "stripe": {
+        "name": "Stripe",
+        "purpose": "Payments for RigLog Pro and for donations.",
+        "dataShared": "Your email address and the payment details you enter on Stripe’s own checkout page. Card numbers never reach RigLog — we store only Stripe’s customer and subscription identifiers.",
+        "when": "Only if you buy Pro or donate."
+      },
+      "emailProvider": {
+        "name": "Brevo, or Resend",
+        "purpose": "Sending transactional email — password resets and the notifications you opted into.",
+        "dataShared": "Your email address and the contents of that message.",
+        "when": "Whichever is configured for this deployment."
+      },
+      "google": {
+        "name": "Google",
+        "purpose": "Sign in with Google.",
+        "dataShared": "Google tells us your email address and name. We do not receive your Google password.",
+        "when": "Only if you use that sign-in option."
+      },
+      "openstreetmap": {
+        "name": "OpenStreetMap",
+        "purpose": "Map tiles on the trail log.",
+        "dataShared": "Your browser requests map images directly from openstreetmap.org, so it sees your IP address and which part of the map you are looking at.",
+        "when": "Only on trail log pages, which are off-road projects only."
+      },
+      "unpkg": {
+        "name": "unpkg",
+        "purpose": "Serves the map’s marker icons.",
+        "dataShared": "Your IP address, as with any image loaded from another site.",
+        "when": "Only on pages showing a map."
+      },
+      "nhtsa": {
+        "name": "NHTSA vPIC (US Department of Transportation)",
+        "purpose": "Decoding a VIN when the built-in table does not recognise it.",
+        "dataShared": "The VIN you asked to decode. Nothing identifying you is sent with it.",
+        "when": "Only when you use the VIN decoder."
+      },
+      "pushService": {
+        "name": "Your browser’s push service (Google, Mozilla, Apple, …)",
+        "purpose": "Delivering web push notifications.",
+        "dataShared": "The notification’s contents, sent to the endpoint your browser gave us. Which service that is depends on your browser.",
+        "when": "Only if you turn push notifications on."
+      }
+    },
+    "retention": {
+      "yourContent": {
+        "what": "Your account, vehicles, tasks, photos, documents, wishlist, trail logs and collaborator invitations",
+        "howLong": "Until you delete them, or until you delete your account — at which point they are removed immediately, including the uploaded files themselves."
+      },
+      "publicPosts": {
+        "what": "Feedback tickets, votes, comments, and parts-wanted posts",
+        "howLong": "Deleted with your account. They disappear from the public board too."
+      },
+      "donations": {
+        "what": "Donation records",
+        "howLong": "Kept after account deletion, with your account detached from them. A payment that happened is an accounting record; what is removed is the link to you."
+      },
+      "resetTokens": {
+        "what": "Password reset tokens",
+        "howLong": "One hour, then they stop working. Deleted with your account."
+      },
+      "rateLimits": {
+        "what": "Rate-limiting counters, which stop brute-force and spam",
+        "howLong": "At most an hour, after which they are swept away. Depending on what is being limited, the counter’s key contains an email address or an IP address alongside the count."
+      }
+    },
+    "acceptableUse": {
+      "othersWork": {
+        "rule": "Upload someone else’s photos, documents or writing as your own",
+        "because": "Public build pages are indexed by search engines, so this puts their work on the open web under your name."
+      },
+      "privateInfo": {
+        "rule": "Post another person’s private information — an address, a phone number, a plate, a VIN that isn’t yours",
+        "because": "A public project page is public to everyone, permanently, and you cannot un-publish something a search engine has already copied."
+      },
+      "spam": {
+        "rule": "Use the feedback board or parts-wanted board for advertising, spam or abuse",
+        "because": "Both are public and unmoderated by default; they only work if they stay readable."
+      },
+      "otherAccounts": {
+        "rule": "Try to reach another account’s vehicles, files or settings",
+        "because": "Every route checks ownership, so this is an attempt to break the app rather than a mistake — and it is also a criminal offence."
+      },
+      "automation": {
+        "rule": "Automate sign-ups, logins, posts or exports at volume",
+        "because": "The rate limits exist to keep the free tier affordable; working around them takes the service away from other people."
+      },
+      "resale": {
+        "rule": "Resell access, or share one account between several people",
+        "because": "Pro is priced per person. Collaborator invitations are the supported way to let someone else work on your vehicle."
+      }
+    }
+  },
+  "legalPages": {
+    "lastUpdated": "Last updated {date}",
+    "authoritative": "This page is a translation. The English version is the authoritative one: where the two disagree, the English text governs.",
+    "viewEnglish": "View the English version",
+    "cookies": {
+      "metaTitle": "Cookie policy · RigLog",
+      "metaDescription": "Every cookie RigLog sets, what it does, and why you are not asked to consent.",
+      "title": "Cookie policy",
+      "whyNoBannerHeading": "Why there is no consent banner",
+      "whyNoBanner": "RigLog sets {count} kinds of cookie and every one of them is needed for the app to work: staying logged in, protecting the sign-in form, and knowing which language to answer you in. There are no analytics, advertising or tracking cookies, and no third-party scripts that set any.",
+      "exemption": "Cookies that are strictly necessary to provide a service you asked for are exempt from the consent requirement in the ePrivacy Directive — but they still have to be disclosed, which is what this page is for. If that ever changes and a cookie is added that isn’t strictly necessary, this page will say so and you will be asked first.",
+      "warning": "Some cookies listed below are not strictly necessary. This page needs updating and a consent flow adding before that cookie ships.",
+      "theCookies": "The cookies",
+      "essential": "Essential",
+      "lasts": "Lasts: {duration}",
+      "storageHeading": "Stored in your browser, but not cookies",
+      "storageIntro": "A few things are kept in your browser’s local storage instead. They stay on your device, are never sent to the server, and are gone if you clear site data.",
+      "turningOffHeading": "Turning them off",
+      "turningOff": "Every browser lets you block or delete cookies. Blocking the ones above will log you out and stop you logging back in — the session cookie <em>is</em> the login. There is no way around that short of not having accounts.",
+      "publicPages": "Reading the public pages — this one, the <home>homepage</home>, the <tickets>feedback board</tickets> and public build pages — needs no cookies at all.",
+      "morePrivacy": "More about what RigLog stores is in the <privacy>privacy policy</privacy>."
+    },
+    "privacy": {
+      "metaTitle": "Privacy policy · RigLog",
+      "metaDescription": "What RigLog stores, who it is shared with, and how to get a copy or have it deleted.",
+      "title": "Privacy policy",
+      "shortVersion": "The short version",
+      "shortBody": "RigLog stores what you put into it — your vehicles, the work you log, your photos and documents — plus the email address you signed up with. There is no advertising, no tracking, and no analytics script of any kind. Nothing is sold, and nothing is shared except with the services listed below that are needed to run the app.",
+      "shortRights": "You can download everything we hold, or delete all of it, from <settings>Profile & settings</settings>. Neither needs you to ask anyone.",
+      "whoHeading": "Who is responsible",
+      "controllerFallback": "The operator of this RigLog installation",
+      "controllerLine": "{controller} is the data controller for the information described here.",
+      "contactWithEmail": "For anything in this policy, including a data request, write to <email></email>.",
+      "contactNoEmail": "For anything in this policy, open a ticket on the <tickets>feedback board</tickets>. You do not need to wait for a reply to exercise the rights below — the export and deletion buttons in your settings do both immediately.",
+      "collectHeading": "What we collect, and why",
+      "collectAccountTerm": "Your account",
+      "collectAccount": "Email address, display name, and a public username generated from that name. Optionally a location and an avatar. We need the email to log you in and to send password resets. Passwords are stored only as a bcrypt hash — nobody, including us, can read them back.",
+      "collectLoggedTerm": "What you log",
+      "collectLogged": "Vehicles, tasks, costs, photos, receipts, documents and their expiry dates, wishlist items, and GPS tracks if you use the trail log. This is the app’s purpose; it is stored because you asked it to be.",
+      "collectPublicTerm": "What you post publicly",
+      "collectPublic": "Feedback tickets, votes and comments, parts-wanted posts, and any project you switch to public. These are visible to anyone, including people without an account, and public projects are indexed by search engines. That is the point of them — but it is worth being deliberate about it.",
+      "collectLogsTerm": "Server logs and abuse counters",
+      "collectLogs": "Ordinary web-server logs, and short-lived counters used to stop brute-force login attempts and spam. Details are in the retention table below.",
+      "noSpecialCategory": "We do not ask for, and have no use for, anything in the “special category” sense — health, politics, beliefs, biometrics. Please don’t put it in a task note.",
+      "basisHeading": "Why we are allowed to (legal basis)",
+      "basisContractTerm": "Performance of a contract",
+      "basisContract": "your account and everything you log. You asked for an app that remembers your build; it cannot do that without storing it.",
+      "basisInterestsTerm": "Legitimate interests",
+      "basisInterests": "keeping the service secure and working: rate limiting, abuse prevention, server logs.",
+      "basisConsentTerm": "Consent",
+      "basisConsent": "optional email and push notifications about projects you follow. You turn them on, and you can turn them off in settings at any time.",
+      "basisLegalTerm": "Legal obligation",
+      "basisLegal": "keeping records of payments.",
+      "sharingHeading": "Who else sees it",
+      "sharingIntro": "Only the services needed to run the app. Each one gets the minimum that its job requires, and none of them is an advertising network.",
+      "whatTheyReceive": "What they receive: ",
+      "transfers": "Some of these are based outside the EU. Where that is the case, the transfer relies on the European Commission’s standard contractual clauses or an adequacy decision, through the provider’s own data processing terms.",
+      "compelled": "We would also hand over data if legally compelled to — a court order, for example. That is not a loophole we go looking for.",
+      "collaboratorsHeading": "Collaborators",
+      "collaborators": "If you invite a mechanic or specialist to a vehicle, they can see that vehicle and its tasks, and add work of their own. They cannot see your other vehicles, your account settings, or anything else. You can hide cost totals from them with a setting on the vehicle, and you can revoke an invitation at any time. Revoking removes their access immediately.",
+      "retentionHeading": "How long it is kept",
+      "rightsHeading": "Your rights",
+      "rightsIntro": "Under the GDPR you can:",
+      "rightAccessTerm": "Get a copy",
+      "rightAccess": "of everything we hold — the <em>Download my data</em> button in settings produces it immediately, as JSON.",
+      "rightRectifyTerm": "Correct",
+      "rightRectify": "anything wrong — edit it in the app.",
+      "rightEraseTerm": "Delete everything",
+      "rightErase": "the <em>Delete account</em> button in settings removes your account, every project, and the uploaded files themselves. It is immediate and cannot be undone.",
+      "rightPortTerm": "Take it elsewhere",
+      "rightPort": "the same export is structured JSON, meant to be read by something other than us.",
+      "rightObjectTerm": "Object, or ask us to restrict processing",
+      "rightObject": "and withdraw consent for notifications at any time.",
+      "rightComplainTerm": "Complain",
+      "rightComplain": "to a supervisory authority. In Romania that is <anspdcp>ANSPDCP</anspdcp>; elsewhere in the EU, your own country’s authority.",
+      "rightsButtons": "The first two and the middle two are buttons rather than requests on purpose. You should not have to ask permission to leave.",
+      "cookiesHeading": "Cookies",
+      "cookies": "RigLog sets only the cookies needed to keep you logged in, to protect the sign-in form, and to remember which language you chose. There are no tracking or advertising cookies, which is why you are not asked to consent to any. <list>The full list is here</list>.",
+      "childrenHeading": "Children",
+      "children": "RigLog is not aimed at children and we do not knowingly hold data about anyone under 16. If you believe we do, tell us and it will be removed.",
+      "changesHeading": "Changes",
+      "changes": "If this policy changes in substance, the date at the top changes with it. Material changes will be announced on the <tickets>feedback board</tickets> rather than made quietly."
+    },
+    "terms": {
+      "metaTitle": "Terms of service · RigLog",
+      "metaDescription": "The agreement between you and RigLog: what you get, what you owe, and how either side ends it.",
+      "title": "Terms of service",
+      "shortHeading": "The short version",
+      "short1": "RigLog logs the work you do on your vehicles. You own what you put in and can take it out or delete it at any time. One vehicle is free forever; Pro costs money and can be cancelled. Don’t post other people’s private information, and don’t try to break the app. If we get something wrong, tell us.",
+      "short2": "The rest of this page is the same thing in the detail that matters when something goes wrong.",
+      "partiesHeading": "Who you are agreeing with",
+      "operatorFallback": "the operator of this RigLog installation",
+      "parties": "These terms are between you and {operator} (“we”, “us”). They apply from the moment you create an account.",
+      "reachUsEmail": "Reach us at <email></email>.",
+      "reachUsTickets": "Reach us through the <tickets>feedback board</tickets>.",
+      "accountHeading": "Your account",
+      "accountAge": "You need to be at least 16 to have an account.",
+      "accountEmail": "Give a real email address — it is the only way to reset your password, and we can’t recover an account without it.",
+      "accountPassword": "Keep your password to yourself. Anything done from your account is treated as done by you.",
+      "accountOnePerPerson": "One account per person. If someone else needs to work on your vehicle, invite them as a collaborator rather than sharing a login.",
+      "getHeading": "What you get",
+      "freeTerm": "Free.",
+      "free": "{vehicles} vehicle, unlimited tasks on it, up to {photos} photos per task, documents and reminders, the job-report PDF, collaborators, and your data export. Free means free — there is no trial that quietly ends.",
+      "proTerm": "Pro.",
+      "pro": "Unlimited vehicles and photos, the full cost analytics, PDF build history, shareable cards, the VIN decoder, trail logs and price alerts. {monthly} RON monthly, {annual} RON annually, or {lifetime} RON once for lifetime access.",
+      "uploadCap": "Uploads are capped at {mb}MB per file on every tier — a platform limit, not a paywall.",
+      "tierChanges": "We may change what each tier includes. If a change removes something you are paying for, we will say so before it happens and you can cancel and claim a proportional refund for time you have paid for and not used.",
+      "payingHeading": "Paying for Pro",
+      "paying1": "Payments are handled by Stripe. We never see or store your card details — only Stripe’s reference for your customer record.",
+      "paying2": "Monthly and annual plans renew automatically until you cancel. Cancel any time from <settings>Profile & settings</settings>, which opens Stripe’s billing portal. Cancelling stops the next charge; you keep Pro until the period you have already paid for runs out. Lifetime is a single payment with nothing to cancel.",
+      "withdrawal": "<b>You can cancel for a full refund within {days} days of buying, for any reason or none.</b> EU and Romanian law give you that right on anything bought at a distance. It can be waived for digital content delivered immediately, but only if you are asked to waive it first — and we don’t ask, so it stands. Email us, or open a ticket, and say you are withdrawing.",
+      "afterWithdrawal": "After {days} days we don’t give refunds for a change of mind. We do refund when we have charged you in error or the service has been unusable for a meaningful stretch — ask.",
+      "losingPro": "Losing Pro never deletes anything. Your vehicles, photos and history stay exactly where they are; the Pro-only screens stop opening, and your export keeps working so you can take everything with you.",
+      "foundingHeading": "Founding members",
+      "founding1": "The first {limit} accounts ever created get Pro at no charge. If you are one of them, your settings page says so and gives your number.",
+      "founding2": "It is a gift rather than a purchase: nothing was paid, so there is nothing to refund and no subscription to cancel. It is tied to your account and cannot be transferred or sold.",
+      "founding3": "<b>“For life” means for as long as RigLog runs.</b> We will not put it behind a payment later, and buying — then cancelling — a paid plan will not remove it. We can withdraw it if the account breaks the rules above, on the same terms as any other account. If RigLog shuts down, it ends with the service; your export still works, and we would give notice.",
+      "donationsHeading": "Donations",
+      "donations": "A donation is a gift toward running costs. It buys nothing, unlocks nothing, and is not refundable — so please only give what you are happy to part with. If you meant to buy Pro and donated by mistake, tell us and we will sort it out.",
+      "contentHeading": "Your content stays yours",
+      "content1": "Your photos, notes, receipts and build history belong to you. We claim no ownership of them.",
+      "content2": "To run the service we need your permission to store your content, back it up, and show it back to you and to anyone you have given access — collaborators you invite, and the whole internet for a project you switch to public. That permission covers nothing else: we do not sell it, license it on, use it to advertise, or train anything on it. It ends when you delete the content or your account.",
+      "content3": "<b>Public is properly public.</b> A public project page, a feedback ticket and a parts-wanted post are visible to everyone and are indexed by search engines. Making a project private again stops us serving it, but we cannot make a search engine forget a copy it has already taken. Decide accordingly before you publish a plate, a VIN or a driveway.",
+      "mustNotHeading": "What you must not do",
+      "mustNotIntro": "Each of these maps to something the app actually exposes:",
+      "collaboratorsHeading": "Collaborators",
+      "collaborators1": "Inviting someone gives them access to that vehicle and its tasks, and lets them add work of their own. They cannot see your other vehicles or your account settings. You choose who to invite and can revoke access at any time, which takes effect immediately.",
+      "collaborators2": "Work a collaborator logs on your vehicle stays in your history if they later delete their account — their name comes off it, the record does not.",
+      "promiseHeading": "What we promise, and what we don’t",
+      "promise1": "We will run the service with reasonable care and skill, and tell you about planned downtime where we can.",
+      "promise2": "We do not promise it will never be down, never lose a request, or never have a bug. Treat RigLog as a convenient copy of your records, not the only one: an export button sits in your settings for exactly that reason, and if a vehicle’s history matters to a sale or an insurance claim, keep your own copy.",
+      "promise3": "The VIN decoder, originality score, cost analytics and reminders are aids, not professional advice. Check an expiry date against the document itself before you rely on it.",
+      "liabilityHeading": "If something goes wrong",
+      "liability1": "Nothing here limits liability for death or personal injury caused by negligence, for fraud, or for anything else the law says cannot be limited — including your rights as a consumer, which these terms do not reduce.",
+      "liability2": "Beyond that, our liability for any claim is capped at what you have paid us in the 12 months before it arose, and we are not liable for indirect or consequential loss — missed sales, lost profits, or the value of data you did not keep a copy of.",
+      "endingHeading": "Ending it",
+      "endingYouTerm": "You, at any time.",
+      "endingYou": "Delete your account from settings. It removes your data immediately, including the uploaded files themselves. It cannot be undone, so take your export first if you want one.",
+      "endingUsTerm": "Us, if we have to.",
+      "endingUs": "We can suspend or close an account that breaks the rules above, or that puts the service or other people at risk. Where it is reasonable to do so we will warn you first and give you a chance to fix it, and we will tell you why. If we close a paid account for a reason that isn’t your breach, we refund the unused part of what you have paid.",
+      "changesHeading": "Changes to these terms",
+      "changes": "The date at the top changes whenever the substance does. For a change that materially affects you we will announce it on the <tickets>feedback board</tickets> before it takes effect, rather than editing this page quietly. Carrying on using the account after that is acceptance; if you would rather not, delete the account and, if you are on a paid plan, ask for the unused part back.",
+      "lawHeading": "Law and disputes",
+      "law1": "Romanian law applies, and the courts of Romania have jurisdiction. If you are a consumer resident elsewhere in the EU, this does not deprive you of the protection of your own country’s mandatory consumer law, nor of the right to bring a claim there.",
+      "law2": "Please raise a problem with us first — most things are a misunderstanding and get fixed the same week. If that fails you can go to <authority></authority>, or use the EU’s <odr>online dispute resolution platform</odr>.",
+      "law3": "How we handle your personal data is in the <privacy>privacy policy</privacy>, which is part of this agreement."
+    }
   }
 }

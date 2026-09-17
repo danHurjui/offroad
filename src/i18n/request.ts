@@ -10,12 +10,19 @@ import { loadMessages } from './messages'
  * place that does it — see src/i18n/config.ts for why that cost is
  * acceptable here.
  */
-export default getRequestConfig(async ({ locale: requested }) => {
-  // An explicit locale means a caller asked for one: an email builder
-  // calling `getTranslations({ locale })`, which has to render in the
-  // *recipient's* language rather than that of whoever (or whatever cron
-  // job) triggered the send. Honouring it here is what makes `User.locale`
-  // mean anything.
+export default getRequestConfig(async ({ requestLocale }) => {
+  // `requestLocale`, not the `locale` parameter. next-intl deprecated the
+  // latter, and its getter falls back to the locale the *middleware* put
+  // in a header — there is no middleware here, so merely destructuring it
+  // calls notFound() and every page 404s. `requestLocale` resolves to
+  // undefined in that case, which is what this needs.
+  //
+  // It is set when a caller asked for a specific language:
+  // `getTranslations({ locale })` from an email builder, which has to
+  // render in the *recipient's* language rather than that of whoever (or
+  // whatever cron job) triggered the send. Honouring it here is what
+  // makes `User.locale` mean anything.
+  const requested = await requestLocale
   const locale = isLocale(requested) ? requested : localeFromBrowser()
 
   return {

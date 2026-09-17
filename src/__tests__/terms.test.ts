@@ -8,15 +8,33 @@ import {
 } from '@/lib/legal'
 import { FREE_TIER } from '@/lib/pro'
 import { PRO_PLANS } from '@/lib/stripe'
+import { LOCALES } from '@/i18n/config'
 
 /**
  * /terms tells the user what they are being given and what they owe. Every
  * number on it is a promise, so none of them is retyped into the page —
  * they come from the constants the code enforces. These tests guard the
  * parts a reader could check and the parts that would quietly rot.
+ *
+ * Since the page became bilingual there are two things to check and they
+ * are different: TERMS is the page's *code*, which is where the constants
+ * are read and interpolated, and `wording(locale)` is the prose, which is
+ * where the promises live. A clause that would be unenforceable against a
+ * consumer is just as unenforceable in Romanian, so the "must not say"
+ * checks run over every language rather than only the authoritative one.
  */
 
 const TERMS = fs.readFileSync(path.join(process.cwd(), 'src', 'app', 'terms', 'page.tsx'), 'utf8')
+
+/** Every sentence of the terms in one language, as a single string. */
+function wording(locale: string): string {
+  const catalogue = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), 'messages', `${locale}.json`), 'utf8')
+  )
+  return Object.values(catalogue.legalPages.terms as Record<string, string>).join('\n')
+}
+
+const ENGLISH = wording('en')
 
 describe('the terms page quotes the code, not a copy of it', () => {
   it('reads its numbers from the modules that enforce them', () => {
@@ -92,8 +110,12 @@ describe('the consumer withdrawal right', () => {
     const asksForWaiver = /withdraw|consent_collection|terms_of_service_acceptance/i.test(checkout)
     expect(asksForWaiver).toBe(false)
 
+    // The page reads the constant rather than retyping the number…
     expect(TERMS).toMatch(/WITHDRAWAL_PERIOD_DAYS/)
-    expect(TERMS).toMatch(/full refund/i)
+    // …and the authoritative wording grants the refund rather than
+    // claiming it away.
+    expect(ENGLISH).toMatch(/full refund/i)
+    expect(ENGLISH).toMatch(/\{days\}/)
   })
 
   it('points the reader at the bodies that enforce it', () => {
@@ -104,19 +126,26 @@ describe('the consumer withdrawal right', () => {
   })
 })
 
+/**
+ * The rules' wording moved to the catalogue when the page became
+ * bilingual — legal.test.ts checks each id has a rule and a reason in
+ * both languages. What has to hold here is that the list itself is
+ * well-formed.
+ */
 describe('acceptable use', () => {
-  it('gives a reason for every rule', () => {
+  it('has no duplicate entries', () => {
     expect(ACCEPTABLE_USE.length).toBeGreaterThan(0)
-    for (const entry of ACCEPTABLE_USE) {
-      expect(entry.rule.trim().length).toBeGreaterThan(10)
-      // A rule without a reason reads as a threat, and nobody remembers it.
-      expect(entry.because.trim().length).toBeGreaterThan(30)
-    }
+    const ids = ACCEPTABLE_USE.map((e) => e.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const id of ids) expect(id.trim()).not.toBe('')
   })
 
-  it('has no duplicate rules', () => {
-    const rules = ACCEPTABLE_USE.map((e) => e.rule)
-    expect(new Set(rules).size).toBe(rules.length)
+  // The page renders both halves of each entry; a rule shown without its
+  // reason reads as a threat.
+  it('is rendered with its reason on the page', () => {
+    const page = fs.readFileSync(path.join(process.cwd(), 'src', 'app', 'terms', 'page.tsx'), 'utf8')
+    expect(page).toMatch(/acceptableUse\.\$\{entry\.id\}\.rule/)
+    expect(page).toMatch(/acceptableUse\.\$\{entry\.id\}\.because/)
   })
 })
 
@@ -142,17 +171,42 @@ describe('the terms are reachable', () => {
 describe('what the terms must not claim', () => {
   // Each of these would be unenforceable against an EU consumer, and
   // saying it anyway is the kind of thing a regulator notices.
-  it('does not claim payments are non-refundable outright', () => {
-    expect(TERMS).not.toMatch(/all (sales|payments) are final/i)
-    expect(TERMS).not.toMatch(/no refunds under any/i)
+  it.each(LOCALES)('does not claim payments are non-refundable outright (%s)', (locale) => {
+    const text = wording(locale)
+    expect(text).not.toMatch(/all (sales|payments) are final/i)
+    expect(text).not.toMatch(/no refunds under any/i)
+    expect(text).not.toMatch(/nerambursabil[ăe]? în (orice|toate)/i)
   })
 
-  it('does not claim it can change the terms without telling anyone', () => {
-    expect(TERMS).not.toMatch(/without (prior )?notice/i)
+  it.each(LOCALES)('does not claim it can change the terms without telling anyone (%s)', (locale) => {
+    const text = wording(locale)
+    expect(text).not.toMatch(/without (prior )?notice/i)
+    expect(text).not.toMatch(/fără (o )?notificare prealabilă/i)
   })
 
+  // Checked in the authoritative language, where the carve-out is worded.
   it('does not disclaim liability for everything', () => {
-    expect(TERMS).toMatch(/death or personal injury/i)
-    expect(TERMS).toMatch(/consumer/i)
+    expect(ENGLISH).toMatch(/death or personal injury/i)
+    expect(ENGLISH).toMatch(/consumer/i)
+  })
+
+  /**
+   * Both versions have to make the same promises. A translation that
+   * quietly dropped the withdrawal right or the liability carve-out would
+   * be the exact failure the precedence note exists to contain — and it
+   * should not get that far.
+   */
+  it.each(LOCALES)('keeps the load-bearing clauses in every language (%s)', (locale) => {
+    const catalogue = JSON.parse(
+      fs.readFileSync(path.join(process.cwd(), 'messages', `${locale}.json`), 'utf8')
+    ).legalPages.terms as Record<string, string>
+
+    for (const key of ['withdrawal', 'afterWithdrawal', 'liability1', 'liability2', 'losingPro']) {
+      expect({ locale, key, present: (catalogue[key] ?? '').trim().length > 40 }).toEqual({
+        locale,
+        key,
+        present: true,
+      })
+    }
   })
 })

@@ -30,10 +30,14 @@ export const PRIVACY_CONTACT_EMAIL = process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMA
 export const PRIVACY_CONTROLLER = process.env.NEXT_PUBLIC_PRIVACY_CONTROLLER ?? null
 
 export interface CookieEntry {
+  /**
+   * Catalogue key for the prose: `legal.cookie.<id>.purpose` and
+   * `.duration`. The name and the flags stay here because they are facts
+   * about the system; the sentences describing them have to be readable
+   * in both languages, and legal.test.ts checks each id has both.
+   */
+  id: string
   name: string
-  purpose: string
-  /** How long it lasts, in words. */
-  duration: string
   /**
    * Strictly necessary cookies need to be disclosed but not consented to
    * (ePrivacy Art. 5(3) exemption). Everything in this app is one; if a
@@ -44,40 +48,42 @@ export interface CookieEntry {
 }
 
 /**
- * Every cookie the app sets. All of them are NextAuth's — the app sets
- * none of its own (grep for `cookies()` / `Set-Cookie`), and there is no
- * analytics, advertising or tracking script anywhere in the bundle.
+ * Every cookie the app sets: NextAuth's four, plus the one this app sets
+ * itself for the language choice. There is no analytics, advertising or
+ * tracking script anywhere in the bundle.
  *
- * Names are NextAuth v4's defaults; the `__Secure-`/`__Host-` prefixes
- * appear only over HTTPS, which is why both spellings are described
- * together.
+ * The NextAuth names are v4's defaults; the `__Secure-`/`__Host-`
+ * prefixes appear only over HTTPS, which is why both spellings are
+ * described together.
  */
 export const COOKIES: CookieEntry[] = [
   {
+    id: 'session',
     name: 'next-auth.session-token (__Secure- prefixed over HTTPS)',
-    purpose:
-      'Keeps you logged in. It holds a signed token identifying your account — without it every page would ask you to log in again.',
-    duration: '30 days, or until you log out',
     strictlyNecessary: true,
   },
   {
+    id: 'csrf',
     name: 'next-auth.csrf-token (__Host- prefixed over HTTPS)',
-    purpose:
-      'Protects sign-in and sign-out from cross-site request forgery — it stops another site submitting those forms on your behalf.',
-    duration: 'The browser session',
     strictlyNecessary: true,
   },
   {
+    id: 'callbackUrl',
     name: 'next-auth.callback-url',
-    purpose: 'Remembers which page to return you to after logging in.',
-    duration: 'The browser session',
     strictlyNecessary: true,
   },
   {
+    id: 'oauthState',
     name: 'next-auth.state / next-auth.pkce.code_verifier',
-    purpose:
-      'Set only if you sign in with Google. They tie the response from Google back to the request you started, which is what stops that exchange being hijacked.',
-    duration: 'A few minutes, during sign-in only',
+    strictlyNecessary: true,
+  },
+  {
+    // The one cookie this app sets itself. Strictly necessary in the
+    // ePrivacy sense: the server renders the text, so it cannot answer in
+    // the language you chose without being told which one that is. It
+    // carries no identifier and nothing is authorised by it.
+    id: 'locale',
+    name: 'riglog-locale',
     strictlyNecessary: true,
   },
 ]
@@ -88,28 +94,20 @@ export const COOKIES: CookieEntry[] = [
  * devtools will find them.
  */
 export const LOCAL_STORAGE_ENTRIES = [
-  {
-    name: 'riglog-theme',
-    purpose: 'Your light/dark/system choice (src/lib/theme.ts). Never sent to the server.',
-  },
-  {
-    name: 'riglog-cookie-notice',
-    purpose: 'Remembers that you have seen the cookie notice, so it stops reappearing.',
-  },
-  {
-    name: 'riglog-trail-recording',
-    purpose:
-      'A crash-recovery copy of a GPS track while you are recording one, so closing the tab by accident does not lose the run. Cleared once the run is saved.',
-  },
+  { id: 'theme', name: 'riglog-theme' },
+  { id: 'cookieNotice', name: 'riglog-cookie-notice' },
+  { id: 'trailRecording', name: 'riglog-trail-recording' },
 ]
 
 export interface SubProcessor {
-  name: string
-  purpose: string
-  /** What actually leaves this app and reaches them. */
-  dataShared: string
-  /** Only set when it's conditional on a feature or configuration. */
-  when?: string
+  /**
+   * Catalogue key: `legal.subProcessor.<id>` carries `name`, `purpose`,
+   * `dataShared` and — where the sharing is conditional on a feature or a
+   * configuration — `when`.
+   */
+  id: string
+  /** Whether the entry has a `when` clause in the catalogue. */
+  conditional?: boolean
 }
 
 /**
@@ -117,67 +115,20 @@ export interface SubProcessor {
  * calls in the codebase rather than from memory.
  */
 export const SUB_PROCESSORS: SubProcessor[] = [
-  {
-    name: 'Vercel',
-    purpose: 'Hosting, and Blob storage for uploaded photos, receipts and documents.',
-    dataShared:
-      'Everything the app stores, plus the usual server-log data (IP address, browser user agent, requested URL).',
-  },
-  {
-    name: 'The database host',
-    purpose: 'The Postgres database itself.',
-    dataShared: 'Everything the app stores.',
-  },
-  {
-    name: 'Stripe',
-    purpose: 'Payments for RigLog Pro and for donations.',
-    dataShared:
-      'Your email address and the payment details you enter on Stripe’s own checkout page. Card numbers never reach RigLog — we store only Stripe’s customer and subscription identifiers.',
-    when: 'Only if you buy Pro or donate.',
-  },
-  {
-    name: 'Brevo, or Resend',
-    purpose: 'Sending transactional email — password resets and the notifications you opted into.',
-    dataShared: 'Your email address and the contents of that message.',
-    when: 'Whichever is configured for this deployment.',
-  },
-  {
-    name: 'Google',
-    purpose: 'Sign in with Google.',
-    dataShared: 'Google tells us your email address and name. We do not receive your Google password.',
-    when: 'Only if you use that sign-in option.',
-  },
-  {
-    name: 'OpenStreetMap',
-    purpose: 'Map tiles on the trail log.',
-    dataShared:
-      'Your browser requests map images directly from openstreetmap.org, so it sees your IP address and which part of the map you are looking at.',
-    when: 'Only on trail log pages, which are off-road projects only.',
-  },
-  {
-    name: 'unpkg',
-    purpose: 'Serves the map’s marker icons.',
-    dataShared: 'Your IP address, as with any image loaded from another site.',
-    when: 'Only on pages showing a map.',
-  },
-  {
-    name: 'NHTSA vPIC (US Department of Transportation)',
-    purpose: 'Decoding a VIN when the built-in table does not recognise it.',
-    dataShared: 'The VIN you asked to decode. Nothing identifying you is sent with it.',
-    when: 'Only when you use the VIN decoder.',
-  },
-  {
-    name: 'Your browser’s push service (Google, Mozilla, Apple, …)',
-    purpose: 'Delivering web push notifications.',
-    dataShared:
-      'The notification’s contents, sent to the endpoint your browser gave us. Which service that is depends on your browser.',
-    when: 'Only if you turn push notifications on.',
-  },
+  { id: 'vercel' },
+  { id: 'database' },
+  { id: 'stripe', conditional: true },
+  { id: 'emailProvider', conditional: true },
+  { id: 'google', conditional: true },
+  { id: 'openstreetmap', conditional: true },
+  { id: 'unpkg', conditional: true },
+  { id: 'nhtsa', conditional: true },
+  { id: 'pushService', conditional: true },
 ]
 
 export interface RetentionEntry {
-  what: string
-  howLong: string
+  /** Catalogue key: `legal.retention.<id>.what` and `.howLong`. */
+  id: string
 }
 
 /**
@@ -185,32 +136,15 @@ export interface RetentionEntry {
  * cascade rules and the DELETE handlers — see src/lib/personalData.ts.
  */
 export const RETENTION: RetentionEntry[] = [
-  {
-    what: 'Your account, vehicles, tasks, photos, documents, wishlist, trail logs and collaborator invitations',
-    howLong:
-      'Until you delete them, or until you delete your account — at which point they are removed immediately, including the uploaded files themselves.',
-  },
-  {
-    what: 'Feedback tickets, votes, comments, and parts-wanted posts',
-    howLong: 'Deleted with your account. They disappear from the public board too.',
-  },
-  {
-    what: 'Donation records',
-    howLong:
-      'Kept after account deletion, with your account detached from them. A payment that happened is an accounting record; what is removed is the link to you.',
-  },
-  {
-    what: 'Password reset tokens',
-    howLong: 'One hour, then they stop working. Deleted with your account.',
-  },
-  {
-    what: 'Rate-limiting counters, which stop brute-force and spam',
-    // Checked against src/lib/rateLimit.ts: the key is plain text, of the
-    // form `login:email:<address>` or `register:ip:<address>`. Saying
-    // "anonymous counters" would be false.
-    howLong:
-      'At most an hour, after which they are swept away. Depending on what is being limited, the counter’s key contains an email address or an IP address alongside the count.',
-  },
+  { id: 'yourContent' },
+  { id: 'publicPosts' },
+  // Kept deliberately: a payment that happened is an accounting record.
+  { id: 'donations' },
+  { id: 'resetTokens' },
+  // The key is plain text (src/lib/rateLimit.ts) — `login:email:<address>`
+  // or `register:ip:<address>` — so calling these "anonymous counters"
+  // would be false, and the catalogue text says so.
+  { id: 'rateLimits' },
 ]
 
 /**
@@ -243,9 +177,11 @@ export const CONSUMER_AUTHORITY = {
 }
 
 export interface AcceptableUseRule {
-  rule: string
-  /** Why it exists, in plain words. A rule without a reason reads as a threat. */
-  because: string
+  /**
+   * Catalogue key: `legal.acceptableUse.<id>.rule` and `.because`. Every
+   * rule carries its reason — a rule without one reads as a threat.
+   */
+  id: string
 }
 
 /**
@@ -254,28 +190,10 @@ export interface AcceptableUseRule {
  * each of these maps to something the app actually exposes.
  */
 export const ACCEPTABLE_USE: AcceptableUseRule[] = [
-  {
-    rule: 'Upload someone else’s photos, documents or writing as your own',
-    because: 'Public build pages are indexed by search engines, so this puts their work on the open web under your name.',
-  },
-  {
-    rule: 'Post another person’s private information — an address, a phone number, a plate, a VIN that isn’t yours',
-    because: 'A public project page is public to everyone, permanently, and you cannot un-publish something a search engine has already copied.',
-  },
-  {
-    rule: 'Use the feedback board or parts-wanted board for advertising, spam or abuse',
-    because: 'Both are public and unmoderated by default; they only work if they stay readable.',
-  },
-  {
-    rule: 'Try to reach another account’s vehicles, files or settings',
-    because: 'Every route checks ownership, so this is an attempt to break the app rather than a mistake — and it is also a criminal offence.',
-  },
-  {
-    rule: 'Automate sign-ups, logins, posts or exports at volume',
-    because: 'The rate limits exist to keep the free tier affordable; working around them takes the service away from other people.',
-  },
-  {
-    rule: 'Resell access, or share one account between several people',
-    because: 'Pro is priced per person. Collaborator invitations are the supported way to let someone else work on your vehicle.',
-  },
+  { id: 'othersWork' },
+  { id: 'privateInfo' },
+  { id: 'spam' },
+  { id: 'otherAccounts' },
+  { id: 'automation' },
+  { id: 'resale' },
 ]

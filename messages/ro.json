@@ -1081,5 +1081,290 @@
     "photosAdded": "a adăugat poze noi la „{task}”",
     "priceAlertTitle": "{item} a atins prețul tău țintă",
     "priceAlertBody": "Găsit la {price} RON (țintă {target} RON)"
+  },
+  "legal": {
+    "cookie": {
+      "session": {
+        "purpose": "Te ține autentificat. Conține un token semnat care identifică contul tău — fără el, fiecare pagină ți-ar cere din nou autentificarea.",
+        "duration": "30 de zile sau până te deconectezi"
+      },
+      "csrf": {
+        "purpose": "Protejează autentificarea și deconectarea împotriva atacurilor CSRF — împiedică alt site să trimită aceste formulare în numele tău.",
+        "duration": "Sesiunea de browser"
+      },
+      "callbackUrl": {
+        "purpose": "Reține pagina la care să te întoarcem după autentificare.",
+        "duration": "Sesiunea de browser"
+      },
+      "oauthState": {
+        "purpose": "Se setează doar dacă te autentifici cu Google. Leagă răspunsul primit de la Google de cererea pe care ai pornit-o, ceea ce împiedică deturnarea acelui schimb.",
+        "duration": "Câteva minute, doar în timpul autentificării"
+      },
+      "locale": {
+        "purpose": "Reține dacă ai ales româna sau engleza. Textul este generat pe server, deci serverul nu poate răspunde în limba ta fără să știe care este. Nu conține niciun identificator și nu autorizează nimic.",
+        "duration": "Un an sau până o schimbi"
+      }
+    },
+    "storage": {
+      "theme": {
+        "purpose": "Alegerea ta pentru temă deschisă/întunecată/sistem (src/lib/theme.ts). Nu ajunge niciodată pe server."
+      },
+      "cookieNotice": {
+        "purpose": "Reține că ai văzut notificarea despre cookie-uri, ca să nu mai apară."
+      },
+      "trailRecording": {
+        "purpose": "O copie de siguranță a traseului GPS în timp ce înregistrezi, ca închiderea accidentală a filei să nu piardă traseul. Se șterge după salvarea traseului."
+      }
+    },
+    "subProcessor": {
+      "vercel": {
+        "name": "Vercel",
+        "purpose": "Găzduire și stocare Blob pentru pozele, bonurile și documentele încărcate.",
+        "dataShared": "Tot ce stochează aplicația, plus datele obișnuite din jurnalele serverului (adresă IP, user agent al browserului, adresa cerută)."
+      },
+      "database": {
+        "name": "Furnizorul bazei de date",
+        "purpose": "Baza de date Postgres în sine.",
+        "dataShared": "Tot ce stochează aplicația."
+      },
+      "stripe": {
+        "name": "Stripe",
+        "purpose": "Plăți pentru RigLog Pro și pentru donații.",
+        "dataShared": "Adresa ta de e-mail și datele de plată pe care le introduci pe pagina de checkout a Stripe. Numerele de card nu ajung niciodată la RigLog — păstrăm doar identificatorii de client și de abonament de la Stripe.",
+        "when": "Doar dacă achiziționezi Pro sau donezi."
+      },
+      "emailProvider": {
+        "name": "Brevo sau Resend",
+        "purpose": "Trimiterea e-mailurilor tranzacționale — resetări de parolă și notificările la care te-ai abonat.",
+        "dataShared": "Adresa ta de e-mail și conținutul acelui mesaj.",
+        "when": "Oricare dintre ele este configurată pentru această instalare."
+      },
+      "google": {
+        "name": "Google",
+        "purpose": "Autentificare cu Google.",
+        "dataShared": "Google ne comunică adresa ta de e-mail și numele. Nu primim parola ta de Google.",
+        "when": "Doar dacă folosești această opțiune de autentificare."
+      },
+      "openstreetmap": {
+        "name": "OpenStreetMap",
+        "purpose": "Imaginile hărții din jurnalul de traseu.",
+        "dataShared": "Browserul tău cere imaginile hărții direct de la openstreetmap.org, deci aceștia îți văd adresa IP și ce porțiune de hartă privești.",
+        "when": "Doar pe paginile cu jurnal de traseu, care există numai la proiectele off-road."
+      },
+      "unpkg": {
+        "name": "unpkg",
+        "purpose": "Servește pictogramele marcajelor de pe hartă.",
+        "dataShared": "Adresa ta IP, ca la orice imagine încărcată de pe alt site.",
+        "when": "Doar pe paginile care afișează o hartă."
+      },
+      "nhtsa": {
+        "name": "NHTSA vPIC (Departamentul de Transporturi al SUA)",
+        "purpose": "Decodarea unui VIN atunci când tabelul intern nu îl recunoaște.",
+        "dataShared": "VIN-ul pe care ai cerut să-l decodăm. Nu se trimite nimic care să te identifice.",
+        "when": "Doar când folosești decodorul VIN."
+      },
+      "pushService": {
+        "name": "Serviciul de notificări al browserului tău (Google, Mozilla, Apple, …)",
+        "purpose": "Livrarea notificărilor web push.",
+        "dataShared": "Conținutul notificării, trimis la adresa pe care ne-a dat-o browserul tău. Ce serviciu este depinde de browser.",
+        "when": "Doar dacă activezi notificările push."
+      }
+    },
+    "retention": {
+      "yourContent": {
+        "what": "Contul tău, vehiculele, lucrările, pozele, documentele, lista de dorințe, jurnalele de traseu și invitațiile de colaborare",
+        "howLong": "Până le ștergi tu sau până îți ștergi contul — moment în care sunt eliminate imediat, inclusiv fișierele încărcate."
+      },
+      "publicPosts": {
+        "what": "Solicitări de pe panoul de sugestii, voturi, comentarii și anunțuri de piese căutate",
+        "howLong": "Se șterg odată cu contul. Dispar și de pe panourile publice."
+      },
+      "donations": {
+        "what": "Evidența donațiilor",
+        "howLong": "Se păstrează și după ștergerea contului, cu contul tău desprins de ele. O plată care a avut loc este o înregistrare contabilă; ce se elimină este legătura cu tine."
+      },
+      "resetTokens": {
+        "what": "Token-urile de resetare a parolei",
+        "howLong": "O oră, după care nu mai funcționează. Se șterg odată cu contul."
+      },
+      "rateLimits": {
+        "what": "Contoarele de limitare, care opresc atacurile prin forță brută și spamul",
+        "howLong": "Cel mult o oră, după care sunt șterse. În funcție de ce se limitează, cheia contorului conține o adresă de e-mail sau o adresă IP alături de contor."
+      }
+    },
+    "acceptableUse": {
+      "othersWork": {
+        "rule": "Să încarci pozele, documentele sau textele altcuiva ca fiind ale tale",
+        "because": "Paginile publice de proiect sunt indexate de motoarele de căutare, deci asta pune munca lor pe internet, sub numele tău."
+      },
+      "privateInfo": {
+        "rule": "Să publici informații private ale altei persoane — o adresă, un număr de telefon, un număr de înmatriculare, un VIN care nu e al tău",
+        "because": "O pagină publică de proiect este publică pentru toată lumea, permanent, și nu poți retrage ceva ce un motor de căutare a copiat deja."
+      },
+      "spam": {
+        "rule": "Să folosești panoul de sugestii sau cel de piese căutate pentru reclamă, spam sau abuz",
+        "because": "Ambele sunt publice și, implicit, nemoderate; funcționează doar dacă rămân lizibile."
+      },
+      "otherAccounts": {
+        "rule": "Să încerci să ajungi la vehiculele, fișierele sau setările altui cont",
+        "because": "Fiecare rută verifică proprietarul, deci asta este o încercare de a sparge aplicația, nu o greșeală — și este și infracțiune."
+      },
+      "automation": {
+        "rule": "Să automatizezi înregistrări, autentificări, postări sau exporturi în volum mare",
+        "because": "Limitele de utilizare există ca să țină planul gratuit accesibil; ocolirea lor ia serviciul de la ceilalți."
+      },
+      "resale": {
+        "rule": "Să revinzi accesul sau să împarți un cont între mai multe persoane",
+        "because": "Pro se plătește per persoană. Invitațiile de colaborator sunt modul acceptat de a lăsa pe altcineva să lucreze la vehiculul tău."
+      }
+    }
+  },
+  "legalPages": {
+    "lastUpdated": "Ultima actualizare: {date}",
+    "authoritative": "Această pagină este o traducere. Versiunea în limba engleză este cea de referință: dacă cele două se contrazic, textul englez prevalează.",
+    "viewEnglish": "Vezi versiunea în engleză",
+    "cookies": {
+      "metaTitle": "Politica de cookie-uri · RigLog",
+      "metaDescription": "Fiecare cookie pe care îl setează RigLog, ce face și de ce nu ți se cere consimțământul.",
+      "title": "Politica de cookie-uri",
+      "whyNoBannerHeading": "De ce nu există o bară de consimțământ",
+      "whyNoBanner": "RigLog setează {count} tipuri de cookie și fiecare dintre ele este necesar pentru ca aplicația să funcționeze: să rămâi autentificat, să fie protejat formularul de autentificare și să știm în ce limbă să-ți răspundem. Nu există cookie-uri de analiză, de publicitate sau de urmărire și niciun script terț care să seteze vreunul.",
+      "exemption": "Cookie-urile strict necesare pentru furnizarea unui serviciu pe care l-ai cerut sunt exceptate de la cerința de consimțământ din Directiva ePrivacy — dar tot trebuie declarate, iar pagina asta exact asta face. Dacă se schimbă vreodată și se adaugă un cookie care nu este strict necesar, pagina o va spune și ți se va cere întâi acordul.",
+      "warning": "Unele cookie-uri de mai jos nu sunt strict necesare. Această pagină trebuie actualizată și trebuie adăugat un flux de consimțământ înainte ca acel cookie să ajungă în producție.",
+      "theCookies": "Cookie-urile",
+      "essential": "Esențial",
+      "lasts": "Durată: {duration}",
+      "storageHeading": "Păstrate în browser, dar nu cookie-uri",
+      "storageIntro": "Câteva lucruri se păstrează în schimb în memoria locală a browserului. Rămân pe dispozitivul tău, nu ajung niciodată pe server și dispar dacă ștergi datele site-ului.",
+      "turningOffHeading": "Cum le oprești",
+      "turningOff": "Orice browser îți permite să blochezi sau să ștergi cookie-uri. Blocarea celor de mai sus te va deconecta și te va împiedica să te reconectezi — cookie-ul de sesiune <em>este</em> autentificarea. Nu există altă cale în afară de a nu avea conturi.",
+      "publicPages": "Citirea paginilor publice — aceasta, <home>pagina principală</home>, <tickets>panoul de sugestii</tickets> și paginile publice de proiect — nu are nevoie de niciun cookie.",
+      "morePrivacy": "Mai multe despre ce stochează RigLog găsești în <privacy>politica de confidențialitate</privacy>."
+    },
+    "privacy": {
+      "metaTitle": "Politica de confidențialitate · RigLog",
+      "metaDescription": "Ce stochează RigLog, cu cine se împart datele și cum obții o copie sau ceri ștergerea lor.",
+      "title": "Politica de confidențialitate",
+      "shortVersion": "Pe scurt",
+      "shortBody": "RigLog stochează ce introduci tu — vehiculele, lucrările pe care le notezi, pozele și documentele tale — plus adresa de e-mail cu care te-ai înregistrat. Nu există publicitate, urmărire sau vreun script de analiză. Nu se vinde nimic și nu se transmite nimic în afară de serviciile listate mai jos, necesare pentru funcționarea aplicației.",
+      "shortRights": "Poți descărca tot ce deținem despre tine sau poți șterge totul din <settings>Profil și setări</settings>. Niciuna dintre ele nu necesită să ceri voie cuiva.",
+      "whoHeading": "Cine răspunde",
+      "controllerFallback": "Operatorul acestei instalări RigLog",
+      "controllerLine": "{controller} este operatorul de date pentru informațiile descrise aici.",
+      "contactWithEmail": "Pentru orice ține de această politică, inclusiv o cerere privind datele, scrie la <email></email>.",
+      "contactNoEmail": "Pentru orice ține de această politică, deschide o solicitare pe <tickets>panoul de sugestii</tickets>. Nu trebuie să aștepți un răspuns ca să-ți exerciți drepturile de mai jos — butoanele de export și de ștergere din setări fac ambele lucruri imediat.",
+      "collectHeading": "Ce colectăm și de ce",
+      "collectAccountTerm": "Contul tău",
+      "collectAccount": "Adresa de e-mail, numele afișat și un nume public de utilizator generat din acesta. Opțional, o localitate și un avatar. Avem nevoie de e-mail ca să te autentificăm și ca să-ți trimitem resetări de parolă. Parolele se păstrează doar ca hash bcrypt — nimeni, inclusiv noi, nu le poate citi.",
+      "collectLoggedTerm": "Ce înregistrezi",
+      "collectLogged": "Vehicule, lucrări, costuri, poze, bonuri, documente și datele lor de expirare, articole din lista de dorințe și trasee GPS dacă folosești jurnalul de traseu. Acesta este scopul aplicației; se stochează pentru că ai cerut tu asta.",
+      "collectPublicTerm": "Ce publici",
+      "collectPublic": "Solicitări de pe panoul de sugestii, voturi și comentarii, anunțuri de piese căutate și orice proiect pe care îl faci public. Acestea sunt vizibile pentru oricine, inclusiv pentru cei fără cont, iar proiectele publice sunt indexate de motoarele de căutare. Acesta este rostul lor — dar merită să fii conștient de asta.",
+      "collectLogsTerm": "Jurnalele serverului și contoarele împotriva abuzului",
+      "collectLogs": "Jurnale obișnuite de server web și contoare de scurtă durată folosite ca să oprească încercările de autentificare prin forță brută și spamul. Detaliile sunt în tabelul de păstrare de mai jos.",
+      "noSpecialCategory": "Nu cerem și nu avem nicio utilitate pentru datele din „categorii speciale” — sănătate, opinii politice, convingeri, date biometrice. Te rugăm să nu le scrii într-o notă de lucrare.",
+      "basisHeading": "De ce avem dreptul (temeiul juridic)",
+      "basisContractTerm": "Executarea unui contract",
+      "basisContract": "contul tău și tot ce înregistrezi. Ai cerut o aplicație care ține minte proiectul tău; nu poate face asta fără să-l stocheze.",
+      "basisInterestsTerm": "Interese legitime",
+      "basisInterests": "menținerea serviciului sigur și funcțional: limitarea traficului, prevenirea abuzurilor, jurnalele serverului.",
+      "basisConsentTerm": "Consimțământ",
+      "basisConsent": "notificările opționale, pe e-mail și push, despre proiectele pe care le urmărești. Tu le activezi și tot tu le poți dezactiva oricând din setări.",
+      "basisLegalTerm": "Obligație legală",
+      "basisLegal": "păstrarea evidenței plăților.",
+      "sharingHeading": "Cine mai are acces",
+      "sharingIntro": "Doar serviciile necesare pentru funcționarea aplicației. Fiecare primește strict minimul necesar pentru rolul lui și niciunul nu este o rețea de publicitate.",
+      "whatTheyReceive": "Ce primesc: ",
+      "transfers": "Unele dintre acestea sunt situate în afara UE. Acolo unde este cazul, transferul se bazează pe clauzele contractuale standard ale Comisiei Europene sau pe o decizie privind caracterul adecvat, prin termenii proprii de prelucrare a datelor ai furnizorului.",
+      "compelled": "Am transmite datele și dacă am fi obligați legal — de exemplu, printr-un ordin judecătoresc. Nu este o portiță pe care s-o căutăm.",
+      "collaboratorsHeading": "Colaboratori",
+      "collaborators": "Dacă inviți un mecanic sau un specialist la un vehicul, acesta vede vehiculul respectiv și lucrările lui și își poate adăuga propria muncă. Nu îți vede celelalte vehicule, setările contului sau altceva. Poți ascunde totalurile de cost față de el printr-o setare a vehiculului și poți revoca invitația oricând. Revocarea îi elimină accesul imediat.",
+      "retentionHeading": "Cât timp se păstrează",
+      "rightsHeading": "Drepturile tale",
+      "rightsIntro": "Conform GDPR, poți:",
+      "rightAccessTerm": "Obține o copie",
+      "rightAccess": "a tot ce deținem — butonul <em>Descarcă-mi datele</em> din setări o produce imediat, în format JSON.",
+      "rightRectifyTerm": "Corecta",
+      "rightRectify": "orice este greșit — modifici direct în aplicație.",
+      "rightEraseTerm": "Șterge tot",
+      "rightErase": "butonul <em>Șterge contul</em> din setări îți elimină contul, fiecare proiect și fișierele încărcate. Este imediat și nu poate fi anulat.",
+      "rightPortTerm": "Muta datele în altă parte",
+      "rightPort": "același export este JSON structurat, gândit să fie citit de altcineva decât noi.",
+      "rightObjectTerm": "Te opune sau ceri restricționarea prelucrării",
+      "rightObject": "și îți poți retrage oricând consimțământul pentru notificări.",
+      "rightComplainTerm": "Depune o plângere",
+      "rightComplain": "la o autoritate de supraveghere. În România aceasta este <anspdcp>ANSPDCP</anspdcp>; în restul UE, autoritatea din țara ta.",
+      "rightsButtons": "Primele două și cele din mijloc sunt butoane, nu cereri, în mod intenționat. Nu ar trebui să ceri voie ca să pleci.",
+      "cookiesHeading": "Cookie-uri",
+      "cookies": "RigLog setează doar cookie-urile necesare ca să te țină autentificat, ca să protejeze formularul de autentificare și ca să rețină limba pe care ai ales-o. Nu există cookie-uri de urmărire sau de publicitate, motiv pentru care nu ți se cere consimțământul pentru niciunul. <list>Lista completă este aici</list>.",
+      "childrenHeading": "Copii",
+      "children": "RigLog nu se adresează copiilor și nu deținem cu bună știință date despre persoane sub 16 ani. Dacă crezi că deținem, spune-ne și vor fi eliminate.",
+      "changesHeading": "Modificări",
+      "changes": "Dacă această politică se modifică în substanță, se modifică și data din capul paginii. Modificările importante vor fi anunțate pe <tickets>panoul de sugestii</tickets>, nu făcute în tăcere."
+    },
+    "terms": {
+      "metaTitle": "Termeni și condiții · RigLog",
+      "metaDescription": "Înțelegerea dintre tine și RigLog: ce primești, ce datorezi și cum poate fiecare parte să o încheie.",
+      "title": "Termeni și condiții",
+      "shortHeading": "Pe scurt",
+      "short1": "RigLog ține evidența lucrărilor pe care le faci la vehiculele tale. Ce pui în aplicație îți aparține și poți să-l descarci sau să-l ștergi oricând. Un vehicul este gratuit pentru totdeauna; Pro costă și poate fi anulat. Nu publica informații private ale altor persoane și nu încerca să spargi aplicația. Dacă greșim ceva, spune-ne.",
+      "short2": "Restul paginii spune același lucru, cu detaliile care contează atunci când ceva merge prost.",
+      "partiesHeading": "Cu cine încheie înțelegerea",
+      "operatorFallback": "operatorul acestei instalări RigLog",
+      "parties": "Acești termeni sunt între tine și {operator} („noi”). Se aplică din momentul în care îți creezi un cont.",
+      "reachUsEmail": "Ne poți contacta la <email></email>.",
+      "reachUsTickets": "Ne poți contacta prin <tickets>panoul de sugestii</tickets>.",
+      "accountHeading": "Contul tău",
+      "accountAge": "Trebuie să ai cel puțin 16 ani ca să ai cont.",
+      "accountEmail": "Dă o adresă de e-mail reală — este singurul mod de a-ți reseta parola, iar fără ea nu putem recupera un cont.",
+      "accountPassword": "Păstrează parola pentru tine. Tot ce se face din contul tău este considerat făcut de tine.",
+      "accountOnePerPerson": "Un cont de persoană. Dacă altcineva trebuie să lucreze la vehiculul tău, invită-l ca colaborator în loc să împărțiți o autentificare.",
+      "getHeading": "Ce primești",
+      "freeTerm": "Gratuit.",
+      "free": "{vehicles} vehicul, lucrări nelimitate la el, până la {photos} poze per lucrare, documente și notificări, PDF-ul cu raportul de lucrări, colaboratori și exportul datelor tale. Gratuit înseamnă gratuit — nu există o perioadă de probă care să se termine pe tăcute.",
+      "proTerm": "Pro.",
+      "pro": "Vehicule și poze nelimitate, analiza completă a costurilor, istoricul în PDF, carduri de partajat, decodorul VIN, jurnalele de traseu și alertele de preț. {monthly} RON pe lună, {annual} RON pe an sau {lifetime} RON o singură dată, pe viață.",
+      "uploadCap": "Fișierele încărcate sunt limitate la {mb} MB fiecare, pe orice plan — este o limită a platformei, nu un zid de plată.",
+      "tierChanges": "Putem schimba ce include fiecare plan. Dacă o schimbare elimină ceva pentru care plătești, îți spunem înainte să se întâmple și poți anula și cere o rambursare proporțională pentru perioada plătită și nefolosită.",
+      "payingHeading": "Plata pentru Pro",
+      "paying1": "Plățile sunt procesate de Stripe. Nu vedem și nu stocăm niciodată datele cardului tău — doar referința Stripe pentru fișa ta de client.",
+      "paying2": "Planurile lunare și anuale se reînnoiesc automat până anulezi. Poți anula oricând din <settings>Profil și setări</settings>, de unde se deschide portalul de facturare Stripe. Anularea oprește următoarea plată; păstrezi Pro până la finalul perioadei deja plătite. Planul pe viață este o plată unică, fără nimic de anulat.",
+      "withdrawal": "<b>Poți anula cu rambursare integrală în {days} zile de la achiziție, din orice motiv sau fără niciunul.</b> Legislația europeană și cea română îți dau acest drept pentru orice cumperi la distanță. Poate fi renunțat pentru conținut digital livrat imediat, dar numai dacă ți se cere întâi să renunți la el — iar noi nu îți cerem asta, deci dreptul rămâne. Scrie-ne sau deschide o solicitare și spune că te retragi.",
+      "afterWithdrawal": "După {days} zile nu rambursăm pentru răzgândire. Rambursăm însă când te-am taxat din greșeală sau când serviciul a fost nefolosibil o perioadă semnificativă — cere-ne.",
+      "losingPro": "Pierderea Pro nu șterge nimic. Vehiculele, pozele și istoricul tău rămân exact acolo unde sunt; doar ecranele exclusiv Pro nu se mai deschid, iar exportul funcționează în continuare, ca să poți lua totul cu tine.",
+      "foundingHeading": "Membri fondatori",
+      "founding1": "Primele {limit} conturi create vreodată primesc Pro fără plată. Dacă ești unul dintre ele, pagina de setări ți-o spune și îți dă numărul.",
+      "founding2": "Este un cadou, nu o achiziție: nu s-a plătit nimic, deci nu există nimic de rambursat și niciun abonament de anulat. Este legat de contul tău și nu poate fi transferat sau vândut.",
+      "founding3": "<b>„Pe viață” înseamnă atâta timp cât funcționează RigLog.</b> Nu îl vom pune în spatele unei plăți mai târziu, iar cumpărarea — și apoi anularea — unui plan plătit nu îl va elimina. Îl putem retrage dacă acel cont încalcă regulile de mai sus, în aceleași condiții ca orice alt cont. Dacă RigLog se închide, se încheie odată cu serviciul; exportul funcționează în continuare și am anunța din timp.",
+      "donationsHeading": "Donații",
+      "donations": "O donație este un cadou pentru costurile de funcționare. Nu cumpără nimic, nu deblochează nimic și nu este rambursabilă — așa că dă doar cât ești mulțumit să dai. Dacă ai vrut să cumperi Pro și ai donat din greșeală, spune-ne și rezolvăm.",
+      "contentHeading": "Conținutul tău rămâne al tău",
+      "content1": "Pozele, notele, bonurile și istoricul proiectului îți aparțin. Nu revendicăm niciun drept de proprietate asupra lor.",
+      "content2": "Ca să funcționeze serviciul, avem nevoie de permisiunea ta să stocăm conținutul, să-l salvăm de rezervă și să ți-l arătăm ție și oricui i-ai dat acces — colaboratorilor pe care îi inviți și întregului internet, pentru un proiect făcut public. Acea permisiune nu acoperă nimic altceva: nu îl vindem, nu îl licențiem mai departe, nu îl folosim pentru publicitate și nu antrenăm nimic pe el. Se încheie când ștergi conținutul sau contul.",
+      "content3": "<b>Public înseamnă cu adevărat public.</b> O pagină publică de proiect, o solicitare de pe panoul de sugestii și un anunț de piesă căutată sunt vizibile pentru toată lumea și sunt indexate de motoarele de căutare. Dacă faci proiectul privat din nou, noi nu îl mai servim, dar nu putem face un motor de căutare să uite o copie pe care a luat-o deja. Gândește-te la asta înainte să publici un număr de înmatriculare, un VIN sau o curte.",
+      "mustNotHeading": "Ce nu ai voie să faci",
+      "mustNotIntro": "Fiecare dintre acestea corespunde cu ceva ce aplicația chiar expune:",
+      "collaboratorsHeading": "Colaboratori",
+      "collaborators1": "Invitând pe cineva, îi dai acces la acel vehicul și la lucrările lui și îi permiți să-și adauge propria muncă. Nu îți poate vedea celelalte vehicule sau setările contului. Tu alegi pe cine inviți și poți revoca accesul oricând, cu efect imediat.",
+      "collaborators2": "Munca înregistrată de un colaborator la vehiculul tău rămâne în istoricul tău dacă acesta își șterge ulterior contul — numele lui dispare, înregistrarea nu.",
+      "promiseHeading": "Ce promitem și ce nu",
+      "promise1": "Vom opera serviciul cu grijă și competență rezonabile și îți vom spune despre opririle planificate acolo unde putem.",
+      "promise2": "Nu promitem că nu va fi niciodată indisponibil, că nu va pierde niciodată o cerere sau că nu va avea niciodată vreo eroare. Tratează RigLog ca pe o copie comodă a evidențelor tale, nu ca pe singura: butonul de export există în setări exact din acest motiv, iar dacă istoricul unui vehicul contează pentru o vânzare sau o daună, păstrează-ți propria copie.",
+      "promise3": "Decodorul VIN, scorul de originalitate, analiza costurilor și notificările sunt ajutoare, nu consultanță de specialitate. Verifică o dată de expirare în documentul însuși înainte să te bazezi pe ea.",
+      "liabilityHeading": "Dacă ceva merge prost",
+      "liability1": "Nimic de aici nu limitează răspunderea pentru deces sau vătămare corporală cauzate din neglijență, pentru fraudă sau pentru orice altceva pe care legea spune că nu poate fi limitat — inclusiv drepturile tale de consumator, pe care acești termeni nu le reduc.",
+      "liability2": "În rest, răspunderea noastră pentru orice pretenție este limitată la ce ne-ai plătit în cele 12 luni dinainte ca ea să apară și nu răspundem pentru pierderi indirecte sau subsecvente — vânzări ratate, profituri pierdute sau valoarea unor date pentru care nu ai păstrat o copie.",
+      "endingHeading": "Cum se încheie",
+      "endingYouTerm": "Tu, oricând.",
+      "endingYou": "Îți ștergi contul din setări. Datele îți sunt eliminate imediat, inclusiv fișierele încărcate. Nu se poate anula, așa că descarcă-ți exportul întâi, dacă vrei unul.",
+      "endingUsTerm": "Noi, dacă trebuie.",
+      "endingUs": "Putem suspenda sau închide un cont care încalcă regulile de mai sus sau care pune în pericol serviciul ori alte persoane. Acolo unde este rezonabil, te vom avertiza întâi și îți vom da ocazia să îndrepți situația, iar motivul ți-l vom spune. Dacă închidem un cont plătit dintr-un motiv care nu ține de o încălcare din partea ta, rambursăm partea nefolosită din ce ai plătit.",
+      "changesHeading": "Modificări ale acestor termeni",
+      "changes": "Data din capul paginii se schimbă ori de câte ori se schimbă substanța. Pentru o modificare care te afectează semnificativ, o vom anunța pe <tickets>panoul de sugestii</tickets> înainte să intre în vigoare, în loc să edităm pagina în tăcere. Continuarea folosirii contului după aceea înseamnă acceptare; dacă preferi altfel, șterge contul și, dacă ești pe un plan plătit, cere partea nefolosită înapoi.",
+      "lawHeading": "Lege și litigii",
+      "law1": "Se aplică legea română, iar instanțele din România au competență. Dacă ești consumator cu reședința în alt stat din UE, acest lucru nu te privează de protecția legislației imperative de consum din țara ta, nici de dreptul de a introduce o acțiune acolo.",
+      "law2": "Te rugăm să ne semnalezi întâi nouă problema — cele mai multe lucruri sunt neînțelegeri și se rezolvă în aceeași săptămână. Dacă asta nu funcționează, te poți adresa <authority></authority> sau poți folosi <odr>platforma europeană de soluționare online a litigiilor</odr>.",
+      "law3": "Modul în care îți prelucrăm datele personale este descris în <privacy>politica de confidențialitate</privacy>, care face parte din această înțelegere."
+    }
   }
 }

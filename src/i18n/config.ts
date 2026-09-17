@@ -102,3 +102,31 @@ export function localeFromAcceptLanguage(header: string | null | undefined): Loc
 export function toLocale(value: unknown): Locale {
   return isLocale(value) ? value : DEFAULT_LOCALE
 }
+
+/**
+ * Namespaces that only ever render on the server.
+ *
+ * Everything handed to `NextIntlClientProvider` is serialised into the
+ * HTML of every page, so the catalogue is a per-request payload, not a
+ * build-time asset. The legal pages alone are 25 KB of prose that no
+ * Client Component can read — they are Server Components, and so are the
+ * email and notification builders. Sending that to a phone on every
+ * navigation buys nothing.
+ *
+ * `i18n.test.ts` enforces the claim: it fails if a file marked
+ * `'use client'` asks for one of these. Anything not listed here is
+ * assumed to be needed in the browser, which is the safe default — a
+ * missing namespace renders dotted keys, and being wrong in that
+ * direction is visible immediately.
+ */
+export const SERVER_ONLY_NAMESPACES = ['legal', 'legalPages', 'email', 'notify'] as const
+
+/** The catalogue minus the namespaces the browser will never ask for. */
+export function messagesForClient<T extends Record<string, unknown>>(messages: T): T {
+  const kept = Object.entries(messages).filter(
+    ([namespace]) => !(SERVER_ONLY_NAMESPACES as readonly string[]).includes(namespace)
+  )
+  // Still an AbstractIntlMessages, just a smaller one — the type is the
+  // same shape, so callers need no cast.
+  return Object.fromEntries(kept) as T
+}

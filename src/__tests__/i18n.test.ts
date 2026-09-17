@@ -4,8 +4,10 @@ import {
   DEFAULT_LOCALE,
   LOCALES,
   LOCALE_NAMES,
+  SERVER_ONLY_NAMESPACES,
   isLocale,
   localeFromAcceptLanguage,
+  messagesForClient,
   toLocale,
 } from '@/i18n/config'
 import { PART_CONDITIONS, ORIGINALITY_CONDITIONS, PROJECT_TYPE_CONFIG, PROJECT_TYPES } from '@/lib/projectType'
@@ -318,5 +320,72 @@ describe('validation is language-independent', () => {
     const source = fs.readFileSync(path.join(process.cwd(), 'src', 'lib', 'projectType.ts'), 'utf8')
     expect(source).not.toMatch(/next-intl/)
     expect(source).not.toMatch(/getTranslations|useTranslations/)
+  })
+})
+
+/**
+ * Everything handed to NextIntlClientProvider is serialised into every
+ * page's HTML. The legal, email and notification namespaces are a quarter
+ * of the catalogue and render only on the server, so they are held back —
+ * and that only stays safe while no Client Component asks for one.
+ */
+describe('the client payload', () => {
+  /** Every file that starts with the 'use client' directive. */
+  function clientFiles(dir: string, out: { path: string; source: string }[] = []) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name)
+      if (entry.isDirectory()) {
+        if (entry.name === '__tests__') continue
+        clientFiles(full, out)
+      } else if (/\.tsx?$/.test(entry.name)) {
+        const source = fs.readFileSync(full, 'utf8')
+        if (/^'use client'/.test(source)) out.push({ path: full, source })
+      }
+    }
+    return out
+  }
+
+  it('holds back only namespaces no Client Component reads', () => {
+    const offenders: string[] = []
+
+    for (const { path: file, source } of clientFiles(path.join(process.cwd(), 'src'))) {
+      for (const namespace of SERVER_ONLY_NAMESPACES) {
+        // Both the direct call and a nested one like `legal.cookie`.
+        if (new RegExp(`useTranslations\\(['\`]${namespace}(['\`.])`).test(source)) {
+          offenders.push(`${path.relative(process.cwd(), file)} → ${namespace}`)
+        }
+      }
+    }
+
+    // A Client Component reading one of these renders dotted keys in the
+    // browser: either the namespace belongs in the payload, or the
+    // component belongs on the server.
+    expect(offenders).toEqual([])
+  })
+
+  it('drops those namespaces and keeps everything else', () => {
+    const full = CATALOGUES[DEFAULT_LOCALE]
+    const trimmed = messagesForClient(full)
+
+    for (const namespace of SERVER_ONLY_NAMESPACES) {
+      expect({ namespace, inFull: namespace in full, inTrimmed: namespace in trimmed }).toEqual({
+        namespace,
+        inFull: true,
+        inTrimmed: false,
+      })
+    }
+
+    const expected = Object.keys(full).filter(
+      (k) => !(SERVER_ONLY_NAMESPACES as readonly string[]).includes(k)
+    )
+    expect(Object.keys(trimmed).sort()).toEqual(expected.sort())
+  })
+
+  // The saving is the whole point; if it stops being material the
+  // complexity is not worth keeping.
+  it('is materially smaller for it', () => {
+    const full = JSON.stringify(CATALOGUES[DEFAULT_LOCALE]).length
+    const trimmed = JSON.stringify(messagesForClient(CATALOGUES[DEFAULT_LOCALE])).length
+    expect(trimmed).toBeLessThan(full * 0.85)
   })
 })
