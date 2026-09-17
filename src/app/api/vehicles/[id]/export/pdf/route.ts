@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { translator } from '@/i18n/translator'
+import { localeFromRequest } from '@/i18n/requestLocale'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -84,7 +86,29 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
     const coverPhotoDataUri = vehicle.coverPhotoUrl ? await resolveImageDataUri(vehicle.coverPhotoUrl) : null
 
+    // The reader is whoever pressed Export, so the PDF speaks the
+    // browser's language rather than an account column — unlike an email,
+    // which is read by its recipient.
+    const tPdf = await translator(localeFromRequest(), 'pdf')
+    const money = (n: number) => `${n.toLocaleString('ro-RO')} RON`
+
     const docDefinition = buildVehicleHistoryDocDefinition({
+      strings: {
+        subtitle: tPdf(`subtitle.${vehicle.projectType}`),
+        generation: tPdf('generation'),
+        engine: tPdf('engine'),
+        vin: tPdf('vin'),
+        summary: tPdf('progress', { label: config.progressLabel, percent: progressPct }),
+        totalSpent: tPdf('totalSpent', { total: money(totalSpent) }),
+        foundState: tPdf('foundState'),
+        acquired: tPdf('acquired'),
+        purchasePrice: tPdf('purchasePrice'),
+        odometer: tPdf('odometer'),
+        condition: tPdf('condition'),
+        workshop: tPdf('workshop'),
+        diy: tPdf('diy'),
+        generatedOn: tPdf('generatedOn', { date: new Date().toLocaleDateString('ro-RO') }),
+      },
       vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
       projectType: vehicle.projectType,
       generation: vehicle.generation,

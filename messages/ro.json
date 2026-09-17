@@ -1366,5 +1366,35 @@
       "law2": "Te rugăm să ne semnalezi întâi nouă problema — cele mai multe lucruri sunt neînțelegeri și se rezolvă în aceeași săptămână. Dacă asta nu funcționează, te poți adresa <authority></authority> sau poți folosi <odr>platforma europeană de soluționare online a litigiilor</odr>.",
       "law3": "Modul în care îți prelucrăm datele personale este descris în <privacy>politica de confidențialitate</privacy>, care face parte din această înțelegere."
     }
+  },
+  "pdf": {
+    "subtitle": {
+      "OFFROAD": "Jurnal de build off-road",
+      "RESTORATION": "Jurnal de restaurare",
+      "DAILY_DRIVER": "Istoric de service și reparații"
+    },
+    "generation": "Generație",
+    "engine": "Motor",
+    "vin": "VIN",
+    "totalSpent": "Total cheltuit: {total}",
+    "progress": "{label}: {percent}%",
+    "foundState": "Starea la găsire",
+    "acquired": "Achiziționat",
+    "purchasePrice": "Preț de achiziție",
+    "odometer": "Kilometraj",
+    "condition": "Stare",
+    "workshop": "Service",
+    "diy": "Pe cont propriu",
+    "generatedOn": "Generat de RigLog pe {date}",
+    "jobReportTitle": "Raport de lucrări",
+    "preparedBy": "Întocmit de",
+    "period": "Perioadă",
+    "totalLabour": "Total manoperă: {total}",
+    "totalParts": "Total piese: {total}",
+    "noTasks": "Nicio lucrare înregistrată în această perioadă.",
+    "taskMeta": "{date}  ·  {category}  ·  Piese: {parts}  ·  Manoperă: {labour}",
+    "documentedWith": "Documentat cu RigLog — riglog.ro",
+    "last30Days": "Ultimele 30 de zile",
+    "allTime": "Tot timpul"
   }
 }

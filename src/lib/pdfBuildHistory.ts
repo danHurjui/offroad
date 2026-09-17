@@ -4,10 +4,30 @@ import type { ProjectType } from '@/lib/projectType'
 
 export type PdfTaskPhoto = PdfPhoto
 
-const PDF_SUBTITLES: Record<ProjectType, string> = {
-  OFFROAD: 'Off-road build log',
-  RESTORATION: 'Restoration journal',
-  DAILY_DRIVER: 'Service & repair history',
+/**
+ * The words this document prints, resolved by the caller.
+ *
+ * The builder stays pure — no I/O, no request context, no translator —
+ * which is what makes it unit-testable. The route handler holds the
+ * request and therefore the reader's language, so it looks the labels up
+ * and passes them in. The reader here is whoever pressed Export, so it is
+ * the browser's language rather than an account column.
+ */
+export interface PdfHistoryStrings {
+  subtitle: string
+  generation: string
+  engine: string
+  vin: string
+  summary: string
+  totalSpent: string
+  foundState: string
+  acquired: string
+  purchasePrice: string
+  odometer: string
+  condition: string
+  workshop: string
+  diy: string
+  generatedOn: string
 }
 
 export interface PdfTask {
@@ -37,6 +57,7 @@ export interface PdfFoundState {
 }
 
 export interface VehicleHistoryPdfInput {
+  strings: PdfHistoryStrings
   vehicleName: string
   projectType: ProjectType
   generation: string | null
@@ -62,7 +83,7 @@ function photoRow(photos: PdfTaskPhoto[]): Content | null {
   }
 }
 
-function taskBlock(task: PdfTask): Content {
+function taskBlock(task: PdfTask, strings: PdfHistoryStrings): Content {
   const content: Content[] = [
     {
       columns: [
@@ -72,7 +93,7 @@ function taskBlock(task: PdfTask): Content {
     },
     {
       text: [
-        `${DATE(task.date)}  ·  ${task.statusLabel}  ·  ${task.workType === 'WORKSHOP' ? 'Workshop' : 'DIY'}`,
+        `${DATE(task.date)}  ·  ${task.statusLabel}  ·  ${task.workType === 'WORKSHOP' ? strings.workshop : strings.diy}`,
         task.workshopName ? `  ·  ${task.workshopName}` : '',
       ].join(''),
       style: 'taskMeta',
@@ -99,9 +120,10 @@ function detailTable(rows: [string, string][]): Content {
  * to data: URIs (src/lib/pdf.ts's resolveImageDataUri) before calling this.
  */
 export function buildVehicleHistoryDocDefinition(input: VehicleHistoryPdfInput): PdfDocDefinition {
+  const { strings } = input
   const content: Content[] = [
     { text: input.vehicleName, style: 'title' },
-    { text: PDF_SUBTITLES[input.projectType], style: 'subtitle' },
+    { text: strings.subtitle, style: 'subtitle' },
   ]
 
   if (input.coverPhotoDataUri) {
@@ -109,26 +131,26 @@ export function buildVehicleHistoryDocDefinition(input: VehicleHistoryPdfInput):
   }
 
   const details: [string, string][] = []
-  if (input.generation) details.push(['Generation', input.generation])
-  if (input.engine) details.push(['Engine', input.engine])
-  if (input.vin) details.push(['VIN', input.vin])
+  if (input.generation) details.push([strings.generation, input.generation])
+  if (input.engine) details.push([strings.engine, input.engine])
+  if (input.vin) details.push([strings.vin, input.vin])
   if (details.length > 0) content.push(detailTable(details))
 
   content.push({
     columns: [
-      { text: `${input.progressLabel}: ${input.progressPct}%`, style: 'summary' },
-      { text: `Total spent: ${RON(input.totalSpent)}`, style: 'summary', alignment: 'right' },
+      { text: strings.summary, style: 'summary' },
+      { text: strings.totalSpent, style: 'summary', alignment: 'right' },
     ],
     margin: [0, 0, 0, 16],
   })
 
   if (input.foundState) {
     const fs = input.foundState
-    content.push({ text: 'Found state', style: 'sectionHeader' })
-    const rows: [string, string][] = [['Acquired', DATE(fs.acquisitionDate)]]
-    if (fs.purchasePriceRon != null) rows.push(['Purchase price', RON(fs.purchasePriceRon)])
-    if (fs.odometer != null) rows.push(['Odometer', `${fs.odometer.toLocaleString('ro-RO')} km`])
-    if (fs.conditionRating != null) rows.push(['Condition', `${fs.conditionRating}/5`])
+    content.push({ text: strings.foundState, style: 'sectionHeader' })
+    const rows: [string, string][] = [[strings.acquired, DATE(fs.acquisitionDate)]]
+    if (fs.purchasePriceRon != null) rows.push([strings.purchasePrice, RON(fs.purchasePriceRon)])
+    if (fs.odometer != null) rows.push([strings.odometer, `${fs.odometer.toLocaleString('ro-RO')} km`])
+    if (fs.conditionRating != null) rows.push([strings.condition, `${fs.conditionRating}/5`])
     content.push(detailTable(rows))
     if (fs.knownHistory) content.push({ text: fs.knownHistory, style: 'taskNotes', margin: [0, 0, 0, 6] })
     const fsPhotos = photoRow(fs.photos)
@@ -139,14 +161,14 @@ export function buildVehicleHistoryDocDefinition(input: VehicleHistoryPdfInput):
   for (const category of input.categories) {
     if (category.tasks.length === 0) continue
     content.push({ text: category.categoryLabel, style: 'sectionHeader', pageBreak: 'before' })
-    for (const task of category.tasks) content.push(taskBlock(task))
+    for (const task of category.tasks) content.push(taskBlock(task, strings))
   }
 
   return {
     content,
     footer: (currentPage: number, pageCount: number) => ({
       columns: [
-        { text: `Generated by RigLog on ${DATE(input.generatedAt)}`, style: 'footer' },
+        { text: strings.generatedOn, style: 'footer' },
         { text: `${currentPage} / ${pageCount}`, style: 'footer', alignment: 'right' },
       ],
       margin: [40, 0, 40, 0],

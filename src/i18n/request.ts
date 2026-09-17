@@ -1,7 +1,7 @@
-import { cookies, headers } from 'next/headers'
 import { getRequestConfig } from 'next-intl/server'
-import { DEFAULT_LOCALE, LOCALE_COOKIE, type Locale, isLocale, localeFromAcceptLanguage } from './config'
+import { isLocale } from './config'
 import { loadMessages } from './messages'
+import { localeFromRequest } from './requestLocale'
 
 /**
  * Resolves the language for one request.
@@ -23,7 +23,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // whatever cron job) triggered the send. Honouring it here is what
   // makes `User.locale` mean anything.
   const requested = await requestLocale
-  const locale = isLocale(requested) ? requested : localeFromBrowser()
+  const locale = isLocale(requested) ? requested : localeFromRequest()
 
   return {
     locale,
@@ -33,16 +33,3 @@ export default getRequestConfig(async ({ requestLocale }) => {
     timeZone: 'Europe/Bucharest',
   }
 })
-
-/**
- * The browser's answer, in the order a person would expect: what they
- * chose, then what their browser asked for, then Romanian.
- */
-function localeFromBrowser(): Locale {
-  const chosen = cookies().get(LOCALE_COOKIE)?.value
-  if (isLocale(chosen)) return chosen
-
-  // No cookie yet: a first-time visitor whose browser asks for English
-  // should get English rather than having to find the switcher first.
-  return localeFromAcceptLanguage(headers().get('accept-language')) ?? DEFAULT_LOCALE
-}

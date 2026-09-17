@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { translator } from '@/i18n/translator'
+import { localeFromRequest } from '@/i18n/requestLocale'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
@@ -83,10 +85,32 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const collaboratorName = collaboratorRow.collaboratorUser?.displayName ?? collaboratorRow.label ?? collaboratorRow.email
     const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
 
+    // The reader is whoever pressed Export, so this follows the browser
+    // rather than an account column — unlike an email, which is read by
+    // its recipient.
+    const tPdf = await translator(localeFromRequest(), 'pdf')
+    const money = (n: number) => `${n.toLocaleString('ro-RO')} RON`
+
     const docDefinition = buildJobReportDocDefinition({
+      strings: {
+        title: tPdf('jobReportTitle'),
+        preparedBy: tPdf('preparedBy'),
+        period: tPdf('period'),
+        totalLabour: (total) => tPdf('totalLabour', { total: money(total) }),
+        totalParts: (total) => tPdf('totalParts', { total: money(total) }),
+        noTasks: tPdf('noTasks'),
+        documentedWith: tPdf('documentedWith'),
+        taskMeta: (task) =>
+          tPdf('taskMeta', {
+            date: task.date.toLocaleDateString('ro-RO'),
+            category: task.category,
+            parts: money(task.partsCostRon),
+            labour: money(task.labourCostRon),
+          }),
+      },
       collaboratorName,
       vehicleName,
-      rangeLabel: range === '30d' ? 'Last 30 days' : 'All time',
+      rangeLabel: range === '30d' ? tPdf('last30Days') : tPdf('allTime'),
       tasks: jobReportTasks,
       generatedAt: new Date(),
     })
