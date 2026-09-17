@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { type ProjectType } from '@/lib/projectType'
+import { labelFor, type ProjectType } from '@/lib/projectType'
+import { allowsFutureDate, isFutureDate, localIsoDate } from '@/lib/taskDate'
 import { useVocabulary, useOriginalityConditions } from '@/lib/vocabulary'
 import type { TaskFieldSuggestions } from '@/lib/taskSuggestions'
 import AutocompleteInput from './AutocompleteInput'
@@ -67,7 +68,7 @@ export default function TaskForm({
   const [costRon, setCostRon] = useState(initialTask?.costRon != null ? String(initialTask.costRon) : '')
   const [partsCostRon, setPartsCostRon] = useState(initialTask?.partsCostRon != null ? String(initialTask.partsCostRon) : '')
   const [labourCostRon, setLabourCostRon] = useState(initialTask?.labourCostRon != null ? String(initialTask.labourCostRon) : '')
-  const [date, setDate] = useState(initialTask?.date ? initialTask.date.slice(0, 10) : new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(initialTask?.date ? initialTask.date.slice(0, 10) : localIsoDate())
   const [notes, setNotes] = useState(initialTask?.notes ?? '')
   const [supplierUrl, setSupplierUrl] = useState(initialTask?.supplierUrl ?? '')
   const [workshopName, setWorkshopName] = useState(initialTask?.workshopName ?? collaboratorLabel ?? '')
@@ -75,6 +76,22 @@ export default function TaskForm({
   const [originalityCondition, setOriginalityCondition] = useState(initialTask?.originalityCondition ?? '')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  /**
+   * The date field used to carry `max={today}` for every status, which made
+   * scheduling impossible: the picker simply refused the day you wanted,
+   * however the status read. Only the complete status is barred now — see
+   * `allowsFutureDate`.
+   *
+   * That one rule is enforced in `onSubmit` rather than by putting `max`
+   * back for that status alone. A native constraint reports itself in the
+   * *browser's* language and date format ("Value must be 09/17/2026 or
+   * earlier"), so a Romanian reader would get an English bubble; and it
+   * blocks before `onSubmit` runs, so the app's own message would never be
+   * reached. The workshop-name rule below is handled the same way.
+   */
+  const canSchedule = allowsFutureDate(projectType, status)
+  const dateIsFuture = isFutureDate(date)
 
   const totalCost =
     workType === 'WORKSHOP'
@@ -86,6 +103,13 @@ export default function TaskForm({
     setError(null)
     if (workType === 'WORKSHOP' && !workshopName) {
       setError(t('workshopNameRequired'))
+      return
+    }
+    // Reachable by picking a future date under a scheduled status and then
+    // switching the status to complete, which leaves the input's own `max`
+    // out of step with what is selected.
+    if (!canSchedule && dateIsFuture) {
+      setError(t('dateFutureNotAllowed', { status: labelFor(config.statusTags, config.completeStatus) }))
       return
     }
     setLoading(true)
@@ -171,11 +195,14 @@ export default function TaskForm({
             className="input"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            // A job can't have been done tomorrow; a future date here is
-            // always a typo, and it skews every cost-over-time chart.
-            max={new Date().toISOString().slice(0, 10)}
+            aria-describedby={canSchedule && dateIsFuture ? 'date-hint' : undefined}
             required
           />
+          {canSchedule && dateIsFuture && (
+            // Not an error: a future date is the point of scheduling. It is
+            // said out loud so a mistyped year reads as wrong immediately.
+            <p id="date-hint" className="mt-1 text-sm text-ink-muted">{t('dateScheduledHint')}</p>
+          )}
         </div>
         <div>
           <label className="label" htmlFor="brand">{t('brand')}</label>

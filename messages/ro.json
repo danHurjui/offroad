@@ -424,6 +424,8 @@
     "category": "Categorie",
     "status": "Stare",
     "date": "Data",
+    "dateScheduledHint": "Data este în viitor — lucrarea este programată, nu efectuată.",
+    "dateFutureNotAllowed": "O lucrare marcată „{status}” nu poate avea o dată din viitor.",
     "brand": "Marcă (opțional)",
     "brandPlaceholder": "ex. Bilstein",
     "workType": "Tip de lucrare",

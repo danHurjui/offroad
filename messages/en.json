@@ -424,6 +424,8 @@
     "category": "Category",
     "status": "Status",
     "date": "Date",
+    "dateScheduledHint": "This date is in the future — the job is scheduled, not done yet.",
+    "dateFutureNotAllowed": "A job marked \"{status}\" cannot be dated in the future.",
     "brand": "Brand (optional)",
     "brandPlaceholder": "e.g. Bilstein",
     "workType": "Work type",
