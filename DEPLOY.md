@@ -240,6 +240,34 @@ flag didn't land, not that the URL is wrong.
   verified sending domain for `EMAIL_FROM` (their default onboarding
   domain works for testing but not for real users).
 
+## Troubleshooting: every upload fails with a 500
+
+Uploading a cover photo, a document scan, a receipt or a task photo
+returns a 500 and the app says it could not save the file.
+
+**Check the runtime logs first** — since the storage layer reports its own
+failures, the cause is named there:
+
+```
+[storage] save failed on local disk (UPLOADS_DIR=./public/uploads) for "…": EROFS: read-only file system
+[storage] BLOB_READ_WRITE_TOKEN is not set while running on Vercel, so uploads are being written
+to the serverless filesystem, which is read-only. …
+```
+
+That pair is the usual cause and section 2 is the fix: create a Blob store
+and link it to the project. Linking it sets `BLOB_READ_WRITE_TOKEN`
+automatically, and `src/lib/storage.ts` switches every read and write to
+Blob with no code change — but **a deploy has to happen after the variable
+exists**, because the running deployment captured the old environment.
+
+Two things this is *not*:
+
+- **Not the 4MB limit.** That answers 400 with "File too large", not 500.
+- **Not a permissions problem.** A file the user may not touch answers 404.
+
+If the log instead names a Blob error (a 401, or a store that no longer
+exists), the token is stale: re-link the store and redeploy.
+
 ## Troubleshooting: password reset emails aren't arriving
 
 The reset flow itself (token → link → new password) is covered by tests;
