@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import AutocompleteInput from './AutocompleteInput'
-import CoverPhotoField from './CoverPhotoField'
+import CoverPhotoField, { type CoverCandidate } from './CoverPhotoField'
 import FormError from './FormError'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
@@ -29,7 +29,13 @@ interface Vehicle {
   ownerUsername: string | null
 }
 
-export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
+export default function VehicleEditForm({
+  vehicle,
+  coverCandidates = [],
+}: {
+  vehicle: Vehicle
+  coverCandidates?: CoverCandidate[]
+}) {
   const t = useTranslations('vehicleEdit')
   const tc = useTranslations('common')
   const tCover = useTranslations('cover')
@@ -202,6 +208,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
           onRemove={onRemoveCover}
           removing={removingCover}
           disabled={loading}
+          photos={coverCandidates}
         />
 
         <div>

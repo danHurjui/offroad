@@ -83,7 +83,11 @@
     "removing": "Se elimină…",
     "uploadFailed": "Fotografia de copertă nu a putut fi încărcată",
     "removeFailed": "Fotografia de copertă nu a putut fi eliminată",
-    "addFromVehicle": "Adaugă o fotografie de copertă"
+    "addFromVehicle": "Adaugă o fotografie de copertă",
+    "orPick": "Sau alege una dintre fotografiile acestui vehicul",
+    "picking": "Se încarcă fotografia…",
+    "pickFailed": "Fotografia nu a putut fi folosită",
+    "picked": "Fotografie aleasă — salvează pentru a o aplica"
   },
   "auth": {
     "login": {

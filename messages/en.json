@@ -83,7 +83,11 @@
     "removing": "Removing…",
     "uploadFailed": "Could not upload the cover photo",
     "removeFailed": "Could not remove the cover photo",
-    "addFromVehicle": "Add a cover photo"
+    "addFromVehicle": "Add a cover photo",
+    "orPick": "Or pick one of this vehicle’s photos",
+    "picking": "Loading the photo…",
+    "pickFailed": "Could not use that photo",
+    "picked": "Photo chosen — save to apply"
   },
   "auth": {
     "login": {
