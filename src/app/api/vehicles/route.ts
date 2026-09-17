@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/apiError'
+import { apiError, apiErrorWith } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { isProjectType, PROJECT_TYPES } from '@/lib/projectType'
@@ -43,10 +43,7 @@ export async function POST(req: NextRequest) {
     const { projectType, make, model, year, generation, engine, vin, coverPhotoUrl } = body
 
     if (!isProjectType(projectType)) {
-      return NextResponse.json(
-        { error: `projectType must be one of: ${PROJECT_TYPES.join(', ')}` },
-        { status: 400 }
-      )
+      return await apiErrorWith('projectTypeInvalid', { types: PROJECT_TYPES.join(', ') }, 400)
     }
     if (!make || typeof make !== 'string') {
       return await apiError('makeRequired', 400)
@@ -66,12 +63,11 @@ export async function POST(req: NextRequest) {
     if (!hasPro(user)) {
       const existingCount = await prisma.vehicle.count({ where: { ownerId: session.user.id } })
       if (existingCount >= FREE_TIER.vehicles) {
-        return NextResponse.json(
-          {
-            error: `Free tier is limited to ${FREE_TIER.vehicles} vehicle. Upgrade to Pro for unlimited vehicles.`,
-            code: 'UPGRADE_REQUIRED',
-          },
-          { status: 403 }
+        return await apiErrorWith(
+          'vehicleLimit',
+          { limit: FREE_TIER.vehicles },
+          403,
+          { code: 'UPGRADE_REQUIRED' }
         )
       }
     }

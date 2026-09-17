@@ -11,6 +11,7 @@ import { compressImageIfNeeded } from '@/lib/compressImage'
 // large buttons, not a dropdown. Driven by PROJECT_TYPE_CONFIG so a new
 // mode shows up here without editing this component.
 import AutocompleteInput from './AutocompleteInput'
+import CoverPhotoField from './CoverPhotoField'
 import FormError from './FormError'
 import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
 
@@ -155,14 +156,7 @@ export default function VehicleForm() {
           />
         </div>
         <div className="sm:col-span-2">
-          <label className="label" htmlFor="coverPhoto">{t('coverPhoto')}</label>
-          <input
-            id="coverPhoto"
-            type="file"
-            accept="image/jpeg,image/png,image/heic"
-            className="input"
-            onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)}
-          />
+          <CoverPhotoField file={coverFile} onFile={setCoverFile} disabled={loading} />
         </div>
       </div>
 

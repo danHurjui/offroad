@@ -36,6 +36,24 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
   const [error, setError] = useState<string | null>(null)
   const [renewDrafts, setRenewDrafts] = useState<Record<string, string>>({})
   const [busyId, setBusyId] = useState<string | null>(null)
+  // Per row, because the three row actions used to fail in complete
+  // silence: `if (res.ok)` with no else, so an oversized scan or a dropped
+  // connection looked exactly like nothing having been clicked.
+  const [rowErrors, setRowErrors] = useState<Record<string, string>>({})
+
+  async function failureMessage(res: Response, fallback: string) {
+    const data = await res.json().catch(() => null)
+    return typeof data?.error === 'string' ? data.error : fallback
+  }
+
+  function setRowError(id: string, message: string | null) {
+    setRowErrors((prev) => {
+      const next = { ...prev }
+      if (message === null) delete next[id]
+      else next[id] = message
+      return next
+    })
+  }
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   async function onAdd(e: React.FormEvent) {
@@ -73,33 +91,48 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
       body: JSON.stringify({ expiryDate: nextExpiry }),
     })
     setBusyId(null)
-    if (res.ok) {
-      const updated = await res.json()
-      setDocuments((prev) => prev.map((d) => (d.id === doc.id ? updated : d)).sort((a, b) => a.expiryDate.localeCompare(b.expiryDate)))
-      setRenewDrafts((prev) => ({ ...prev, [doc.id]: '' }))
-      router.refresh()
+    if (!res.ok) {
+      setRowError(doc.id, await failureMessage(res, t('renewFailed')))
+      return
     }
+    setRowError(doc.id, null)
+    const updated = await res.json()
+    setDocuments((prev) => prev.map((d) => (d.id === doc.id ? updated : d)).sort((a, b) => a.expiryDate.localeCompare(b.expiryDate)))
+    setRenewDrafts((prev) => ({ ...prev, [doc.id]: '' }))
+    router.refresh()
   }
 
   async function onAttachFile(doc: DocumentRow, file: File) {
     setBusyId(doc.id)
+    setRowError(doc.id, null)
     const compressed = await compressImageIfNeeded(file) // no-op for PDFs
     const formData = new FormData()
     formData.append('file', compressed)
     const res = await fetch(`/api/vehicles/${vehicleId}/documents/${doc.id}/file`, { method: 'POST', body: formData })
     setBusyId(null)
-    if (res.ok) {
-      const updated = await res.json()
-      setDocuments((prev) => prev.map((d) => (d.id === doc.id ? updated : d)))
-      router.refresh()
+    if (!res.ok) {
+      // The server's own reason where there is one — a scan over the 4MB
+      // ceiling is the common case and says so, in the reader's language.
+      setRowError(doc.id, await failureMessage(res, t('attachFailed')))
+      return
     }
+    const updated = await res.json()
+    setDocuments((prev) => prev.map((d) => (d.id === doc.id ? updated : d)))
+    router.refresh()
   }
 
   async function onDelete(doc: DocumentRow) {
     if (!confirm(t('confirmDelete', { type: typeLabel(doc.type) }))) return
     setBusyId(doc.id)
-    await fetch(`/api/vehicles/${vehicleId}/documents/${doc.id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/vehicles/${vehicleId}/documents/${doc.id}`, { method: 'DELETE' })
     setBusyId(null)
+    // The row used to be dropped from the list whatever came back, so a
+    // failed delete looked like a successful one until the next reload put
+    // the document back.
+    if (!res.ok) {
+      setRowError(doc.id, await failureMessage(res, t('deleteFailed')))
+      return
+    }
     setDocuments((prev) => prev.filter((d) => d.id !== doc.id))
     router.refresh()
   }
@@ -144,21 +177,36 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                     {new Date(doc.expiryDate).toLocaleDateString('ro-RO')} ·{' '}
                     {t(daysUntilMessage(daysUntil).key, daysUntilMessage(daysUntil).values)}
                   </div>
-                  {doc.fileUrl && (
-                    <a href={`/api/uploads/${doc.fileUrl}`} target="_blank" rel="noreferrer" className="text-xs text-brand-600 dark:text-brand-300 hover:underline">
-                      {t('viewFile')}
-                    </a>
+                  {/* Said either way. A bare "View file" link that is simply
+                      absent reads the same as a row that failed to attach,
+                      which is how an upload could look like it had worked. */}
+                  {doc.fileUrl ? (
+                    <div className="text-xs">
+                      <span className="text-green-700 dark:text-green-400">✓ {t('fileAttached')}</span>{' '}
+                      <a href={`/api/uploads/${doc.fileUrl}`} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
+                        {t('viewFile')}
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-ink-faint">{t('noFile')}</div>
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    type="date"
-                    className="input w-auto"
-                    aria-label={t('newExpiryFor', { type: typeLabel(doc.type) })}
-                    value={renewDrafts[doc.id] ?? ''}
-                    onChange={(e) => setRenewDrafts((prev) => ({ ...prev, [doc.id]: e.target.value }))}
-                  />
+                <div className="flex flex-wrap items-end gap-2">
+                  {/* The date box carried only an aria-label, so on screen it
+                      was an unexplained second date picker sitting next to
+                      Renew. It says what it is now. */}
+                  <div>
+                    <label className="label text-xs" htmlFor={`renew-${doc.id}`}>{t('renewLabel')}</label>
+                    <input
+                      id={`renew-${doc.id}`}
+                      type="date"
+                      className="input w-auto"
+                      aria-label={t('newExpiryFor', { type: typeLabel(doc.type) })}
+                      value={renewDrafts[doc.id] ?? ''}
+                      onChange={(e) => setRenewDrafts((prev) => ({ ...prev, [doc.id]: e.target.value }))}
+                    />
+                  </div>
                   <button type="button" className="btn-secondary" onClick={() => onRenew(doc)} disabled={busyId === doc.id || !renewDrafts[doc.id]}>
                     {t('renew')}
                   </button>
@@ -168,7 +216,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                     onClick={() => fileInputRefs.current[doc.id]?.click()}
                     disabled={busyId === doc.id}
                   >
-                    {doc.fileUrl ? t('replaceFile') : t('attachFile')}
+                    {busyId === doc.id ? t('attaching') : doc.fileUrl ? t('replaceFile') : t('attachFile')}
                   </button>
                   <input
                     ref={(el) => { fileInputRefs.current[doc.id] = el }}
@@ -185,6 +233,9 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                     {tc('delete')}
                   </button>
                 </div>
+                {rowErrors[doc.id] && (
+                  <p role="alert" className="w-full text-sm text-red-600 dark:text-red-400">{rowErrors[doc.id]}</p>
+                )}
               </div>
             )
           })}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/apiError'
+import { apiError, apiErrorWith } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
       return await apiError('unsupportedFileType', 400)
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      return NextResponse.json({ error: `File too large (max ${MAX_UPLOAD_BYTES / 1024 / 1024}MB)` }, { status: 400 })
+      return await apiErrorWith('fileTooLarge', { maxMb: MAX_UPLOAD_BYTES / 1024 / 1024 }, 400)
     }
 
     const user = await prisma.user.findUnique({
@@ -68,9 +68,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
     if (!hasPro(user)) {
       const existingCount = await prisma.taskPhoto.count({ where: { taskId: task.id } })
       if (existingCount >= FREE_TIER.photosPerTask) {
-        return NextResponse.json(
-          { error: `Free tier is limited to ${FREE_TIER.photosPerTask} photos per task. Upgrade to Pro for unlimited.`, code: 'UPGRADE_REQUIRED' },
-          { status: 403 }
+        return await apiErrorWith(
+          'taskPhotoLimit',
+          { limit: FREE_TIER.photosPerTask },
+          403,
+          { code: 'UPGRADE_REQUIRED' }
         )
       }
     }

@@ -72,6 +72,19 @@
     "next": "Next →",
     "pageOf": "Page {page} of {total}"
   },
+  "cover": {
+    "label": "Cover photo",
+    "none": "No cover photo yet",
+    "current": "Current cover",
+    "chosen": "New photo chosen — save to apply",
+    "choose": "Choose a photo",
+    "replace": "Replace",
+    "remove": "Remove",
+    "removing": "Removing…",
+    "uploadFailed": "Could not upload the cover photo",
+    "removeFailed": "Could not remove the cover photo",
+    "addFromVehicle": "Add a cover photo"
+  },
   "auth": {
     "login": {
       "subtitle": "Log in to your build.",
@@ -567,6 +580,13 @@
     "confirmDelete": "Delete this {type} record?",
     "replaceFile": "Replace file",
     "attachFile": "Attach file",
+    "renewLabel": "New expiry date",
+    "fileAttached": "Scan attached",
+    "noFile": "No scan attached",
+    "attaching": "Attaching…",
+    "attachFailed": "Could not attach the file",
+    "renewFailed": "Could not update the expiry date",
+    "deleteFailed": "Could not delete the document",
     "pageTitle": "Documents"
   },
   "wishlist": {
@@ -608,7 +628,6 @@
     "generationPlaceholder": "e.g. Mk2 / phase 2",
     "engine": "Engine (optional)",
     "enginePlaceholder": "e.g. 1.5 dCi 110 CP",
-    "coverPhoto": "Cover photo (optional)",
     "chooseType": "Choose what kind of vehicle this is",
     "createFailed": "Could not create vehicle",
     "creating": "Creating…",
@@ -647,7 +666,8 @@
     "saveFailed": "Could not save",
     "saveChanges": "Save changes",
     "add": "Add item",
-    "editTitle": "Edit item"
+    "editTitle": "Edit item",
+    "addTitle": "Add to {list}"
   },
   "trail": {
     "recovered": "You have an unsaved recording from earlier ({points} points, {waypoints} waypoints).",
@@ -1405,6 +1425,12 @@
     "unauthorized": "Unauthorized",
     "invalidBody": "Invalid request body",
     "fileRequired": "file is required",
+    "fileTooLarge": "File too large (max {maxMb}MB)",
+    "collaboratorLimit": "Free tier is limited to {limit} collaborators. Upgrade to Pro for unlimited.",
+    "taskPhotoLimit": "Free tier is limited to {limit} photos per task. Upgrade to Pro for unlimited.",
+    "vehicleLimit": "Free tier is limited to {limit} vehicle. Upgrade to Pro for unlimited vehicles.",
+    "foundStatePhotoLimit": "Found state is limited to {limit} photos",
+    "projectTypeInvalid": "projectType must be one of: {types}",
     "unsupportedFileType": "Unsupported file type",
     "savePhotoFailed": "Failed to save photo",
     "saveFileFailed": "Failed to save file",

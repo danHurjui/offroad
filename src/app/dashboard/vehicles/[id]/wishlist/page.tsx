@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
@@ -8,6 +9,7 @@ import { serializeWishlistItem } from '@/lib/serialize'
 import WishlistBoard from '@/components/WishlistBoard'
 
 export default async function WishlistPage({ params }: { params: { id: string } }) {
+  const tc = await getTranslations('common')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -21,7 +23,7 @@ export default async function WishlistPage({ params }: { params: { id: string } 
   return (
     <div>
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to {config.screenTitle}
+        {tc('backTo', { screen: config.screenTitle })}
       </Link>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-ink">{config.wishlistLabel}</h1>

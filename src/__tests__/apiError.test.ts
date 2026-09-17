@@ -93,7 +93,11 @@ describe('the response shape', () => {
         if (entry.isDirectory()) walk(full)
         else if (/\.tsx?$/.test(entry.name)) {
           const source = fs.readFileSync(full, 'utf8')
-          if (/error:\s*'[^']{4,}'/.test(source)) {
+          // Backticks too: six upload routes answered with a template
+          // literal (`File too large (max ${...}MB)`) and sailed past a
+          // check that only looked for single quotes, so every upload in
+          // the app scolded a Romanian user in English.
+          if (/error:\s*'[^']{4,}'/.test(source) || /error:\s*`[^`]{4,}`/.test(source)) {
             offenders.push(path.relative(process.cwd(), full))
           }
         }

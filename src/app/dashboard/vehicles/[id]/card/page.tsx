@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
@@ -17,6 +18,7 @@ import { hasPro, PRO_SELECT } from '@/lib/pro'
 // neither card: both are showcase pieces for a project, and a repair log
 // isn't one, so the page 404s (the dashboard hides the link too).
 export default async function ShareCardPage({ params }: { params: { id: string } }) {
+  const tc = await getTranslations('common')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -53,7 +55,7 @@ export default async function ShareCardPage({ params }: { params: { id: string }
   return (
     <div className="mx-auto max-w-xl">
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to {config.screenTitle}
+        {tc('backTo', { screen: config.screenTitle })}
       </Link>
       <h1 className="mb-6 text-2xl font-bold text-ink">{title}</h1>
 

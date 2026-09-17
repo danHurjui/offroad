@@ -15,6 +15,7 @@ import { hasPro, PRO_SELECT } from '@/lib/pro'
 // editable from the existing edit page, this page is alert-only.
 export default async function WishlistItemDetailPage({ params }: { params: { id: string; itemId: string } }) {
   const t = await getTranslations('priceAlert')
+  const tc = await getTranslations('common')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -36,7 +37,7 @@ export default async function WishlistItemDetailPage({ params }: { params: { id:
   return (
     <div className="mx-auto max-w-xl">
       <Link href={`/dashboard/vehicles/${vehicle.id}/wishlist`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to {config.wishlistLabel}
+        {tc('backTo', { screen: config.wishlistLabel })}
       </Link>
       <h1 className="mb-1 text-2xl font-bold text-ink">{item.name}</h1>
       {item.category && <p className="mb-6 text-sm text-ink-faint">{labelFor(config.categories, item.category)}</p>}

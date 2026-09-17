@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/apiError'
+import { apiError, apiErrorWith } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { translator } from '@/i18n/translator'
 import { requireSession } from '@/lib/authz'
@@ -64,9 +64,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       const activeOrPendingCount = await prisma.projectCollaborator.count({
         where: { vehicleId: vehicle.id, status: { in: ['PENDING', 'ACTIVE'] } } })
       if (activeOrPendingCount >= FREE_TIER_COLLABORATOR_LIMIT) {
-        return NextResponse.json(
-          { error: `Free tier is limited to ${FREE_TIER_COLLABORATOR_LIMIT} collaborators. Upgrade to Pro for unlimited.`, code: 'UPGRADE_REQUIRED' },
-          { status: 403 }
+        return await apiErrorWith(
+          'collaboratorLimit',
+          { limit: FREE_TIER_COLLABORATOR_LIMIT },
+          403,
+          { code: 'UPGRADE_REQUIRED' }
         )
       }
     }

@@ -1,5 +1,7 @@
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
+import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
@@ -8,6 +10,7 @@ import TaskForm from '@/components/TaskForm'
 import { taskFieldSuggestions } from '@/lib/taskSuggestions'
 
 export default async function NewTaskPage({ params }: { params: { id: string } }) {
+  const tc = await getTranslations('common')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -24,6 +27,9 @@ export default async function NewTaskPage({ params }: { params: { id: string } }
 
   return (
     <div className="mx-auto max-w-xl">
+      <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
+        {tc('backTo', { screen: config.screenTitle })}
+      </Link>
       <h1 className="mb-6 text-2xl font-bold text-ink">{config.addTaskCta}</h1>
       <Suspense fallback={null}>
         <TaskForm
