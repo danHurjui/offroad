@@ -5,7 +5,8 @@ import { localeFromRequest } from '@/i18n/requestLocale'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
-import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { translateConfig } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import { renderPdf, resolveImageDataUri, resolvePhotos, pdfFilename } from '@/lib/pdf'
 import { buildVehicleHistoryDocDefinition, type PdfTaskCategory } from '@/lib/pdfBuildHistory'
@@ -33,7 +34,15 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 
   try {
-    const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+    // The *translated* vocabulary, through the context-free translator.
+    // This read PROJECT_TYPE_CONFIG directly, which is the untranslated
+    // source of truth — so every category name, status tag and progress
+    // label in the exported PDF came out in English however the rest of
+    // the document was written. getVocabulary() would not do either: it
+    // resolves the locale through React's server context, and a route
+    // handler composing a document should name the language it means.
+    const tVocab = await translator(localeFromRequest(), 'vocab')
+    const config = translateConfig(vehicle.projectType, tVocab)
 
     const [tasks, foundState] = await Promise.all([
       prisma.task.findMany({
@@ -88,7 +97,6 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     // browser's language rather than an account column — unlike an email,
     // which is read by its recipient.
     const tPdf = await translator(localeFromRequest(), 'pdf')
-    const money = (n: number) => `${n.toLocaleString('ro-RO')} RON`
 
     const docDefinition = buildVehicleHistoryDocDefinition({
       strings: {
@@ -96,8 +104,22 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
         generation: tPdf('generation'),
         engine: tPdf('engine'),
         vin: tPdf('vin'),
-        summary: tPdf('progress', { label: config.progressLabel, percent: progressPct }),
-        totalSpent: tPdf('totalSpent', { total: money(totalSpent) }),
+        // The mode's own word for progress ("Restored", "Built"), so the
+        // tile says what this vehicle is working towards.
+        progressLabel: config.progressLabel,
+        totalSpentLabel: tPdf('totalSpentLabel'),
+        jobsLoggedLabel: tPdf('jobsLoggedLabel'),
+        periodLabel: tPdf('periodLabel'),
+        expenses: tPdf('expenses'),
+        byCategory: tPdf('byCategory'),
+        everyExpense: tPdf('everyExpense'),
+        colDate: tPdf('colDate'),
+        colItem: tPdf('colItem'),
+        colCategory: tPdf('colCategory'),
+        colType: tPdf('colType'),
+        colAmount: tPdf('colAmount'),
+        total: tPdf('total'),
+        noExpenses: tPdf('noExpenses'),
         foundState: tPdf('foundState'),
         acquired: tPdf('acquired'),
         purchasePrice: tPdf('purchasePrice'),

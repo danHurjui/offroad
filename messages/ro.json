@@ -1459,7 +1459,20 @@
     "taskMeta": "{date}  ·  {category}  ·  Piese: {parts}  ·  Manoperă: {labour}",
     "documentedWith": "Documentat cu RigLog — riglog.ro",
     "last30Days": "Ultimele 30 de zile",
-    "allTime": "Tot timpul"
+    "allTime": "Tot timpul",
+    "totalSpentLabel": "Total cheltuit",
+    "jobsLoggedLabel": "Lucrări înregistrate",
+    "periodLabel": "Perioadă",
+    "expenses": "Cheltuieli",
+    "byCategory": "PE CATEGORII",
+    "everyExpense": "TOATE CHELTUIELILE",
+    "colDate": "DATA",
+    "colItem": "LUCRARE",
+    "colCategory": "CATEGORIE",
+    "colType": "TIP",
+    "colAmount": "SUMĂ",
+    "total": "Total",
+    "noExpenses": "Nicio cheltuială înregistrată încă."
   },
   "apiError": {
     "notFound": "Nu a fost găsit",

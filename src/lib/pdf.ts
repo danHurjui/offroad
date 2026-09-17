@@ -1,4 +1,5 @@
 import pdfMake from 'pdfmake'
+import type { Content } from 'pdfmake'
 import path from 'path'
 import { readUpload, StorageError } from '@/lib/storage'
 
@@ -38,6 +39,96 @@ function ensureFonts() {
   pdfMake.setLocalAccessPolicy(() => true)
   pdfMake.setUrlAccessPolicy(() => false)
   fontsRegistered = true
+}
+
+/**
+ * One look for both exports.
+ *
+ * The two documents were styled independently and drifted: the same field
+ * was a different grey in each, and neither carried anything that said
+ * which product produced it. These are the tokens both now build from,
+ * named for their job rather than their hue, the same way globals.css
+ * names the on-screen ones.
+ *
+ * The brand blue is the app's own (`theme_color` in manifest.json), so an
+ * exported page and the screen it came from are recognisably the same
+ * thing.
+ */
+export const PDF_COLORS = {
+  brand: '#2A5D8C',
+  brandTint: '#EAF1F8',
+  ink: '#1A1A1A',
+  inkMuted: '#5F6B76',
+  inkFaint: '#98A2AD',
+  rule: '#DFE4EA',
+  surfaceSubtle: '#F5F7FA',
+  onBrand: '#FFFFFF',
+} as const
+
+/** Page geometry, shared so headers and rules line up between documents. */
+export const PDF_PAGE = {
+  marginX: 40,
+  /** A4 width (595.28pt) less both margins. */
+  contentWidth: 515,
+} as const
+
+/** A hairline the width of the text column. */
+export function pdfRule(color: string = PDF_COLORS.rule, marginTop = 6, marginBottom = 10) {
+  return {
+    canvas: [
+      { type: 'line' as const, x1: 0, y1: 0, x2: PDF_PAGE.contentWidth, y2: 0, lineWidth: 0.75, lineColor: color },
+    ],
+    margin: [0, marginTop, 0, marginBottom] as [number, number, number, number],
+  }
+}
+
+/**
+ * A figure with its label — the "stat tile" of a printed page.
+ *
+ * A number this size is the thing being reported, so it is set large and
+ * the label recedes. No colour carries meaning here: the figures are ink,
+ * which keeps them legible in greyscale, which is how most of these are
+ * actually printed.
+ */
+export function pdfStatTile(label: string, value: string, width: number | string) {
+  return {
+    width,
+    stack: [
+      { text: label, fontSize: 7.5, color: PDF_COLORS.inkFaint, characterSpacing: 0.4 },
+      { text: value, fontSize: 13, bold: true, color: PDF_COLORS.ink, margin: [0, 2, 0, 0] as [number, number, number, number] },
+    ],
+  }
+}
+
+/**
+ * @types/pdfmake exports its layout type only from an internal module with
+ * no runtime subpath, so derive it from the Content union the same way
+ * PdfDocDefinition is derived above. Typing it properly is what makes the
+ * callbacks below get checked rather than silently mis-shaped.
+ */
+type PdfContentTable = Extract<Content, { table: unknown }>
+export type PdfTableLayout = Exclude<NonNullable<PdfContentTable['layout']>, string>
+
+/**
+ * Table layout: no vertical rules, a hairline under each row, a heavier
+ * one under the header and above the total. Vertical rules in a column
+ * this narrow add noise and nothing — the columns are already aligned, and
+ * the numbers are right-aligned against each other.
+ *
+ * Outer padding is zero on the first and last columns so the table's text
+ * lines up with the body text above it rather than sitting inset by a few
+ * points, which reads as a misalignment rather than a table.
+ */
+export const PDF_TABLE_LAYOUT: PdfTableLayout = {
+  hLineWidth: (rowIndex, node) =>
+    rowIndex === 1 || rowIndex === node.table.body.length - 1 ? 0.75 : rowIndex === 0 || rowIndex === node.table.body.length ? 0 : 0.5,
+  vLineWidth: () => 0,
+  hLineColor: (rowIndex) => (rowIndex === 1 ? PDF_COLORS.inkFaint : PDF_COLORS.rule),
+  paddingTop: () => 5,
+  paddingBottom: () => 5,
+  paddingLeft: (columnIndex) => (columnIndex === 0 ? 0 : 6),
+  paddingRight: (columnIndex, node) =>
+    columnIndex === (node.table.widths?.length ?? 1) - 1 ? 0 : 6,
 }
 
 export async function renderPdf(docDefinition: PdfDocDefinition): Promise<Buffer> {

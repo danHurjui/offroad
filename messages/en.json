@@ -1459,7 +1459,20 @@
     "taskMeta": "{date}  ·  {category}  ·  Parts: {parts}  ·  Labour: {labour}",
     "documentedWith": "Documented with RigLog — riglog.ro",
     "last30Days": "Last 30 days",
-    "allTime": "All time"
+    "allTime": "All time",
+    "totalSpentLabel": "Total spent",
+    "jobsLoggedLabel": "Jobs logged",
+    "periodLabel": "Period",
+    "expenses": "Expenses",
+    "byCategory": "BY CATEGORY",
+    "everyExpense": "EVERY EXPENSE",
+    "colDate": "DATE",
+    "colItem": "JOB",
+    "colCategory": "CATEGORY",
+    "colType": "TYPE",
+    "colAmount": "AMOUNT",
+    "total": "Total",
+    "noExpenses": "No expenses recorded yet."
   },
   "apiError": {
     "notFound": "Not found",

@@ -1,3 +1,5 @@
+import fs from 'fs'
+import path from 'path'
 import { translator } from '@/i18n/translator'
 import { LOCALES, type Locale } from '@/i18n/config'
 import { PROJECT_TYPES } from '@/lib/projectType'
@@ -28,6 +30,19 @@ const HISTORY_KEYS = [
   'condition',
   'workshop',
   'diy',
+  'totalSpentLabel',
+  'jobsLoggedLabel',
+  'periodLabel',
+  'expenses',
+  'byCategory',
+  'everyExpense',
+  'colDate',
+  'colItem',
+  'colCategory',
+  'colType',
+  'colAmount',
+  'total',
+  'noExpenses',
 ] as const
 
 /** …and the job report's. */
@@ -97,8 +112,20 @@ describe('a built document', () => {
           generation: t('generation'),
           engine: t('engine'),
           vin: t('vin'),
-          summary: t('progress', { label: 'Jobs logged', percent: 100 }),
-          totalSpent: t('totalSpent', { total: '350 RON' }),
+          progressLabel: 'Jobs logged',
+          totalSpentLabel: t('totalSpentLabel'),
+          jobsLoggedLabel: t('jobsLoggedLabel'),
+          periodLabel: t('periodLabel'),
+          expenses: t('expenses'),
+          byCategory: t('byCategory'),
+          everyExpense: t('everyExpense'),
+          colDate: t('colDate'),
+          colItem: t('colItem'),
+          colCategory: t('colCategory'),
+          colType: t('colType'),
+          colAmount: t('colAmount'),
+          total: t('total'),
+          noExpenses: t('noExpenses'),
           foundState: t('foundState'),
           acquired: t('acquired'),
           purchasePrice: t('purchasePrice'),
@@ -204,5 +231,31 @@ describe('a built document', () => {
     expect(built[0]).not.toBe(built[1])
     // The builder still does its own summing; only the wording comes in.
     for (const doc of built) expect(doc).toContain('150 RON')
+  })
+})
+
+/**
+ * The vocabulary in an exported PDF follows the reader too.
+ *
+ * Both export routes read PROJECT_TYPE_CONFIG directly, which is the
+ * untranslated source of truth — so a Romanian reader got a document
+ * whose headings were Romanian and whose every category name, status tag
+ * and progress label was English. getVocabulary() is not the fix either:
+ * it resolves the locale through React's server context, and a route
+ * handler composing a document should name the language it means.
+ */
+describe('the export routes translate the vocabulary', () => {
+  const read = (...segments: string[]) =>
+    fs.readFileSync(path.join(process.cwd(), 'src', 'app', 'api', 'vehicles', '[id]', 'export', ...segments), 'utf8')
+
+  it.each([
+    ['build history', ['pdf', 'route.ts']],
+    ['job report', ['job-report', 'route.ts']],
+  ])('%s asks for the reader’s vocabulary', (_label, segments) => {
+    const source = read(...(segments as string[]))
+    expect(source).toMatch(/translateConfig\(/)
+    expect(source).toMatch(/translator\(localeFromRequest\(\), 'vocab'\)/)
+    // The untranslated config is not what a document prints.
+    expect(source).not.toMatch(/PROJECT_TYPE_CONFIG\[/)
   })
 })
