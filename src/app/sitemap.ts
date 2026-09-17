@@ -74,6 +74,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/terms`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${baseUrl}/privacy`, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${baseUrl}/cookies`, changeFrequency: 'yearly', priority: 0.3 },
+    // The readable site map. Low priority — it is a way in for a crawler
+    // that has only found the homepage, not a page worth ranking itself.
+    { url: `${baseUrl}/sitemap`, changeFrequency: 'weekly', priority: 0.2 },
   ]
 
   return [

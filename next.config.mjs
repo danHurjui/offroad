@@ -48,6 +48,15 @@ const nextConfig = {
       '/api/**/*': ['./fonts/**/*'],
     },
   },
+  async rewrites() {
+    return [
+      // Next reserves src/app/sitemap.ts for the XML file, so the readable
+      // site map cannot live at src/app/sitemap/page.tsx — the two collide
+      // on the same path. It is served from /sitemap-page and rewritten
+      // here, so the address people see and link to is /sitemap.
+      { source: '/sitemap', destination: '/sitemap-page' },
+    ];
+  },
   async headers() {
     return [
       {
