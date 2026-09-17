@@ -220,6 +220,49 @@ Confirm it worked by signing in and opening `/admin`. A non-admin gets a
 existence to someone guessing URLs — so a 404 after doing this means the
 flag didn't land, not that the URL is wrong.
 
+## 8. Submit the sitemap to Google Search Console
+
+The app serves `/sitemap.xml` and `/robots.txt` itself; both are generated
+per request, so a newly published build appears without a redeploy.
+
+**Set `NEXTAUTH_URL` first.** Both files fall back to
+`http://localhost:3000` when no public origin resolves, and Search Console
+rejects a sitemap of localhost URLs outright — the error names the URLs,
+not the cause. The runtime log says so explicitly on the first request:
+
+```
+[appUrl] No public origin resolved, so sitemap.xml and robots.txt are being written with
+http://localhost:3000. Google Search Console rejects a sitemap of localhost URLs. …
+```
+
+Check `https://<your-domain>/sitemap.xml` in a browser before submitting;
+every `<loc>` should be on your own domain.
+
+Then, in [Search Console](https://search.google.com/search-console):
+
+1. Add the property for your domain and verify it. The DNS TXT method
+   works with any registrar; the HTML-file method does not, since this app
+   serves no arbitrary static files from the domain root.
+2. **Sitemaps → Add a new sitemap → `sitemap.xml`.**
+3. Give it a few days. "Discovered – currently not indexed" on a new site
+   is normal and not an error.
+
+What it contains: the marketing homepage, the community feed, the parts
+board, the roadmap, the donate and legal pages, every published build, and
+every ticket and parts request. Everything else needs a session and is
+disallowed in `robots.txt` — the two files are written as a pair, and a
+test asserts the sitemap never lists a URL robots.txt disallows (which
+Search Console would otherwise report as "Blocked by robots.txt", once per
+URL).
+
+**One caveat worth knowing.** The interface is bilingual but the language
+comes from a cookie rather than the URL, so each page has exactly one
+address and there is no `hreflang` to declare. Google indexes each page in
+the default language. If you want the Romanian and English versions of a
+build page ranking separately, that needs URL-prefixed routing
+(`/en/builds/…`), which is a different change — see the note in
+`src/i18n/config.ts`.
+
 ## Known free-tier constraints
 
 - **Uploads are capped at 4MB** (`MAX_UPLOAD_BYTES` in `src/lib/storage.ts`)
