@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
@@ -10,34 +11,54 @@ import ThemeToggle from './ThemeToggle'
 import LanguageToggle from './LanguageToggle'
 import QuickAddButton from './QuickAddButton'
 import ShortcutHelpButton from './ShortcutHelpButton'
+import InstallAppButton from './InstallAppButton'
 
 /**
  * The in-app header.
  *
- * It used to be one flat row of same-weight text — Community, Feedback,
- * the account name, Log out — with the tool icons trailing off the end and
- * nothing saying where you were. Three things were wrong with that:
+ * Sections are a real nav with the current one marked; account and tools
+ * are a separate cluster so "Log out" stops sitting at the same visual
+ * rank as "Community".
  *
- * - the garage had no link at all, only the logo, which does not read as
- *   one;
- * - navigation and account actions looked identical, so "Log out" sat in
- *   the same visual rank as "Community";
- * - at phone width it collapsed. The wordmark ran into the first link, a
- *   long display name wrapped over three lines, and the language and theme
- *   controls were pushed off the edge entirely.
- *
- * So: sections are a real nav with the current one marked, account and
- * tools are a separate cluster, and below `sm` the sections move to their
- * own scrollable row instead of fighting for the same line.
+ * On a phone the sections were a horizontally scrollable strip. That fit,
+ * but it put Settings and Log out past the right edge with nothing saying
+ * they were there — a scroll affordance nobody looks for. They live in a
+ * menu now, which also gives the install-as-an-app offer somewhere to be
+ * on the device where installing actually matters.
  */
-export default function Nav({ displayName, isAdmin }: { displayName: string; isAdmin?: boolean }) {
+export default function Nav({
+  userId,
+  displayName,
+  avatarUrl,
+  isAdmin,
+}: {
+  userId: string
+  displayName: string
+  avatarUrl?: string | null
+  isAdmin?: boolean
+}) {
   const t = useTranslations('nav')
   const pathname = usePathname()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // Following a link inside the menu navigates without unmounting the
+  // header, so nothing else would close it.
+  useEffect(() => setMenuOpen(false), [pathname])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
 
   const sections = [
     { href: '/dashboard', label: t('garage') },
     { href: '/community', label: t('community') },
     { href: '/tickets', label: t('feedback') },
+    { href: '/donate', label: t('donate') },
     ...(isAdmin ? [{ href: '/admin', label: t('admin'), admin: true }] : []),
   ]
 
@@ -50,6 +71,8 @@ export default function Nav({ displayName, isAdmin }: { displayName: string; isA
       : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'
     return `${base} ${idle}`
   }
+
+  const settingsActive = pathname === '/dashboard/settings'
 
   return (
     <header
@@ -65,7 +88,6 @@ export default function Nav({ displayName, isAdmin }: { displayName: string; isA
           <Logo />
         </Link>
 
-        {/* Sections, inline once there is room for them. */}
         <nav aria-label={t('sections')} className="hidden items-center gap-1 sm:flex">
           {sections.map((section) => (
             <Link
@@ -79,8 +101,6 @@ export default function Nav({ displayName, isAdmin }: { displayName: string; isA
           ))}
         </nav>
 
-        {/* Account and tools, pushed right and separated by a rule so they
-            stop reading as more navigation. */}
         <div className="ml-auto flex shrink-0 items-center gap-1">
           <QuickAddButton />
           <ShortcutHelpButton />
@@ -90,14 +110,22 @@ export default function Nav({ displayName, isAdmin }: { displayName: string; isA
           <Link
             href="/dashboard/settings"
             aria-label={t('accountAria')}
-            aria-current={pathname === '/dashboard/settings' ? 'page' : undefined}
-            className={`hidden max-w-[10rem] truncate rounded-lg px-2.5 py-1.5 text-sm transition-colors sm:block ${
-              pathname === '/dashboard/settings'
+            aria-current={settingsActive ? 'page' : undefined}
+            className={`hidden max-w-[12rem] items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors sm:flex ${
+              settingsActive
                 ? 'bg-surface-subtle font-medium text-ink'
                 : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'
             }`}
           >
-            {displayName}
+            {avatarUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`/api/avatars/${userId}`}
+                alt=""
+                className="h-6 w-6 shrink-0 rounded-full object-cover"
+              />
+            )}
+            <span className="truncate">{displayName}</span>
           </Link>
           <button
             type="button"
@@ -106,42 +134,67 @@ export default function Nav({ displayName, isAdmin }: { displayName: string; isA
           >
             {t('logOut')}
           </button>
+
+          <button
+            type="button"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink sm:hidden"
+            aria-label={menuOpen ? t('closeMenu') : t('openMenu')}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span aria-hidden className="text-lg leading-none">{menuOpen ? '✕' : '☰'}</span>
+          </button>
         </div>
       </div>
 
-      {/* Below `sm` the sections get their own line. Scrollable rather than
-          wrapped, so a fifth entry lengthens the strip instead of pushing
-          the header down the screen. Settings and log out ride along here
-          because they have nowhere else to be on a phone. */}
-      <nav
-        aria-label={t('sections')}
-        className="flex items-center gap-1 overflow-x-auto px-4 pb-2 sm:hidden"
-      >
-        {sections.map((section) => (
-          <Link
-            key={section.href}
-            href={section.href}
-            aria-current={isActiveNavLink(pathname, section.href) ? 'page' : undefined}
-            className={linkClass(section.href, section.admin)}
-          >
-            {section.label}
-          </Link>
-        ))}
-        <Link
-          href="/dashboard/settings"
-          aria-current={pathname === '/dashboard/settings' ? 'page' : undefined}
-          className={linkClass('/dashboard/settings')}
+      {menuOpen && (
+        <nav
+          id="mobile-menu"
+          aria-label={t('menu')}
+          // Capped and scrollable rather than allowed to grow: on a short
+          // phone in landscape the list is taller than the viewport, and a
+          // menu you cannot reach the bottom of is worse than the strip
+          // this replaced.
+          className="max-h-[70vh] overflow-y-auto border-t border-surface-border px-4 py-2 sm:hidden"
         >
-          {t('settings')}
-        </Link>
-        <button
-          type="button"
-          className="whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink"
-          onClick={() => signOut({ callbackUrl: '/' })}
-        >
-          {t('logOut')}
-        </button>
-      </nav>
+          <div className="flex flex-col gap-0.5">
+            {sections.map((section) => (
+              <Link
+                key={section.href}
+                href={section.href}
+                aria-current={isActiveNavLink(pathname, section.href) ? 'page' : undefined}
+                className={`${linkClass(section.href, section.admin)} block px-3 py-2.5 text-base`}
+              >
+                {section.label}
+              </Link>
+            ))}
+
+            <span aria-hidden className="my-1 h-px bg-surface-border" />
+
+            <Link
+              href="/dashboard/settings"
+              aria-current={settingsActive ? 'page' : undefined}
+              className={`${linkClass('/dashboard/settings')} block px-3 py-2.5 text-base`}
+            >
+              {t('settings')}
+            </Link>
+            <button
+              type="button"
+              className="rounded-lg px-3 py-2.5 text-left text-base text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink"
+              onClick={() => signOut({ callbackUrl: '/' })}
+            >
+              {t('logOut')}
+            </button>
+
+            {/* Renders nothing where installing is impossible or already
+                done, so this does not leave a dead heading behind. */}
+            <div className="px-3 py-2">
+              <InstallAppButton compact />
+            </div>
+          </div>
+        </nav>
+      )}
     </header>
   )
 }

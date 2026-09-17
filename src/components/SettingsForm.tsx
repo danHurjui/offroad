@@ -7,8 +7,11 @@ import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { subscribeToPush, unsubscribeFromPush } from '@/lib/pushClient'
 import { proKind, FREE_TIER } from '@/lib/pro'
+import AvatarField from './AvatarField'
 
 interface Profile {
+  id: string
+  avatarUrl: string | null
   displayName: string
   location: string | null
   isPublicProfile: boolean
@@ -102,6 +105,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
   return (
     <div className="space-y-6">
       <div className="card space-y-4 p-6">
+        <AvatarField userId={profile.id} initialUrl={profile.avatarUrl} />
         <div>
           <label className="label" htmlFor="displayName">{t('displayName')}</label>
           <input

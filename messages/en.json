@@ -89,6 +89,26 @@
     "pickFailed": "Could not use that photo",
     "picked": "Photo chosen — save to apply"
   },
+  "avatar": {
+    "label": "Profile picture",
+    "none": "No picture",
+    "hint": "Shown next to your name and on your public builds.",
+    "chosen": "New picture chosen — saving…",
+    "remove": "Remove",
+    "removing": "Removing…",
+    "uploadFailed": "Could not upload the picture",
+    "removeFailed": "Could not remove the picture"
+  },
+  "install": {
+    "title": "Install RigLog",
+    "body": "Add it to your home screen — it opens full screen and works like an app.",
+    "button": "Install",
+    "installing": "Installing…",
+    "installed": "RigLog is installed on this device.",
+    "dismissed": "Not now. You can install it from here any time.",
+    "iosTitle": "Install on iPhone or iPad",
+    "iosBody": "Safari does not offer an install button. Tap Share, then \"Add to Home Screen\"."
+  },
   "auth": {
     "login": {
       "subtitle": "Log in to your build.",
@@ -300,7 +320,10 @@
     "accountAria": "Account and settings",
     "sections": "Sections",
     "addTask": "Add a task to this vehicle",
-    "addVehicle": "Add a vehicle"
+    "addVehicle": "Add a vehicle",
+    "menu": "Menu",
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu"
   },
   "footer": {
     "tagline": "Build tracker, restoration journal & repair log.",
@@ -350,7 +373,8 @@
     "workshopTask": "Workshop task",
     "addedByDeleted": "Added by an account that has since been deleted",
     "addedBy": "Added by {name}",
-    "addedByRemoved": "{name} (collaborator access removed)"
+    "addedByRemoved": "{name} (collaborator access removed)",
+    "viewPublicPage": "View public page"
   },
   "home": {
     "metaTitle": "RigLog — build tracker, restoration journal & repair log",
@@ -867,7 +891,14 @@
       "all": "All time"
     },
     "averagePerMonth": "Average per month",
-    "mostExpensive": "Most expensive task"
+    "mostExpensive": "Most expensive task",
+    "garageTitle": "Garage spend",
+    "garageSubtitle": "Everything you have spent across every vehicle you own.",
+    "garageTotal": "Total across the garage",
+    "perVehicle": "By vehicle",
+    "vehicleCount": "{count, plural, one {# vehicle} other {# vehicles}}",
+    "garageEmpty": "No vehicles yet — add one and its costs show up here.",
+    "viewGarageSpend": "Garage spend"
   },
   "photos": {
     "title": "Photos",
@@ -939,7 +970,8 @@
     "completedTasks": "Completed tasks",
     "totalSpent": "Total spent",
     "documentedWith": "Documented with <b>RigLog</b>",
-    "noCompletedWork": "No completed work logged yet."
+    "noCompletedWork": "No completed work logged yet.",
+    "byOwner": "by {name}"
   },
   "vin": {
     "field": {

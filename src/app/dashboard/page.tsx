@@ -9,6 +9,7 @@ import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 export default async function DashboardPage() {
   const t = await getTranslations('dashboard')
+  const ta = await getTranslations('analytics')
   const session = await requireSessionOrRedirect()
 
   const [owned, collaborating, user] = await Promise.all([
@@ -26,6 +27,12 @@ export default async function DashboardPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-ink">{t('title')}</h1>
+        <div className="flex items-center gap-2">
+          {owned.length > 0 && (
+            <Link href="/dashboard/analytics" className="btn-secondary">
+              {ta('viewGarageSpend')}
+            </Link>
+          )}
         {atFreeLimit ? (
           <span className="badge bg-surface-subtle text-ink-muted" title={t('freeLimitTitle')}>
             {t('freeLimitBadge')}
@@ -35,6 +42,7 @@ export default async function DashboardPage() {
             {t('addVehicle')}
           </Link>
         )}
+        </div>
       </div>
 
       {owned.length === 0 && collaborating.length === 0 ? (

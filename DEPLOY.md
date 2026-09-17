@@ -240,6 +240,58 @@ flag didn't land, not that the URL is wrong.
   verified sending domain for `EMAIL_FROM` (their default onboarding
   domain works for testing but not for real users).
 
+## Troubleshooting: Stripe is configured but nothing happens
+
+The symptom tells you which half is wrong. They fail in different places
+and have nothing to do with each other.
+
+### The Upgrade page says it could not start checkout
+
+Nothing reached Stripe. The cause is in the runtime log, on a line
+beginning `Stripe checkout failed:` — the app now names the variable
+rather than passing Stripe's answer through, so look for one of:
+
+- `STRIPE_PRICE_MONTHLY holds a product id (prod_…)` — the Price id lives
+  *under* the product in the catalogue, and starts with `price_`. Pasting
+  the product id, or the payment-link URL from the same page, is the usual
+  slip.
+- `STRIPE_SECRET_KEY holds a publishable key (pk_…)` — the two sit beside
+  each other on the API keys page. The secret one starts with `sk_`.
+- `No such price: price_…` **with a real price id** — test and live are
+  separate object spaces. A live price under a test key, or the reverse,
+  fails even though both values were copied correctly. Check that the key
+  and all three prices come from the same mode; the toggle is in the
+  dashboard's top bar.
+- Prices in the wrong currency still work, but the buyer is charged in
+  that currency. The app's copy says RON because `PRO_PLANS` says RON.
+
+Remember a deploy has to happen *after* the variables exist — the running
+deployment captured the old environment.
+
+### Payment goes through but the account is still on the free tier
+
+Checkout worked; the webhook did not. `User.isPro` is written in exactly
+one place (`/api/webhooks/stripe`) and reaching the success page proves
+nothing, by design — so this is always the webhook.
+
+Look at Developers → Webhooks → your endpoint → the event list. Stripe
+shows every delivery and its response:
+
+- **No events at all** — the endpoint is not registered, or is registered
+  in the other mode. A test-mode payment only notifies a test-mode
+  endpoint.
+- **400 `webhookNotConfigured`** — `STRIPE_WEBHOOK_SECRET` is unset in the
+  deployment.
+- **400 `invalidSignature`** — the secret belongs to a different endpoint.
+  Each endpoint has its own; copy the one shown on *this* endpoint's page.
+  The runtime log carries the verification error too.
+- **200, but still no Pro** — check the event type is among the four
+  section 6.5 lists. `checkout.session.completed` is the one that grants
+  it.
+
+You can replay a delivery from that same page once the secret is fixed,
+rather than making another payment.
+
 ## Troubleshooting: every upload fails with a 500
 
 Uploading a cover photo, a document scan, a receipt or a task photo

@@ -27,9 +27,16 @@ export default async function PublicHeader() {
   if (session?.user) {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { displayName: true },
+      select: { displayName: true, avatarUrl: true },
     })
-    return <Nav displayName={user?.displayName ?? t('dashboard')} isAdmin={session.user.isAdmin} />
+    return (
+      <Nav
+        userId={session.user.id}
+        displayName={user?.displayName ?? t('dashboard')}
+        avatarUrl={user?.avatarUrl}
+        isAdmin={session.user.isAdmin}
+      />
+    )
   }
 
   return (

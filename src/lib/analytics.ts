@@ -93,3 +93,40 @@ export function summarizeCosts(tasks: Array<CostTaskLike & { name: string }>): C
     mostExpensiveTask,
   }
 }
+
+export interface VehicleSpend {
+  vehicleId: string
+  label: string
+  total: number
+}
+
+/**
+ * Spend per vehicle, biggest first — the garage-wide view.
+ *
+ * Takes tasks already tagged with their vehicle rather than querying, for
+ * the same reason every other function here is pure: the arithmetic is
+ * what is worth testing, and it is the same arithmetic the per-vehicle
+ * page uses (taskTotalCost, which knows that a DIY job carries costRon and
+ * a workshop one carries parts plus labour).
+ *
+ * Vehicles with no spend are kept. A car you have not paid anything for
+ * yet is still in the garage, and dropping it would make the list quietly
+ * disagree with the dashboard.
+ */
+export function spendByVehicle(
+  vehicles: Array<{ id: string; label: string }>,
+  tasks: Array<CostTaskLike & { vehicleId: string }>
+): VehicleSpend[] {
+  const totals = new Map<string, number>(vehicles.map((v) => [v.id, 0]))
+
+  for (const task of tasks) {
+    // A task whose vehicle is not in the list (a collaboration, say) is
+    // not this garage's spend.
+    if (!totals.has(task.vehicleId)) continue
+    totals.set(task.vehicleId, (totals.get(task.vehicleId) ?? 0) + taskTotalCost(task))
+  }
+
+  return vehicles
+    .map((v) => ({ vehicleId: v.id, label: v.label, total: totals.get(v.id) ?? 0 }))
+    .sort((a, b) => b.total - a.total)
+}

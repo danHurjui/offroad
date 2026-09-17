@@ -20,7 +20,7 @@ import { appUrlForMetadata } from '@/lib/appUrl'
 const findPublicVehicle = cache(async (username: string, slug: string) => {
   const owner = await prisma.user.findUnique({
     where: { username },
-    select: { ...PRO_SELECT, id: true, displayName: true, location: true },
+    select: { ...PRO_SELECT, id: true, displayName: true, location: true, avatarUrl: true },
   })
   if (!owner) return null
 
@@ -149,9 +149,21 @@ export default async function PublicVehiclePage({
               {vehicle.year} {vehicle.make} {vehicle.model}
               {vehicle.generation ? ` (${vehicle.generation})` : ''}
             </h1>
-            <p className="text-sm text-ink-muted">
-              by {owner.displayName}
-              {owner.location ? ` · ${owner.location}` : ''}
+            <p className="flex items-center gap-2 text-sm text-ink-muted">
+              {owner.avatarUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={`/api/avatars/${owner.id}`}
+                  alt=""
+                  className="h-6 w-6 shrink-0 rounded-full object-cover"
+                />
+              )}
+              {/* Was a hardcoded English "by", shown as-is to a Romanian
+                  reader on a page built for sharing. */}
+              <span>
+                {t('byOwner', { name: owner.displayName })}
+                {owner.location ? ` · ${owner.location}` : ''}
+              </span>
             </p>
             {vehicle.engine && <p className="mt-1 text-sm text-ink-muted">{vehicle.engine}</p>}
 

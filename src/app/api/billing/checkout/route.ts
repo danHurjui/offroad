@@ -34,6 +34,20 @@ export async function POST(req: NextRequest) {
 
     const stripe = getStripe()
 
+    // Everything configuration-dependent is resolved before the first call
+    // to Stripe. Two reasons, both learned the hard way:
+    //
+    // - creating the customer is itself a network call that depends on the
+    //   key, so its failure was masking the real cause. A price id holding
+    //   a product id reported "Invalid API Key"-shaped noise instead of
+    //   naming STRIPE_PRICE_MONTHLY.
+    // - that call also writes stripeCustomerId onto the user row. A
+    //   request that cannot possibly succeed should not leave a Stripe
+    //   customer behind it.
+    const priceId = priceIdFor(plan)
+    const baseUrl = requireAppUrl()
+    const planConfig = PRO_PLANS[plan]
+
     let customerId = user.stripeCustomerId
     if (!customerId) {
       const customer = await stripe.customers.create({ email: user.email, metadata: { userId: user.id } })
@@ -41,13 +55,10 @@ export async function POST(req: NextRequest) {
       await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId: customerId } })
     }
 
-    const baseUrl = requireAppUrl()
-    const planConfig = PRO_PLANS[plan]
-
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: planConfig.mode,
-      line_items: [{ price: priceIdFor(plan), quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${baseUrl}/dashboard/settings?upgraded=1`,
       cancel_url: `${baseUrl}/dashboard/upgrade?canceled=1`,
       metadata: { userId: user.id, plan },

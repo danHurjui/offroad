@@ -89,6 +89,26 @@
     "pickFailed": "Fotografia nu a putut fi folosită",
     "picked": "Fotografie aleasă — salvează pentru a o aplica"
   },
+  "avatar": {
+    "label": "Fotografie de profil",
+    "none": "Fără fotografie",
+    "hint": "Apare lângă numele tău și pe proiectele tale publice.",
+    "chosen": "Fotografie nouă aleasă — se salvează…",
+    "remove": "Elimină",
+    "removing": "Se elimină…",
+    "uploadFailed": "Fotografia nu a putut fi încărcată",
+    "removeFailed": "Fotografia nu a putut fi eliminată"
+  },
+  "install": {
+    "title": "Instalează RigLog",
+    "body": "Adaug-o pe ecranul principal — se deschide pe tot ecranul și funcționează ca o aplicație.",
+    "button": "Instalează",
+    "installing": "Se instalează…",
+    "installed": "RigLog este instalată pe acest dispozitiv.",
+    "dismissed": "Nu acum. O poți instala de aici oricând.",
+    "iosTitle": "Instalează pe iPhone sau iPad",
+    "iosBody": "Safari nu oferă un buton de instalare. Apasă Partajează, apoi „Adaugă la ecranul principal”."
+  },
   "auth": {
     "login": {
       "subtitle": "Intră în contul tău.",
@@ -300,7 +320,10 @@
     "accountAria": "Cont și setări",
     "sections": "Secțiuni",
     "addTask": "Adaugă o lucrare la acest vehicul",
-    "addVehicle": "Adaugă un vehicul"
+    "addVehicle": "Adaugă un vehicul",
+    "menu": "Meniu",
+    "closeMenu": "Închide meniul",
+    "openMenu": "Deschide meniul"
   },
   "footer": {
     "tagline": "Jurnal de build, de restaurare și de reparații.",
@@ -350,7 +373,8 @@
     "workshopTask": "Lucrare în service",
     "addedByDeleted": "Adăugat de un cont care a fost între timp șters",
     "addedBy": "Adăugat de {name}",
-    "addedByRemoved": "{name} (acces de colaborator revocat)"
+    "addedByRemoved": "{name} (acces de colaborator revocat)",
+    "viewPublicPage": "Vezi pagina publică"
   },
   "home": {
     "metaTitle": "RigLog — jurnal de build, de restaurare și de reparații",
@@ -867,7 +891,14 @@
       "all": "Tot timpul"
     },
     "averagePerMonth": "Medie pe lună",
-    "mostExpensive": "Cea mai scumpă lucrare"
+    "mostExpensive": "Cea mai scumpă lucrare",
+    "garageTitle": "Cheltuieli garaj",
+    "garageSubtitle": "Tot ce ai cheltuit pe toate vehiculele tale.",
+    "garageTotal": "Total pe garaj",
+    "perVehicle": "Pe vehicul",
+    "vehicleCount": "{count, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}",
+    "garageEmpty": "Niciun vehicul încă — adaugă unul și costurile apar aici.",
+    "viewGarageSpend": "Cheltuieli garaj"
   },
   "photos": {
     "title": "Poze",
@@ -939,7 +970,8 @@
     "completedTasks": "Lucrări finalizate",
     "totalSpent": "Total cheltuit",
     "documentedWith": "Documentat cu <b>RigLog</b>",
-    "noCompletedWork": "Nicio lucrare finalizată înregistrată încă."
+    "noCompletedWork": "Nicio lucrare finalizată înregistrată încă.",
+    "byOwner": "de {name}"
   },
   "vin": {
     "field": {

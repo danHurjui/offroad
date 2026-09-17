@@ -6,16 +6,20 @@ import SettingsForm from '@/components/SettingsForm'
 import ThemeToggle from '@/components/ThemeToggle'
 import LanguageToggle from '@/components/LanguageToggle'
 import DataExportCard from '@/components/DataExportCard'
+import InstallAppButton from '@/components/InstallAppButton'
 
 export default async function SettingsPage() {
   const t = await getTranslations('settings')
   const tc = await getTranslations('common')
   const td = await getTranslations('dashboard')
   const tl = await getTranslations('settings.language')
+  const ti = await getTranslations('install')
   const session = await requireSessionOrRedirect()
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: session.user.id },
     select: {
+      id: true,
+      avatarUrl: true,
       displayName: true,
       location: true,
       isPublicProfile: true,
@@ -54,6 +58,13 @@ export default async function SettingsPage() {
         <h2 className="mb-1 text-sm font-semibold text-ink">{tl('title')}</h2>
         <p className="mb-3 text-xs text-ink-muted">{tl('help')}</p>
         <LanguageToggle />
+      </section>
+
+      {/* Renders nothing at all on a browser that cannot install, or one
+          where it already is — see InstallAppButton. */}
+      <section className="card mb-6 p-5">
+        <h2 className="mb-1 text-sm font-semibold text-ink">{ti('title')}</h2>
+        <InstallAppButton />
       </section>
 
       <SettingsForm profile={user} />

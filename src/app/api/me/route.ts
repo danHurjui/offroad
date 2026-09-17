@@ -50,7 +50,11 @@ export async function PATCH(req: NextRequest) {
       data.displayName = String(body.displayName)
     }
     if (body.location !== undefined) data.location = body.location || null
-    if (body.avatarUrl !== undefined) data.avatarUrl = body.avatarUrl || null
+    // avatarUrl is deliberately NOT accepted here. It is a storage key,
+    // and /api/avatars/[userId] streams whatever it holds without an
+    // access check of its own — so letting a client set it would turn a
+    // profile picture into a way to read any file whose key you can guess
+    // or observe. POST /api/me/avatar is the only writer.
     if (body.isPublicProfile !== undefined) data.isPublicProfile = Boolean(body.isPublicProfile)
     if (body.preferredMode !== undefined) {
       if (body.preferredMode !== null && !isProjectType(body.preferredMode)) {
