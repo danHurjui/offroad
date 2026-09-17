@@ -294,7 +294,13 @@
     "donate": "Donate",
     "dashboard": "Dashboard",
     "logIn": "Log in",
-    "signUp": "Sign up"
+    "signUp": "Sign up",
+    "garage": "Garage",
+    "settings": "Settings",
+    "accountAria": "Account and settings",
+    "sections": "Sections",
+    "addTask": "Add a task to this vehicle",
+    "addVehicle": "Add a vehicle"
   },
   "footer": {
     "tagline": "Build tracker, restoration journal & repair log.",

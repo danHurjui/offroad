@@ -6,6 +6,7 @@ import {
   PROJECT_TYPE_CONFIG,
   type Option,
   type ProjectType,
+  type StatusOption,
 } from './projectType'
 
 /**
@@ -49,7 +50,7 @@ export interface VocabularyConfig {
   namePlaceholder: string
   wishlistLabel: string
   communityTabLabel: string
-  statusTags: Option[]
+  statusTags: StatusOption[]
   completeStatus: string
   tracksCompletion: boolean
   categories: Option[]
@@ -62,6 +63,22 @@ type Translator = (key: string) => string
 
 function relabel(options: Option[], t: Translator, prefix: string): Option[] {
   return options.map((option) => ({ value: option.value, label: t(`${prefix}.${option.value}`) }))
+}
+
+/**
+ * Statuses keep their tone through the translation.
+ *
+ * `relabel` builds a fresh object from `value` and the looked-up label, so
+ * a status put through it would arrive with its badge colour dropped — and
+ * `StatusOption` being assignable to `Option` means nothing would complain.
+ * A colour is not something to translate; it belongs to the status.
+ */
+function relabelStatuses(options: StatusOption[], t: Translator, prefix: string): StatusOption[] {
+  return options.map((option) => ({
+    value: option.value,
+    tone: option.tone,
+    label: t(`${prefix}.${option.value}`),
+  }))
 }
 
 /**
@@ -84,7 +101,7 @@ export function translateConfig(projectType: ProjectType, t: Translator): Vocabu
     wishlistLabel: t(`mode.${projectType}.wishlistLabel`),
     communityTabLabel: t(`mode.${projectType}.communityTabLabel`),
 
-    statusTags: relabel(base.statusTags, t, `status.${projectType}`),
+    statusTags: relabelStatuses(base.statusTags, t, `status.${projectType}`),
     categories: relabel(base.categories, t, `category.${projectType}`),
     photoTypes: relabel(base.photoTypes, t, `photoType.${projectType}`),
     wishlistStatuses: relabel(base.wishlistStatuses, t, `wishlistStatus.${projectType}`),

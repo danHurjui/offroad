@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { labelFor } from '@/lib/projectType'
+import { labelFor, statusBadgeClass } from '@/lib/projectType'
 import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import { getDocumentStatus, isHistoricVehicle } from '@/lib/documents'
@@ -316,7 +316,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
                         </div>
                       </div>
                     </div>
-                    <span className="badge bg-surface-subtle text-ink-muted">
+                    <span className={statusBadgeClass(config.statusTags, task.status)}>
                       {labelFor(config.statusTags, task.status)}
                     </span>
                   </Link>

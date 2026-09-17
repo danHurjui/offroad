@@ -294,7 +294,13 @@
     "donate": "Donează",
     "dashboard": "Panou de bord",
     "logIn": "Autentificare",
-    "signUp": "Creează cont"
+    "signUp": "Creează cont",
+    "garage": "Garaj",
+    "settings": "Setări",
+    "accountAria": "Cont și setări",
+    "sections": "Secțiuni",
+    "addTask": "Adaugă o lucrare la acest vehicul",
+    "addVehicle": "Adaugă un vehicul"
   },
   "footer": {
     "tagline": "Jurnal de build, de restaurare și de reparații.",

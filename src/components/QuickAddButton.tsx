@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { newHrefForPath } from '@/lib/shortcuts'
 
@@ -14,8 +15,11 @@ import { newHrefForPath } from '@/lib/shortcuts'
 export default function QuickAddButton() {
   const pathname = usePathname()
   const href = newHrefForPath(pathname)
+  const t = useTranslations('nav')
   const onVehicle = href.endsWith('/tasks/new')
-  const label = onVehicle ? 'Add a task to this vehicle' : 'Add a vehicle'
+  // Was two hardcoded English sentences, read out as-is to a Romanian
+  // screen-reader user and shown in the tooltip.
+  const label = onVehicle ? t('addTask') : t('addVehicle')
 
   return (
     <Link
