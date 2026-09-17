@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
@@ -9,6 +10,7 @@ import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-027: trail log list — off-road mode, Pro-gated, owner-only.
 export default async function TrailLogPage({ params }: { params: { id: string } }) {
+  const t = await getTranslations('trailLog')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle || vehicle.projectType !== 'OFFROAD') notFound()
@@ -23,23 +25,23 @@ export default async function TrailLogPage({ params }: { params: { id: string } 
   return (
     <div>
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to dashboard
+        {t('backToDashboard')}
       </Link>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-ink">Trail log</h1>
+        <h1 className="text-2xl font-bold text-ink">{t('title')}</h1>
         {isPro && (
           <Link href={`/dashboard/vehicles/${vehicle.id}/trail-log/record`} className="btn-primary">
-            Record a run
+            {t('recordRun')}
           </Link>
         )}
       </div>
 
       {!isPro ? (
         <div className="card note p-4 text-sm text-ink">
-          Upgrade to Pro to record GPS trail runs for this build.
+          {t('proOnly')}
         </div>
       ) : runs.length === 0 ? (
-        <div className="card p-10 text-center text-ink-muted">No trail runs recorded yet.</div>
+        <div className="card p-10 text-center text-ink-muted">{t('empty')}</div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {runs.map((run) => (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 export default function UpgradePlanCard({
   plan,
@@ -17,6 +18,7 @@ export default function UpgradePlanCard({
   description: string
   highlight?: boolean
 }) {
+  const t = useTranslations('upgrade')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,7 +32,7 @@ export default function UpgradePlanCard({
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      setError(data.error ?? 'Could not start checkout')
+      setError(data.error ?? t('checkoutFailed'))
       setLoading(false)
       return
     }
@@ -47,7 +49,7 @@ export default function UpgradePlanCard({
       </p>
       <p className="mt-2 flex-1 text-sm text-ink-muted">{description}</p>
       <button type="button" className="btn-primary mt-4" onClick={onChoose} disabled={loading}>
-        {loading ? 'Redirecting…' : 'Choose'}
+        {loading ? t('redirecting') : t('choose')}
       </button>
       {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
     </div>

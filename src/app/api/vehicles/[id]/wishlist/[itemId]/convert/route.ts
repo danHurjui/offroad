@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -27,10 +28,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const item = await prisma.wishlistItem.findUnique({ where: { id: params.itemId } })
-  if (!item || item.vehicleId !== vehicle.id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!item || item.vehicleId !== vehicle.id) return await apiError('notFound', 404)
 
   try {
     const body = await req.json().catch(() => ({}))
@@ -39,10 +40,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
     const terminalStatus = config.completeStatus
 
     if (!category || !isValidTaskVocabulary(vehicle.projectType, category, terminalStatus)) {
-      return NextResponse.json(
-        { error: 'This item needs a valid category before it can become a task — pass one in the request body' },
-        { status: 400 }
-      )
+      return await apiError('wishlistNeedsCategory', 400)
     }
 
     const terminalWishlistStatus = config.wishlistStatuses[config.wishlistStatuses.length - 1].value
@@ -68,6 +66,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
 
     return NextResponse.json(serializeTask(task), { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

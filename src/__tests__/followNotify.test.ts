@@ -7,7 +7,23 @@ jest.mock('@/lib/prisma', () => ({
 }))
 jest.mock('@/lib/email', () => ({
   sendEmail: jest.fn().mockResolvedValue(undefined),
-  followedProjectUpdateEmailHtml: jest.fn().mockReturnValue('<p>update</p>'),
+  // The builder now returns the subject alongside the body, because the
+  // two have to be in the same language.
+  followedProjectUpdateEmail: jest
+    .fn()
+    .mockImplementation(async (_locale: string, input: { vehicleName: string }) => ({
+      subject: `${input.vehicleName} — update on RigLog`,
+      html: '<p>update</p>',
+    })),
+  emailLocale: jest.fn().mockReturnValue('ro'),
+}))
+// Followers are notified in their own language, so the message is a
+// catalogue key resolved once per follower.
+// The email/notification path builds its translator directly from the
+// catalogue (src/i18n/translator.ts), so there is no request context to
+// stub — only a locale to pass.
+jest.mock('@/i18n/translator', () => ({
+  translator: jest.fn().mockResolvedValue((key: string) => `t:${key}`),
 }))
 jest.mock('@/lib/webpush', () => ({
   sendPushNotification: jest.fn(),
@@ -34,7 +50,7 @@ beforeEach(() => {
 describe('notifyFollowers', () => {
   it('does nothing when the vehicle has no followers', async () => {
     mockFollowFindMany.mockResolvedValue([])
-    await notifyFollowers('v1', 'did something')
+    await notifyFollowers('v1', { key: 'taskDone', values: { task: 'Something' } })
     expect(mockSendEmail).not.toHaveBeenCalled()
     expect(mockSendPush).not.toHaveBeenCalled()
   })
@@ -44,7 +60,7 @@ describe('notifyFollowers', () => {
       { follower: { email: 'a@x.com', notifyFollowedEmail: true, notifyFollowedPush: false, pushSubscriptions: [] } },
       { follower: { email: 'b@x.com', notifyFollowedEmail: false, notifyFollowedPush: false, pushSubscriptions: [] } },
     ])
-    await notifyFollowers('v1', 'marked "Lift kit" as done')
+    await notifyFollowers('v1', { key: 'taskDone', values: { task: 'Lift kit' } })
     expect(mockSendEmail).toHaveBeenCalledTimes(1)
     expect(mockSendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'a@x.com' }))
   })
@@ -64,7 +80,7 @@ describe('notifyFollowers', () => {
       },
     ])
     mockSendPush.mockResolvedValue('sent')
-    await notifyFollowers('v1', 'added new photos')
+    await notifyFollowers('v1', { key: 'photosAdded', values: { task: 'Lift kit' } })
     expect(mockSendPush).toHaveBeenCalledTimes(2)
   })
 
@@ -81,7 +97,7 @@ describe('notifyFollowers', () => {
     ])
     mockSendPush.mockResolvedValue('gone')
     mockPushSubDelete.mockResolvedValue({})
-    await notifyFollowers('v1', 'added new photos')
+    await notifyFollowers('v1', { key: 'photosAdded', values: { task: 'Lift kit' } })
     expect(mockPushSubDelete).toHaveBeenCalledWith({ where: { id: 'sub1' } })
   })
 
@@ -89,7 +105,7 @@ describe('notifyFollowers', () => {
     mockFollowFindMany.mockResolvedValue([
       { follower: { email: 'a@x.com', notifyFollowedEmail: true, notifyFollowedPush: false, pushSubscriptions: [] } },
     ])
-    await notifyFollowers('v1', 'marked "Lift kit" as done')
+    await notifyFollowers('v1', { key: 'taskDone', values: { task: 'Lift kit' } })
     const call = mockSendEmail.mock.calls[0][0]
     expect(call.subject).toContain('2001 Jeep Wrangler')
   })

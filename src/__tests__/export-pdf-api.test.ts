@@ -1,3 +1,7 @@
+// The route handler is invoked directly here (no Next request scope), so
+// `cookies()` would throw. The locale is the one thing it reads from the
+// request; everything else about the PDF is exercised for real.
+jest.mock('@/i18n/requestLocale', () => ({ localeFromRequest: () => 'en' }))
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
 jest.mock('@/lib/auth', () => ({ authOptions: {} }))
 jest.mock('@/lib/prisma', () => ({

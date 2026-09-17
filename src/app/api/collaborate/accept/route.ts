@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { isInviteExpired } from '@/lib/collaborators'
@@ -21,29 +22,26 @@ export async function POST(req: NextRequest) {
   try {
     const token = typeof body.token === 'string' ? body.token : ''
     if (!token) {
-      return NextResponse.json({ error: 'Missing invite token' }, { status: 400 })
+      return await apiError('inviteTokenMissing', 400)
     }
 
     const collaborator = await prisma.projectCollaborator.findUnique({ where: { inviteToken: token } })
     if (!collaborator) {
-      return NextResponse.json({ error: 'Invite not found' }, { status: 404 })
+      return await apiError('inviteNotFound', 404)
     }
     if (collaborator.status === 'REMOVED') {
-      return NextResponse.json({ error: 'This invite has been revoked' }, { status: 410 })
+      return await apiError('inviteRevoked', 410)
     }
     if (collaborator.status === 'ACTIVE') {
-      return NextResponse.json({ error: 'This invite has already been accepted' }, { status: 400 })
+      return await apiError('inviteAlreadyAccepted', 400)
     }
     if (isInviteExpired(collaborator.invitedAt)) {
-      return NextResponse.json({ error: 'This invite has expired' }, { status: 410 })
+      return await apiError('inviteExpired', 410)
     }
 
     const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { email: true } })
     if (!user || user.email.toLowerCase() !== collaborator.email.toLowerCase()) {
-      return NextResponse.json(
-        { error: 'This invite was sent to a different email address. Log in with that account to accept it.' },
-        { status: 403 }
-      )
+      return await apiError('inviteWrongEmail', 403)
     }
 
     const updated = await prisma.projectCollaborator.update({
@@ -54,6 +52,6 @@ export async function POST(req: NextRequest) {
     const { inviteToken: _inviteToken, ...safe } = updated
     return NextResponse.json({ ...safe, vehicleId: collaborator.vehicleId })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
@@ -20,16 +21,19 @@ interface Profile {
   notifyFollowedPush: boolean
 }
 
-const PLAN_LABELS: Record<NonNullable<Profile['proPlan']>, string> = {
-  MONTHLY: 'Pro (Monthly)',
-  ANNUAL: 'Pro (Annual)',
-  LIFETIME: 'Pro (Lifetime)',
+/** Catalogue keys, so the plan name follows the interface language. */
+const PLAN_KEYS: Record<NonNullable<Profile['proPlan']>, string> = {
+  MONTHLY: 'planMonthly',
+  ANNUAL: 'planAnnual',
+  LIFETIME: 'planLifetime',
 }
 
 // RL-009: profile & settings. Every field saves immediately with a
 // success toast, no separate Save button — except the toggle, which
 // mutates as soon as it's flipped.
 export default function SettingsForm({ profile }: { profile: Profile }) {
+  const t = useTranslations('settings')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [displayName, setDisplayName] = useState(profile.displayName)
   const [location, setLocation] = useState(profile.location ?? '')
@@ -64,7 +68,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
     setPortalLoading(false)
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
-      setPortalError(data.error ?? 'Could not open billing portal')
+      setPortalError(data.error ?? t('portalFailed'))
       return
     }
     const { url } = await res.json()
@@ -77,19 +81,19 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
     if (result === 'subscribed') {
       setNotifyFollowedPush(true)
       save({ notifyFollowedPush: true })
-      setPushStatus('Push notifications enabled on this device.')
+      setPushStatus(t('pushEnabled'))
     } else if (result === 'denied') {
-      setPushStatus('Notification permission was denied in your browser.')
+      setPushStatus(t('pushDenied'))
     } else if (result === 'unsupported') {
-      setPushStatus('Push notifications are not supported on this device/browser.')
+      setPushStatus(t('pushUnsupported'))
     } else {
-      setPushStatus('Push notifications are not configured on this server yet.')
+      setPushStatus(t('pushNotConfigured'))
     }
   }
 
   async function onDeleteAccount() {
-    if (!confirm('Delete your account and all vehicles/tasks/photos? This cannot be undone.')) return
-    if (!confirm('This is permanent. Are you absolutely sure?')) return
+    if (!confirm(t('confirmDelete'))) return
+    if (!confirm(t('confirmDeleteAgain'))) return
     setDeleting(true)
     await fetch('/api/me/account', { method: 'DELETE' })
     await signOut({ callbackUrl: '/' })
@@ -99,7 +103,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
     <div className="space-y-6">
       <div className="card space-y-4 p-6">
         <div>
-          <label className="label" htmlFor="displayName">Display name</label>
+          <label className="label" htmlFor="displayName">{t('displayName')}</label>
           <input
             id="displayName"
             name="displayName"
@@ -112,12 +116,12 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           />
         </div>
         <div>
-          <label className="label" htmlFor="location">Location</label>
+          <label className="label" htmlFor="location">{t('location')}</label>
           <input
             id="location"
             name="location"
             className="input"
-            placeholder="City, Country"
+            placeholder={t('locationPlaceholder')}
             autoComplete="address-level2"
             autoCapitalize="words"
             value={location}
@@ -134,63 +138,58 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
               save({ isPublicProfile: e.target.checked })
             }}
           />
-          Make my profile public (coming soon)
+          {t('makePublic')}
         </label>
-        {saved && <p className="text-sm text-green-600 dark:text-green-400">Saved.</p>}
+        {saved && <p className="text-sm text-green-600 dark:text-green-400">{t('saved')}</p>}
       </div>
 
       <div className="card p-6">
-        <h2 className="mb-1 font-semibold text-ink">Plan</h2>
+        <h2 className="mb-1 font-semibold text-ink">{t('plan')}</h2>
         {/* Describe what the person actually has. Someone on a comp gets
             Pro features but has no subscription, so they must not be shown
             a billing plan they never bought — nor nagged to upgrade. */}
         <p className="text-sm text-ink-muted">
           {kind === 'paid'
             ? profile.proPlan
-              ? PLAN_LABELS[profile.proPlan]
-              : 'Pro'
+              ? t(PLAN_KEYS[profile.proPlan])
+              : t('planPaid')
             : kind === 'comped'
-              ? 'Pro — complimentary'
-              : 'Free'}{' '}
+              ? t('planComped')
+              : t('planFree')}{' '}
           —{' '}
           {kind === 'none'
-            ? `${FREE_TIER.vehicles} vehicle, ${FREE_TIER.photosPerTask} photos per task.`
-            : 'unlimited vehicles and photos.'}
+            ? t('planFreeLimits', {
+                vehicles: FREE_TIER.vehicles,
+                photos: FREE_TIER.photosPerTask,
+              })
+            : t('planProLimits')}
         </p>
         {kind === 'comped' && (
           <p className="mt-1 text-xs text-ink-faint">
-            {profile.foundingNumber !== null ? (
-              <>
-                You are founding member #{profile.foundingNumber}. Pro is yours for as long as
-                RigLog runs — there is nothing to pay and no subscription to manage.
-              </>
-            ) : (
-              <>
-                Pro was granted to you by the RigLog team. There is nothing to pay and no
-                subscription to manage.
-              </>
-            )}
+            {profile.foundingNumber !== null
+              ? t('foundingNote', { number: profile.foundingNumber })
+              : t('compedNote')}
           </p>
         )}
         {kind !== 'none' ? (
           kind === 'paid' && profile.stripeCustomerId && (
             <>
               <button type="button" className="btn-secondary mt-3" onClick={onManageBilling} disabled={portalLoading}>
-                {portalLoading ? 'Opening…' : 'Manage subscription'}
+                {portalLoading ? t('opening') : t('manageSubscription')}
               </button>
               {portalError && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{portalError}</p>}
             </>
           )
         ) : (
           <Link href="/dashboard/upgrade" className="btn-primary mt-3 inline-block">
-            Upgrade to Pro
+            {t('upgrade')}
           </Link>
         )}
       </div>
 
       <div className="card space-y-3 p-6">
-        <h2 className="mb-1 font-semibold text-ink">Following notifications</h2>
-        <p className="text-sm text-ink-muted">Get notified when a project you follow completes a task or adds photos.</p>
+        <h2 className="mb-1 font-semibold text-ink">{t('followingTitle')}</h2>
+        <p className="text-sm text-ink-muted">{t('followingHelp')}</p>
         <label className="flex items-center gap-2 text-sm text-ink">
           <input
             type="checkbox"
@@ -200,7 +199,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
               save({ notifyFollowedEmail: e.target.checked })
             }}
           />
-          Email me
+          {t('emailMe')}
         </label>
         <label className="flex items-center gap-2 text-sm text-ink">
           <input
@@ -213,24 +212,21 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
               if (!checked) unsubscribeFromPush()
             }}
           />
-          Push notify me
+          {t('pushMe')}
         </label>
         <button type="button" className="btn-secondary" onClick={onEnablePush}>
-          Enable push on this device
+          {t('enablePush')}
         </button>
         {pushStatus && <p className="text-sm text-ink-muted">{pushStatus}</p>}
       </div>
 
       <div className="card p-6">
-        <h2 className="mb-2 font-semibold text-ink">Danger zone</h2>
+        <h2 className="mb-2 font-semibold text-ink">{t('dangerZone')}</h2>
         <p className="mb-3 text-sm text-ink-muted">
-          Deletes your account and every vehicle, task, document and photo you own — including the
-          uploaded files themselves, not just the entries pointing at them. Records of any donations
-          are kept for accounting, with your account detached from them. This cannot be undone, so
-          take a copy of your data first if you want one.
+          {t('deleteHelp')}
         </p>
         <button type="button" className="btn-danger" onClick={onDeleteAccount} disabled={deleting}>
-          {deleting ? 'Deleting…' : 'Delete account'}
+          {deleting ? tc('deleting') : t('deleteAccount')}
         </button>
       </div>
     </div>

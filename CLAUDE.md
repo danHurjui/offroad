@@ -58,6 +58,7 @@ npm run lint
 npm run db:migrate      # prisma migrate dev
 npm run db:generate     # regenerate client after schema change
 npm run db:seed         # dev seed data
+npm run db:create-admin -- you@example.com "Your Name"   # create/promote an admin
 npm run db:studio
 ```
 
@@ -298,7 +299,12 @@ of the toggle. Don't replace that with a `findFirst` + branch.
 
 **`User.isAdmin`** moderates this board and nothing else — it grants no
 access to other users' vehicles or data, and is set directly in the
-database, never through a route.
+database, never through a route. `scripts/create-admin.ts` (`npm run
+db:create-admin -- <email> [name]`) is the supported way to do that — it
+creates or promotes an account against whatever `DATABASE_URL` points at,
+prints the target database first, and is safe to re-run. It deliberately
+does not go through `createUserWithFoundingGrant()`: an operator account
+must not consume one of the hundred public founding-member slots.
 
 ### Donations (`src/lib/donations.ts`, `/donate`)
 One-off Stripe Checkout, deliberately **not** behind `requireSession()` —

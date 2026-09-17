@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { getStripe, isProPlanId } from '@/lib/stripe'
-import { sendEmail, paymentFailedEmailHtml } from '@/lib/email'
+import { sendEmail, paymentFailedEmail, emailLocale } from '@/lib/email'
 import { appUrlForNotification } from '@/lib/appUrl'
 
 /**
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
   const signature = req.headers.get('stripe-signature')
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
   if (!signature || !webhookSecret) {
-    return NextResponse.json({ error: 'Webhook not configured' }, { status: 400 })
+    return await apiError('webhookNotConfigured', 400)
   }
 
   const rawBody = await req.text()
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     event = getStripe().webhooks.constructEvent(rawBody, signature, webhookSecret)
   } catch (e) {
     console.error('Stripe webhook signature verification failed:', e)
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+    return await apiError('invalidSignature', 400)
   }
 
   try {
@@ -90,11 +91,11 @@ export async function POST(req: NextRequest) {
         // proPaymentFailedAt is already written above, so the in-app banner
         // still warns them even if this email cannot be built.
         if (user && baseUrl) {
-          await sendEmail({
-            to: user.email,
-            subject: 'Your RigLog Pro payment failed',
-            html: paymentFailedEmailHtml(`${baseUrl}/dashboard/settings`),
-          })
+          const { subject, html } = await paymentFailedEmail(
+            emailLocale(user),
+            `${baseUrl}/dashboard/settings`
+          )
+          await sendEmail({ to: user.email, subject, html })
         }
         break
       }
@@ -126,7 +127,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (e) {
     console.error('Stripe webhook handling failed:', e)
-    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
+    return await apiError('webhookFailed', 500)
   }
 
   return NextResponse.json({ received: true })

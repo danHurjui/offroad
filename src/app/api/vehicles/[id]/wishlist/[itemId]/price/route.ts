@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -21,10 +22,10 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const item = await loadItem(params.id, params.itemId)
-  if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!item) return await apiError('notFound', 404)
 
   const entries = await prisma.wishlistPriceEntry.findMany({
     where: { wishlistItemId: item.id },
@@ -42,18 +43,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
   if (!hasPro(owner)) {
-    return NextResponse.json(
-      { error: 'Price alerts are a Pro feature.', code: 'UPGRADE_REQUIRED' },
-      { status: 403 }
-    )
+    return await apiError('proPriceAlerts', 403, { code: 'UPGRADE_REQUIRED' })
   }
 
   const item = await loadItem(params.id, params.itemId)
-  if (!item) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!item) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -62,7 +60,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   try {
     const priceRon = Number(body.priceRon)
     if (!Number.isFinite(priceRon) || priceRon <= 0) {
-      return NextResponse.json({ error: 'priceRon must be a positive number' }, { status: 400 })
+      return await apiError('priceInvalid', 400)
     }
     const note = typeof body.note === 'string' && body.note ? body.note : null
 
@@ -78,6 +76,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
 
     return NextResponse.json(serializeWishlistPriceEntry(entry), { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

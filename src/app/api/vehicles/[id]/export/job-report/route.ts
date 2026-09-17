@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
+import { translator } from '@/i18n/translator'
+import { localeFromRequest } from '@/i18n/requestLocale'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
@@ -22,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const isOwner = vehicle.ownerId === session.user.id
   const { searchParams } = new URL(req.url)
@@ -34,7 +37,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   let collaboratorUserId: string
   if (isOwner) {
     const requested = searchParams.get('collaboratorId')
-    if (!requested) return NextResponse.json({ error: 'collaboratorId is required' }, { status: 400 })
+    if (!requested) return await apiError('collaboratorIdRequired', 400)
     collaboratorUserId = requested
   } else {
     collaboratorUserId = session.user.id
@@ -45,7 +48,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     orderBy: { invitedAt: 'desc' },
     include: { collaboratorUser: { select: { displayName: true } } },
   })
-  if (!collaboratorRow) return NextResponse.json({ error: 'Not a collaborator on this vehicle' }, { status: 404 })
+  if (!collaboratorRow) return await apiError('notACollaborator', 404)
 
   try {
     const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
@@ -83,10 +86,32 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const collaboratorName = collaboratorRow.collaboratorUser?.displayName ?? collaboratorRow.label ?? collaboratorRow.email
     const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
 
+    // The reader is whoever pressed Export, so this follows the browser
+    // rather than an account column — unlike an email, which is read by
+    // its recipient.
+    const tPdf = await translator(localeFromRequest(), 'pdf')
+    const money = (n: number) => `${n.toLocaleString('ro-RO')} RON`
+
     const docDefinition = buildJobReportDocDefinition({
+      strings: {
+        title: tPdf('jobReportTitle'),
+        preparedBy: tPdf('preparedBy'),
+        period: tPdf('period'),
+        totalLabour: (total) => tPdf('totalLabour', { total: money(total) }),
+        totalParts: (total) => tPdf('totalParts', { total: money(total) }),
+        noTasks: tPdf('noTasks'),
+        documentedWith: tPdf('documentedWith'),
+        taskMeta: (task) =>
+          tPdf('taskMeta', {
+            date: task.date.toLocaleDateString('ro-RO'),
+            category: task.category,
+            parts: money(task.partsCostRon),
+            labour: money(task.labourCostRon),
+          }),
+      },
       collaboratorName,
       vehicleName,
-      rangeLabel: range === '30d' ? 'Last 30 days' : 'All time',
+      rangeLabel: range === '30d' ? tPdf('last30Days') : tPdf('allTime'),
       tasks: jobReportTasks,
       generatedAt: new Date(),
     })
@@ -104,6 +129,6 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     })
   } catch (e) {
     console.error('Job report export failed:', e)
-    return NextResponse.json({ error: 'Could not generate job report' }, { status: 500 })
+    return await apiError('jobReportFailed', 500)
   }
 }

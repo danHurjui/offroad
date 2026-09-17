@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -41,6 +42,8 @@ export default function CollaboratorsBoard({
   const [role, setRole] = useState<'MECHANIC' | 'SPECIALIST'>('MECHANIC')
   const [inviting, setInviting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const t = useTranslations('collaborators')
+  const tc = useTranslations('common')
   const [busyId, setBusyId] = useState<string | null>(null)
 
   async function onInvite(e: React.FormEvent) {
@@ -55,7 +58,7 @@ export default function CollaboratorsBoard({
     setInviting(false)
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? 'Could not send invite')
+      setError(data.error ?? t('inviteFailed'))
       return
     }
     const created = await res.json()
@@ -72,7 +75,7 @@ export default function CollaboratorsBoard({
     setBusyId(null)
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? 'Could not resend invite')
+      setError(data.error ?? t('resendFailed'))
       return
     }
     const updated = await res.json()
@@ -80,14 +83,14 @@ export default function CollaboratorsBoard({
   }
 
   async function onRevoke(id: string) {
-    if (!confirm('Revoke this collaborator\'s access? They will lose access immediately.')) return
+    if (!confirm(t('confirmRevoke'))) return
     setBusyId(id)
     setError(null)
     const res = await fetch(`/api/vehicles/${vehicleId}/collaborators/${id}`, { method: 'DELETE' })
     setBusyId(null)
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? 'Could not revoke access')
+      setError(data.error ?? t('revokeFailed'))
       return
     }
     setCollaborators((prev) => prev.map((c) => (c.id === id ? { ...c, status: 'REMOVED' } : c)))
@@ -97,10 +100,10 @@ export default function CollaboratorsBoard({
   return (
     <div className="space-y-6">
       <form onSubmit={onInvite} className="card space-y-3 p-4">
-        <h2 className="text-sm font-semibold text-ink-muted">Invite a collaborator</h2>
+        <h2 className="text-sm font-semibold text-ink-muted">{t('inviteTitle')}</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="label" htmlFor="email">Email</label>
+            <label className="label" htmlFor="email">{tc('email')}</label>
             <input
               id="email"
               name="email"
@@ -116,13 +119,13 @@ export default function CollaboratorsBoard({
             />
           </div>
           <div>
-            <label className="label" htmlFor="label">Label (optional)</label>
+            <label className="label" htmlFor="label">{t('labelOptional')}</label>
             <input
               id="label"
               name="label"
               type="text"
               className="input"
-              placeholder="e.g. Ionescu Auto"
+              placeholder={t('labelPlaceholder')}
               autoComplete="off"
               autoCapitalize="words"
               value={label}
@@ -131,31 +134,31 @@ export default function CollaboratorsBoard({
           </div>
         </div>
         <div>
-          <label className="label" htmlFor="role">Role</label>
+          <label className="label" htmlFor="role">{t('role')}</label>
           <select id="role" className="input" value={role} onChange={(e) => setRole(e.target.value as 'MECHANIC' | 'SPECIALIST')}>
-            <option value="MECHANIC">Mechanic</option>
-            <option value="SPECIALIST">Specialist</option>
+            <option value="MECHANIC">{t('mechanic')}</option>
+            <option value="SPECIALIST">{t('specialist')}</option>
           </select>
         </div>
         <FormError>{error}</FormError>
         <button type="submit" className="btn-primary" disabled={inviting}>
-          {inviting ? 'Sending…' : 'Send invite'}
+          {inviting ? t('sending') : t('sendInvite')}
         </button>
       </form>
 
       <div className="space-y-3">
-        {collaborators.length === 0 && <p className="text-sm text-ink-faint">No collaborators yet.</p>}
+        {collaborators.length === 0 && <p className="text-sm text-ink-faint">{t('empty')}</p>}
         {collaborators.map((c) => (
           <div key={c.id} className="card flex flex-wrap items-center justify-between gap-3 p-4">
             <div>
               <p className="font-medium text-ink">
                 {c.collaboratorDisplayName ?? c.label ?? c.email}
                 <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[c.status]}`}>
-                  {c.status}
+                  {t(`status.${c.status}`)}
                 </span>
               </p>
               <p className="text-sm text-ink-muted">
-                {c.email} · {c.role === 'SPECIALIST' ? 'Specialist' : 'Mechanic'}
+                {c.email} · {c.role === 'SPECIALIST' ? t('specialist') : t('mechanic')}
               </p>
             </div>
             <div className="flex gap-2">
@@ -164,7 +167,7 @@ export default function CollaboratorsBoard({
                   href={`/dashboard/vehicles/${vehicleId}/job-report?collaboratorId=${c.collaboratorUserId}`}
                   className="btn-secondary"
                 >
-                  Job report
+                  {t('jobReport')}
                 </Link>
               )}
               {c.status !== 'REMOVED' && (
@@ -175,7 +178,7 @@ export default function CollaboratorsBoard({
                       disabled={busyId === c.id}
                       onClick={() => onResend(c.id)}
                     >
-                      Resend
+                      {t('resend')}
                     </button>
                   )}
                   <button
@@ -183,7 +186,7 @@ export default function CollaboratorsBoard({
                     disabled={busyId === c.id}
                     onClick={() => onRevoke(c.id)}
                   >
-                    Revoke
+                    {t('revoke')}
                   </button>
                 </>
               )}

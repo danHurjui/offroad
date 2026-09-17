@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 
 interface DecodedVin {
@@ -12,20 +13,15 @@ interface DecodedVin {
   colorCode: string | null
 }
 
-const FIELD_LABELS: Record<keyof DecodedVin, string> = {
-  manufacturer: 'Manufacturer',
-  modelYear: 'Model year',
-  factory: 'Factory',
-  engineCode: 'Engine code',
-  bodyStyle: 'Body style',
-  colorCode: 'Original colour code',
-}
-
-const SOURCE_LABELS: Record<string, string> = {
-  local: 'Decoded locally (Dacia/Renault-Romania VIN table)',
-  nhtsa: 'Decoded via NHTSA vPIC',
-  manual: 'Entered manually',
-}
+/** The order the fields are shown in; the words come from the catalogue. */
+const FIELDS: (keyof DecodedVin)[] = [
+  'manufacturer',
+  'modelYear',
+  'factory',
+  'engineCode',
+  'bodyStyle',
+  'colorCode',
+]
 
 // RL-028: decode button + result display + manual-entry fallback form.
 // colorCode is always a manual field — see the schema comment on
@@ -41,6 +37,8 @@ export default function VinDecoderPanel({
   decoded: DecodedVin | null
   source: string | null
 }) {
+  const t = useTranslations('vin')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [decoded, setDecoded] = useState(initialDecoded)
   const [source, setSource] = useState(initialSource)
@@ -64,7 +62,7 @@ export default function VinDecoderPanel({
     const data = await res.json()
     setDecoding(false)
     if (!res.ok) {
-      setError(data.error ?? 'Could not decode VIN')
+      setError(data.error ?? t('decodeFailed'))
       return
     }
     if (data.decoded === null) {
@@ -97,7 +95,7 @@ export default function VinDecoderPanel({
   if (!vin) {
     return (
       <div className="card p-4 text-sm text-ink-muted">
-        Add a VIN / chassis number on this vehicle&apos;s settings page first.
+        {t('noVin')}
       </div>
     )
   }
@@ -106,11 +104,11 @@ export default function VinDecoderPanel({
     <div className="space-y-4">
       <div className="card space-y-3 p-4">
         <div>
-          <div className="text-xs text-ink-faint">VIN / chassis number</div>
+          <div className="text-xs text-ink-faint">{t('vinLabel')}</div>
           <div className="font-mono text-sm text-ink">{vin}</div>
         </div>
         <button type="button" className="btn-primary" onClick={onDecode} disabled={decoding}>
-          {decoding ? 'Decoding…' : decoded ? 'Re-decode' : 'Decode VIN'}
+          {decoding ? t('decoding') : decoded ? t('redecode') : t('decode')}
         </button>
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       </div>
@@ -118,32 +116,38 @@ export default function VinDecoderPanel({
       {decoded && !showManualForm && (
         <div className="card p-4">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-sm font-medium text-ink-muted">Decoded spec</span>
+            <span className="text-sm font-medium text-ink-muted">{t('decodedSpec')}</span>
             <button type="button" className="text-xs text-brand-600 dark:text-brand-300 hover:underline" onClick={() => setShowManualForm(true)}>
-              Edit manually
+              {t('editManually')}
             </button>
           </div>
           <dl className="grid grid-cols-2 gap-3 text-sm">
-            {(Object.keys(FIELD_LABELS) as (keyof DecodedVin)[]).map((key) => (
+            {FIELDS.map((key) => (
               <div key={key}>
-                <dt className="text-ink-faint">{FIELD_LABELS[key]}</dt>
+                <dt className="text-ink-faint">{t(`field.${key}`)}</dt>
                 <dd className="text-ink">{decoded[key] ?? '—'}</dd>
               </div>
             ))}
           </dl>
-          {source && <p className="mt-3 text-xs text-ink-faint">{SOURCE_LABELS[source] ?? source}</p>}
+          {source && (
+            <p className="mt-3 text-xs text-ink-faint">
+              {t.has(`source.${source}`) ? t(`source.${source}`) : source}
+            </p>
+          )}
         </div>
       )}
 
       {showManualForm && (
         <form onSubmit={onSaveManual} className="card space-y-3 p-4">
           <p className="text-sm text-ink-muted">
-            {decoded ? 'Correct or fill in any field.' : "This VIN couldn't be decoded automatically — enter what you know."}
+            {decoded ? t('correctFields') : t('couldNotDecode')}
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {(Object.keys(FIELD_LABELS) as (keyof DecodedVin)[]).map((key) => (
+            {FIELDS.map((key) => (
               <div key={key}>
-                <label className="label" htmlFor={key}>{FIELD_LABELS[key]}</label>
+                <label className="label" htmlFor={key}>
+                  {t(`field.${key}`)}
+                </label>
                 <input
                   id={key}
                   type={key === 'modelYear' ? 'number' : 'text'}
@@ -155,7 +159,7 @@ export default function VinDecoderPanel({
             ))}
           </div>
           <button type="submit" className="btn-primary w-full" disabled={savingManual}>
-            {savingManual ? 'Saving…' : 'Save'}
+            {savingManual ? tc('saving') : tc('save')}
           </button>
         </form>
       )}

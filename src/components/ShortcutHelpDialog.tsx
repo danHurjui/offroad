@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { SHORTCUTS, formatKeys, type Shortcut } from '@/lib/shortcuts'
+import { useTranslations } from 'next-intl'
+import { SHORTCUT_GROUPS, SHORTCUTS, formatKeys } from '@/lib/shortcuts'
 
-const GROUP_ORDER: Shortcut['group'][] = ['Go to', 'Actions', 'Help']
 
 /**
  * The `?` help sheet.
@@ -16,6 +16,7 @@ const GROUP_ORDER: Shortcut['group'][] = ['Go to', 'Actions', 'Help']
  * that.
  */
 export default function ShortcutHelpDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useTranslations('shortcuts')
   const panelRef = useRef<HTMLDivElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
 
@@ -66,27 +67,27 @@ export default function ShortcutHelpDialog({ open, onClose }: { open: boolean; o
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <h2 id="shortcut-help-title" className="text-lg font-bold text-ink">
-            Keyboard shortcuts
+            {t('title')}
           </h2>
-          <button type="button" onClick={onClose} className="btn-secondary px-2 py-1 text-xs" aria-label="Close">
+          <button type="button" onClick={onClose} className="btn-secondary px-2 py-1 text-xs" aria-label={t('close')}>
             Esc
           </button>
         </div>
 
-        {GROUP_ORDER.map((group) => {
+        {SHORTCUT_GROUPS.map((group) => {
           const items = SHORTCUTS.filter((s) => s.group === group)
           if (items.length === 0) return null
           return (
             <section key={group} className="mb-4 last:mb-0">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">{group}</h3>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t(`group.${group}`)}</h3>
               <ul className="space-y-1.5">
                 {items.map((s) => (
-                  <li key={s.keys.join('+')} className="flex items-baseline justify-between gap-4 text-sm">
-                    <span className="text-ink-muted">{s.label}</span>
+                  <li key={s.id} className="flex items-baseline justify-between gap-4 text-sm">
+                    <span className="text-ink-muted">{t(`item.${s.id}`)}</span>
                     <span className="shrink-0 whitespace-nowrap">
                       {s.keys.map((key, i) => (
                         <span key={i}>
-                          {i > 0 && <span className="mx-1 text-xs text-ink-faint">then</span>}
+                          {i > 0 && <span className="mx-1 text-xs text-ink-faint">{t('then')}</span>}
                           <kbd>{key}</kbd>
                         </span>
                       ))}
@@ -99,8 +100,9 @@ export default function ShortcutHelpDialog({ open, onClose }: { open: boolean; o
         })}
 
         <p className="mt-4 text-xs text-ink-faint">
-          Shortcuts are ignored while you&rsquo;re typing in a field. Press{' '}
-          <kbd>{formatKeys(['?'])}</kbd> any time to bring this back.
+          {t.rich('typingNote', {
+            key: () => <kbd>{formatKeys(['?'])}</kbd>,
+          })}
         </p>
       </div>
     </div>

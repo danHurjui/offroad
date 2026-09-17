@@ -18,7 +18,8 @@ describe('readJsonBody', () => {
     expect(parsed.ok).toBe(false)
     if (!parsed.ok) {
       expect(parsed.error.status).toBe(400)
-      await expect(parsed.error.json()).resolves.toEqual({ error: 'Request body must be valid JSON' })
+      // The sentence is translated now; the code is the stable half.
+      await expect(parsed.error.json()).resolves.toMatchObject({ code: 'bodyNotJson' })
     }
   })
 
@@ -39,9 +40,7 @@ describe('readJsonBody', () => {
     expect(parsed.ok).toBe(false)
     if (!parsed.ok) {
       expect(parsed.error.status).toBe(400)
-      await expect(parsed.error.json()).resolves.toEqual({
-        error: 'Request body must not contain null bytes',
-      })
+      await expect(parsed.error.json()).resolves.toMatchObject({ code: 'bodyNullBytes' })
     }
   })
 

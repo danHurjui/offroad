@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -18,10 +19,10 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const document = await loadDocument(params.id, params.docId)
-  if (!document) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!document) return await apiError('notFound', 404)
 
   return NextResponse.json(document)
 }
@@ -37,10 +38,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const document = await loadDocument(params.id, params.docId)
-  if (!document) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!document) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -51,7 +52,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     if (body.expiryDate !== undefined) {
       if (Number.isNaN(new Date(body.expiryDate).getTime())) {
-        return NextResponse.json({ error: 'Invalid expiryDate' }, { status: 400 })
+        return await apiError('invalidExpiryDate', 400)
       }
       data.expiryDate = new Date(body.expiryDate)
       // Renewing re-arms every threshold. Derived, so a milestone added to
@@ -62,7 +63,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const updated = await prisma.document.update({ where: { id: document.id }, data })
     return NextResponse.json(updated)
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -72,16 +73,16 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const document = await loadDocument(params.id, params.docId)
-  if (!document) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!document) return await apiError('notFound', 404)
 
   try {
     await prisma.document.delete({ where: { id: document.id } })
     if (document.fileUrl) await deleteUpload(document.fileUrl)
     return NextResponse.json({ message: 'Document deleted' })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

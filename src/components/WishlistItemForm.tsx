@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { PROJECT_TYPE_CONFIG, PART_CONDITIONS, type ProjectType } from '@/lib/projectType'
+import { type ProjectType } from '@/lib/projectType'
+import { useVocabulary, usePartConditions } from '@/lib/vocabulary'
 
 interface InitialItem {
   id: string
@@ -33,9 +35,13 @@ export default function WishlistItemForm({
   initialItem?: InitialItem
 }) {
   const router = useRouter()
-  const config = PROJECT_TYPE_CONFIG[projectType]
+  const config = useVocabulary(projectType)
   const isEdit = Boolean(initialItem)
 
+  const t = useTranslations('wishlistForm')
+  const tw = useTranslations('wishlist')
+  const tc = useTranslations('common')
+  const partConditions = usePartConditions()
   const [name, setName] = useState(initialItem?.name ?? '')
   const [category, setCategory] = useState(initialItem?.category ?? config.categories[0].value)
   const [estimatedCostRon, setEstimatedCostRon] = useState(
@@ -76,7 +82,7 @@ export default function WishlistItemForm({
     const data = await res.json()
     setLoading(false)
     if (!res.ok) {
-      setError(data.error ?? 'Could not save item')
+      setError(data.error ?? t('saveFailed'))
       return
     }
 
@@ -87,14 +93,14 @@ export default function WishlistItemForm({
   return (
     <form onSubmit={onSubmit} className="card space-y-4 p-6">
       <div>
-        <label className="label" htmlFor="name">Name</label>
+        <label className="label" htmlFor="name">{t('name')}</label>
         <input
           id="name"
           name="name"
           className="input"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="What are you after?"
+          placeholder={t('namePlaceholder')}
           autoComplete="off"
           autoCapitalize="sentences"
           enterKeyHint="next"
@@ -105,7 +111,7 @@ export default function WishlistItemForm({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="category">Category</label>
+          <label className="label" htmlFor="category">{tw('category')}</label>
           <select id="category" className="input" value={category} onChange={(e) => setCategory(e.target.value)}>
             {config.categories.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
@@ -113,7 +119,7 @@ export default function WishlistItemForm({
           </select>
         </div>
         <div>
-          <label className="label" htmlFor="status">Status</label>
+          <label className="label" htmlFor="status">{tw('status')}</label>
           <select id="status" className="input" value={status} onChange={(e) => setStatus(e.target.value)}>
             {config.wishlistStatuses.map((s) => (
               <option key={s.value} value={s.value}>{s.label}</option>
@@ -121,15 +127,15 @@ export default function WishlistItemForm({
           </select>
         </div>
         <div>
-          <label className="label" htmlFor="estimatedCostRon">Estimated cost (RON)</label>
+          <label className="label" htmlFor="estimatedCostRon">{tw('estimatedCost')}</label>
           <MoneyInput id="estimatedCostRon" value={estimatedCostRon} onChange={setEstimatedCostRon} />
         </div>
         {projectType === 'RESTORATION' && (
           <div>
-            <label className="label" htmlFor="partCondition">Part condition</label>
+            <label className="label" htmlFor="partCondition">{tw('partCondition')}</label>
             <select id="partCondition" className="input" value={partCondition} onChange={(e) => setPartCondition(e.target.value)}>
-              <option value="">Not specified</option>
-              {PART_CONDITIONS.map((c) => (
+              <option value="">{tw('notSpecified')}</option>
+              {partConditions.map((c) => (
                 <option key={c.value} value={c.value}>{c.label}</option>
               ))}
             </select>
@@ -138,7 +144,7 @@ export default function WishlistItemForm({
       </div>
 
       <div>
-        <label className="label" htmlFor="supplierUrl">Supplier URL (optional)</label>
+        <label className="label" htmlFor="supplierUrl">{tw('supplierUrl')}</label>
         <input
           id="supplierUrl"
           name="supplierUrl"
@@ -156,7 +162,7 @@ export default function WishlistItemForm({
 
       <div>
         <label className="label" htmlFor="notes">
-          {projectType === 'RESTORATION' ? 'Sourcing notes (optional)' : 'Notes (optional)'}
+          {projectType === 'RESTORATION' ? t('sourcingNotes') : t('notes')}
         </label>
         <textarea id="notes" name="notes" className="input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
@@ -164,13 +170,13 @@ export default function WishlistItemForm({
       {projectType === 'RESTORATION' && (
         <label className="flex items-center gap-2 text-sm text-ink">
           <input type="checkbox" checked={hardToFind} onChange={(e) => setHardToFind(e.target.checked)} />
-          Hard to find
+          {tw('hardToFind')}
         </label>
       )}
 
       <FormError>{error}</FormError>
       <button type="submit" className="btn-primary w-full" disabled={loading}>
-        {loading ? 'Saving…' : isEdit ? 'Save changes' : 'Add item'}
+        {loading ? tc('saving') : isEdit ? t('saveChanges') : t('add')}
       </button>
     </form>
   )

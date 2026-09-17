@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 
@@ -32,6 +33,8 @@ import FormError from './FormError'
 import MoneyInput from './MoneyInput'
 
 export default function FoundStateForm({ vehicleId, initial }: { vehicleId: string; initial: Initial | null }) {
+  const t = useTranslations('foundState')
+  const tc = useTranslations('common')
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
@@ -74,7 +77,7 @@ export default function FoundStateForm({ vehicleId, initial }: { vehicleId: stri
     setLoading(false)
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? 'Could not save')
+      setError(data.error ?? t('saveFailed'))
       return
     }
     router.refresh()
@@ -98,7 +101,7 @@ export default function FoundStateForm({ vehicleId, initial }: { vehicleId: stri
       <form onSubmit={onSubmit} className="card space-y-4 p-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="label" htmlFor="acquisitionDate">Acquisition date</label>
+            <label className="label" htmlFor="acquisitionDate">{t('acquisitionDate')}</label>
             <input
               id="acquisitionDate"
               name="acquisitionDate"
@@ -111,7 +114,7 @@ export default function FoundStateForm({ vehicleId, initial }: { vehicleId: stri
             />
           </div>
           <div>
-            <label className="label" htmlFor="purchasePriceRon">Purchase price (RON)</label>
+            <label className="label" htmlFor="purchasePriceRon">{t('purchasePrice')}</label>
             <MoneyInput
               id="purchasePriceRon"
               value={form.purchasePriceRon}
@@ -119,7 +122,7 @@ export default function FoundStateForm({ vehicleId, initial }: { vehicleId: stri
             />
           </div>
           <div>
-            <label className="label" htmlFor="odometer">Odometer</label>
+            <label className="label" htmlFor="odometer">{t('odometer')}</label>
             <input
               id="odometer"
               name="odometer"
@@ -130,39 +133,39 @@ export default function FoundStateForm({ vehicleId, initial }: { vehicleId: stri
               inputMode="numeric"
               min={0}
               step={1}
-              placeholder="km"
+              placeholder={t('odometerPlaceholder')}
               autoComplete="off"
             />
           </div>
           <div>
-            <label className="label" htmlFor="conditionRating">General condition (1-5)</label>
+            <label className="label" htmlFor="conditionRating">{t('conditionRating')}</label>
             <select id="conditionRating" className="input" value={form.conditionRating} onChange={(e) => set('conditionRating', e.target.value)}>
-              <option value="">Not rated</option>
+              <option value="">{t('notRated')}</option>
               {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
         </div>
 
         <div>
-          <label className="label" htmlFor="knownHistory">Known history</label>
+          <label className="label" htmlFor="knownHistory">{t('knownHistory')}</label>
           <textarea id="knownHistory" className="input" rows={3} value={form.knownHistory} onChange={(e) => set('knownHistory', e.target.value)} />
         </div>
 
         <div>
-          <p className="label">Panel-by-panel condition notes</p>
+          <p className="label">{t('panelNotes')}</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {(
               [
-                ['frontNotes', 'Front'],
-                ['rearNotes', 'Rear'],
-                ['leftNotes', 'Left'],
-                ['rightNotes', 'Right'],
-                ['roofNotes', 'Roof'],
-                ['floorNotes', 'Floor'],
+                ['frontNotes', 'front'],
+                ['rearNotes', 'rear'],
+                ['leftNotes', 'left'],
+                ['rightNotes', 'right'],
+                ['roofNotes', 'roof'],
+                ['floorNotes', 'floor'],
               ] as const
-            ).map(([key, label]) => (
+            ).map(([key, labelKey]) => (
               <div key={key}>
-                <label className="text-xs text-ink-faint" htmlFor={key}>{label}</label>
+                <label className="text-xs text-ink-faint" htmlFor={key}>{t(labelKey)}</label>
                 <textarea id={key} className="input" rows={2} value={form[key]} onChange={(e) => set(key, e.target.value)} />
               </div>
             ))}
@@ -171,32 +174,32 @@ export default function FoundStateForm({ vehicleId, initial }: { vehicleId: stri
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="label" htmlFor="engineNotes">Engine condition notes</label>
+            <label className="label" htmlFor="engineNotes">{t('engineNotes')}</label>
             <textarea id="engineNotes" className="input" rows={2} value={form.engineNotes} onChange={(e) => set('engineNotes', e.target.value)} />
           </div>
           <div>
-            <label className="label" htmlFor="interiorNotes">Interior condition notes</label>
+            <label className="label" htmlFor="interiorNotes">{t('interiorNotes')}</label>
             <textarea id="interiorNotes" className="input" rows={2} value={form.interiorNotes} onChange={(e) => set('interiorNotes', e.target.value)} />
           </div>
         </div>
 
         <FormError>{error}</FormError>
         <button type="submit" className="btn-primary w-full" disabled={loading}>
-          {loading ? 'Saving…' : initial ? 'Save changes' : 'Save found state'}
+          {loading ? tc('saving') : initial ? t('saveChanges') : t('save')}
         </button>
       </form>
 
       {initial && (
         <div className="card p-6">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-semibold text-ink">Found state photos</h2>
+            <h2 className="font-semibold text-ink">{t('photosTitle')}</h2>
             <label className="btn-secondary cursor-pointer">
-              {uploading ? 'Uploading…' : 'Add photo'}
+              {uploading ? t('uploading') : t('addPhoto')}
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/heic" className="hidden" onChange={onUploadPhoto} disabled={uploading} />
             </label>
           </div>
           {initial.photos.length === 0 ? (
-            <p className="text-sm text-ink-faint">No photos yet — up to 20 allowed.</p>
+            <p className="text-sm text-ink-faint">{t('noPhotos')}</p>
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
               {initial.photos.map((photo) => (

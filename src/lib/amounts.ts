@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { apiErrorWith } from './apiError'
 
 /**
  * Money and physical-quantity inputs used to be coerced straight through
@@ -39,13 +40,12 @@ export function parseAmount(value: unknown): number | null | undefined {
  *   const bad = invalidAmountResponse({ costRon, partsCostRon })
  *   if (bad) return bad
  */
-export function invalidAmountResponse(fields: Record<string, unknown>): NextResponse | null {
+export async function invalidAmountResponse(
+  fields: Record<string, unknown>
+): Promise<NextResponse | null> {
   for (const [name, value] of Object.entries(fields)) {
     if (parseAmount(value) === undefined) {
-      return NextResponse.json(
-        { error: `${name} must be a non-negative number` },
-        { status: 400 },
-      )
+      return apiErrorWith('amountNegative', { field: name }, 400)
     }
   }
   return null

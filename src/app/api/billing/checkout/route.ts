@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { getStripe, isProPlanId, priceIdFor, PRO_PLANS } from '@/lib/stripe'
@@ -22,14 +23,14 @@ export async function POST(req: NextRequest) {
   try {
     const plan = body.plan
     if (!isProPlanId(plan)) {
-      return NextResponse.json({ error: 'plan must be one of MONTHLY, ANNUAL, LIFETIME' }, { status: 400 })
+      return await apiError('invalidPlan', 400)
     }
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { ...PRO_SELECT, id: true, email: true, stripeCustomerId: true } })
-    if (!user) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    if (hasPro(user)) return NextResponse.json({ error: 'Already on Pro' }, { status: 400 })
+    if (!user) return await apiError('notFound', 404)
+    if (hasPro(user)) return await apiError('alreadyPro', 400)
 
     const stripe = getStripe()
 
@@ -55,12 +56,12 @@ export async function POST(req: NextRequest) {
         : { payment_intent_data: { metadata: { userId: user.id, plan } } }) })
 
     if (!checkoutSession.url) {
-      return NextResponse.json({ error: 'Could not create checkout session' }, { status: 500 })
+      return await apiError('checkoutCreateFailed', 500)
     }
 
     return NextResponse.json({ url: checkoutSession.url })
   } catch (e) {
     console.error('Stripe checkout failed:', e)
-    return NextResponse.json({ error: 'Could not start checkout' }, { status: 500 })
+    return await apiError('checkoutStartFailed', 500)
   }
 }

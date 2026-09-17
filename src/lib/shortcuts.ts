@@ -15,25 +15,37 @@
  * a shortcut fires while someone is typing a note.
  */
 
+export type ShortcutGroup = 'goTo' | 'actions' | 'help'
+
 export interface Shortcut {
+  /**
+   * Stable identifier, and the catalogue key its description is looked up
+   * under (`shortcuts.item.<id>`). The description is not stored here for
+   * the same reason a category's label is not stored in
+   * PROJECT_TYPE_CONFIG: it has to be readable in two languages, and the
+   * key sequence must not change when the wording does.
+   */
+  id: string
   /** Key sequence: ['g', 'd'] for a chord, ['n'] for a single key. */
   keys: string[]
-  label: string
-  group: 'Go to' | 'Actions' | 'Help'
+  group: ShortcutGroup
   /** Where it takes you. Omitted for shortcuts handled specially. */
   href?: string
 }
 
+/** The order the help sheet lists its sections in. */
+export const SHORTCUT_GROUPS: ShortcutGroup[] = ['goTo', 'actions', 'help']
+
 export const SHORTCUTS: Shortcut[] = [
-  { keys: ['g', 'd'], label: 'Dashboard', group: 'Go to', href: '/dashboard' },
-  { keys: ['g', 'c'], label: 'Community', group: 'Go to', href: '/community' },
-  { keys: ['g', 'w'], label: 'Parts wanted', group: 'Go to', href: '/community/parts-wanted' },
-  { keys: ['g', 'f'], label: 'Feedback board', group: 'Go to', href: '/tickets' },
-  { keys: ['g', 's'], label: 'Profile & settings', group: 'Go to', href: '/dashboard/settings' },
-  { keys: ['n'], label: 'New — task on a vehicle, otherwise a new vehicle', group: 'Actions' },
-  { keys: ['/'], label: 'Jump to the search box on this page', group: 'Actions' },
-  { keys: ['?'], label: 'Show this list', group: 'Help' },
-  { keys: ['Escape'], label: 'Close this dialog', group: 'Help' },
+  { id: 'dashboard', keys: ['g', 'd'], group: 'goTo', href: '/dashboard' },
+  { id: 'community', keys: ['g', 'c'], group: 'goTo', href: '/community' },
+  { id: 'partsWanted', keys: ['g', 'w'], group: 'goTo', href: '/community/parts-wanted' },
+  { id: 'feedback', keys: ['g', 'f'], group: 'goTo', href: '/tickets' },
+  { id: 'settings', keys: ['g', 's'], group: 'goTo', href: '/dashboard/settings' },
+  { id: 'new', keys: ['n'], group: 'actions' },
+  { id: 'search', keys: ['/'], group: 'actions' },
+  { id: 'showList', keys: ['?'], group: 'help' },
+  { id: 'close', keys: ['Escape'], group: 'help' },
 ]
 
 /** How long a chord's first key stays armed before it is forgotten. */

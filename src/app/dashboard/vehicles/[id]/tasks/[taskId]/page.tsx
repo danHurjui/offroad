@@ -1,9 +1,11 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, ORIGINALITY_CONDITIONS, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getVocabulary, getOriginalityConditions } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import TaskPhotos from '@/components/TaskPhotos'
 import TaskReceipt from '@/components/TaskReceipt'
@@ -11,6 +13,10 @@ import DeleteTaskButton from '@/components/DeleteTaskButton'
 
 // RL-005: task detail view.
 export default async function TaskDetailPage({ params }: { params: { id: string; taskId: string } }) {
+  const t = await getTranslations('task')
+  const tv = await getTranslations('vehicle')
+  const tc = await getTranslations('common')
+  const originalityConditions = await getOriginalityConditions()
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -23,7 +29,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
 
   const isOwner = vehicle.ownerId === session.user.id
   const canEdit = isOwner || task.addedByUserId === session.user.id
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
 
   const addedByCollaborator = task.addedByUserId !== vehicle.ownerId
   // A deleted account leaves addedByUserId null. Looking a null up in
@@ -53,14 +59,14 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
   return (
     <div className="mx-auto max-w-2xl">
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to {config.screenTitle}
+        {tc('backTo', { screen: config.screenTitle })}
       </Link>
 
       <div className="card p-6">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <div className="mb-1 flex items-center gap-2">
-              {task.workType === 'WORKSHOP' && <span title="Workshop task">🔧</span>}
+              {task.workType === 'WORKSHOP' && <span title={tv('workshopTask')}>🔧</span>}
               <span className="badge bg-surface-subtle text-ink-muted">{labelFor(config.categories, task.category)}</span>
               <span className="badge badge-brand">{labelFor(config.statusTags, task.status)}</span>
             </div>
@@ -70,7 +76,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
           {canEdit && (
             <div className="flex shrink-0 gap-2">
               <Link href={`/dashboard/vehicles/${vehicle.id}/tasks/${task.id}/edit`} className="btn-secondary">
-                Edit
+                {tc('edit')}
               </Link>
               {isOwner && <DeleteTaskButton vehicleId={vehicle.id} taskId={task.id} />}
             </div>
@@ -79,43 +85,43 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
 
         <dl className="mb-4 grid grid-cols-2 gap-3 text-sm">
           <div>
-            <dt className="text-ink-faint">Date</dt>
+            <dt className="text-ink-faint">{t('date')}</dt>
             <dd className="text-ink">{new Date(task.date).toLocaleDateString('ro-RO')}</dd>
           </div>
           {addedByCollaborator && (
             <div>
-              <dt className="text-ink-faint">Added by</dt>
+              <dt className="text-ink-faint">{t('addedBy')}</dt>
               <dd className="text-ink">
                 {addedByDeletedAccount ? (
-                  <span className="text-ink-faint">A deleted account</span>
+                  <span className="text-ink-faint">{t('deletedAccount')}</span>
                 ) : (
                   <>
                     {task.addedBy?.displayName}
-                    {addedByRemoved && <span className="ml-1 text-xs text-ink-faint">(access removed)</span>}
+                    {addedByRemoved && <span className="ml-1 text-xs text-ink-faint">{t('accessRemoved')}</span>}
                   </>
                 )}
               </dd>
             </div>
           )}
           <div>
-            <dt className="text-ink-faint">Total cost</dt>
+            <dt className="text-ink-faint">{t('totalCostLabel')}</dt>
             <dd className="font-semibold text-ink">{totalCost.toLocaleString('ro-RO')} RON</dd>
           </div>
           {task.workType === 'WORKSHOP' && (
             <>
               <div>
-                <dt className="text-ink-faint">Workshop</dt>
+                <dt className="text-ink-faint">{t('workshop')}</dt>
                 <dd className="text-ink">{task.workshopName}</dd>
               </div>
               <div>
-                <dt className="text-ink-faint">Parts / Labour</dt>
+                <dt className="text-ink-faint">{t('partsLabour')}</dt>
                 <dd className="text-ink">{(partsCostRon ?? 0).toLocaleString('ro-RO')} / {(labourCostRon ?? 0).toLocaleString('ro-RO')} RON</dd>
               </div>
             </>
           )}
           {task.supplierUrl && (
             <div className="col-span-2">
-              <dt className="text-ink-faint">Supplier</dt>
+              <dt className="text-ink-faint">{t('supplier')}</dt>
               <dd>
                 <a href={task.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
                   {task.supplierUrl}
@@ -125,24 +131,24 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
           )}
           {task.originalityCondition && (
             <div className="col-span-2">
-              <dt className="text-ink-faint">Part condition</dt>
-              <dd className="text-ink">{labelFor(ORIGINALITY_CONDITIONS, task.originalityCondition)}</dd>
+              <dt className="text-ink-faint">{t('partCondition')}</dt>
+              <dd className="text-ink">{labelFor(originalityConditions, task.originalityCondition)}</dd>
             </div>
           )}
           {task.notes && (
             <div className="col-span-2">
-              <dt className="text-ink-faint">Notes</dt>
+              <dt className="text-ink-faint">{t('notes')}</dt>
               <dd className="whitespace-pre-wrap text-ink">{task.notes}</dd>
             </div>
           )}
         </dl>
 
         <hr className="mb-4 border-surface-border" />
-        <h2 className="mb-3 font-semibold text-ink">Receipt</h2>
+        <h2 className="mb-3 font-semibold text-ink">{t('receipt')}</h2>
         <TaskReceipt vehicleId={vehicle.id} taskId={task.id} receiptUrl={task.receiptUrl} canEdit={canEdit} />
 
         <hr className="my-4 border-surface-border" />
-        <h2 className="mb-3 font-semibold text-ink">Photos</h2>
+        <h2 className="mb-3 font-semibold text-ink">{t('photos')}</h2>
         <TaskPhotos
           vehicleId={vehicle.id}
           taskId={task.id}

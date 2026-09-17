@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -21,16 +22,16 @@ const CONTENT_TYPES: Record<string, string> = {
 // session — gated on vehicle.isPublic, not on who's asking.
 export async function GET(_req: NextRequest, { params }: { params: { path: string[] } }) {
   const [, vehicleId] = params.path
-  if (!vehicleId) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicleId) return await apiError('notFound', 404)
 
   const vehicle = await prisma.vehicle.findUnique({ where: { id: vehicleId } })
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   if (!vehicle.isPublic) {
     const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session) return await apiError('unauthorized', 401)
     const hasAccess = await requireVehicleAccess(vehicleId, session.user.id)
-    if (!hasAccess) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (!hasAccess) return await apiError('notFound', 404)
   }
 
   try {
@@ -46,7 +47,7 @@ export async function GET(_req: NextRequest, { params }: { params: { path: strin
       },
     })
   } catch (e) {
-    if (e instanceof StorageError) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    if (e instanceof StorageError) return await apiError('notFound', 404)
+    return await apiError('internalError', 500)
   }
 }

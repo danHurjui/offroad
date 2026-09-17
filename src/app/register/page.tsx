@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import AuthShell from '@/components/AuthShell'
 import FormError from '@/components/FormError'
 import PasswordInput from '@/components/PasswordInput'
 import PasswordStrengthMeter from '@/components/PasswordStrengthMeter'
@@ -11,6 +13,8 @@ import GoogleSignInButton from '@/components/GoogleSignInButton'
 import { MIN_PASSWORD_LENGTH } from '@/lib/passwordStrength'
 
 export default function RegisterPage() {
+  const t = useTranslations('auth.register')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
@@ -30,7 +34,9 @@ export default function RegisterPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? 'Registration failed')
+        // The route's own message, which is translated server-side from
+        // the same cookie this page was rendered from (src/lib/apiError.ts).
+        setError(data.error ?? t('failed'))
         setLoading(false)
         return
       }
@@ -43,20 +49,20 @@ export default function RegisterPage() {
       router.push('/dashboard')
       router.refresh()
     } catch {
-      setError('Registration failed')
+      setError(t('failed'))
       setLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface-muted px-4">
+    <AuthShell>
       <div className="card w-full max-w-sm p-6">
-        <h1 className="mb-1 text-2xl font-bold text-ink">Create your account</h1>
-        <p className="mb-6 text-sm text-ink-muted">Start logging your build for free.</p>
+        <h1 className="mb-1 text-2xl font-bold text-ink">{t('title')}</h1>
+        <p className="mb-6 text-sm text-ink-muted">{t('subtitle')}</p>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
-            <label className="label" htmlFor="displayName">Name</label>
+            <label className="label" htmlFor="displayName">{t('name')}</label>
             <input
               id="displayName"
               name="displayName"
@@ -70,10 +76,10 @@ export default function RegisterPage() {
               autoFocus
               required
             />
-            <p className="mt-1 text-xs text-ink-faint">Shown on your public builds.</p>
+            <p className="mt-1 text-xs text-ink-faint">{t('nameHelp')}</p>
           </div>
           <div>
-            <label className="label" htmlFor="email">Email</label>
+            <label className="label" htmlFor="email">{tc('email')}</label>
             <input
               id="email"
               name="email"
@@ -92,7 +98,7 @@ export default function RegisterPage() {
           <div>
             <PasswordInput
               id="password"
-              label="Password"
+              label={tc('password')}
               value={password}
               onChange={setPassword}
               autoComplete="new-password"
@@ -101,35 +107,43 @@ export default function RegisterPage() {
             />
             <PasswordStrengthMeter password={password} id="password-strength" />
             {!password && (
-              <p className="mt-1 text-xs text-ink-faint">At least {MIN_PASSWORD_LENGTH} characters.</p>
+              <p className="mt-1 text-xs text-ink-faint">
+                {t('passwordHelp', { min: MIN_PASSWORD_LENGTH })}
+              </p>
             )}
           </div>
           <FormError id="register-error">{error}</FormError>
           <button type="submit" className="btn-primary w-full" disabled={loading}>
-            {loading ? 'Creating account…' : 'Create account'}
+            {loading ? t('submitting') : t('submit')}
           </button>
+          {/* One sentence with two links inside it. Rich text rather than
+              three concatenated fragments, because the word order around
+              the links differs between languages. */}
           <p className="text-center text-xs text-ink-faint">
-            By creating an account you agree to our{' '}
-            <Link href="/terms" className="underline hover:text-ink-muted">
-              terms
-            </Link>{' '}
-            and{' '}
-            <Link href="/privacy" className="underline hover:text-ink-muted">
-              privacy policy
-            </Link>
-            .
+            {t.rich('terms', {
+              terms: (chunks) => (
+                <Link href="/terms" className="underline hover:text-ink-muted">
+                  {chunks}
+                </Link>
+              ),
+              privacy: (chunks) => (
+                <Link href="/privacy" className="underline hover:text-ink-muted">
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         </form>
 
         <GoogleSignInButton />
 
         <p className="mt-4 text-center text-sm">
-          Already have an account?{' '}
+          {t('haveAccount')}{' '}
           <Link href="/login" className="text-brand-600 dark:text-brand-300 hover:underline">
-            Log in
+            {t('logIn')}
           </Link>
         </p>
       </div>
-    </div>
+    </AuthShell>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import FormError from './FormError'
 import { useState } from 'react'
 
@@ -14,6 +15,8 @@ import { useState } from 'react'
  * 429 or a 500 surface as a message instead of a downloaded error page.
  */
 export default function DataExportCard() {
+  const t = useTranslations('dataExport')
+  const tc = useTranslations('common')
   const [working, setWorking] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -24,9 +27,9 @@ export default function DataExportCard() {
       const res = await fetch('/api/me/export')
       if (!res.ok) {
         if (res.status === 429) {
-          setError('You have requested this a few times just now. Please try again a little later.')
+          setError(t('rateLimited'))
         } else {
-          setError('Could not build the export. Please try again.')
+          setError(t('failed'))
         }
         return
       }
@@ -43,7 +46,7 @@ export default function DataExportCard() {
       // memory until the tab is closed.
       URL.revokeObjectURL(url)
     } catch {
-      setError('Could not reach the server. Please check your connection and try again.')
+      setError(tc('networkError'))
     } finally {
       setWorking(false)
     }
@@ -51,23 +54,19 @@ export default function DataExportCard() {
 
   return (
     <div className="card space-y-3 p-6">
-      <h2 className="font-semibold text-ink">Your data</h2>
+      <h2 className="font-semibold text-ink">{t('title')}</h2>
       <p className="text-sm text-ink-muted">
-        Download everything RigLog holds about your account — your profile, every vehicle, task,
-        cost, document and wishlist item, plus what you have posted publicly. It arrives as JSON, so
-        another tool can read it.
+        {t('intro')}
       </p>
       <p className="text-xs text-ink-faint">
-        Photos and files aren&rsquo;t inside the download — a build&rsquo;s photos can run to
-        hundreds of megabytes. The export lists them so you can match a file to the entry that used
-        it, and each one is downloadable from its own page.
+        {t('filesNote')}
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <button type="button" className="btn-secondary" onClick={onExport} disabled={working}>
-          {working ? 'Preparing…' : 'Download my data'}
+          {working ? t('preparing') : t('download')}
         </button>
         <Link href="/privacy" className="text-sm text-brand-600 dark:text-brand-300 hover:underline">
-          What we store and why
+          {t('whatWeStore')}
         </Link>
       </div>
       <FormError>{error}</FormError>

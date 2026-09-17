@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import { serializeWishlistItem } from '@/lib/serialize'
 import WishlistBoard from '@/components/WishlistBoard'
 
@@ -12,7 +12,7 @@ export default async function WishlistPage({ params }: { params: { id: string } 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const items = await prisma.wishlistItem.findMany({
     where: { vehicleId: vehicle.id },
     orderBy: { priority: 'asc' },

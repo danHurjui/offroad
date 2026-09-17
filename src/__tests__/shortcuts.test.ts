@@ -30,23 +30,26 @@ describe('SHORTCUTS', () => {
     expect(CHORD_PREFIXES).toEqual(['g'])
   })
 
-  it('gives every "Go to" shortcut somewhere to go', () => {
-    for (const shortcut of SHORTCUTS.filter((s) => s.group === 'Go to')) {
+  it('gives every "go to" shortcut somewhere to go', () => {
+    for (const shortcut of SHORTCUTS.filter((s) => s.group === 'goTo')) {
       expect(shortcut.href).toMatch(/^\//)
     }
   })
 
-  it('gives every shortcut a label for the help sheet', () => {
-    for (const shortcut of SHORTCUTS) {
-      expect(shortcut.label.trim().length).toBeGreaterThan(0)
-    }
+  // The description lives in the catalogue now — i18n.test.ts checks both
+  // languages have one. What has to hold here is that the id it is keyed
+  // on is present and unique.
+  it('gives every shortcut a distinct id to look its description up by', () => {
+    const ids = SHORTCUTS.map((s) => s.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const id of ids) expect(id.trim().length).toBeGreaterThan(0)
   })
 })
 
 describe('matchShortcut', () => {
   it('matches a single key', () => {
-    expect(matchShortcut(['?'])?.group).toBe('Help')
-    expect(matchShortcut(['n'])?.label).toMatch(/New/)
+    expect(matchShortcut(['?'])?.group).toBe('help')
+    expect(matchShortcut(['n'])?.id).toBe('new')
   })
 
   it('matches a chord', () => {

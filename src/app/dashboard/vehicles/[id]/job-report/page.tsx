@@ -1,9 +1,10 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import ExportPdfButton from '@/components/ExportPdfButton'
 
 // RL-033: job report — always free. A collaborator generates their own
@@ -20,7 +21,9 @@ export default async function JobReportPage({
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const t = await getTranslations('jobReport')
+  const tc = await getTranslations('common')
+  const config = await getVocabulary(vehicle.projectType)
   const isOwner = vehicle.ownerId === session.user.id
   const range = searchParams.range === 'all' ? 'all' : '30d'
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
@@ -45,15 +48,15 @@ export default async function JobReportPage({
     return (
       <div className="mx-auto max-w-xl">
         <Link href={`/dashboard/vehicles/${vehicle.id}/collaborators`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-          ← Back to Collaborators
+          {t('backToCollaborators')}
         </Link>
-        <h1 className="mb-6 text-2xl font-bold text-ink">Job report</h1>
+        <h1 className="mb-6 text-2xl font-bold text-ink">{t('title')}</h1>
 
         {!selected ? (
           <div className="card p-5">
-            <p className="mb-3 text-sm text-ink-muted">Pick a collaborator to generate their job report.</p>
+            <p className="mb-3 text-sm text-ink-muted">{t('pickCollaborator')}</p>
             {uniqueCollaborators.length === 0 ? (
-              <p className="text-sm text-ink-faint">No collaborators have accepted an invite yet.</p>
+              <p className="text-sm text-ink-faint">{t('noCollaborators')}</p>
             ) : (
               <div className="space-y-2">
                 {uniqueCollaborators.map((c) => (
@@ -84,15 +87,15 @@ export default async function JobReportPage({
   return (
     <div className="mx-auto max-w-xl">
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to {config.screenTitle}
+        {tc('backTo', { screen: config.screenTitle })}
       </Link>
-      <h1 className="mb-6 text-2xl font-bold text-ink">Job report</h1>
+      <h1 className="mb-6 text-2xl font-bold text-ink">{t('title')}</h1>
       <ReportPanel vehicleId={vehicle.id} vehicleName={vehicleName} collaboratorId={session.user.id} range={range} />
     </div>
   )
 }
 
-function ReportPanel({
+async function ReportPanel({
   vehicleId,
   vehicleName,
   collaboratorId,
@@ -105,18 +108,19 @@ function ReportPanel({
   collaboratorName?: string
   range: '30d' | 'all'
 }) {
+  const t = await getTranslations('jobReport')
   const baseHref = `/dashboard/vehicles/${vehicleId}/job-report?collaboratorId=${collaboratorId}`
   const endpoint = `/api/vehicles/${vehicleId}/export/job-report?collaboratorId=${collaboratorId}&range=${range}`
 
   return (
     <div className="card p-5">
-      {collaboratorName && <p className="mb-3 text-sm text-ink-muted">Collaborator: {collaboratorName}</p>}
+      {collaboratorName && <p className="mb-3 text-sm text-ink-muted">{t('collaborator', { name: collaboratorName })}</p>}
       <div className="mb-4 flex flex-wrap gap-2 text-sm">
         <Link href={`${baseHref}&range=30d`} className={`badge ${range === '30d' ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
-          Last 30 days
+          {t('last30Days')}
         </Link>
         <Link href={`${baseHref}&range=all`} className={`badge ${range === 'all' ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
-          All time
+          {t('allTime')}
         </Link>
       </div>
       <ExportPdfButton endpoint={endpoint} fallbackName={`RigLog_JobReport_${vehicleName}`} />

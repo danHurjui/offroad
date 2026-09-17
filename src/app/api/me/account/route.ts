@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { collectStorageKeys, deleteStoredFiles } from '@/lib/personalData'
@@ -31,6 +32,6 @@ export async function DELETE() {
     await deleteStoredFiles(keys)
     return NextResponse.json({ message: 'Account deleted', filesDeleted: keys.length })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

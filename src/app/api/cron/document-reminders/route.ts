@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
-import { decideReminder, formatDaysUntil, getDocumentStatus, DOCUMENT_TYPE_OPTIONS, REMINDER_FIELDS } from '@/lib/documents'
-import { labelFor } from '@/lib/projectType'
-import { sendEmail, documentReminderEmailHtml } from '@/lib/email'
+import { translator } from '@/i18n/translator'
+import { decideReminder, daysUntilMessage, getDocumentStatus, REMINDER_FIELDS } from '@/lib/documents'
+import { sendEmail, documentReminderEmail, emailLocale } from '@/lib/email'
 import { purgeExpiredRateLimits } from '@/lib/rateLimit'
 import { appUrlForNotification } from '@/lib/appUrl'
 
@@ -24,7 +25,7 @@ async function handle(req: NextRequest) {
   const bearer = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   const secret = bearer ?? req.headers.get('x-cron-secret')
   if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return await apiError('unauthorized', 401)
   }
 
   const documents = await prisma.document.findMany({
@@ -34,7 +35,7 @@ async function handle(req: NextRequest) {
       OR: REMINDER_FIELDS.map((field) => ({ [field]: null })),
     },
     include: {
-      vehicle: { select: { id: true, make: true, model: true, year: true, owner: { select: { email: true } } } },
+      vehicle: { select: { id: true, make: true, model: true, year: true, owner: { select: { email: true, locale: true } } } },
     },
   })
 
@@ -56,16 +57,19 @@ async function handle(req: NextRequest) {
     for (const field of decision.fieldsToMarkSent) data[field] = new Date()
     await prisma.document.update({ where: { id: doc.id }, data })
 
-    await sendEmail({
-      to: doc.vehicle.owner.email,
-      subject: `${labelFor(DOCUMENT_TYPE_OPTIONS, doc.type)} ${formatDaysUntil(daysUntil)}`,
-      html: documentReminderEmailHtml({
-        documentLabel: labelFor(DOCUMENT_TYPE_OPTIONS, doc.type),
-        vehicleName: `${doc.vehicle.year} ${doc.vehicle.make} ${doc.vehicle.model}`,
-        daysUntilLabel: formatDaysUntil(daysUntil),
-        vehicleUrl: `${baseUrl}/dashboard/vehicles/${doc.vehicle.id}/documents`,
-      }),
+    // The owner's language, not the cron job's: this runs nightly with no
+    // browser and no cookie anywhere near it.
+    const locale = emailLocale(doc.vehicle.owner)
+    const tDoc = await translator(locale, 'documents')
+    const days = daysUntilMessage(daysUntil)
+
+    const { subject, html } = await documentReminderEmail(locale, {
+      documentLabel: tDoc(`type.${doc.type}`),
+      vehicleName: `${doc.vehicle.year} ${doc.vehicle.make} ${doc.vehicle.model}`,
+      daysUntilLabel: tDoc(days.key, days.values),
+      vehicleUrl: `${baseUrl}/dashboard/vehicles/${doc.vehicle.id}/documents`,
     })
+    await sendEmail({ to: doc.vehicle.owner.email, subject, html })
     sent++
   }
 

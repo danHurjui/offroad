@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { getStripe } from '@/lib/stripe'
@@ -13,7 +14,7 @@ export async function POST(_req: NextRequest) {
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { stripeCustomerId: true } })
   if (!user?.stripeCustomerId) {
-    return NextResponse.json({ error: 'No billing account yet' }, { status: 400 })
+    return await apiError('noBillingAccount', 400)
   }
 
   try {
@@ -26,6 +27,6 @@ export async function POST(_req: NextRequest) {
     return NextResponse.json({ url: portalSession.url })
   } catch (e) {
     console.error('Stripe portal session failed:', e)
-    return NextResponse.json({ error: 'Could not open billing portal' }, { status: 500 })
+    return await apiError('billingPortalFailed', 500)
   }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { applyTheme, readStoredTheme, type ThemePreference } from '@/lib/theme'
 
 const OPTIONS: { value: ThemePreference; label: string; icon: string }[] = [
@@ -16,6 +17,7 @@ const OPTIONS: { value: ThemePreference; label: string; icon: string }[] = [
  * hydration mismatch.
  */
 export default function ThemeToggle({ compact = false }: { compact?: boolean }) {
+  const t = useTranslations('misc')
   const [preference, setPreference] = useState<ThemePreference>('system')
   const [mounted, setMounted] = useState(false)
 
@@ -60,7 +62,7 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
   }
 
   return (
-    <div role="radiogroup" aria-label="Theme" className="inline-flex rounded-lg border border-surface-border p-0.5">
+    <div role="radiogroup" aria-label={t('theme')} className="inline-flex rounded-lg border border-surface-border p-0.5">
       {OPTIONS.map((option) => (
         <button
           key={option.value}

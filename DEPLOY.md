@@ -184,6 +184,42 @@ that receives user data, add it to `SUB_PROCESSORS` in the same change** —
 there is a test asserting that every external host the code calls appears
 in that list.
 
+## 7. Create the first admin account
+
+The admin area (`/admin`) moderates the public feedback board. Nothing in
+the app can grant it: `User.isAdmin` is settable only in the database, and
+`PATCH /api/admin/users/[userId]` copies exactly `active` and
+`isProComped` onto the row, so not even a signed-in admin can mint another
+one. That is why the first one is made from outside:
+
+```bash
+# From a checkout of this repo, with the production connection strings.
+# Both are needed — prisma/schema.prisma reads DIRECT_URL as well.
+DATABASE_URL="<the pooled Neon URL from Vercel>" \
+DIRECT_URL="<the direct Neon URL from Vercel>" \
+  npm run db:create-admin -- you@example.com "Your Name"
+```
+
+Copy both strings from the Vercel project's environment variables — the
+same two values section 4 set. The script prints the host and database it
+is about to write to before it changes anything, and asks for confirmation
+(`--yes` skips the prompt for a non-interactive run).
+
+- **The account already exists?** It is promoted in place, and reactivated
+  if it had been deactivated — an admin who cannot log in is not an admin.
+  Its password is left alone unless you pass `--reset-password`.
+- **It does not exist?** It is created, with a password you supply in
+  `ADMIN_PASSWORD` or one generated and printed once. Change it after
+  signing in.
+- Re-running it changes nothing, so it is safe in a deploy script.
+- An account created this way does **not** take a founding-member slot;
+  those hundred are for real signups.
+
+Confirm it worked by signing in and opening `/admin`. A non-admin gets a
+404 there rather than a 403 — the admin area doesn't confirm its own
+existence to someone guessing URLs — so a 404 after doing this means the
+flag didn't land, not that the URL is wrong.
+
 ## Known free-tier constraints
 
 - **Uploads are capped at 4MB** (`MAX_UPLOAD_BYTES` in `src/lib/storage.ts`)

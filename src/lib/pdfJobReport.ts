@@ -11,7 +11,26 @@ export interface JobReportTask {
   photos: PdfPhoto[]
 }
 
+/** The words this document prints; see PdfHistoryStrings for why. */
+export interface PdfJobReportStrings {
+  title: string
+  preparedBy: string
+  period: string
+  /**
+   * Given the total, produce the line. The builder still does the summing
+   * — it is a pure function of the tasks it was handed, and moving it out
+   * would put the same loop in every caller.
+   */
+  totalLabour: (total: number) => string
+  totalParts: (total: number) => string
+  noTasks: string
+  documentedWith: string
+  /** `taskMeta(task)` — one line per task, already formatted. */
+  taskMeta: (task: { date: Date; category: string; partsCostRon: number; labourCostRon: number }) => string
+}
+
 export interface JobReportInput {
+  strings: PdfJobReportStrings
   collaboratorName: string
   vehicleName: string
   rangeLabel: string
@@ -20,7 +39,6 @@ export interface JobReportInput {
 }
 
 const RON = (n: number) => `${n.toLocaleString('ro-RO')} RON`
-const DATE = (d: Date) => d.toLocaleDateString('ro-RO')
 
 function photoRow(photos: PdfPhoto[]): Content | null {
   if (photos.length === 0) return null
@@ -30,7 +48,7 @@ function photoRow(photos: PdfPhoto[]): Content | null {
   }
 }
 
-function taskRow(task: JobReportTask): Content {
+function taskRow(strings: PdfJobReportStrings, task: JobReportTask): Content {
   const totalCost = task.partsCostRon + task.labourCostRon
   const content: Content[] = [
     {
@@ -40,7 +58,7 @@ function taskRow(task: JobReportTask): Content {
       ],
     },
     {
-      text: `${DATE(task.date)}  ·  ${task.category}  ·  Parts: ${RON(task.partsCostRon)}  ·  Labour: ${RON(task.labourCostRon)}`,
+      text: strings.taskMeta(task),
       style: 'taskMeta',
     },
   ]
@@ -60,15 +78,16 @@ export function buildJobReportDocDefinition(input: JobReportInput): PdfDocDefini
   const totalLabourCost = input.tasks.reduce((sum, t) => sum + t.labourCostRon, 0)
   const totalPartsCost = input.tasks.reduce((sum, t) => sum + t.partsCostRon, 0)
 
+  const { strings } = input
   const content: Content[] = [
-    { text: 'Job report', style: 'title' },
+    { text: strings.title, style: 'title' },
     { text: input.vehicleName, style: 'subtitle' },
     {
       table: {
         widths: ['auto', '*'],
         body: [
-          [{ text: 'Prepared by', style: 'detailKey' }, { text: input.collaboratorName, style: 'detailValue' }],
-          [{ text: 'Period', style: 'detailKey' }, { text: input.rangeLabel, style: 'detailValue' }],
+          [{ text: strings.preparedBy, style: 'detailKey' }, { text: input.collaboratorName, style: 'detailValue' }],
+          [{ text: strings.period, style: 'detailKey' }, { text: input.rangeLabel, style: 'detailValue' }],
         ],
       },
       layout: 'noBorders',
@@ -76,24 +95,24 @@ export function buildJobReportDocDefinition(input: JobReportInput): PdfDocDefini
     },
     {
       columns: [
-        { text: `Total labour: ${RON(totalLabourCost)}`, style: 'summary' },
-        { text: `Total parts: ${RON(totalPartsCost)}`, style: 'summary', alignment: 'right' },
+        { text: strings.totalLabour(totalLabourCost), style: 'summary' },
+        { text: strings.totalParts(totalPartsCost), style: 'summary', alignment: 'right' },
       ],
       margin: [0, 0, 0, 16],
     },
   ]
 
   if (input.tasks.length === 0) {
-    content.push({ text: 'No tasks logged in this period.', style: 'taskNotes' })
+    content.push({ text: strings.noTasks, style: 'taskNotes' })
   } else {
-    for (const task of input.tasks) content.push(taskRow(task))
+    for (const task of input.tasks) content.push(taskRow(strings, task))
   }
 
   return {
     content,
     footer: (currentPage: number, pageCount: number) => ({
       columns: [
-        { text: 'Documented with RigLog — riglog.ro', style: 'footer' },
+        { text: strings.documentedWith, style: 'footer' },
         { text: `${currentPage} / ${pageCount}`, style: 'footer', alignment: 'right' },
       ],
       margin: [40, 0, 40, 0],

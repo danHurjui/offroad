@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
-import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import WishlistItemForm from '@/components/WishlistItemForm'
 
 export default async function NewWishlistItemPage({ params }: { params: { id: string } }) {
@@ -9,7 +9,7 @@ export default async function NewWishlistItemPage({ params }: { params: { id: st
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
 
   return (
     <div className="mx-auto max-w-xl">

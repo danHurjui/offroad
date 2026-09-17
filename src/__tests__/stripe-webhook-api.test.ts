@@ -7,7 +7,8 @@ jest.mock('@/lib/stripe', () => ({
 }))
 jest.mock('@/lib/email', () => ({
   sendEmail: jest.fn().mockResolvedValue(undefined),
-  paymentFailedEmailHtml: jest.fn().mockReturnValue('<p>failed</p>'),
+  paymentFailedEmail: jest.fn().mockResolvedValue({ subject: 's', html: '<p>x</p>' }),
+  emailLocale: jest.fn().mockReturnValue('ro'),
 }))
 
 import { prisma } from '@/lib/prisma'

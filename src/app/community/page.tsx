@@ -4,13 +4,15 @@ import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, type ProjectType, PROJECT_TYPES, isProjectType } from '@/lib/projectType'
+import { type ProjectType, PROJECT_TYPES, isProjectType } from '@/lib/projectType'
+import { getAllVocabulary } from '@/lib/vocabulary'
 import { computeVehicleProgress } from '@/lib/vehicleProgress'
 import { ERA_OPTIONS, yearMatchesEra } from '@/lib/era'
+import { getTranslations } from 'next-intl/server'
 
-export const metadata: Metadata = {
-  title: 'Community builds — RigLog',
-  description: 'Browse public off-road builds and restoration projects on RigLog.',
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('community')
+  return { title: t('metaTitle'), description: t('metaDescription') }
 }
 
 const PAGE_SIZE = 20
@@ -73,10 +75,17 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
     },
   })
 
+  // Every mode's labels, resolved once: the map below is synchronous
+  // and would otherwise await per row.
+  const t = await getTranslations('community')
+  const tc = await getTranslations('common')
+  const tEra = await getTranslations('era')
+  const vocabulary = await getAllVocabulary()
+
   const withComputedFields = vehicles
     .filter((v) => v.owner.username && v.slug) // always true for a public vehicle post-RL-018, but stay defensive
     .map((v) => {
-      const config = PROJECT_TYPE_CONFIG[v.projectType]
+      const config = vocabulary[v.projectType]
       // A daily driver's log has no end state, so it is never "complete"
       // for the status filter/badge (config.tracksCompletion).
       const { isComplete: categoriesDone } = computeVehicleProgress(
@@ -114,57 +123,59 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
       <div className="mx-auto max-w-5xl px-4 py-8">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h1 className="mb-1 text-2xl font-bold text-ink">Community builds</h1>
-            <p className="text-sm text-ink-muted">Public off-road builds and restoration projects on RigLog.</p>
+            <h1 className="mb-1 text-2xl font-bold text-ink">{t('title')}</h1>
+            <p className="text-sm text-ink-muted">{t('subtitle')}</p>
           </div>
           <Link href="/community/parts-wanted" className="btn-secondary shrink-0">
-            Parts wanted
+            {t('partsWanted')}
           </Link>
         </div>
 
         {session && (
           <div className="mb-4 flex gap-2 text-sm">
             <Link href={buildHref({ following: undefined, page: undefined })} className={`badge ${!followingOnly ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
-              All
+              {t('all')}
             </Link>
             <Link href={buildHref({ following: '1', page: undefined })} className={`badge ${followingOnly ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
-              Following
+              {t('following')}
             </Link>
           </div>
         )}
 
         <form className="card mb-6 grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-6" method="get">
           {followingOnly && <input type="hidden" name="following" value="1" />}
-          <input type="text" name="q" defaultValue={q} placeholder="Search make, model, owner…" className="input sm:col-span-3 lg:col-span-2" />
+          <input type="text" name="q" defaultValue={q} placeholder={t('searchPlaceholder')} className="input sm:col-span-3 lg:col-span-2" />
           <select name="type" defaultValue={type ?? ''} className="input">
-            <option value="">All types</option>
+            <option value="">{t('allTypes')}</option>
             {PROJECT_TYPES.map((t) => (
               <option key={t} value={t}>
-                {PROJECT_TYPE_CONFIG[t].communityTabLabel}
+                {vocabulary[t].communityTabLabel}
               </option>
             ))}
           </select>
-          <input type="text" name="make" defaultValue={make} placeholder="Make" className="input" />
-          <input type="text" name="country" defaultValue={country} placeholder="Country / location" className="input" />
+          <input type="text" name="make" defaultValue={make} placeholder={t('makePlaceholder')} className="input" />
+          <input type="text" name="country" defaultValue={country} placeholder={t('countryPlaceholder')} className="input" />
           <select name="status" defaultValue={status ?? ''} className="input">
-            <option value="">Any status</option>
-            <option value="in_progress">In progress</option>
-            <option value="complete">Complete</option>
+            <option value="">{t('anyStatus')}</option>
+            <option value="in_progress">{t('inProgress')}</option>
+            <option value="complete">{t('complete')}</option>
           </select>
-          <select name="era" defaultValue={era} className="input" title="Restoration projects only">
-            <option value="">Any era (restoration)</option>
+          <select name="era" defaultValue={era} className="input" title={t('eraTitle')}>
+            <option value="">{t('anyEra')}</option>
             {ERA_OPTIONS.map((e) => (
-              <option key={e.value} value={e.value}>{e.label}</option>
+              <option key={e.value} value={e.value}>
+                {tEra(e.value)}
+              </option>
             ))}
           </select>
           <button type="submit" className="btn-primary sm:col-span-3 lg:col-span-1">
-            Filter
+            {t('filter')}
           </button>
         </form>
 
         {pageItems.length === 0 ? (
           <p className="text-center text-sm text-ink-faint">
-            {followingOnly ? "You're not following any public projects yet." : 'No public builds match these filters yet.'}
+            {followingOnly ? t('emptyFollowing') : t('empty')}
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -183,7 +194,7 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
                   />
                 ) : (
                   <div className="flex h-40 items-center justify-center bg-surface-subtle text-sm text-ink-faint">
-                    No cover photo
+                    {t('noCover')}
                   </div>
                 )}
                 <div className="p-4">
@@ -192,7 +203,13 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
                     {vehicle.year} {vehicle.make} {vehicle.model}
                   </h2>
                   <p className="text-xs text-ink-faint">
-                    {taskCount} {taskCount === 1 ? 'task' : 'tasks'} · updated {vehicle.updatedAt.toLocaleDateString('ro-RO')}
+                    {/* Dates stay in Romanian format in both languages.
+                        The product is Romanian — its prices are RON and its
+                        deadlines are ITP dates — and 09/10 read as M/D by an
+                        English-formatted date is a different day from the one
+                        the DD.MM everyone around it uses. */}
+                    {t('taskCount', { count: taskCount })} ·{' '}
+                    {t('updated', { date: vehicle.updatedAt.toLocaleDateString('ro-RO') })}
                   </p>
                   <p className="mt-1 text-sm text-ink-muted">
                     {vehicle.owner.displayName}
@@ -208,15 +225,15 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
           <div className="mt-6 flex items-center justify-center gap-3 text-sm">
             {page > 1 && (
               <Link href={buildHref({ page: String(page - 1) })} className="btn-secondary">
-                ← Previous
+                {t('previous')}
               </Link>
             )}
             <span className="text-ink-muted">
-              Page {page} of {totalPages}
+              {tc('pageOf', { page, total: totalPages })}
             </span>
             {page < totalPages && (
               <Link href={buildHref({ page: String(page + 1) })} className="btn-secondary">
-                Next →
+                {t('next')}
               </Link>
             )}
           </div>

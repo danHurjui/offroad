@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
+import { translator } from '@/i18n/translator'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { isValidTaskVocabulary } from '@/lib/projectType'
 import { serializeTask, serializeTaskFor } from '@/lib/serialize'
-import { sendEmail, collaboratorTaskAddedEmailHtml } from '@/lib/email'
+import { sendEmail, collaboratorTaskAddedEmail, emailLocale } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
 import { appUrlForNotification } from '@/lib/appUrl'
@@ -16,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   try {
     const { searchParams } = new URL(req.url)
@@ -37,7 +39,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const hideCosts = vehicle.ownerId !== session.user.id && vehicle.hideCostsFromCollaborators
     return NextResponse.json(tasks.map((t) => serializeTaskFor(t, { hideCosts })))
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -47,7 +49,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -73,19 +75,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     } = body
 
     if (!name || typeof name !== 'string') {
-      return NextResponse.json({ error: 'name is required' }, { status: 400 })
+      return await apiError('nameRequired', 400)
     }
     if (!isValidTaskVocabulary(vehicle.projectType, category, status)) {
-      return NextResponse.json({ error: 'Invalid category/status for this project type' }, { status: 400 })
+      return await apiError('invalidCategoryStatus', 400)
     }
-    const badAmount = invalidAmountResponse({ costRon, partsCostRon, labourCostRon })
+    const badAmount = await invalidAmountResponse({ costRon, partsCostRon, labourCostRon })
     if (badAmount) return badAmount
     if (!date || Number.isNaN(new Date(date).getTime())) {
-      return NextResponse.json({ error: 'date is required' }, { status: 400 })
+      return await apiError('dateRequired', 400)
     }
     const resolvedWorkType = workType === 'WORKSHOP' ? 'WORKSHOP' : 'DIY'
     if (resolvedWorkType === 'WORKSHOP' && !workshopName) {
-      return NextResponse.json({ error: 'workshopName is required when work type is Workshop' }, { status: 400 })
+      return await apiError('workshopNameRequired', 400)
     }
 
     const task = await prisma.task.create({
@@ -116,26 +118,29 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // RL-032: notify the owner when a collaborator (not the owner) logs a task.
     if (session.user.id !== vehicle.ownerId) {
       const [owner, collaboratorUser] = await Promise.all([
-        prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { email: true } }),
+        prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { email: true, locale: true } }),
         prisma.user.findUnique({ where: { id: session.user.id }, select: { displayName: true } }),
       ])
       const baseUrl = appUrlForNotification('the follower notification for a new task')
       if (owner && baseUrl) {
-        await sendEmail({
-          to: owner.email,
-          subject: `${collaboratorUser?.displayName ?? 'A collaborator'} added a task to your build`,
-          html: collaboratorTaskAddedEmailHtml({
-            collaboratorName: collaboratorUser?.displayName ?? 'A collaborator',
-            taskName: name,
-            vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-            vehicleUrl: `${baseUrl}/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`,
-          }),
+        // The owner is the one reading this, so it renders in their
+        // language — not the collaborator's, who triggered it.
+        const locale = emailLocale(owner)
+        const tEmail = await translator(locale, 'email')
+        const collaboratorName = collaboratorUser?.displayName ?? tEmail('taskAdded.aCollaborator')
+
+        const { subject, html } = await collaboratorTaskAddedEmail(locale, {
+          collaboratorName,
+          taskName: name,
+          vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+          vehicleUrl: `${baseUrl}/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`,
         })
+        await sendEmail({ to: owner.email, subject, html })
       }
     }
 
     return NextResponse.json(serializeTask(task), { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

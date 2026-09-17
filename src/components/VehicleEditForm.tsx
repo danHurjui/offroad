@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import AutocompleteInput from './AutocompleteInput'
 import FormError from './FormError'
@@ -26,6 +27,8 @@ interface Vehicle {
 }
 
 export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
+  const t = useTranslations('vehicleEdit')
+  const tc = useTranslations('common')
   const router = useRouter()
   const [form, setForm] = useState({
     make: vehicle.make,
@@ -55,7 +58,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
     setLoading(false)
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? 'Could not save changes')
+      setError(data.error ?? t('saveFailed'))
       return
     }
     router.push(`/dashboard/vehicles/${vehicle.id}`)
@@ -63,7 +66,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
   }
 
   async function onDelete() {
-    if (!confirm('Delete this vehicle and all its tasks and photos? This cannot be undone.')) return
+    if (!confirm(t('confirmDelete'))) return
     setDeleting(true)
     await fetch(`/api/vehicles/${vehicle.id}`, { method: 'DELETE' })
     router.push('/dashboard')
@@ -75,7 +78,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
       <form onSubmit={onSubmit} className="card space-y-4 p-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label className="label" htmlFor="make">Make</label>
+            <label className="label" htmlFor="make">{t('make')}</label>
             <AutocompleteInput
               id="make"
               value={form.make}
@@ -86,7 +89,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
             />
           </div>
           <div>
-            <label className="label" htmlFor="model">Model</label>
+            <label className="label" htmlFor="model">{t('model')}</label>
             <AutocompleteInput
               id="model"
               value={form.model}
@@ -97,7 +100,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
             />
           </div>
           <div>
-            <label className="label" htmlFor="year">Year</label>
+            <label className="label" htmlFor="year">{t('year')}</label>
             <input
               id="year"
               name="year"
@@ -113,7 +116,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
             />
           </div>
           <div>
-            <label className="label" htmlFor="generation">Generation</label>
+            <label className="label" htmlFor="generation">{t('generation')}</label>
             <input
               id="generation"
               name="generation"
@@ -124,7 +127,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
             />
           </div>
           <div>
-            <label className="label" htmlFor="engine">Engine</label>
+            <label className="label" htmlFor="engine">{t('engine')}</label>
             <input
               id="engine"
               name="engine"
@@ -135,7 +138,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
             />
           </div>
           <div>
-            <label className="label" htmlFor="vin">VIN / chassis number</label>
+            <label className="label" htmlFor="vin">{t('vin')}</label>
             {/* VINs are 17 uppercase alphanumerics with no I/O/Q; uppercasing
                 as you type saves a round of "why won't it decode?". */}
             <input
@@ -159,16 +162,16 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
               checked={form.isPublic}
               onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
             />
-            Make this project public (anyone with the link can view it, read-only)
+            {t('makePublic')}
           </label>
           {form.isPublic && (
             <p className="mt-1 pl-6 text-xs text-ink-faint">
               {publicUrl ? (
                 <>
-                  Live at <span className="font-mono">{publicUrl}</span>
+                  {t('liveAt')} <span className="font-mono">{publicUrl}</span>
                 </>
               ) : (
-                'The public URL will be assigned when you save.'
+                t('urlOnSave')
               )}
             </p>
           )}
@@ -181,7 +184,7 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
               checked={form.hidePublicCost}
               onChange={(e) => setForm({ ...form, hidePublicCost: e.target.checked })}
             />
-            Hide total cost from the public page
+            {t('hidePublicCost')}
           </label>
         )}
 
@@ -191,22 +194,22 @@ export default function VehicleEditForm({ vehicle }: { vehicle: Vehicle }) {
             checked={form.hideCostsFromCollaborators}
             onChange={(e) => setForm({ ...form, hideCostsFromCollaborators: e.target.checked })}
           />
-          Hide cost totals from collaborators
+          {t('hideCostsFromCollaborators')}
         </label>
 
         <FormError>{error}</FormError>
         <button type="submit" className="btn-primary w-full" disabled={loading}>
-          {loading ? 'Saving…' : 'Save changes'}
+          {loading ? tc('saving') : t('saveChanges')}
         </button>
       </form>
 
       <div className="card p-6">
-        <h2 className="mb-2 font-semibold text-ink">Danger zone</h2>
+        <h2 className="mb-2 font-semibold text-ink">{t('dangerZone')}</h2>
         <p className="mb-3 text-sm text-ink-muted">
-          Deleting a vehicle removes all its tasks, photos, and history. This cannot be undone.
+          {t('deleteHelp')}
         </p>
         <button type="button" className="btn-danger" onClick={onDelete} disabled={deleting}>
-          {deleting ? 'Deleting…' : 'Delete vehicle'}
+          {deleting ? tc('deleting') : t('deleteVehicle')}
         </button>
       </div>
     </div>

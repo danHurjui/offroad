@@ -1,24 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import {
-  TICKET_TYPES,
-  TICKET_TYPE_VALUES,
-  TICKET_TITLE_MAX,
-  TICKET_DESCRIPTION_MAX,
-  type TicketType,
-} from '@/lib/tickets'
-
-const PLACEHOLDERS: Record<TicketType, string> = {
-  BUG: 'What did you do, what did you expect, and what happened instead? Which vehicle/screen, and on phone or desktop?',
-  FEATURE: 'What would you like to be able to do, and what are you trying to achieve by it?',
-  IMPROVEMENT: 'What works today but could work better, and what makes it awkward right now?',
-}
+import { TICKET_TYPE_VALUES, TICKET_TITLE_MAX, TICKET_DESCRIPTION_MAX, type TicketType } from '@/lib/tickets'
 
 import FormError from './FormError'
 
 export default function TicketForm() {
+  const t = useTranslations('tickets')
+  const tc = useTranslations('common')
+  const tv = useTranslations('ticketVocab')
   const router = useRouter()
   const [type, setType] = useState<TicketType>('BUG')
   const [title, setTitle] = useState('')
@@ -38,14 +30,14 @@ export default function TicketForm() {
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error ?? 'Could not create the ticket')
+        setError(data.error ?? t('submitFailed'))
         setLoading(false)
         return
       }
       router.push(`/tickets/${data.id}`)
       router.refresh()
     } catch {
-      setError('Could not reach the server. Please try again.')
+      setError(tc('networkError'))
       setLoading(false)
     }
   }
@@ -53,7 +45,7 @@ export default function TicketForm() {
   return (
     <form onSubmit={onSubmit} className="card space-y-5 p-6">
       <div>
-        <label className="label">What kind of ticket is this?</label>
+        <label className="label">{t('whatKind')}</label>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {TICKET_TYPE_VALUES.map((t) => (
             <button
@@ -65,8 +57,8 @@ export default function TicketForm() {
                 type === t ? 'border-brand-500 bg-brand-50 dark:bg-brand-400/10' : 'border-surface-border'
               }`}
             >
-              <div className="font-semibold text-ink">{TICKET_TYPES[t].label}</div>
-              <div className="text-xs text-ink-muted">{TICKET_TYPES[t].blurb}</div>
+              <div className="font-semibold text-ink">{tv(`type.${t}.label`)}</div>
+              <div className="text-xs text-ink-muted">{tv(`type.${t}.blurb`)}</div>
             </button>
           ))}
         </div>
@@ -74,7 +66,7 @@ export default function TicketForm() {
 
       <div>
         <label className="label" htmlFor="ticket-title">
-          Title
+          {t('ticketTitle')}
         </label>
         <input
           id="ticket-title"
@@ -88,7 +80,7 @@ export default function TicketForm() {
           onChange={(e) => setTitle(e.target.value)}
           maxLength={TICKET_TITLE_MAX}
           required
-          placeholder="One line summarising it"
+          placeholder={t('titlePlaceholder')}
         />
         <p className="mt-1 text-xs text-ink-faint">
           {title.length}/{TICKET_TITLE_MAX}
@@ -97,7 +89,7 @@ export default function TicketForm() {
 
       <div>
         <label className="label" htmlFor="ticket-description">
-          Details
+          {t('details')}
         </label>
         <textarea
           id="ticket-description"
@@ -109,7 +101,7 @@ export default function TicketForm() {
           onChange={(e) => setDescription(e.target.value)}
           maxLength={TICKET_DESCRIPTION_MAX}
           required
-          placeholder={PLACEHOLDERS[type]}
+          placeholder={t(`placeholder.${type}`)}
         />
         <p className="mt-1 text-xs text-ink-faint">
           {description.length}/{TICKET_DESCRIPTION_MAX}
@@ -120,10 +112,10 @@ export default function TicketForm() {
 
       <div className="flex gap-3">
         <button type="submit" className="btn-primary" disabled={loading || !title.trim() || !description.trim()}>
-          {loading ? 'Posting…' : 'Post ticket'}
+          {loading ? t('posting') : t('postTicket')}
         </button>
         <button type="button" className="btn-secondary" onClick={() => router.back()}>
-          Cancel
+          {tc('cancel')}
         </button>
       </div>
 

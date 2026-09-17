@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
+import { translator } from '@/i18n/translator'
+import { localeFromRequest } from '@/i18n/requestLocale'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
@@ -22,14 +25,11 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
   if (!hasPro(owner)) {
-    return NextResponse.json(
-      { error: 'PDF export is a Pro feature. Upgrade to export your full build history.', code: 'UPGRADE_REQUIRED' },
-      { status: 403 }
-    )
+    return await apiError('proPdfExport', 403, { code: 'UPGRADE_REQUIRED' })
   }
 
   try {
@@ -84,7 +84,29 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
     const coverPhotoDataUri = vehicle.coverPhotoUrl ? await resolveImageDataUri(vehicle.coverPhotoUrl) : null
 
+    // The reader is whoever pressed Export, so the PDF speaks the
+    // browser's language rather than an account column — unlike an email,
+    // which is read by its recipient.
+    const tPdf = await translator(localeFromRequest(), 'pdf')
+    const money = (n: number) => `${n.toLocaleString('ro-RO')} RON`
+
     const docDefinition = buildVehicleHistoryDocDefinition({
+      strings: {
+        subtitle: tPdf(`subtitle.${vehicle.projectType}`),
+        generation: tPdf('generation'),
+        engine: tPdf('engine'),
+        vin: tPdf('vin'),
+        summary: tPdf('progress', { label: config.progressLabel, percent: progressPct }),
+        totalSpent: tPdf('totalSpent', { total: money(totalSpent) }),
+        foundState: tPdf('foundState'),
+        acquired: tPdf('acquired'),
+        purchasePrice: tPdf('purchasePrice'),
+        odometer: tPdf('odometer'),
+        condition: tPdf('condition'),
+        workshop: tPdf('workshop'),
+        diy: tPdf('diy'),
+        generatedOn: tPdf('generatedOn', { date: new Date().toLocaleDateString('ro-RO') }),
+      },
       vehicleName: `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
       projectType: vehicle.projectType,
       generation: vehicle.generation,
@@ -121,6 +143,6 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     })
   } catch (e) {
     console.error('PDF export failed:', e)
-    return NextResponse.json({ error: 'Could not generate PDF' }, { status: 500 })
+    return await apiError('pdfFailed', 500)
   }
 }

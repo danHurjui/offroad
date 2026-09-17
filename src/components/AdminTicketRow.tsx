@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { TICKET_TYPES, TICKET_STATUSES, TICKET_STATUS_VALUES, type TicketType, type TicketStatus } from '@/lib/tickets'
@@ -26,6 +27,9 @@ export type AdminTicketView = {
  * admin write path to keep in sync.
  */
 export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) {
+  const tc = useTranslations('common')
+  const t = useTranslations('admin')
+  const tv = useTranslations('ticketVocab')
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState<TicketStatus>(ticket.status)
@@ -44,7 +48,7 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error ?? 'Could not update')
+        setError(data.error ?? t('updateFailed'))
         setBusy(false)
         return
       }
@@ -52,7 +56,7 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
       setOpen(false)
       router.refresh()
     } catch {
-      setError('Could not reach the server')
+      setError(tc('networkError'))
       setBusy(false)
     }
   }
@@ -64,13 +68,13 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
       const res = await fetch(`/api/tickets/${ticket.id}`, { method: 'DELETE' })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        setError(data.error ?? 'Could not delete')
+        setError(data.error ?? t('deleteFailed'))
         setBusy(false)
         return
       }
       router.refresh()
     } catch {
-      setError('Could not reach the server')
+      setError(tc('networkError'))
       setBusy(false)
     }
   }
@@ -80,9 +84,9 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className={`badge ${TICKET_TYPES[ticket.type].badgeClass}`}>{TICKET_TYPES[ticket.type].label}</span>
+            <span className={`badge ${TICKET_TYPES[ticket.type].badgeClass}`}>{tv(`type.${ticket.type}.label`)}</span>
             <span className={`badge ${TICKET_STATUSES[ticket.status].badgeClass}`}>
-              {TICKET_STATUSES[ticket.status].label}
+              {tv(`status.${ticket.status}`)}
             </span>
             <span className="text-xs text-ink-faint">
               {ticket.voteCount} vote{ticket.voteCount === 1 ? '' : 's'} · {ticket.commentCount} comment
@@ -101,10 +105,10 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
         </div>
         <div className="flex shrink-0 gap-2">
           <button type="button" className="btn-secondary py-1 text-xs" onClick={() => setOpen(!open)} disabled={busy}>
-            {open ? 'Cancel' : 'Triage'}
+            {open ? tc('cancel') : t('triage')}
           </button>
           <button type="button" className="btn-danger py-1 text-xs" onClick={remove} disabled={busy}>
-            Delete
+            {tc('delete')}
           </button>
         </div>
       </div>
@@ -122,18 +126,18 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
                   status === s ? `${TICKET_STATUSES[s].badgeClass} border-brand-400` : 'border-surface-border bg-surface text-ink-muted'
                 }`}
               >
-                {TICKET_STATUSES[s].label}
+                {tv(`status.${s}`)}
               </button>
             ))}
           </div>
           <textarea
             className="input" rows={2} value={note} maxLength={1000}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Optional note shown publicly on the ticket…"
+            placeholder={t('triageNotePlaceholder')}
           />
           <div className="mt-2 flex items-center gap-3">
             <button type="button" className="btn-primary py-1 text-xs" onClick={save} disabled={busy}>
-              {busy ? 'Saving…' : 'Save'}
+              {busy ? tc('saving') : tc('save')}
             </button>
             {error && <span className="text-xs text-red-600 dark:text-red-400">{error}</span>}
           </div>

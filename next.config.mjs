@@ -1,3 +1,10 @@
+import createNextIntlPlugin from 'next-intl/plugin';
+
+// Points next-intl at the per-request language resolution. There is no
+// `[locale]` segment — the locale comes from a cookie; see
+// src/i18n/config.ts for why.
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
 /** @type {import('next').NextConfig} */
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -61,4 +68,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

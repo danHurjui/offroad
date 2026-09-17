@@ -3,7 +3,8 @@ import {
   isEmailConfigured,
   emailProvider,
   parseSender,
-  passwordResetEmailHtml,
+  passwordResetEmail,
+  followedProjectUpdateEmail,
 } from '@/lib/email'
 
 const ORIGINAL_ENV = process.env
@@ -169,9 +170,35 @@ describe('with no provider configured', () => {
   })
 })
 
-describe('passwordResetEmailHtml', () => {
-  it('embeds the reset link', () => {
-    const html = passwordResetEmailHtml('https://riglog.example/reset-password?token=abc')
-    expect(html).toContain('href="https://riglog.example/reset-password?token=abc"')
+describe('passwordResetEmail', () => {
+  const LINK = 'https://riglog.example/reset-password?token=abc'
+
+  it('embeds the reset link', async () => {
+    const { html } = await passwordResetEmail('ro', LINK)
+    expect(html).toContain(`href="${LINK}"`)
+  })
+
+  /**
+   * Subject and body come from one call because they have to agree: a
+   * Romanian subject over an English body reads as a phishing attempt.
+   */
+  it('renders the subject in the same language as the body', async () => {
+    const ro = await passwordResetEmail('ro', LINK)
+    const en = await passwordResetEmail('en', LINK)
+    expect(ro.subject).not.toBe(en.subject)
+    expect(ro.html).not.toBe(en.html)
+    expect(en.subject).toMatch(/Reset your RigLog password/)
+  })
+
+  // A name or a vehicle typed by one user is rendered into another's
+  // inbox, so it must arrive as text rather than markup.
+  it('escapes a value that looks like markup', async () => {
+    const { html } = await followedProjectUpdateEmail('en', {
+      vehicleName: '<img src=x onerror=alert(1)>',
+      message: 'added new photos',
+      vehicleUrl: 'https://riglog.example/builds/dan/rig',
+    })
+    expect(html).not.toContain('<img')
+    expect(html).toContain('&lt;img')
   })
 })

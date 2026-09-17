@@ -1,11 +1,13 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import PublicHeader from '@/components/PublicHeader'
 import { cache } from 'react'
 import { notFound } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import { computeOriginalityScore } from '@/lib/originality'
 import OriginalityBadge from '@/components/OriginalityBadge'
@@ -39,7 +41,7 @@ export async function generateMetadata({
   if (!data) return {}
 
   const { vehicle, owner } = data
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const title = `${vehicle.year} ${vehicle.make} ${vehicle.model} — RigLog`
   const description = `${config.label} by ${owner.displayName} on RigLog.`
   const baseUrl = appUrlForMetadata()
@@ -72,11 +74,12 @@ export default async function PublicVehiclePage({
 }: {
   params: { username: string; slug: string }
 }) {
+  const t = await getTranslations('publicBuild')
   const data = await findPublicVehicle(params.username, params.slug)
   if (!data) notFound()
   const { vehicle, owner } = data
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const completeStatus = config.completeStatus
 
   const tasks = await prisma.task.findMany({
@@ -132,7 +135,7 @@ export default async function PublicVehiclePage({
             />
           ) : (
             <div className="flex h-56 items-center justify-center bg-surface-subtle text-sm text-ink-faint">
-              No cover photo
+              {t('noCover')}
             </div>
           )}
           <div className="p-6">
@@ -171,12 +174,12 @@ export default async function PublicVehiclePage({
               </div>
               {!vehicle.hidePublicCost && (
                 <div>
-                  <div className="text-xs text-ink-faint">Total spent</div>
+                  <div className="text-xs text-ink-faint">{t('totalSpent')}</div>
                   <div className="text-lg font-semibold text-ink">{totalSpent.toLocaleString('ro-RO')} RON</div>
                 </div>
               )}
               <div>
-                <div className="text-xs text-ink-faint">Completed tasks</div>
+                <div className="text-xs text-ink-faint">{t('completedTasks')}</div>
                 <div className="text-lg font-semibold text-ink">{tasks.length}</div>
               </div>
             </div>
@@ -185,7 +188,7 @@ export default async function PublicVehiclePage({
 
         <div className="mt-6 space-y-6">
           {orderedGroups.length === 0 && (
-            <p className="text-center text-sm text-ink-faint">No completed work logged yet.</p>
+            <p className="text-center text-sm text-ink-faint">{t('noCompletedWork')}</p>
           )}
           {orderedGroups.map(([category, categoryTasks]) => (
             <div key={category.value}>
@@ -223,7 +226,7 @@ export default async function PublicVehiclePage({
         </div>
 
         <p className="mt-8 text-center text-xs text-ink-faint">
-          Documented with <span className="font-semibold">RigLog</span>
+          {t.rich('documentedWith', { b: (chunks: React.ReactNode) => <span className="font-semibold">{chunks}</span> })}
         </p>
       </div>
     </div>
@@ -239,14 +242,15 @@ interface DecodedVinSpec {
   colorCode: string | null
 }
 
-function FactorySpec({ decoded }: { decoded: DecodedVinSpec }) {
+async function FactorySpec({ decoded }: { decoded: DecodedVinSpec }) {
+  const tv = await getTranslations('vin')
   const fields: [string, string | number | null][] = [
-    ['Manufacturer', decoded.manufacturer],
-    ['Model year', decoded.modelYear],
-    ['Factory', decoded.factory],
-    ['Engine code', decoded.engineCode],
-    ['Body style', decoded.bodyStyle],
-    ['Colour code', decoded.colorCode],
+    [tv('field.manufacturer'), decoded.manufacturer],
+    [tv('field.modelYear'), decoded.modelYear],
+    [tv('field.factory'), decoded.factory],
+    [tv('field.engineCode'), decoded.engineCode],
+    [tv('field.bodyStyle'), decoded.bodyStyle],
+    [tv('field.colorCode'), decoded.colorCode],
   ]
   const present = fields.filter(([, value]) => value != null && value !== '')
   if (present.length === 0) return null

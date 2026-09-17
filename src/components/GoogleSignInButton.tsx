@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { getProviders, signIn } from 'next-auth/react'
 
 /**
@@ -20,6 +21,7 @@ import { getProviders, signIn } from 'next-auth/react'
  * out for deployments without Google.
  */
 export default function GoogleSignInButton({ callbackUrl = '/dashboard' }: { callbackUrl?: string }) {
+  const t = useTranslations('auth.google')
   const [available, setAvailable] = useState(false)
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function GoogleSignInButton({ callbackUrl = '/dashboard' }: { cal
       className="btn-secondary mt-3 w-full"
       onClick={() => signIn('google', { callbackUrl })}
     >
-      Continue with Google
+      {t('continue')}
     </button>
   )
 }

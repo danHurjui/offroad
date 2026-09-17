@@ -113,6 +113,22 @@ export function decideReminder(daysUntil: number, state: ReminderState): Reminde
   }
 }
 
+/**
+ * The catalogue key and values for "expires in N days", so the UI and the
+ * reminder email can render the same sentence in two different languages
+ * from one rule.
+ *
+ * Split from formatDaysUntil rather than replacing it: the plural form of
+ * "day" differs between the two, and the call sites hold different
+ * translators — a browser's, from the cookie, and the recipient's, from
+ * User.locale.
+ */
+export function daysUntilMessage(daysUntil: number): { key: string; values: { days: number } } {
+  if (daysUntil < 0) return { key: 'expiredAgo', values: { days: Math.abs(daysUntil) } }
+  if (daysUntil === 0) return { key: 'expiresToday', values: { days: 0 } }
+  return { key: 'expiresIn', values: { days: daysUntil } }
+}
+
 export function formatDaysUntil(daysUntil: number): string {
   if (daysUntil < 0) return `expired ${Math.abs(daysUntil)} day${Math.abs(daysUntil) === 1 ? '' : 's'} ago`
   if (daysUntil === 0) return 'expires today'

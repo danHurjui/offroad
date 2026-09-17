@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
@@ -6,6 +7,7 @@ import VehicleEditForm from '@/components/VehicleEditForm'
 
 // RL-009 (vehicle settings): owner-only edit + public/private toggle.
 export default async function EditVehiclePage({ params }: { params: { id: string } }) {
+  const t = await getTranslations('vehicleEdit')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -14,7 +16,7 @@ export default async function EditVehiclePage({ params }: { params: { id: string
 
   return (
     <div className="mx-auto max-w-xl">
-      <h1 className="mb-6 text-2xl font-bold text-ink">Vehicle settings</h1>
+      <h1 className="mb-6 text-2xl font-bold text-ink">{t('pageTitle')}</h1>
       <VehicleEditForm
         vehicle={{
           id: vehicle.id,

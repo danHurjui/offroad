@@ -1,6 +1,20 @@
 import { buildJobReportDocDefinition, type JobReportInput } from '@/lib/pdfJobReport'
 
+/** See pdfBuildHistory.test.ts — the builder takes its wording. */
+const STRINGS: JobReportInput['strings'] = {
+  title: 'Job report',
+  preparedBy: 'Prepared by',
+  period: 'Period',
+  totalLabour: (total) => `Total labour: ${total} RON`,
+  totalParts: (total) => `Total parts: ${total} RON`,
+  noTasks: 'No tasks logged in this period.',
+  documentedWith: 'Documented with RigLog — riglog.ro',
+  taskMeta: (task) =>
+    `${task.date.toLocaleDateString('ro-RO')}  ·  ${task.category}  ·  Parts: ${task.partsCostRon} RON  ·  Labour: ${task.labourCostRon} RON`,
+}
+
 const BASE_INPUT: JobReportInput = {
+  strings: STRINGS,
   collaboratorName: "Bob's Off-Road Garage",
   vehicleName: '2001 Jeep Wrangler',
   rangeLabel: 'Last 30 days',

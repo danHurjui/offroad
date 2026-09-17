@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { apiError } from './apiError'
 import { getServerSession, Session } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
@@ -24,7 +25,7 @@ export type AuthResult = AuthOk | AuthFail
 export async function requireSession(): Promise<AuthResult> {
   const session = await getServerSession(authOptions)
   if (!session) {
-    return { ok: false, error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+    return { ok: false, error: await apiError('unauthorized', 401) }
   }
   // A deactivated account keeps a valid signed token until it expires, so
   // the flag has to be enforced here rather than only at sign-in. The
@@ -33,7 +34,7 @@ export async function requireSession(): Promise<AuthResult> {
   if (session.user.active === false) {
     return {
       ok: false,
-      error: NextResponse.json({ error: 'This account has been deactivated' }, { status: 403 }),
+      error: await apiError('deactivated', 403),
     }
   }
   return { ok: true, session }
@@ -52,7 +53,7 @@ export async function requireAdmin(): Promise<AuthResult> {
   const auth = await requireSession()
   if (!auth.ok) return auth
   if (!auth.session.user.isAdmin) {
-    return { ok: false, error: NextResponse.json({ error: 'Not found' }, { status: 404 }) }
+    return { ok: false, error: await apiError('notFound', 404) }
   }
   return auth
 }

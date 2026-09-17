@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     const authKey = typeof body.keys?.auth === 'string' ? body.keys.auth : ''
 
     if (!endpoint || !p256dh || !authKey) {
-      return NextResponse.json({ error: 'Invalid push subscription' }, { status: 400 })
+      return await apiError('pushSubscriptionInvalid', 400)
     }
 
     await prisma.pushSubscription.upsert({
@@ -33,6 +34,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true }, { status: 201 })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

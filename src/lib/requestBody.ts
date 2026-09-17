@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { apiError, apiErrorMessage } from './apiError'
 import type { NextRequest } from 'next/server'
 
 /**
@@ -37,20 +38,20 @@ export async function readJsonBody(req: NextRequest): Promise<BodyResult> {
   } catch {
     return {
       ok: false,
-      error: NextResponse.json({ error: 'Request body must be valid JSON' }, { status: 400 }),
+      error: await apiError('bodyNotJson', 400),
     }
   }
   if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
     return {
       ok: false,
-      error: NextResponse.json({ error: 'Request body must be a JSON object' }, { status: 400 }),
+      error: await apiError('bodyNotObject', 400),
     }
   }
   if (hasNullByte(parsed)) {
     return {
       ok: false,
       error: NextResponse.json(
-        { error: 'Request body must not contain null bytes' },
+        { error: await apiErrorMessage('bodyNullBytes'), code: 'bodyNullBytes' },
         { status: 400 },
       ),
     }
@@ -90,7 +91,7 @@ export async function readFormData(req: NextRequest): Promise<FormResult> {
     return {
       ok: false,
       error: NextResponse.json(
-        { error: 'Request body must be multipart form data' },
+        { error: await apiErrorMessage('bodyNotMultipart'), code: 'bodyNotMultipart' },
         { status: 400 },
       ),
     }

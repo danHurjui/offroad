@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 
 /**
@@ -19,6 +20,8 @@ export default function AdminCompProToggle({
   isProComped: boolean
   isPro: boolean
 }) {
+  const tc = useTranslations('common')
+  const t = useTranslations('admin')
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState('')
@@ -36,7 +39,7 @@ export default function AdminCompProToggle({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error ?? 'Could not update')
+        setError(data.error ?? t('updateFailed'))
         setBusy(false)
         return
       }
@@ -45,7 +48,7 @@ export default function AdminCompProToggle({
       setReason('')
       router.refresh()
     } catch {
-      setError('Could not reach the server')
+      setError(tc('networkError'))
       setBusy(false)
     }
   }
@@ -61,11 +64,11 @@ export default function AdminCompProToggle({
             if (window.confirm(`Remove complimentary Pro from ${displayName}?`)) send(false)
           }}
         >
-          {busy ? '…' : 'Remove comp'}
+          {busy ? '…' : t('removeComp')}
         </button>
         {/* Paid Pro is untouched by this, so say so rather than implying
             the person loses access. */}
-        {isPro && <p className="mt-1 text-xs text-ink-faint">Paid Pro stays</p>}
+        {isPro && <p className="mt-1 text-xs text-ink-faint">{t('paidPro')}</p>}
         {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
     )
@@ -75,7 +78,7 @@ export default function AdminCompProToggle({
     return (
       <div className="text-right">
         <button type="button" className="btn-secondary py-1 text-xs" onClick={() => setOpen(true)} disabled={busy}>
-          Comp Pro
+          {t('compPro')}
         </button>
         {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
@@ -85,7 +88,7 @@ export default function AdminCompProToggle({
   return (
     <div className="w-full sm:w-72">
       <label className="label text-xs" htmlFor={`reason-${userId}`}>
-        Why is {displayName} getting Pro?
+        {t('whyPro', { name: displayName })}
       </label>
       <input
         id={`reason-${userId}`}
@@ -93,7 +96,7 @@ export default function AdminCompProToggle({
         value={reason}
         maxLength={500}
         autoFocus
-        placeholder="e.g. beta tester, support goodwill"
+        placeholder={t('reasonPlaceholder')}
         onChange={(e) => setReason(e.target.value)}
       />
       <div className="mt-2 flex items-center gap-2">
@@ -103,10 +106,10 @@ export default function AdminCompProToggle({
           disabled={busy || !reason.trim()}
           onClick={() => send(true, reason.trim())}
         >
-          {busy ? 'Granting…' : 'Grant'}
+          {busy ? t('granting') : t('grant')}
         </button>
         <button type="button" className="btn-secondary py-1 text-xs" onClick={() => setOpen(false)} disabled={busy}>
-          Cancel
+          {tc('cancel')}
         </button>
       </div>
       {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}

@@ -1,9 +1,11 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG, labelFor } from '@/lib/projectType'
+import { labelFor } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import TrailThumbnail from '@/components/TrailThumbnail'
 
 // RL-007: photo timeline — full project visual log, filterable.
@@ -18,7 +20,9 @@ export default async function PhotosTimelinePage({
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const t = await getTranslations('photos')
+  const tc = await getTranslations('common')
+  const config = await getVocabulary(vehicle.projectType)
   const order = searchParams.order === 'oldest' ? 'asc' : 'desc'
   const isOwner = vehicle.ownerId === session.user.id
   const noFiltersActive = !searchParams.photoType && !searchParams.category
@@ -58,13 +62,13 @@ export default async function PhotosTimelinePage({
   return (
     <div>
       <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to {config.screenTitle}
+        {tc('backTo', { screen: config.screenTitle })}
       </Link>
-      <h1 className="mb-4 text-2xl font-bold text-ink">Photos</h1>
+      <h1 className="mb-4 text-2xl font-bold text-ink">{t('title')}</h1>
 
       <div className="mb-6 flex flex-wrap gap-2 text-sm">
         <Link href={filterUrl({ photoType: undefined })} className={`badge ${!searchParams.photoType ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
-          All types
+          {t('allTypes')}
         </Link>
         {config.photoTypes.map((t) => (
           <Link key={t.value} href={filterUrl({ photoType: t.value })} className={`badge ${searchParams.photoType === t.value ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
@@ -75,7 +79,7 @@ export default async function PhotosTimelinePage({
 
       <div className="mb-6 flex flex-wrap gap-2 text-sm">
         <Link href={filterUrl({ category: undefined })} className={`badge ${!searchParams.category ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
-          All categories
+          {t('allCategories')}
         </Link>
         {config.categories.map((c) => (
           <Link key={c.value} href={filterUrl({ category: c.value })} className={`badge ${searchParams.category === c.value ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
@@ -83,12 +87,12 @@ export default async function PhotosTimelinePage({
           </Link>
         ))}
         <Link href={filterUrl({ order: order === 'asc' ? undefined : 'oldest' })} className="badge bg-surface-subtle text-ink-muted">
-          {order === 'asc' ? 'Newest first' : 'Oldest first'}
+          {order === 'asc' ? t('newestFirst') : t('oldestFirst')}
         </Link>
       </div>
 
       {photos.length === 0 ? (
-        <div className="card p-10 text-center text-ink-muted">No photos yet — add photos from a task.</div>
+        <div className="card p-10 text-center text-ink-muted">{t('empty')}</div>
       ) : (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {photos.map((photo) => (
@@ -109,7 +113,7 @@ export default async function PhotosTimelinePage({
 
       {trailRuns.length > 0 && (
         <div className="mt-8">
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">Trail runs</h2>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('trailRunsHeading')}</h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {trailRuns.map((run) => (
               <Link

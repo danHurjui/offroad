@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireAdmin } from '@/lib/authz'
 import { isTicketType, isTicketStatus, isTicketSort } from '@/lib/tickets'
@@ -71,6 +72,6 @@ export async function GET(req: NextRequest) {
       pageSize: PAGE_SIZE,
     })
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

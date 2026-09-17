@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
-import { PART_CONDITIONS } from '@/lib/projectType'
+import { usePartConditions } from '@/lib/vocabulary'
 
 // RL-024: parts request form — Pro-gated server-side; this component
 // assumes the caller already confirmed the viewer is Pro and logged in.
@@ -11,13 +12,15 @@ import AutocompleteInput from './AutocompleteInput'
 import { ALL_MAKES, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
 
 export default function PartsRequestForm() {
+  const t = useTranslations('parts')
+  const partConditions = usePartConditions()
   const router = useRouter()
   const [form, setForm] = useState({
     vehicleMake: '',
     vehicleModel: '',
     partName: '',
     partNumber: '',
-    conditionAccepted: PART_CONDITIONS[0].value,
+    conditionAccepted: partConditions[0].value,
     location: '',
     description: '',
   })
@@ -36,7 +39,7 @@ export default function PartsRequestForm() {
     setLoading(false)
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? 'Could not post request')
+      setError(data.error ?? t('postFailed'))
       return
     }
     const created = await res.json()
@@ -47,7 +50,7 @@ export default function PartsRequestForm() {
     <form onSubmit={onSubmit} className="card space-y-4 p-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="vehicleMake">Vehicle make</label>
+          <label className="label" htmlFor="vehicleMake">{t('vehicleMake')}</label>
           <AutocompleteInput
             id="vehicleMake"
             value={form.vehicleMake}
@@ -59,7 +62,7 @@ export default function PartsRequestForm() {
           />
         </div>
         <div>
-          <label className="label" htmlFor="vehicleModel">Vehicle model</label>
+          <label className="label" htmlFor="vehicleModel">{t('vehicleModel')}</label>
           <AutocompleteInput
             id="vehicleModel"
             value={form.vehicleModel}
@@ -70,48 +73,48 @@ export default function PartsRequestForm() {
           />
         </div>
         <div>
-          <label className="label" htmlFor="partName">Part name</label>
+          <label className="label" htmlFor="partName">{t('partName')}</label>
           <input
             id="partName"
             name="partName"
             className="input"
             value={form.partName}
             onChange={(e) => setForm({ ...form, partName: e.target.value })}
-            placeholder="e.g. Front left wing"
+            placeholder={t('partNamePlaceholder')}
             autoComplete="off"
             autoCapitalize="sentences"
             required
           />
         </div>
         <div>
-          <label className="label" htmlFor="partNumber">Part number (optional)</label>
+          <label className="label" htmlFor="partNumber">{t('partNumber')}</label>
           <input
             id="partNumber"
             name="partNumber"
             className="input font-mono"
             value={form.partNumber}
             onChange={(e) => setForm({ ...form, partNumber: e.target.value })}
-            placeholder="OEM reference, if known"
+            placeholder={t('partNumberPlaceholder')}
             autoComplete="off"
             autoCapitalize="characters"
             spellCheck={false}
           />
         </div>
         <div>
-          <label className="label" htmlFor="conditionAccepted">Condition accepted</label>
+          <label className="label" htmlFor="conditionAccepted">{t('conditionAccepted')}</label>
           <select id="conditionAccepted" className="input" value={form.conditionAccepted} onChange={(e) => setForm({ ...form, conditionAccepted: e.target.value })}>
-            {PART_CONDITIONS.map((c) => (
+            {partConditions.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="label" htmlFor="location">Location / willing to ship</label>
+          <label className="label" htmlFor="location">{t('location')}</label>
           <input
             id="location"
             name="location"
             className="input"
-            placeholder="e.g. Cluj, willing to ship nationwide"
+            placeholder={t('locationPlaceholder')}
             autoComplete="address-level2"
             autoCapitalize="words"
             value={form.location}
@@ -121,7 +124,7 @@ export default function PartsRequestForm() {
         </div>
       </div>
       <div>
-        <label className="label" htmlFor="description">Description (optional)</label>
+        <label className="label" htmlFor="description">{t('description')}</label>
         <textarea
           id="description"
           name="description"
@@ -134,7 +137,7 @@ export default function PartsRequestForm() {
       </div>
       <FormError>{error}</FormError>
       <button type="submit" className="btn-primary w-full" disabled={loading}>
-        {loading ? 'Posting…' : 'Post request'}
+        {loading ? t('posting') : t('postRequest')}
       </button>
     </form>
   )

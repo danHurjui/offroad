@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
@@ -20,14 +21,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const task = await loadTask(params.id, params.taskId)
-  if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!task) return await apiError('notFound', 404)
 
   const isOwner = vehicle.ownerId === session.user.id
   if (!isOwner && task.addedByUserId !== session.user.id) {
-    return NextResponse.json({ error: 'You can only attach a receipt to tasks you added' }, { status: 403 })
+    return await apiError('receiptOwnTasksOnly', 403)
   }
 
   const parsedForm = await readFormData(req)
@@ -38,10 +39,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
     const file = formData.get('file')
 
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'file is required' }, { status: 400 })
+      return await apiError('fileRequired', 400)
     }
     if (!ALLOWED_UPLOAD_TYPES.includes(file.type)) {
-      return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 })
+      return await apiError('unsupportedFileType', 400)
     }
     if (file.size > MAX_UPLOAD_BYTES) {
       return NextResponse.json({ error: `File too large (max ${MAX_UPLOAD_BYTES / 1024 / 1024}MB)` }, { status: 400 })
@@ -57,9 +58,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
     return NextResponse.json(updated)
   } catch (e) {
     if (e instanceof StorageError) {
-      return NextResponse.json({ error: 'Failed to save file' }, { status: 500 })
+      return await apiError('saveFileFailed', 500)
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }
 
@@ -69,16 +70,16 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const { session } = auth
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
-  if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!vehicle) return await apiError('notFound', 404)
 
   const task = await loadTask(params.id, params.taskId)
-  if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!task) return await apiError('notFound', 404)
 
   const isOwner = vehicle.ownerId === session.user.id
   if (!isOwner && task.addedByUserId !== session.user.id) {
-    return NextResponse.json({ error: 'You can only remove a receipt from tasks you added' }, { status: 403 })
+    return await apiError('receiptRemoveOwnOnly', 403)
   }
-  if (!task.receiptUrl) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!task.receiptUrl) return await apiError('notFound', 404)
 
   try {
     const previousReceiptUrl = task.receiptUrl
@@ -86,6 +87,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     await deleteUpload(previousReceiptUrl)
     return NextResponse.json(updated)
   } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return await apiError('internalError', 500)
   }
 }

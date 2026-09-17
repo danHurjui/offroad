@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
@@ -8,6 +9,7 @@ import TrailRunMapView from '@/components/TrailRunMapView'
 import DeleteTrailRunButton from '@/components/DeleteTrailRunButton'
 
 export default async function TrailRunDetailPage({ params }: { params: { id: string; runId: string } }) {
+  const t = await getTranslations('trailLog')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle || vehicle.projectType !== 'OFFROAD') notFound()
@@ -23,7 +25,7 @@ export default async function TrailRunDetailPage({ params }: { params: { id: str
   return (
     <div className="mx-auto max-w-2xl">
       <Link href={`/dashboard/vehicles/${vehicle.id}/trail-log`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to trail log
+        {t('backToTrailLog')}
       </Link>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
@@ -38,15 +40,15 @@ export default async function TrailRunDetailPage({ params }: { params: { id: str
 
       <div className="mb-6 grid grid-cols-3 gap-3 text-sm">
         <div className="card p-3">
-          <div className="text-xs text-ink-faint">Distance</div>
+          <div className="text-xs text-ink-faint">{t('distance')}</div>
           <div className="font-semibold text-ink">{toNumberOrNull(run.distanceKm) ?? '—'} km</div>
         </div>
         <div className="card p-3">
-          <div className="text-xs text-ink-faint">Duration</div>
+          <div className="text-xs text-ink-faint">{t('duration')}</div>
           <div className="font-semibold text-ink">{run.durationMin ?? '—'} min</div>
         </div>
         <div className="card p-3">
-          <div className="text-xs text-ink-faint">Elevation gain</div>
+          <div className="text-xs text-ink-faint">{t('elevationGain')}</div>
           <div className="font-semibold text-ink">{run.elevationGainM != null ? `${run.elevationGainM} m` : '—'}</div>
         </div>
       </div>
@@ -61,7 +63,7 @@ export default async function TrailRunDetailPage({ params }: { params: { id: str
 
       {run.waypoints.length > 0 && (
         <div>
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">Waypoints</h2>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('waypoints')}</h2>
           <div className="card divide-y divide-surface-border">
             {run.waypoints.map((w) => (
               <div key={w.id} className="flex items-center gap-3 p-4">

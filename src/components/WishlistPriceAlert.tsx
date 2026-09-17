@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts'
 import { useChartTheme } from './useChartTheme'
@@ -36,6 +37,8 @@ export default function WishlistPriceAlert({
   item: Item
   priceHistory: PriceEntry[]
 }) {
+  const t = useTranslations('priceAlert')
+  const tc = useTranslations('common')
   const router = useRouter()
   const chart = useChartTheme()
   const [targetPriceRon, setTargetPriceRon] = useState(item.targetPriceRon != null ? String(item.targetPriceRon) : '')
@@ -77,7 +80,7 @@ export default function WishlistPriceAlert({
     const data = await res.json()
     setLogging(false)
     if (!res.ok) {
-      setError(data.error ?? 'Could not log price')
+      setError(data.error ?? t('logFailed'))
       return
     }
     setPriceHistory((prev) => [...prev, data])
@@ -89,7 +92,7 @@ export default function WishlistPriceAlert({
   return (
     <div className="space-y-6">
       <form onSubmit={onSaveTarget} className="card space-y-3 p-4">
-        <label className="label" htmlFor="targetPriceRon">Target price (RON)</label>
+        <label className="label" htmlFor="targetPriceRon">{t('targetPrice')}</label>
         <div className="flex gap-2">
           <input
             id="targetPriceRon"
@@ -102,20 +105,19 @@ export default function WishlistPriceAlert({
             className="input"
             value={targetPriceRon}
             onChange={(e) => setTargetPriceRon(e.target.value)}
-            placeholder="e.g. 500"
+            placeholder={t('targetPlaceholder')}
           />
           <button type="submit" className="btn-secondary shrink-0" disabled={savingTarget}>
-            {savingTarget ? 'Saving…' : 'Save'}
+            {savingTarget ? tc('saving') : tc('save')}
           </button>
         </div>
         <p className="text-xs text-ink-faint">
-          You&apos;ll get an email (and a push notification, if enabled) the first time you log a price at or below
-          this target.
+          {t('targetHelp')}
           {item.supplierUrl && (
             <>
               {' '}
               <a href={item.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
-                Check the supplier link
+                {t('checkSupplier')}
               </a>
               .
             </>
@@ -125,13 +127,20 @@ export default function WishlistPriceAlert({
 
       <div className="card p-4">
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-medium text-ink-muted">Price history</span>
-          {lowestPrice != null && <span className="text-sm font-semibold text-ink">Lowest: {formatRon(lowestPrice)}</span>}
+          <span className="text-sm font-medium text-ink-muted">{t('priceHistory')}</span>
+          {lowestPrice != null && <span className="text-sm font-semibold text-ink">
+              {t('lowest', { price: formatRon(lowestPrice) })}
+            </span>}
         </div>
         {priceHistory.length === 0 ? (
-          <p className="text-sm text-ink-faint">No prices logged yet.</p>
+          <p className="text-sm text-ink-faint">{t('empty')}</p>
         ) : priceHistory.length === 1 ? (
-          <p className="text-sm text-ink">{formatRon(priceHistory[0].priceRon)} on {new Date(priceHistory[0].recordedAt).toLocaleDateString('ro-RO')}</p>
+          <p className="text-sm text-ink">
+            {t('singleEntry', {
+              price: formatRon(priceHistory[0].priceRon),
+              date: new Date(priceHistory[0].recordedAt).toLocaleDateString('ro-RO'),
+            })}
+          </p>
         ) : (
           <div className="h-48 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -146,7 +155,7 @@ export default function WishlistPriceAlert({
                   labelStyle={{ color: chart.axis }}
                 />
                 {item.targetPriceRon != null && (
-                  <ReferenceLine y={item.targetPriceRon} stroke={chart.positive} strokeDasharray="4 4" label="Target" />
+                  <ReferenceLine y={item.targetPriceRon} stroke={chart.positive} strokeDasharray="4 4" label={t('target')} />
                 )}
                 <Line type="monotone" dataKey="price" stroke={chart.accent} strokeWidth={2} dot />
               </LineChart>
@@ -156,7 +165,7 @@ export default function WishlistPriceAlert({
       </div>
 
       <form onSubmit={onLogPrice} className="card space-y-3 p-4">
-        <span className="label">I found it at this price</span>
+        <span className="label">{t('foundAtThisPrice')}</span>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <input
             id="newPrice"
@@ -167,8 +176,8 @@ export default function WishlistPriceAlert({
             inputMode="decimal"
             autoComplete="off"
             className="input"
-            placeholder="Price (RON)"
-            aria-label="Price in RON"
+            placeholder={t('pricePlaceholder')}
+            aria-label={t('priceAria')}
             value={newPrice}
             onChange={(e) => setNewPrice(e.target.value)}
             required
@@ -178,8 +187,8 @@ export default function WishlistPriceAlert({
             name="newNote"
             type="text"
             className="input"
-            placeholder="Note (optional) — e.g. emag.ro"
-            aria-label="Note about where you found this price"
+            placeholder={t('notePlaceholder')}
+            aria-label={t('noteAria')}
             autoComplete="off"
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
@@ -187,7 +196,7 @@ export default function WishlistPriceAlert({
         </div>
         <FormError>{error}</FormError>
         <button type="submit" className="btn-primary w-full" disabled={logging}>
-          {logging ? 'Logging…' : 'Log price'}
+          {logging ? t('logging') : t('logPrice')}
         </button>
       </form>
     </div>

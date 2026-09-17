@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
+import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { formatRon } from '@/lib/donations'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 
-export const metadata: Metadata = {
-  title: 'Thank you',
-  robots: { index: false },
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getTranslations('donate'))('thanksTitle'), robots: { index: false } }
 }
 
 export const dynamic = 'force-dynamic'
@@ -24,6 +24,7 @@ export default async function DonateThanksPage({
 }: {
   searchParams: { session_id?: string }
 }) {
+  const t = await getTranslations('donate')
   const sessionId = searchParams.session_id
   const donation = sessionId
     ? await prisma.donation.findUnique({
@@ -37,28 +38,27 @@ export default async function DonateThanksPage({
       <PublicHeader />
 
       <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center px-4 py-20 text-center">
-        <h1 className="text-3xl font-bold text-ink">Thank you</h1>
+        <h1 className="text-3xl font-bold text-ink">{t('thanksTitle')}</h1>
         {donation ? (
           <p className="mt-4 text-ink-muted">
-            Your {formatRon(donation.amountBani)} contribution to RigLog is genuinely appreciated.
-            {donation.status === 'PENDING' &&
-              ' Stripe is still confirming the payment — it will appear on the supporters list shortly.'}
+            {t('thanksWithAmount', { amount: formatRon(donation.amountBani) })}
+            {donation.status === 'PENDING' && t('thanksPending')}
           </p>
         ) : (
           <p className="mt-4 text-ink-muted">
-            Your contribution to RigLog is genuinely appreciated.
+            {t('thanksGeneric')}
           </p>
         )}
         <p className="mt-2 text-sm text-ink-faint">
-          Stripe has emailed you a receipt.
+          {t('receiptEmailed')}
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href="/" className="btn-secondary">
-            Back to the homepage
+            {t('backHome')}
           </Link>
           <Link href="/tickets" className="btn-primary">
-            Tell us what to build next
+            {t('tellUsNext')}
           </Link>
         </div>
       </main>

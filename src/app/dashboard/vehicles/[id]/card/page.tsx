@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
-import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { getVocabulary } from '@/lib/vocabulary'
 import ShareImageButton from '@/components/ShareImageButton'
 import TransformationCardPicker from '@/components/TransformationCardPicker'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
@@ -22,7 +22,7 @@ export default async function ShareCardPage({ params }: { params: { id: string }
   if (!vehicle) notFound()
   if (vehicle.projectType === 'DAILY_DRIVER') notFound()
 
-  const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
+  const config = await getVocabulary(vehicle.projectType)
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
   const isPro = hasPro(owner)
 

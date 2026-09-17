@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
 import UpgradePlanCard from '@/components/UpgradePlanCard'
@@ -13,37 +14,39 @@ export default async function UpgradePage() {
   const user = await prisma.user.findUniqueOrThrow({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
   if (hasPro(user)) redirect('/dashboard/settings')
 
+  const t = await getTranslations('upgrade')
+
   return (
     <div className="mx-auto max-w-3xl">
       <Link href="/dashboard/settings" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
-        ← Back to settings
+        {t('backToSettings')}
       </Link>
-      <h1 className="mb-1 text-2xl font-bold text-ink">Upgrade to Pro</h1>
+      <h1 className="mb-1 text-2xl font-bold text-ink">{t('title')}</h1>
       <p className="mb-6 text-sm text-ink-muted">
-        Unlimited vehicles and photos, full cost analytics, PDF build history export, and more. Prices in RON.
+        {t('subtitle')}
       </p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <UpgradePlanCard
           plan="MONTHLY"
-          title="Monthly"
+          title={t('monthly')}
           price="14.99 RON"
-          period="/ month"
-          description="Cancel any time."
+          period={t('monthlyPeriod')}
+          description={t('monthlyDescription')}
         />
         <UpgradePlanCard
           plan="ANNUAL"
-          title="Annual"
+          title={t('annual')}
           price="99 RON"
-          period="/ year"
-          description="Best value — under 8.25 RON/month."
+          period={t('annualPeriod')}
+          description={t('annualDescription')}
           highlight
         />
         <UpgradePlanCard
           plan="LIFETIME"
-          title="Lifetime"
+          title={t('lifetime')}
           price="299 RON"
-          period="once"
-          description="Pay once, Pro forever."
+          period={t('lifetimePeriod')}
+          description={t('lifetimeDescription')}
         />
       </div>
     </div>
