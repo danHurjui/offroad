@@ -112,6 +112,7 @@ export default async function AdminTicketsPage({
                 voteCount: t._count.votes,
                 commentCount: t._count.comments,
                 createdAt: t.createdAt.toISOString(),
+                appVersion: t.appVersion,
               }}
             />
           ))}

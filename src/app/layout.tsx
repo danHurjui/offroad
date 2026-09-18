@@ -121,9 +121,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
             <KeyboardShortcuts />
             <CookieNotice />
+            {/* Inside the provider: it renders the "a new version is
+                ready" offer, which is translated like everything else a
+                person reads. */}
+            <ServiceWorkerRegistration />
           </Providers>
         </NextIntlClientProvider>
-        <ServiceWorkerRegistration />
       </body>
     </html>
   )

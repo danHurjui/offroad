@@ -1,4 +1,50 @@
 import createNextIntlPlugin from 'next-intl/plugin';
+import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+
+/**
+ * Build identity, resolved here and nowhere else.
+ *
+ * These become `process.env.NEXT_PUBLIC_*` substitutions at build time,
+ * which is the whole point: the version has to describe the **bundle the
+ * person is running**, not the server that answered them. A value read at
+ * request time would report the current deploy to somebody whose browser
+ * is still serving them a cached one from last week — which is precisely
+ * the case this feature exists to catch.
+ *
+ * Every resolver below falls to null rather than to a guess. A version
+ * string gets quoted back as fact in a bug report, so "unknown" is the
+ * only honest thing to print when we do not know.
+ */
+function buildSha() {
+  // Vercel sets this at build; it is the deploy's real commit and does not
+  // need git to be present in the image.
+  const fromVercel = process.env.VERCEL_GIT_COMMIT_SHA;
+  if (fromVercel) return fromVercel.slice(0, 7);
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString()
+      .trim();
+  } catch {
+    // No git, a tarball export, a shallow checkout without history. Not an
+    // error — the build must not fail over a label.
+    return '';
+  }
+}
+
+function packageVersion() {
+  try {
+    return JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version ?? '';
+  } catch {
+    return '';
+  }
+}
+
+const buildInfo = {
+  NEXT_PUBLIC_APP_VERSION: packageVersion(),
+  NEXT_PUBLIC_BUILD_SHA: buildSha(),
+  NEXT_PUBLIC_BUILD_TIME: new Date().toISOString(),
+};
 
 // Points next-intl at the per-request language resolution. There is no
 // `[locale]` segment — the locale comes from a cookie; see
@@ -39,6 +85,9 @@ const csp = [
 ].join('; ');
 
 const nextConfig = {
+  // Inlined into the bundle at build time — see buildInfo above for why
+  // that timing is the requirement rather than a convenience.
+  env: buildInfo,
   // No `output: 'standalone'` — that's for a self-managed Docker/Node
   // deployment. Vercel does its own build tracing and explicitly
   // recommends against standalone output on its platform.

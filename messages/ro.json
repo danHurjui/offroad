@@ -2076,7 +2076,8 @@
     "paidPro": "Pro plătit rămâne",
     "grantedOn": "acordat {date}",
     "grantedBy": " de {who}",
-    "unknownDate": "necunoscut"
+    "unknownDate": "necunoscut",
+    "reportedVersion": "Versiunea raportată de browserul celui care a semnalat"
   },
   "verifyEmail": {
     "bannerTitle": "Confirmă-ți adresa de e-mail",
@@ -2105,5 +2106,20 @@
     "toDashboard": "Mergi la garajul tău",
     "toLogin": "Autentifică-te",
     "nothingToSend": "Adresa e deja confirmată — nu e nimic de trimis."
+  },
+  "version": {
+    "unknown": "Versiune necunoscută",
+    "copy": "Copiază această versiune",
+    "copied": "Copiat",
+    "builtOn": "Compilat {date}",
+    "settingsTitle": "Versiunea aplicației",
+    "settingsHelp": "Versiunea care rulează în acest browser. Apasă ca s-o copiezi — trecută într-un raport de eroare, e cel mai rapid mod de a ști dacă remedierea a ajuns la tine.",
+    "unknownHelp": "Această versiune nu are informații despre build, ceea ce se întâmplă când a fost compilată în afara procesului obișnuit de publicare. Aplicația nu are nimic."
+  },
+  "appUpdate": {
+    "title": "E gata o versiune mai nouă de RigLog",
+    "body": "Reîncarcă pentru a o folosi. Ce ai scris pe jumătate se pierde, așa că termină întâi dacă ești în mijlocul a ceva.",
+    "reload": "Reîncarcă acum",
+    "later": "Mai târziu"
   }
 }

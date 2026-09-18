@@ -12,6 +12,7 @@ import {
   TICKET_DESCRIPTION_MAX,
 } from '@/lib/tickets'
 import { consumeRateLimit, rateLimitResponse } from '@/lib/rateLimit'
+import { sanitizeReportedVersion } from '@/lib/version'
 
 const PAGE_SIZE = 25
 
@@ -106,6 +107,12 @@ export async function POST(req: NextRequest) {
         type: body.type,
         title: title.value,
         description: description.value,
+        // Which build the reporter was actually looking at. Only their
+        // browser knows this — a service worker can be serving them a
+        // bundle several deploys old while the server answers as the
+        // current one. Sanitised rather than trusted; it is diagnostic
+        // information, not a claim about who they are.
+        appVersion: sanitizeReportedVersion(body.appVersion),
         votes: { create: { userId: session.user.id } },
       },
       include: { _count: { select: { votes: true } } },
