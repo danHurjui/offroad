@@ -302,6 +302,35 @@ Stripe rather than from configuration.
 The symptom tells you which half is wrong. They fail in different places
 and have nothing to do with each other.
 
+### The diagnostics page says you are in test mode
+
+It is reading `STRIPE_SECRET_KEY`. If that starts with `sk_test_`, the
+deployment is in test mode — checkout opens, Stripe's test cards work, and
+a real card is declined. Nothing in the app can switch it.
+
+To go live:
+
+1. Turn off the test-mode toggle in the Stripe dashboard, then copy
+   Developers → API keys → **Secret key** (`sk_live_…`). It only exists
+   once the account is activated.
+2. Replace the three `STRIPE_PRICE_*` ids at the same time. **A Price
+   created in test mode does not exist in live mode** — same-looking id,
+   different object space — so leaving them alone breaks Pro checkout with
+   "No such price" the moment the key changes. `/admin/diagnostics` checks
+   each one against the live key and names any that are missing.
+3. Add the webhook endpoint again **in live mode** (Developers → Webhooks
+   → your `/api/webhooks/stripe` URL) and copy its signing secret into
+   `STRIPE_WEBHOOK_SECRET`. Endpoints and their secrets are per-mode too,
+   and this is the expensive one to get wrong: a test-mode secret under a
+   live key passes every "is it set?" check and then rejects every event
+   as an invalid signature — **the card is charged, the donation stays
+   PENDING, and Pro is never granted.** `/admin/diagnostics` lists the
+   endpoints in the current mode and says whether one points here.
+4. Set all five on the **Production** environment and **redeploy**.
+   Changing a variable does not affect the deployment already running,
+   which is the usual reason the page still says test mode after the key
+   was swapped.
+
 ### Checkout fails with "the product tax code is missing"
 
 Stripe's **Managed Payments** — Stripe acting as merchant of record — is
