@@ -1,16 +1,25 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
+import { publicPageMetadata } from '@/lib/pageMetadata'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { PROJECT_TYPES } from '@/lib/projectType'
 import { getAllVocabulary } from '@/lib/vocabulary'
 import { PRO_PLANS } from '@/lib/stripe'
 import { foundingMemberStatus } from '@/lib/foundingMembers'
+import { appUrlForMetadata } from '@/lib/appUrl'
+import { DEMO_SECTIONS } from '@/lib/demoTour'
+import { softwareApplicationJsonLd, webSiteJsonLd } from '@/lib/structuredData'
+import JsonLd from '@/components/JsonLd'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('home')
-  return { title: t('metaTitle'), description: t('metaDescription') }
+  return await publicPageMetadata({
+    path: '/',
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+  })
 }
 
 /**
@@ -52,9 +61,30 @@ export default async function Home() {
   // The three-modes section maps over PROJECT_TYPES synchronously inside
   // JSX, so the labels have to be in hand before the render starts.
   const vocabulary = await getAllVocabulary()
+  const locale = await getLocale()
+  const origin = appUrlForMetadata()
+  // The feature list is the tour's, named in the reader's language — the
+  // same set the /demo page advertises, under the same `@id`, so the two
+  // pages describe one product rather than two.
+  const td = await getTranslations('demo')
+  const site = {
+    url: origin,
+    name: 'RigLog',
+    description: t('metaDescription'),
+    inLanguage: locale,
+  }
 
   return (
     <div className="min-h-screen bg-background">
+      <JsonLd data={webSiteJsonLd(site)} />
+      <JsonLd
+        data={softwareApplicationJsonLd(
+          site,
+          DEMO_SECTIONS.flatMap((section) =>
+            section.chapters.map((chapter) => td(`chapter.${chapter.id}.title`))
+          )
+        )}
+      />
       <PublicHeader />
 
       {/* Hero */}

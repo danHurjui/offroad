@@ -404,7 +404,7 @@
     "viewPublicPage": "Vezi pagina publică"
   },
   "home": {
-    "metaTitle": "RigLog — jurnal de build, de restaurare și de reparații",
+    "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
     "heroTitle": "Fiecare șurub, fiecare leu, fiecare poză — într-un singur loc.",
     "heroBody": "RigLog e jurnal de build pentru mașini de off-road, jurnal de restaurare pentru clasice și carnet de reparații pentru mașina cu care mergi zilnic. Păstrează-i istoricul pe care îl merită.",
     "ctaStart": "Începe gratuit",
@@ -491,12 +491,12 @@
         "body": "Fiecare proiect e privat implicit. Îl publici când vrei o pagină publică, un card de partajat și un loc în fluxul comunității."
       }
     },
-    "metaDescription": "Notează fiecare modificare, etapă de restaurare și reparație a vehiculului tău: costuri, poze, bonuri și notificări pentru documente, într-un singur loc. Gratuit la început.",
+    "metaDescription": "Notează fiecare modificare, etapă de restaurare și reparație a vehiculului tău: costuri, poze, bonuri și memento-uri pentru ITP și RCA, într-un singur loc. Gratuit la început.",
     "ctaDemo": "Vezi funcțiile"
   },
   "demo": {
-    "metaTitle": "Vezi ce face RigLog",
-    "metaDescription": "Un tur prin toate funcțiile — jurnalul, costurile, documentele, comunitatea — cu ecrane de exemplu. Fără cont.",
+    "metaTitle": "Toate funcțiile, cu ecrane de exemplu — RigLog",
+    "metaDescription": "Vezi ce face RigLog înainte să-ți faci cont: lucrări cu costuri, poze înainte și după, bonuri, memento-uri pentru ITP și RCA, rapoarte PDF și analiza cheltuielilor. Ecrane reale, fără cont.",
     "heroTitle": "Tot ce face RigLog, înainte să-ți faci cont",
     "heroBody": "Un tur prin fiecare funcție — {count} la număr — cu ecrane de exemplu din aplicație. Alegi o categorie, filtrezi după plan și deschizi exact ce te interesează.",
     "heroNote": "Ecranele de mai jos folosesc date inventate. Jurnalul tău rămâne doar al tău.",
@@ -798,7 +798,42 @@
       "plan": "Plan",
       "mode": "Mod",
       "all": "Toate"
-    }
+    },
+    "allFeatures": "Toate funcțiile",
+    "allFeaturesBody": "Toate funcțiile de pe această pagină, într-o listă. Apeși pe oricare și se deschide mai sus.",
+    "explore": "Explorează pe categorii",
+    "faqTitle": "Întrebările care se pun primele",
+    "faq": {
+      "free": {
+        "q": "Este gratuit?",
+        "a": "Da. Un cont gratuit acoperă un vehicul, cu lucrări, poze, documente și memento-uri nelimitate. Pro pornește de la {price} RON pe lună și adaugă vehicule nelimitate, analiza cheltuielilor, export PDF și restul. Nu se cere card ca să începi și nimic nu expiră."
+      },
+      "phone": {
+        "q": "Merge pe telefon?",
+        "a": "Da. E o aplicație web gândită întâi pentru telefon, se instalează pe ecranul principal și se deschide pe tot ecranul — fără magazin de aplicații și fără actualizări. Pe laptop merge la fel."
+      },
+      "reminders": {
+        "q": "Îmi aduce aminte de ITP și de RCA?",
+        "a": "Da. Pui data de expirare o dată, iar RigLog îți scrie pe mail cu 30 de zile înainte, apoi la 14 și la 3 — o dată fiecare, nu o dată la fiecare verificare. Când reînnoiești documentul, se rearmează toate trei."
+      },
+      "mechanic": {
+        "q": "Poate mecanicul să adauge lucrările pe care le-a făcut?",
+        "a": "Da, pe vehiculul la care îl inviți. Poate adăuga lucrările pe care le-a făcut el și nimic altceva, iar un singur comutator îi ascunde toate prețurile — ceea ce contează când cel care adaugă lucrarea e și cel care o facturează."
+      },
+      "private": {
+        "q": "Rămâne jurnalul meu privat?",
+        "a": "Da, până spui tu altceva. Un vehicul e privat până îl treci pe public, iar și atunci costurile rămân ascunse dacă nu alegi să le arăți. Nimic nu se distribuie și nu se face reclamă pe datele tale."
+      },
+      "daily": {
+        "q": "E doar pentru mașini de proiect?",
+        "a": "Nu. Modul „mașină de zi cu zi” e un jurnal simplu de reparații și revizii: ce s-a făcut, când, la ce kilometraj și cât a costat. Nu te întreabă niciodată cât mai ai până la final, pentru că un jurnal de reparații nu se termină."
+      },
+      "leave": {
+        "q": "Dacă vreau să plec?",
+        "a": "Descarci ca JSON tot ce ține RigLog despre tine sau ștergi contul și duci pozele odată cu el. Amândouă sunt butoane în setări, nu un mail către suport."
+      }
+    },
+    "breadcrumb": "Funcții"
   },
   "task": {
     "name": "Denumire",
