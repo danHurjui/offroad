@@ -110,6 +110,7 @@ export type ApiErrorKey =
   | 'orderedIdsMismatch'
   | 'partNameRequired'
   | 'passwordTooShort'
+  | 'paymentsUnavailable'
   | 'pdfFailed'
   | 'photoRemoveOwnOnly'
   | 'priceInvalid'

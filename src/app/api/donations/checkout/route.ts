@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type Stripe from 'stripe'
 import { apiError } from '@/lib/apiError'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { getStripe } from '@/lib/stripe'
+import { getStripe, describeStripeFailure } from '@/lib/stripe'
+import { isMissingCustomerError, forgetStripeCustomer } from '@/lib/stripeCustomer'
 import { readJsonBody } from '@/lib/requestBody'
 import { parseDonationBani, DONATION_CURRENCY, DONATION_MESSAGE_MAX } from '@/lib/donations'
 import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
@@ -54,39 +56,55 @@ export async function POST(req: NextRequest) {
     const stripe = getStripe()
     const baseUrl = requireAppUrl()
 
-    const checkoutSession = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      ...(user?.stripeCustomerId
-        ? { customer: user.stripeCustomerId }
-        : user?.email
-          ? { customer_email: user.email }
-          : {}),
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: DONATION_CURRENCY,
-            unit_amount: amountBani,
-            product_data: {
-              name: 'Support RigLog',
-              description: 'A one-off contribution towards hosting and development',
+    // A donation needs no Customer object of its own — the id is reused
+    // only so a supporter's charges group under the account they already
+    // have. Falling back to the plain email is therefore a complete
+    // fallback, not a degraded one.
+    const byEmail = user?.email ? { customer_email: user.email } : {}
+    const openCheckout = (payer: Pick<Stripe.Checkout.SessionCreateParams, 'customer' | 'customer_email'>) =>
+      stripe.checkout.sessions.create({
+        ...payer,
+        mode: 'payment',
+        line_items: [
+          {
+            quantity: 1,
+            price_data: {
+              currency: DONATION_CURRENCY,
+              unit_amount: amountBani,
+              product_data: {
+                name: 'Support RigLog',
+                description: 'A one-off contribution towards hosting and development',
+              },
             },
           },
+        ],
+        success_url: `${baseUrl}/donate/thanks?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/donate?canceled=1`,
+        // `kind` is what tells the webhook this is a donation and not a Pro
+        // purchase — without it the Pro branch would ignore it anyway (it
+        // requires a valid plan), but being explicit keeps the two apart.
+        metadata: {
+          kind: 'donation',
+          userId: user?.id ?? '',
+          message: message ?? '',
+          isAnonymous: isAnonymous ? '1' : '0',
         },
-      ],
-      success_url: `${baseUrl}/donate/thanks?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/donate?canceled=1`,
-      // `kind` is what tells the webhook this is a donation and not a Pro
-      // purchase — without it the Pro branch would ignore it anyway (it
-      // requires a valid plan), but being explicit keeps the two apart.
-      metadata: {
-        kind: 'donation',
-        userId: user?.id ?? '',
-        message: message ?? '',
-        isAnonymous: isAnonymous ? '1' : '0',
-      },
-      payment_intent_data: { metadata: { kind: 'donation', userId: user?.id ?? '' } },
-    })
+        payment_intent_data: { metadata: { kind: 'donation', userId: user?.id ?? '' } },
+      })
+
+    let checkoutSession
+    try {
+      checkoutSession = await openCheckout(
+        user?.stripeCustomerId ? { customer: user.stripeCustomerId } : byEmail
+      )
+    } catch (e) {
+      // The stored customer id can predate a key change and no longer
+      // exist — see src/lib/stripeCustomer.ts. Don't let that stop a
+      // donation that needs no customer in the first place.
+      if (!user?.stripeCustomerId || !isMissingCustomerError(e, user.stripeCustomerId)) throw e
+      await forgetStripeCustomer(user.id, user.stripeCustomerId)
+      checkoutSession = await openCheckout(byEmail)
+    }
 
     if (!checkoutSession.url) {
       return await apiError('checkoutCreateFailed', 500)
@@ -106,6 +124,17 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: checkoutSession.url })
   } catch (e) {
+    // A donation failing because *this site* is misconfigured is not the
+    // donor's problem and not something retrying fixes, so it doesn't get
+    // the same answer as a payment that genuinely failed. See
+    // describeStripeFailure() for why the two are worth telling apart.
+    const failure = describeStripeFailure(e)
+    console.error(`[donation] ${failure.summary}\n[donation] ${failure.advice}`)
+    if (failure.kind === 'config') {
+      return await apiError('paymentsUnavailable', 503)
+    }
+    // Only a configuration fault is fully described by its message; keep
+    // the original for anything else, since the stack is the useful part.
     console.error('Donation checkout failed:', e)
     return await apiError('checkoutStartFailed', 500)
   }

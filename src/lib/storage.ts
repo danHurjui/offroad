@@ -30,6 +30,15 @@ export function isStorageConfigured(): boolean {
   return useBlob || !process.env.VERCEL
 }
 
+/**
+ * Which backend is live. Exported so a diagnostics view can report it
+ * without re-deriving the rule from the env var and drifting out of step
+ * with what `saveUpload()` actually does.
+ */
+export function storageBackend(): 'blob' | 'local' {
+  return useBlob ? 'blob' : 'local'
+}
+
 const MISCONFIGURED =
   '[storage] BLOB_READ_WRITE_TOKEN is not set while running on Vercel, so uploads are being written ' +
   "to the serverless filesystem, which is read-only. Every upload will fail with a 500 until a Blob " +
