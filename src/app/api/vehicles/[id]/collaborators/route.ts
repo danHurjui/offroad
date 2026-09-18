@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError, apiErrorWith } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { translator } from '@/i18n/translator'
-import { requireSession } from '@/lib/authz'
+import { requireSession, requireVerifiedSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { generateInviteToken, isValidEmail, inviteAcceptUrl, FREE_TIER_COLLABORATOR_LIMIT, DAILY_INVITE_LIMIT } from '@/lib/collaborators'
 import { sendEmail, collaboratorInviteEmail, inviteeLocale } from '@/lib/email'
@@ -30,7 +30,11 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 }
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireSession()
+  // An invitation is mail this app sends, in the inviter's name, to an
+  // address they chose — the one thing here that puts a stranger's inbox
+  // at the disposal of an account. That is exactly what an unconfirmed
+  // address must not be able to do.
+  const auth = await requireVerifiedSession()
   if (!auth.ok) return auth.error
   const { session } = auth
 

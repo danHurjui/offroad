@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { requireSession } from '@/lib/authz'
+import { requireVerifiedSession } from '@/lib/authz'
 
 /**
  * Toggle this user's vote on a ticket.
@@ -18,7 +18,9 @@ import { requireSession } from '@/lib/authz'
  * no anonymous voting, which would be trivially ballot-stuffed.
  */
 export async function POST(_req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireSession()
+  // Reaches other people: a vote is what decides what gets built. A throwaway
+  // address must not be able to do it — see requireVerifiedSession.
+  const auth = await requireVerifiedSession()
   if (!auth.ok) return auth.error
   const { session } = auth
 

@@ -148,12 +148,28 @@ model User {
   /// the account predates the language chooser, or never used it; every
   /// reader coerces that to the default with toLocale().
   locale               String?
+  /// When this address was proved to belong to whoever is using the
+  /// account. Set at creation for a Google signup — the signIn callback
+  /// already refuses an address Google itself reports as unverified — and
+  /// only by clicking the emailed link for a password signup.
+  ///
+  /// Null means unverified, with one deliberate exception: accounts that
+  /// existed before verification did were backfilled to their createdAt
+  /// by the migration. They were never asked, and locking people out of a
+  /// rule that did not exist when they joined is a worse wrong than a
+  /// column that is optimistic about them.
+  ///
+  /// Nothing reads this directly — ask emailVerification.ts, which also
+  /// knows that verification cannot be enforced on a deployment with no
+  /// mail provider configured.
+  emailVerifiedAt      DateTime?
   active               Boolean      @default(true)
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
 
   oauthAccounts        OAuthAccount[]
   passwordResetTokens  PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
   vehicles             Vehicle[]
   tasksAdded           Task[]                @relation("TaskAddedBy")
   invitesSent          ProjectCollaborator[] @relation("InvitedBy")
@@ -264,6 +280,27 @@ model OAuthAccount {
 }
 
 model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// A single-use link proving the person registering can read the address
+/// they typed. Shaped like PasswordResetToken on purpose — same lifecycle,
+/// same cascade, same "spent tokens are marked rather than deleted" rule,
+/// so there is one pattern to understand rather than two.
+///
+/// Longer-lived than a reset (24h vs 1h): a reset is something you asked
+/// for and are waiting on, while this arrives in the middle of signing up
+/// and is routinely opened the next morning.
+model EmailVerificationToken {
   id        String   @id @default(cuid())
   userId    String
   token     String   @unique

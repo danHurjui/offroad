@@ -6,6 +6,7 @@ import { verifyPassword } from './password'
 import { generateUsername } from './username'
 import { createUserWithFoundingGrant } from './foundingMembers'
 import { consumeRateLimit, clientIp } from './rateLimit'
+import { verifyTurnstile } from './turnstile'
 
 /** How long a session token stays valid without re-authenticating. */
 export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60
@@ -44,10 +45,27 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        // Carried through the same POST as the password so the bot check
+        // happens on the request that actually tries a credential, rather
+        // than on a separate call a script could simply not make.
+        turnstileToken: { label: 'Turnstile', type: 'text' },
       },
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null
         const email = credentials.email.toLowerCase().trim()
+
+        const ip = clientIp(new Headers((req?.headers ?? {}) as Record<string, string>))
+
+        // First, because it is the cheapest thing that can refuse the
+        // request and it costs no database round trip. A failure here is
+        // indistinguishable from a wrong password, for the same reason
+        // the rate limit below is — see the note there. LoginForm resets
+        // its widget on every submit so a retry always carries a fresh
+        // token: Cloudflare rejects a reused one, which would otherwise
+        // turn a single mistyped password into a form that never works
+        // again.
+        const bot = await verifyTurnstile(credentials.turnstileToken, ip)
+        if (!bot.ok) return null
 
         // Throttle credential stuffing. Keyed on both the target account
         // and the source IP: the email key stops one account being ground
@@ -59,7 +77,6 @@ export const authOptions: NextAuthOptions = {
         // throttled attempt is indistinguishable from a wrong password.
         // That's acceptable here, and arguably better: it tells an
         // attacker nothing about whether they tripped a limit.
-        const ip = clientIp(new Headers((req?.headers ?? {}) as Record<string, string>))
         const [byEmail, byIp] = await Promise.all([
           consumeRateLimit('login', `email:${email}`),
           consumeRateLimit('loginIp', `ip:${ip}`),
@@ -108,6 +125,13 @@ export const authOptions: NextAuthOptions = {
               username: await generateUsername(displayName),
               accountType: 'OWNER',
               active: true,
+              // Verified at creation, and this is the branch that earns
+              // it: the check above has just refused any address Google
+              // reports as unverified, so reaching here means the party
+              // that owns the mailbox has already confirmed the claim.
+              // Mailing a link to prove it again would ask the person to
+              // do a worse version of what has already been done.
+              emailVerifiedAt: new Date(),
             })
           }
           if (!dbUser.active) return false

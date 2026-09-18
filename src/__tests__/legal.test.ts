@@ -133,6 +133,7 @@ describe('sub-processors', () => {
       'vpic.nhtsa.dot.gov': 'NHTSA',
       'openstreetmap.org': 'OpenStreetMap',
       'unpkg.com': 'unpkg',
+      'challenges.cloudflare.com': 'Cloudflare',
     }
 
     const sources = collectSources(path.join(process.cwd(), 'src'))

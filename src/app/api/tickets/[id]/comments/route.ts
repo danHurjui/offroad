@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
-import { requireSession } from '@/lib/authz'
+import { requireVerifiedSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
 import { validateText, TICKET_COMMENT_MAX } from '@/lib/tickets'
 import { consumeRateLimit, rateLimitResponse } from '@/lib/rateLimit'
 
 /** Comment on a ticket. Any logged-in user. */
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireSession()
+  // Reaches other people: this puts a reply on a public board. A throwaway
+  // address must not be able to do it — see requireVerifiedSession.
+  const auth = await requireVerifiedSession()
   if (!auth.ok) return auth.error
   const { session } = auth
 

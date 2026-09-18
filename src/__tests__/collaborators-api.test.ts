@@ -18,6 +18,14 @@ jest.mock('@/lib/email', () => ({
   sendEmail: jest.fn().mockResolvedValue(undefined),
   collaboratorInviteEmail: jest.fn().mockResolvedValue({ subject: 's', html: '<p>x</p>' }),
   inviteeLocale: jest.fn().mockReturnValue('ro'),
+  // Inviting now goes through requireVerifiedSession, which asks whether
+  // the confirmation rule can be enforced at all — and that question is
+  // "is a mail provider configured". Saying yes here keeps these cases
+  // about collaborators: the owner they stub is verified, so the gate
+  // passes and the assertions below are still about what they say they
+  // are. emailVerification.test.ts is where the gate itself is tested.
+  isEmailConfigured: jest.fn().mockReturnValue(true),
+  emailLocale: jest.fn().mockReturnValue('ro'),
 }))
 // The email/notification path builds its translator directly from the
 // catalogue (src/i18n/translator.ts), so there is no request context to
@@ -58,7 +66,7 @@ beforeEach(() => {
   jest.clearAllMocks()
   mockGetSession.mockResolvedValue({ user: { id: 'owner' } })
   mockVehicleFindUnique.mockResolvedValue(VEHICLE)
-  mockUserFindUnique.mockResolvedValue({ isPro: false, displayName: 'Owner' })
+  mockUserFindUnique.mockResolvedValue({ isPro: false, displayName: 'Owner', emailVerifiedAt: new Date() })
 })
 
 describe('GET /api/vehicles/[id]/collaborators', () => {
@@ -95,7 +103,7 @@ describe('POST /api/vehicles/[id]/collaborators', () => {
 
   it('returns 403 with UPGRADE_REQUIRED when the free tier limit is hit', async () => {
     mockCollabFindFirst.mockResolvedValue(null)
-    mockUserFindUnique.mockResolvedValue({ isPro: false, displayName: 'Owner' })
+    mockUserFindUnique.mockResolvedValue({ isPro: false, displayName: 'Owner', emailVerifiedAt: new Date() })
     mockCollabCount.mockResolvedValueOnce(3)
     const res = await POST(jsonReq({ email: 'mechanic@x.com' }), { params })
     expect(res.status).toBe(403)
@@ -105,7 +113,7 @@ describe('POST /api/vehicles/[id]/collaborators', () => {
 
   it('does not enforce the free tier limit for Pro owners', async () => {
     mockCollabFindFirst.mockResolvedValue(null)
-    mockUserFindUnique.mockResolvedValue({ isPro: true, displayName: 'Owner' })
+    mockUserFindUnique.mockResolvedValue({ isPro: true, displayName: 'Owner', emailVerifiedAt: new Date() })
     mockCollabCount.mockResolvedValue(0)
     mockCollabCreate.mockResolvedValue({ id: 'c1', email: 'mechanic@x.com', inviteToken: 'tok' })
     const res = await POST(jsonReq({ email: 'mechanic@x.com' }), { params })

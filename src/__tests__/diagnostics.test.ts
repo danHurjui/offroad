@@ -73,7 +73,7 @@ describe('configurationGroups', () => {
 
   it('groups every check under a heading', () => {
     const groups = configurationGroups()
-    expect(groups.map((g) => g.id)).toEqual(['payments', 'site', 'notifications'])
+    expect(groups.map((g) => g.id)).toEqual(['payments', 'site', 'notifications', 'signup'])
     for (const group of groups) {
       expect(group.checks.length).toBeGreaterThan(0)
     }

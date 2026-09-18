@@ -13,6 +13,8 @@ import {
   type ProPlanId,
 } from '@/lib/stripe'
 import { DONATION_CURRENCY } from '@/lib/donations'
+import { verificationDisabledReason } from '@/lib/emailVerification'
+import { isTurnstileConfigured, turnstileConfigProblem } from '@/lib/turnstile'
 import { foundingMemberReconciliation } from '@/lib/foundingMembers'
 
 /**
@@ -465,6 +467,122 @@ export async function stripeWebhookCheck(): Promise<DiagnosticCheck | null> {
 }
 
 /** Everything that can be answered without a network call. */
+/**
+ * Whether a password signup is asked to prove its address, and whether
+ * the app is in any position to ask.
+ *
+ * It needs a mail provider and a public URL — the link has to be sent and
+ * it has to point somewhere. Missing either switches the rule off rather
+ * than walling every new account behind a message that can never arrive,
+ * which is the right failure but an invisible one: the sign-up flow looks
+ * completely normal with it off. This is where it stops being invisible.
+ */
+function emailVerificationCheck(): DiagnosticCheck {
+  const reason = verificationDisabledReason()
+
+  if (reason === null) {
+    return {
+      id: 'email-verification',
+      label: 'Email confirmation',
+      status: 'ok',
+      variables: ['BREVO_API_KEY', 'RESEND_API_KEY', 'NEXTAUTH_URL'],
+      detail:
+        'On. A password signup is emailed a link and cannot publish a build, invite a ' +
+        'collaborator or post in the community until it is opened. Google signups skip it — ' +
+        'Google has already verified the address, and this app refuses one it reports as ' +
+        'unverified.',
+    }
+  }
+
+  return {
+    id: 'email-verification',
+    label: 'Email confirmation',
+    status: 'warn',
+    variables:
+      reason === 'noEmailProvider'
+        ? ['BREVO_API_KEY', 'RESEND_API_KEY']
+        : ['NEXTAUTH_URL'],
+    detail: sentences(
+      reason === 'noEmailProvider'
+        ? 'Off, because no email provider is configured, so the confirmation link cannot be sent'
+        : 'Off, because there is no usable public address, so the confirmation link has nowhere ' +
+          'to point',
+      'Nothing is being held back from anyone — an unconfirmed account has the run of the site, ' +
+        'and anybody can sign up with an address they do not own. Fixing the variable above ' +
+        'turns confirmation back on by itself; no code change and no redeploy of this setting ' +
+        'beyond the usual one'
+    ),
+  }
+}
+
+/**
+ * The bot check on the three forms a stranger can post to.
+ *
+ * Both halves of the key pair or nothing: a site key without a secret
+ * renders a widget whose tokens could only be waved through, and a secret
+ * without a site key would refuse every visitor, since no form could
+ * produce a token. Neither is a state to discover from a support email,
+ * so both are reported as failures here.
+ */
+function turnstileCheck(): DiagnosticCheck {
+  const problem = turnstileConfigProblem()
+
+  if (problem === 'secretMissing') {
+    return {
+      id: 'turnstile',
+      label: 'Bot protection (Turnstile)',
+      status: 'fail',
+      variables: ['TURNSTILE_SECRET_KEY'],
+      detail:
+        'Half configured: the widget renders on sign-up, log-in and password reset, but there ' +
+        'is no secret to check its answers against, so every token is accepted unverified. ' +
+        'The forms look protected and are not. Set TURNSTILE_SECRET_KEY from the same Turnstile ' +
+        'widget as the site key, or clear NEXT_PUBLIC_TURNSTILE_SITE_KEY to stop showing a ' +
+        'check that decides nothing.',
+    }
+  }
+
+  if (problem === 'siteKeyMissing') {
+    return {
+      id: 'turnstile',
+      label: 'Bot protection (Turnstile)',
+      status: 'fail',
+      variables: ['NEXT_PUBLIC_TURNSTILE_SITE_KEY'],
+      detail:
+        'Half configured: a secret is set but no site key, so no form renders a widget and none ' +
+        'can produce a token. The check is switched off rather than refusing everybody. Set ' +
+        'NEXT_PUBLIC_TURNSTILE_SITE_KEY — and remember it is read at build time, so it needs a ' +
+        'redeploy, not just a variable change.',
+    }
+  }
+
+  if (isTurnstileConfigured()) {
+    return {
+      id: 'turnstile',
+      label: 'Bot protection (Turnstile)',
+      status: 'ok',
+      variables: ['NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'TURNSTILE_SECRET_KEY'],
+      detail:
+        'On for sign-up, log-in and password reset. If Cloudflare cannot be reached the request ' +
+        'is allowed through and the rate limits carry it, rather than taking the front door of ' +
+        'the site offline over somebody else\'s outage.',
+    }
+  }
+
+  return {
+    id: 'turnstile',
+    label: 'Bot protection (Turnstile)',
+    status: 'warn',
+    variables: ['NEXT_PUBLIC_TURNSTILE_SITE_KEY', 'TURNSTILE_SECRET_KEY'],
+    detail:
+      'Off. Sign-up, log-in and password reset are defended by the rate limits alone, which ' +
+      'bound how fast one address or one account can be hit but do nothing about a hundred ' +
+      'proxies making three requests each. Create a free Turnstile widget at ' +
+      'dash.cloudflare.com and set both keys. This is separate from putting the domain behind ' +
+      'Cloudflare\'s proxy, which is DNS configuration — see DEPLOY.md.',
+  }
+}
+
 export function configurationGroups(): DiagnosticGroup[] {
   const appUrl = resolveAppUrl()
   const provider = emailProvider()
@@ -533,5 +651,15 @@ export function configurationGroups(): DiagnosticGroup[] {
         },
       ],
     },
+    {
+      // The two defences on the way in, kept together: one decides who
+      // may create an account, the other what that account may do before
+      // it has proved the address on it. Both are silently switched off by
+      // a missing variable, which is the reason this group exists.
+      id: 'signup',
+      label: 'Sign-up and abuse',
+      checks: [emailVerificationCheck(), turnstileCheck()],
+    },
   ]
 }
+

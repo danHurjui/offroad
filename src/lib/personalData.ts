@@ -115,6 +115,12 @@ export async function collectUserData(userId: string) {
       proPlan: true,
       notifyFollowedEmail: true,
       notifyFollowedPush: true,
+      // A fact about this person's account that they can ask us for, and
+      // one they may well want: it is the answer to "when did I confirm
+      // this address". The tokens themselves stay out, for the same
+      // reason the password hash does — they are credentials, and an
+      // export file is not where a live one should end up.
+      emailVerifiedAt: true,
       createdAt: true,
       updatedAt: true,
     },

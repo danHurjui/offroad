@@ -120,6 +120,7 @@ export const SUB_PROCESSORS: SubProcessor[] = [
   { id: 'stripe', conditional: true },
   { id: 'emailProvider', conditional: true },
   { id: 'google', conditional: true },
+  { id: 'cloudflare', conditional: true },
   { id: 'openstreetmap', conditional: true },
   { id: 'unpkg', conditional: true },
   { id: 'nhtsa', conditional: true },

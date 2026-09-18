@@ -11,27 +11,41 @@ import PasswordInput from '@/components/PasswordInput'
 import PasswordStrengthMeter from '@/components/PasswordStrengthMeter'
 import GoogleSignInButton from '@/components/GoogleSignInButton'
 import { MIN_PASSWORD_LENGTH } from '@/lib/passwordStrength'
+import { useTurnstile } from '@/components/useTurnstile'
 
 export default function RegisterPage() {
   const t = useTranslations('auth.register')
   const tc = useTranslations('common')
+  const tt = useTranslations('auth.turnstile')
   const router = useRouter()
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const turnstile = useTurnstile('register')
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    if (turnstile.pending) {
+      setError(tt(turnstile.holdReason))
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayName, email, password }),
+        body: JSON.stringify({
+          displayName,
+          email,
+          password,
+          turnstileToken: turnstile.token ?? '',
+        }),
       })
+      // One token, one attempt — whatever the answer was.
+      turnstile.reset()
       const data = await res.json()
       if (!res.ok) {
         // The route's own message, which is translated server-side from
@@ -112,6 +126,7 @@ export default function RegisterPage() {
               </p>
             )}
           </div>
+          {turnstile.widget}
           <FormError id="register-error">{error}</FormError>
           <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? t('submitting') : t('submit')}

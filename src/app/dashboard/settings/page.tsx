@@ -7,6 +7,8 @@ import ThemeToggle from '@/components/ThemeToggle'
 import LanguageToggle from '@/components/LanguageToggle'
 import DataExportCard from '@/components/DataExportCard'
 import InstallAppButton from '@/components/InstallAppButton'
+import VerifyEmailResend from '@/components/VerifyEmailResend'
+import { isEmailVerified, isVerificationEnforced } from '@/lib/emailVerification'
 
 export default async function SettingsPage() {
   const t = await getTranslations('settings')
@@ -14,6 +16,7 @@ export default async function SettingsPage() {
   const td = await getTranslations('dashboard')
   const tl = await getTranslations('settings.language')
   const ti = await getTranslations('install')
+  const tv = await getTranslations('verifyEmail')
   const session = await requireSessionOrRedirect()
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: session.user.id },
@@ -23,6 +26,9 @@ export default async function SettingsPage() {
       displayName: true,
       location: true,
       isPublicProfile: true,
+      email: true,
+      emailVerifiedAt: true,
+      locale: true,
       isPro: true,
       isProComped: true,
       foundingNumber: true,
@@ -32,6 +38,17 @@ export default async function SettingsPage() {
       notifyFollowedPush: true,
     },
   })
+
+  const verified = isEmailVerified(user)
+  const enforced = isVerificationEnforced()
+  // The account's own language, not the browser's: this is a date on a
+  // record, and it reads oddly next to an address in one language and a
+  // month in another.
+  const verifiedOn = user.emailVerifiedAt
+    ? new Intl.DateTimeFormat(user.locale === 'en' ? 'en-GB' : 'ro-RO', {
+        dateStyle: 'long',
+      }).format(user.emailVerifiedAt)
+    : ''
 
   return (
     <div className="mx-auto max-w-xl">
@@ -58,6 +75,34 @@ export default async function SettingsPage() {
         <h2 className="mb-1 text-sm font-semibold text-ink">{tl('title')}</h2>
         <p className="mb-3 text-xs text-ink-muted">{tl('help')}</p>
         <LanguageToggle />
+      </section>
+
+      {/* Always rendered, in both states. An unconfirmed address is worth
+          saying out loud, and a confirmed one is worth being able to check
+          — a card that appeared only when something was wrong would leave
+          somebody who had just clicked the link with no way to tell
+          whether it worked. */}
+      <section className="card mb-6 p-5">
+        <h2 className="mb-1 text-sm font-semibold text-ink">{tv('settingsTitle')}</h2>
+        <p className="text-sm text-ink">{user.email}</p>
+        {verified ? (
+          <p className="mt-1 text-xs text-ink-muted">
+            {tv('verified', { date: verifiedOn })}
+          </p>
+        ) : (
+          <>
+            <p className="mt-1 text-xs text-ink-muted">{tv('unverified')}</p>
+            {/* Which of the two sentences follows depends on whether the
+                rule is actually being applied. Telling somebody their
+                posting is held back, on a deployment that can never send
+                them the link that would release it, would be describing a
+                wall with no door. */}
+            <p className="mt-2 text-xs text-ink-faint">
+              {enforced ? tv('unverifiedHelp') : tv('notEnforced')}
+            </p>
+            {enforced && <VerifyEmailResend className="mt-3" />}
+          </>
+        )}
       </section>
 
       {/* Renders nothing at all on a browser that cannot install, or one
