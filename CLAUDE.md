@@ -316,6 +316,19 @@ existing `STRIPE_SECRET_KEY`. Amounts are held in **bani** (integer minor
 units) and validated server-side by `parseDonationBani()` — that function
 is the only thing between a hand-crafted request and a charge.
 
+**Donation sessions pass `managed_payments: { enabled: false }`.** Managed
+Payments is Stripe acting as merchant of record, it is on by default for
+accounts created since it shipped, and it refuses any line item whose
+product carries no tax code — which an inline `price_data` product cannot
+have. A donation has no product to classify: it is a contribution, not a
+sale, so there is no honest tax code for it, and routing a gift through
+merchant-of-record would have Stripe sell something on the site's behalf
+and take a further cut. The Pro plans are deliberately **not** opted out:
+their Prices are configured in the dashboard, where a tax code can be set,
+so whether an actual sale uses merchant of record stays the operator's
+call. Passing a new optional request parameter is backwards-compatible
+across every Stripe API version, so this is safe on older accounts too.
+
 A misconfiguration answers **503 `paymentsUnavailable`**, not the 500
 `checkoutStartFailed` a real payment failure gets — `describeStripeFailure()`
 (`src/lib/stripe.ts`) is what separates the two, and `StripeConfigError`
