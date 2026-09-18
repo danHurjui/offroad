@@ -174,3 +174,69 @@ export async function createUserWithFoundingGrant(account: NewAccount) {
     return prisma.user.create({ data: account })
   }
 }
+
+export interface FoundingMemberReconciliation extends FoundingMemberStatus {
+  /** The highest number ever handed to an account that still exists. */
+  highestIssued: number
+  /** Accounts still holding a founding number. */
+  holders: number
+  /** Comped Pro that did **not** come from the promotion — an admin granted it. */
+  compedOutsidePromotion: number
+  /** Paid subscriptions, which the promotion has nothing to do with. */
+  paid: number
+  /**
+   * True when the counter is behind the numbers already issued, so the
+   * next signup will be handed a number that is taken.
+   */
+  drifted: boolean
+}
+
+/**
+ * The counter checked against reality, for the admin diagnostics screen.
+ *
+ * Two questions this answers that `foundingMemberStatus()` cannot.
+ *
+ * **"Why does the homepage say 100 places left when accounts already have
+ * Pro?"** Because Pro arrives by three different routes and only one of
+ * them is this promotion: an admin comp (`isProComped` set from
+ * `/admin/users`) and a Stripe subscription (`isPro`) both leave the
+ * counter untouched, correctly. Showing the three side by side is the
+ * whole answer, and without it the landing page's number looks wrong when
+ * it is right.
+ *
+ * **"Is the counter still telling the truth?"** It can drift from the
+ * numbers actually issued through operator error — a restored backup, a
+ * hand-edited row — and the only thing that notices today is
+ * `foundingNumber`'s unique constraint firing mid-signup, which falls back
+ * to an ordinary account and logs. By then the landing page has already
+ * been advertising places that were gone. `drifted` says so first.
+ *
+ * Counting the two Pro columns directly is deliberate here and is the one
+ * place it is right: this is a breakdown *by source*, not an entitlement
+ * check. Anything deciding whether someone gets a Pro feature still has to
+ * ask `hasPro()` with `PRO_SELECT` — see src/lib/pro.ts.
+ */
+export async function foundingMemberReconciliation(): Promise<FoundingMemberReconciliation> {
+  const status = await foundingMemberStatus()
+
+  const [highest, holders, compedOutsidePromotion, paid] = await Promise.all([
+    prisma.user.aggregate({ _max: { foundingNumber: true } }),
+    prisma.user.count({ where: { foundingNumber: { not: null } } }),
+    prisma.user.count({ where: { isProComped: true, foundingNumber: null } }),
+    prisma.user.count({ where: { isPro: true } }),
+  ])
+
+  const highestIssued = highest._max.foundingNumber ?? 0
+
+  return {
+    ...status,
+    highestIssued,
+    holders,
+    compedOutsidePromotion,
+    paid,
+    // Holders can legitimately be fewer than `taken` — deleting an account
+    // does not reopen its slot, by design — so the drift that matters is
+    // the counter sitting *below* a number already handed out.
+    drifted: highestIssued > status.taken,
+  }
+}

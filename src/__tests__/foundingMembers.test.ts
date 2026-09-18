@@ -2,6 +2,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     $queryRaw: jest.fn(),
     foundingMemberCounter: { findUnique: jest.fn() },
+    user: { aggregate: jest.fn(), count: jest.fn() },
   },
 }))
 
@@ -12,12 +13,15 @@ import {
   claimFoundingNumber,
   foundingMemberGrant,
   foundingMemberStatus,
+  foundingMemberReconciliation,
   isFoundingNumberCollision,
 } from '@/lib/foundingMembers'
 import { FOUNDING_MEMBER_LIMIT } from '@/lib/pro'
 
 const mockQueryRaw = prisma.$queryRaw as unknown as jest.Mock
 const mockCounter = prisma.foundingMemberCounter.findUnique as jest.Mock
+const mockAggregate = prisma.user.aggregate as jest.Mock
+const mockCount = prisma.user.count as jest.Mock
 
 beforeEach(() => jest.clearAllMocks())
 
@@ -239,5 +243,56 @@ describe('the collision fallback', () => {
   it('says loudly in the log that the counter needs fixing', () => {
     expect(HELPER).toMatch(/console\.error\(/)
     expect(HELPER).toMatch(/out of step/)
+  })
+})
+
+/**
+ * "The homepage says 100 places left, but I have 2 Pro accounts." Both
+ * can be true at once: Pro arrives by three routes and only one of them
+ * touches this counter. Nothing used to say so anywhere.
+ */
+describe('foundingMemberReconciliation', () => {
+  /** counts are consumed in order: holders, comped-outside, paid. */
+  function setup({ taken, highest, holders, comped, paid }: {
+    taken: number; highest: number | null; holders: number; comped: number; paid: number
+  }) {
+    mockCounter.mockResolvedValue({ taken })
+    mockAggregate.mockResolvedValue({ _max: { foundingNumber: highest } })
+    mockCount
+      .mockResolvedValueOnce(holders)
+      .mockResolvedValueOnce(comped)
+      .mockResolvedValueOnce(paid)
+  }
+
+  it('separates promotion Pro from admin comps and paying subscribers', async () => {
+    setup({ taken: 0, highest: null, holders: 0, comped: 2, paid: 0 })
+    const f = await foundingMemberReconciliation()
+    expect(f).toMatchObject({ taken: 0, remaining: 100, holders: 0, compedOutsidePromotion: 2, paid: 0 })
+    // Two Pro accounts and every founding place still open is a correct
+    // state, not drift — so it must not be reported as a problem.
+    expect(f.drifted).toBe(false)
+  })
+
+  it('reports drift when the counter is behind a number already issued', async () => {
+    // Only reachable through operator error, and until now only visible
+    // as a collision partway through someone else's signup.
+    setup({ taken: 3, highest: 7, holders: 7, comped: 0, paid: 0 })
+    const f = await foundingMemberReconciliation()
+    expect(f.drifted).toBe(true)
+    expect(f.highestIssued).toBe(7)
+  })
+
+  it('does not call a deleted founding member drift', async () => {
+    // Slots never reopen, so holders below taken is by design.
+    setup({ taken: 10, highest: 10, holders: 8, comped: 0, paid: 0 })
+    expect((await foundingMemberReconciliation()).drifted).toBe(false)
+  })
+
+  it('treats a missing counter row as nobody having signed up', async () => {
+    mockCounter.mockResolvedValue(null)
+    mockAggregate.mockResolvedValue({ _max: { foundingNumber: null } })
+    mockCount.mockResolvedValue(0)
+    const f = await foundingMemberReconciliation()
+    expect(f).toMatchObject({ taken: 0, remaining: 100, highestIssued: 0, drifted: false })
   })
 })

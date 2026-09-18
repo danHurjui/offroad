@@ -4,6 +4,7 @@ import { isPushConfigured } from '@/lib/webpush'
 import { isStorageConfigured, storageBackend } from '@/lib/storage'
 import { stripeConfigProblems, isStripeTestMode, describeStripeFailure, getStripe } from '@/lib/stripe'
 import { DONATION_CURRENCY } from '@/lib/donations'
+import { foundingMemberReconciliation } from '@/lib/foundingMembers'
 
 /**
  * What is and isn't configured on this deployment, for the admin
@@ -180,6 +181,59 @@ export async function stripeAccountCheck(): Promise<DiagnosticCheck> {
           ? 'Not checked — no usable key to check it with.'
           : sentences(failure.summary, failure.advice),
     }
+  }
+}
+
+/**
+ * Where the Pro accounts actually came from.
+ *
+ * The homepage advertises the founding promotion from its counter, and
+ * that number looks wrong to the site's owner the moment any account
+ * holds Pro without the counter having moved — which is the normal state,
+ * because an admin comp and a Stripe subscription are separate routes to
+ * Pro that this promotion knows nothing about. Showing the three together
+ * is the answer to "it says 100 places left but I have 2 Pro accounts".
+ *
+ * It also catches the case where the counter really is wrong, which today
+ * only surfaces as a unique-constraint collision partway through somebody
+ * else's signup.
+ */
+export async function foundingMembersCheck(): Promise<DiagnosticCheck> {
+  const f = await foundingMemberReconciliation()
+
+  const breakdown =
+    `${f.holders} from the promotion, ${f.compedOutsidePromotion} comped by an admin, ` +
+    `${f.paid} paying.`
+
+  if (f.drifted) {
+    return {
+      id: 'founding-members',
+      label: 'Founding members',
+      status: 'fail',
+      detail: sentences(
+        `The counter says ${f.taken} taken, but #${f.highestIssued} has already been issued, so ` +
+          'the homepage is advertising places that are gone and the next signup will collide and ' +
+          `quietly miss out. Set the counter to ${f.highestIssued}`,
+        `Pro accounts: ${breakdown}`
+      ),
+    }
+  }
+
+  return {
+    id: 'founding-members',
+    label: 'Founding members',
+    status: 'ok',
+    detail: sentences(
+      f.open
+        ? `${f.taken} of ${f.limit} places taken, ${f.remaining} still advertised on the homepage`
+        : `All ${f.limit} places are gone, so the homepage no longer offers them`,
+      `Pro accounts: ${breakdown}`,
+      f.compedOutsidePromotion > 0 || f.paid > 0
+        ? 'Only the first of those three moves the counter — an admin comp and a Stripe ' +
+          'subscription leave it alone, which is why the number of Pro accounts and the number ' +
+          'of founding places taken do not have to match'
+        : ''
+    ),
   }
 }
 
