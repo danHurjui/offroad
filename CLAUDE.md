@@ -503,6 +503,17 @@ feature fails. Its detail text is deliberately **not translated**: it
 names environment variables and Stripe dashboard paths, which aren't
 translated where the operator goes to fix them.
 
+It also carries `foundingMemberReconciliation()`, which is the only thing
+that checks the founding counter against reality. Pro arrives by three
+routes and **only one of them moves that counter** — the promotion; an
+admin comp and a Stripe subscription leave it alone, correctly — so the
+homepage advertising "100 places left" while accounts already hold Pro is
+usually right, and looks wrong to the person who owns the site. The same
+read catches genuine drift (counter behind `MAX(foundingNumber)`), which
+otherwise only surfaces as the unique constraint firing partway through
+somebody else's signup, after the landing page has been advertising
+places that were already gone.
+
 ## What's not built yet
 
 Phase 1 (core log) is implemented: auth, vehicle CRUD, dashboard, task CRUD,

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import {
   configurationGroups,
+  foundingMembersCheck,
   stripeAccountCheck,
   worstStatus,
   type CheckStatus,
@@ -55,10 +56,13 @@ export default async function AdminDiagnosticsPage() {
 
   // The live account check only makes sense once the key is well-formed,
   // and it is the slowest thing on the page — so it runs after the cheap
-  // checks rather than gating them.
-  const accountCheck = await stripeAccountCheck()
+  // checks rather than gating them. The founding count is a database read
+  // and independent of it, so the two go together.
+  const [accountCheck, founding] = await Promise.all([stripeAccountCheck(), foundingMembersCheck()])
   const withAccount = groups.map((group) =>
-    group.id === 'payments' ? { ...group, checks: [...group.checks, accountCheck] } : group
+    group.id === 'payments'
+      ? { ...group, checks: [...group.checks, accountCheck, founding] }
+      : group
   )
 
   const overall = worstStatus(withAccount)
