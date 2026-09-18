@@ -47,7 +47,16 @@ export default function DemoModeSwitcher() {
         arrow-key handling to be correct, and a tablist that only responds
         to Tab is a worse experience than no tab semantics at all.
       */}
-      <div role="group" aria-label={t('modePreview.pick')} className="mb-4 flex flex-wrap gap-2">
+      {/* Tagged for the no-script stylesheet in DemoExplorer: with
+          scripting off these buttons cannot switch anything, and a dead
+          picker is worse than none. The panel below still renders the
+          off-road vocabulary, which is a complete example on its own. */}
+      <div
+        data-demo-controls
+        role="group"
+        aria-label={t('modePreview.pick')}
+        className="mb-4 flex flex-wrap gap-2"
+      >
         {PROJECT_TYPES.map((type) => {
           const selected = type === mode
           return (
