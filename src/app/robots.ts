@@ -22,7 +22,7 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
-      allow: ['/', '/builds/', '/community', '/tickets', '/donate', '/terms', '/privacy', '/cookies', '/sitemap'],
+      allow: ['/', '/demo', '/builds/', '/community', '/tickets', '/donate', '/terms', '/privacy', '/cookies', '/sitemap'],
       // /donate/thanks carries a Stripe session id in the query string —
       // nothing to index, and no reason to have it crawled.
       disallow: [

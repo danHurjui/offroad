@@ -323,7 +323,8 @@
     "addVehicle": "Add a vehicle",
     "menu": "Menu",
     "closeMenu": "Close menu",
-    "openMenu": "Open menu"
+    "openMenu": "Open menu",
+    "demo": "Demo"
   },
   "footer": {
     "tagline": "Build tracker, restoration journal & repair log.",
@@ -335,7 +336,8 @@
     "terms": "Terms",
     "privacy": "Privacy",
     "cookies": "Cookies",
-    "sitemap": "Site map"
+    "sitemap": "Site map",
+    "demo": "Demo"
   },
   "sitemapPage": {
     "metaTitle": "Site map — RigLog",
@@ -358,7 +360,8 @@
     "terms": "Terms",
     "privacy": "Privacy",
     "cookies": "Cookies",
-    "xmlNote": "Search engines want <link>sitemap.xml</link> instead."
+    "xmlNote": "Search engines want <link>sitemap.xml</link> instead.",
+    "demo": "Demo — all the features"
   },
   "dashboard": {
     "title": "Your vehicles",
@@ -488,7 +491,215 @@
         "body": "Every project is private by default. Publish it when you want a public page, a shareable card, and a spot in the community feed."
       }
     },
-    "metaDescription": "Log every modification, restoration stage and repair on your vehicle: costs, photos, receipts and document reminders, in one place. Free to start."
+    "metaDescription": "Log every modification, restoration stage and repair on your vehicle: costs, photos, receipts and document reminders, in one place. Free to start.",
+    "ctaDemo": "See the features"
+  },
+  "demo": {
+    "metaTitle": "See what RigLog does",
+    "metaDescription": "A tour of every feature — the log, the costs, the documents, the community — with sample screens. No account needed.",
+    "heroTitle": "Everything RigLog does, before you sign up",
+    "heroBody": "A walk through every feature, with sample screens from the app itself. Nothing here needs an account, and nothing is hidden behind a form.",
+    "heroNote": "The screens below use made-up data. Your own log is yours alone.",
+    "ctaStart": "Create a free account",
+    "ctaBrowse": "Browse real builds",
+    "ctaPricing": "See the pricing",
+    "contents": "Contents",
+    "sampleData": "Sample data",
+    "tierFree": "Free",
+    "tierPro": "Pro",
+    "onlyIn": "{modes} only",
+    "seeItLive": "See it live →",
+    "closingTitle": "Start with the vehicle you already own",
+    "closingBody": "The free account covers {vehicles, plural, one {one vehicle} other {# vehicles}}, with unlimited jobs, photos, documents and reminders. Pro adds the rest, from {price} RON a month, and you can stay on free for as long as you like.",
+    "modePreview": {
+      "pick": "Choose a mode",
+      "categories": "Categories",
+      "statuses": "Status tags",
+      "wishlistNote": "In this mode the parts list is called “{name}”."
+    },
+    "section": {
+      "log": {
+        "eyebrow": "The log",
+        "title": "Write it down once",
+        "body": "Every job, every part, every receipt, attached to the vehicle it belongs to. This is the free half of RigLog, and it is the half you will use every week."
+      },
+      "pro": {
+        "eyebrow": "With Pro",
+        "title": "When one vehicle isn’t enough",
+        "body": "Pro opens the garage to as many vehicles as you like, and adds the parts that answer questions about the log rather than adding to it — where the money went, who else can see it, and what the whole thing looks like to somebody else."
+      },
+      "community": {
+        "eyebrow": "Community",
+        "title": "Show it, or don’t",
+        "body": "Nothing you write is public until you say so. When you do, a build gets an address of its own that anyone can read without an account."
+      },
+      "app": {
+        "eyebrow": "The app itself",
+        "title": "Small things that add up",
+        "body": "RigLog is a web app that installs like a native one, speaks Romanian and English, and hands your data back whenever you ask for it."
+      }
+    },
+    "chapter": {
+      "modes": {
+        "title": "Three modes, one app",
+        "body": "An off-road build, a restoration and a daily driver need different words for the same screens. You pick the mode when you add a vehicle, and the categories, the status tags and the photo labels change with it. Try it — the preview is the real vocabulary."
+      },
+      "tasks": {
+        "title": "Jobs, with what they cost",
+        "body": "A job has a name, a category, a status, and what you paid for parts and labour. The cost lives on the work rather than in a spreadsheet beside it, which is the only way it stays accurate."
+      },
+      "photos": {
+        "title": "Before, install, after",
+        "body": "Photos attach to the job they belong to and carry a label, so a year later you can still find the shot of the bracket taken before you cut it. They are resized in the browser first, so a phone photo doesn’t cost you a minute."
+      },
+      "documents": {
+        "title": "Documents that remind you",
+        "body": "Keep the ITP, the insurance and the rest with their expiry dates. RigLog emails you 30 days out, again at 14 and again at 3 — once each, not once per check."
+      },
+      "costs": {
+        "title": "What it has cost so far",
+        "body": "Parts and labour add up per job, per category and per vehicle. A free account sees the running total; Pro sees how it got there."
+      },
+      "wishlist": {
+        "title": "The parts you still need",
+        "body": "Keep the list of what you are hunting, with a status from researching to ordered. Mark one as fitted and it becomes a job on the vehicle, with its price already attached."
+      },
+      "foundState": {
+        "title": "How you found it",
+        "body": "A restoration starts with an honest record of what you bought: the rust, the missing trim, the box of parts in the boot. It never changes afterwards, which is what makes the after photos worth anything."
+      },
+      "jobReport": {
+        "title": "A report for the next owner",
+        "body": "Any single job exports as a PDF with its photos, costs and dates — for a warranty claim, a buyer, or the workshop that did the work. Free on every account."
+      },
+      "analytics": {
+        "title": "Where the money went",
+        "body": "Spend by category, by month, and across any date range you pick, for one vehicle or the whole garage. It is usually the thing that tells you the build cost more in tyres than in suspension."
+      },
+      "collaborators": {
+        "title": "Let the mechanic in",
+        "body": "Invite a workshop or a friend to a single vehicle. They can add the jobs they did and nothing else — and one toggle hides every price from them, which matters when the person adding the job is also the person charging for it."
+      },
+      "trailLog": {
+        "title": "Where you took it",
+        "body": "Record the track from your phone, drop waypoints with a note and a photo, and keep the run beside the build it belongs to. The map is OpenStreetMap, and recording runs while the screen is on."
+      },
+      "cards": {
+        "title": "A card worth posting",
+        "body": "One button turns a build into a PNG sized for a phone screen — the vehicle, the numbers, and for a restoration the before and after side by side."
+      },
+      "limits": {
+        "title": "As many vehicles as you have",
+        "body": "A free account covers {vehicles, plural, one {one vehicle} other {# vehicles}} and {photos} photos per job. Pro lifts both — which is the point at which a garage with a project and a daily driver stops being two accounts."
+      },
+      "pdfExport": {
+        "title": "The whole history as a PDF",
+        "body": "Every job, cost and photo in one document, laid out to be read rather than dumped. Print it for the file, or hand it over with the keys."
+      },
+      "originality": {
+        "title": "How original it still is",
+        "body": "Mark each finished job as OEM, reproduction or modified, and the score follows: the share of the car that is still factory. Buyers and concours judges ask; this answers."
+      },
+      "vinDecoder": {
+        "title": "What the chassis number says",
+        "body": "Decodes the VIN into year, plant and model where it can — Dacia and Renault Romania from a local table, the rest through the free NHTSA database — and lets you fill it in by hand where it can’t."
+      },
+      "priceAlert": {
+        "title": "Tell me when it drops",
+        "body": "Log the price every time you find the part, set the one you would actually pay, and RigLog emails you the first time a logged price reaches it. Nothing is scraped — you enter what you find."
+      },
+      "publicBuild": {
+        "title": "Your build, at its own address",
+        "body": "Switch a vehicle to public and it gets a readable URL anyone can open — the jobs, the photos and the progress, with the costs left out unless you want them shown."
+      },
+      "feed": {
+        "title": "What everyone else is building",
+        "body": "A feed of published builds, restorations and daily drivers, filtered by mode and searchable. Follow one and you hear about it by email or push when it moves."
+      },
+      "partsWanted": {
+        "title": "Ask for the part",
+        "body": "Post what you can’t find and where you are, and let the rest of the board answer. Posting needs Pro; replying to somebody else’s is free for everyone."
+      },
+      "roadmap": {
+        "title": "The list we work from",
+        "body": "Feature requests and bug reports in the open, with votes. Reading it needs no account, and the status on each one is ours to set rather than the author’s."
+      },
+      "languages": {
+        "title": "Romanian and English",
+        "body": "The whole interface, the emails and the PDFs, in both. Switch it at the top of any page: the choice sticks to the browser, while your emails follow your account."
+      },
+      "install": {
+        "title": "Installs like an app",
+        "body": "Add it to the home screen and it opens full screen, without a browser bar. It is still the same site, so there is nothing to update."
+      },
+      "theme": {
+        "title": "Light and dark",
+        "body": "A dark theme that was designed rather than inverted, and a system setting that follows your phone. The preference stays on the device."
+      },
+      "shortcuts": {
+        "title": "Keyboard, if you prefer",
+        "body": "g then d for the garage, n for a new job, ? for the list. They are ignored while you are typing in a field, which is why you can have them at all."
+      },
+      "yourData": {
+        "title": "Your data, on request",
+        "body": "Download everything RigLog holds about you as JSON, or delete the account and take the photos with it. Both are buttons in settings, not an email to support."
+      }
+    },
+    "sample": {
+      "task": {
+        "lift": "2\" lift kit and shocks",
+        "winch": "Winch and bumper mount",
+        "bar": "LED light bar",
+        "diff": "Rear diff lock"
+      },
+      "photosNote": "Each photo carries a label and the job it belongs to, so the timeline reads in order.",
+      "document": {
+        "itp": "ITP",
+        "rca": "RCA insurance",
+        "rovinieta": "Road tax"
+      },
+      "expiresIn": "{days, plural, one {expires in # day} other {expires in # days}}",
+      "documentsNote": "Sent by email, once per threshold — renewing the document re-arms all of them.",
+      "stat": {
+        "total": "Total spent",
+        "jobs": "Jobs logged",
+        "perMonth": "Average / month"
+      },
+      "trackAlt": "A recorded trail, drawn as a line with three waypoints along it",
+      "trailName": "Bucegi ridge, October",
+      "trail": {
+        "distance": "Distance",
+        "duration": "Duration",
+        "waypoints": "Waypoints"
+      },
+      "buildPublic": "Public",
+      "buildName": "1997 Toyota Land Cruiser HDJ80",
+      "buildOwner": "by andrei_m",
+      "buildNote": "Anyone with the link can read it — no account, and no costs unless the owner shows them.",
+      "card": {
+        "mods": "Mods",
+        "spent": "Spent",
+        "progress": "Done"
+      },
+      "person": {
+        "owner": {
+          "name": "Andrei M.",
+          "email": "andrei@example.com",
+          "role": "Owner"
+        },
+        "mechanic": {
+          "name": "Vulcan Service",
+          "email": "contact@example.com",
+          "role": "Mechanic"
+        },
+        "invited": {
+          "name": "Radu P.",
+          "email": "radu@example.com",
+          "role": "Invited"
+        }
+      },
+      "hideCosts": "Hide costs from collaborators is on, so the workshop sees the work and not the prices."
+    }
   },
   "task": {
     "name": "Name",

@@ -44,14 +44,26 @@ export default async function PublicHeader() {
       className="sticky top-0 z-20 border-b border-surface-border bg-surface/90 backdrop-blur"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
+      {/* Both rows wrap. The logged-out bar carries five controls and the
+          Romanian labels are long enough ("Plan de dezvoltare",
+          "Autentificare") that they ran past the right edge of a phone and
+          scrolled the whole page sideways — the tour link made a bar that
+          was already a little too wide clearly too wide. Wrapping costs a
+          second line on the narrowest screens and nothing anywhere else. */}
+      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
         <Link href="/" className="text-brand-600 dark:text-brand-300" aria-label={t('homeAria')}>
           <Logo />
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
+        <nav className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm sm:gap-x-4">
           <LanguageToggle compact />
           <ThemeToggle compact />
-          <Link href="/tickets" className="text-ink-muted hover:text-ink">
+          {/* The tour is the page a first-time visitor wants, so it keeps
+              its place at every width; the roadmap steps aside on a phone
+              alongside donate, where there is room for one of the three. */}
+          <Link href="/demo" className="text-ink-muted hover:text-ink">
+            {t('demo')}
+          </Link>
+          <Link href="/tickets" className="hidden text-ink-muted hover:text-ink sm:inline">
             {t('roadmap')}
           </Link>
           <Link href="/donate" className="hidden text-ink-muted hover:text-ink sm:inline">

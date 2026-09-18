@@ -12,6 +12,9 @@ export default async function PublicFooter() {
           <p className="text-ink-muted">{t('tagline')}</p>
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-ink-muted">
+          <Link href="/demo" className="hover:text-ink">
+            {t('demo')}
+          </Link>
           <Link href="/community" className="hover:text-ink">
             {t('community')}
           </Link>

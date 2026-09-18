@@ -57,6 +57,7 @@ export default async function SitemapPage() {
       heading: t('main'),
       links: [
         { href: '/', label: t('home') },
+        { href: '/demo', label: t('demo') },
         { href: '/donate', label: t('donate') },
         { href: '/login', label: t('logIn') },
         { href: '/register', label: t('signUp') },
