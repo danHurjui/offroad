@@ -139,6 +139,12 @@ export interface NewAccount {
   password?: string | null
   accountType: 'OWNER'
   active: boolean
+  /**
+   * Set by the Google path only. A password signup leaves it undefined
+   * and proves the address by emailed link instead — see
+   * src/lib/emailVerification.ts.
+   */
+  emailVerifiedAt?: Date | null
 }
 
 /**

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
-import { requireSession } from '@/lib/authz'
+import { requireVerifiedSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
 import {
   isTicketType,
@@ -75,7 +75,9 @@ export async function GET(req: NextRequest) {
 
 /** Open a bug report / feature request. Any logged-in user; not Pro-gated. */
 export async function POST(req: NextRequest) {
-  const auth = await requireSession()
+  // Reaches other people: this puts a post on a public board. A throwaway
+  // address must not be able to do it — see requireVerifiedSession.
+  const auth = await requireVerifiedSession()
   if (!auth.ok) return auth.error
   const { session } = auth
   // Keyed on the user id, not the IP: a session id can't be rotated the

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
-import { requireSession } from '@/lib/authz'
+import { requireVerifiedSession } from '@/lib/authz'
 import { PART_CONDITIONS } from '@/lib/projectType'
 import { readJsonBody } from '@/lib/requestBody'
 import { consumeRateLimit, rateLimitResponse } from '@/lib/rateLimit'
@@ -9,7 +9,9 @@ import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-024: community parts crowdsourcing. Pro only.
 export async function POST(req: NextRequest) {
-  const auth = await requireSession()
+  // Reaches other people: this posts to the parts-wanted feed. A throwaway
+  // address must not be able to do it — see requireVerifiedSession.
+  const auth = await requireVerifiedSession()
   if (!auth.ok) return auth.error
   const { session } = auth
   // Keyed on the user id, not the IP: a session id can't be rotated the

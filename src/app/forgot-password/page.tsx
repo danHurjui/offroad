@@ -5,25 +5,34 @@ import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import AuthShell from '@/components/AuthShell'
 import FormError from '@/components/FormError'
+import { useTurnstile } from '@/components/useTurnstile'
 
 export default function ForgotPasswordPage() {
   const t = useTranslations('auth.forgot')
   const tc = useTranslations('common')
+  const tt = useTranslations('auth.turnstile')
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const turnstile = useTurnstile('forgot-password')
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    if (turnstile.pending) {
+      setError(tt(turnstile.holdReason))
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken: turnstile.token ?? '' }),
       })
+      // Spent on this attempt; a retry needs a fresh one.
+      turnstile.reset()
       setLoading(false)
       // This used to set `sent` unconditionally, so a 500 (or a 429, or an
       // unconfigured mail provider) still showed "a reset link has been
@@ -77,6 +86,7 @@ export default function ForgotPasswordPage() {
                 aria-describedby={error ? 'forgot-error' : undefined}
               />
             </div>
+            {turnstile.widget}
             <FormError id="forgot-error">{error}</FormError>
             <button type="submit" className="btn-primary w-full" disabled={loading}>
               {loading ? t('submitting') : t('submit')}

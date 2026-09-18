@@ -4,6 +4,8 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
 import Nav from '@/components/Nav'
 import InstallPromptBanner from '@/components/InstallPromptBanner'
+import EmailVerificationBanner from '@/components/EmailVerificationBanner'
+import { isBlockedAsUnverified } from '@/lib/emailVerification'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const tc = await getTranslations('common')
@@ -11,7 +13,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const session = await requireSessionOrRedirect()
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, displayName: true, avatarUrl: true, proPaymentFailedAt: true },
+    select: {
+      id: true,
+      email: true,
+      displayName: true,
+      avatarUrl: true,
+      proPaymentFailedAt: true,
+      emailVerifiedAt: true,
+    },
   })
 
   return (
@@ -31,6 +40,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
           say — and it renders nothing unless the browser has actually
           offered an install and the person has not waved it away. */}
       <InstallPromptBanner />
+      {/* Decided here rather than in the component: whether the rule is
+          being enforced at all depends on server-only configuration, and a
+          banner telling somebody to open a link that this deployment
+          cannot send would be asking for the impossible. */}
+      {user && isBlockedAsUnverified(user) && <EmailVerificationBanner email={user.email} />}
       {user?.proPaymentFailedAt && (
         <div className="bg-red-600 px-4 py-2 text-center text-sm text-white">
           {t.rich('paymentFailed', {

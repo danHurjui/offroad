@@ -65,6 +65,7 @@ Project Settings → Environment Variables:
 | `RESEND_API_KEY` | Alternative to Brevo — requires a verified *domain*. If both keys are set, **Brevo is used**. |
 | `EMAIL_FROM` | e.g. `RigLog <no-reply@yourdomain.com>`. Must be a sender you have **verified with whichever provider you use** — on Brevo that can be a single address (a Gmail, say); on Resend it must be a domain. The default is `no-reply@riglog.ro`, which will fail unless you own and have verified that domain. |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional — Google OAuth login |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Optional — the bot check on sign-up, log-in and password reset. Free, from [dash.cloudflare.com](https://dash.cloudflare.com) → Turnstile. **Set both or neither** (see step 6.9). The site key is read at build time, so changing it needs a redeploy, not just a variable change. |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_ANNUAL`, `STRIPE_PRICE_LIFETIME` | Optional — Pro upgrade (RL-017). Without `STRIPE_SECRET_KEY`, `/dashboard/upgrade` checkout requests fail with a 500; the rest of the app works fine without it. See step 6.5 below. |
 
 `BLOB_READ_WRITE_TOKEN` is already set from step 2.
@@ -183,6 +184,109 @@ which is written from what the code actually does. **If you add a service
 that receives user data, add it to `SUB_PROCESSORS` in the same change** —
 there is a test asserting that every external host the code calls appears
 in that list.
+
+## 6.9 Cloudflare protection
+
+Two separate things share the name, and only one of them lives in this
+repository.
+
+### Turnstile — the bot check on the forms (in the app)
+
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` switch on a
+Cloudflare Turnstile widget on `/register`, `/login` and
+`/forgot-password`. It is free at any volume, usually invisible (nobody
+solves a puzzle), and Cloudflare states it neither sets tracking cookies
+nor profiles visitors — which matters here, because `/cookies` claims
+every cookie this site sets is strictly necessary.
+
+1. dash.cloudflare.com → **Turnstile** → *Add widget*.
+2. Add every hostname the app is served from — your custom domain **and**
+   the `*.vercel.app` one if you use it. A hostname that is not listed
+   gets its tokens rejected, which on the login form looks exactly like
+   everyone suddenly having the wrong password.
+3. Widget mode **Managed** is the right default.
+4. Copy the site key and the secret key into the two variables, then
+   **redeploy** — the site key is baked into the browser bundle at build
+   time.
+
+**Set both or neither.** A site key with no secret renders a widget whose
+answers nothing checks, which is the worst state to be in: the forms look
+protected and are not. A secret with no site key means no form can
+produce a token. The app treats either half-configured state as *off*
+rather than half-on, and `/admin/diagnostics` reports it as a failure so
+it is not something you find out from a support email.
+
+If Cloudflare cannot be reached, the request is **allowed through** and
+the rate limits carry it. That is deliberate: failing closed would turn
+somebody else's outage into registration, login and password reset being
+down for everyone. A rejection Cloudflare actually issues is never waved
+through — only the absence of an answer is.
+
+There is one limit worth knowing before you switch it on. The fail-open
+above covers Cloudflare's *verification* endpoint being unreachable from
+the server. It does not cover a visitor whose browser cannot load the
+widget at all — an ad blocker, a corporate network filter, a
+country-level block, or Turnstile being down outright. Those produce no
+token, and a request with no token is refused, because a request cannot
+prove why it has none and accepting one that merely claims it was blocked
+would accept whatever a script claimed. Such a visitor cannot sign in
+while this is on. The form tells them which of the two it looks like and
+what to try; clearing both keys is your lever if it turns out to affect
+real people.
+
+Without these keys the forms still work and are still rate limited. The
+limits bound how fast one address or one account can be hit; they do
+nothing about a hundred residential proxies making three requests each,
+which is what Turnstile is for.
+
+### The proxy in front of the site (not in this repo)
+
+The bigger half of "Cloudflare protection" is DNS and dashboard
+configuration that no code here can perform, and it is worth doing if you
+own the domain:
+
+1. Add the domain as a **site** in Cloudflare and move its nameservers
+   there.
+2. Point the record at Vercel and set it to **Proxied** (the orange
+   cloud). Vercel's own docs cover the CNAME/A values; keep SSL/TLS mode
+   on **Full (strict)**.
+3. Turn on **Bot Fight Mode**, and **Rate limiting rules** if your plan
+   has them, for `/api/auth/*`.
+
+This gets you DDoS absorption and WAF filtering *before* a request ever
+reaches a Vercel function, which is the only layer that can protect the
+free tier's invocation budget — nothing inside the app can, because by
+then the invocation has already happened.
+
+One thing to check afterwards: the app reads the client IP from
+`x-forwarded-for` (`src/lib/rateLimit.ts`), which is what the IP-keyed
+rate limits are keyed on. Cloudflare in front of Vercel keeps that chain
+correct, but if you ever put a different proxy in the path, confirm it
+**overwrites** rather than appends to that header — otherwise a client can
+supply its own value and rotate it per request to walk around the limits.
+
+## 6.10 Email confirmation for password signups
+
+Nothing to configure: it is on whenever a mail provider and
+`NEXTAUTH_URL` are both set, which step 4 already covers.
+
+An account created with an email and password is emailed a link and
+cannot **publish a build, invite a collaborator, or post on the feedback
+and parts boards** until it is opened. Its own garage — vehicles, tasks,
+photos, documents, costs — works normally throughout, because none of
+that reaches anybody else. Google signups skip the step entirely: Google
+has already verified the address, and this app refuses one Google reports
+as unverified.
+
+**With no mail provider configured the rule switches itself off**, rather
+than walling every new account behind a link that cannot be sent. That is
+the right failure but an invisible one — the sign-up flow looks completely
+normal — so `/admin/diagnostics` reports it under *Sign-up and abuse*.
+Check there if you expected confirmation to be running.
+
+Accounts that already existed when this shipped were grandfathered in by
+the migration: they were never asked, and locking people out under a rule
+that did not exist when they joined would be the worse wrong.
 
 ## 7. Create the first admin account
 

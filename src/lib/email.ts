@@ -221,6 +221,27 @@ export async function passwordResetEmail(locale: Locale, resetUrl: string): Prom
   }
 }
 
+/**
+ * The link that proves a new account can read the address on it.
+ *
+ * Carries the expiry in the body: a link that silently stopped working
+ * overnight is the most common reason somebody gives up on a signup, and
+ * knowing it lapsed is what tells them to ask for another rather than to
+ * keep clicking the dead one.
+ */
+export async function verifyEmailEmail(locale: Locale, verifyUrl: string): Promise<EmailContent> {
+  const t = await strings(locale)
+  return {
+    subject: t('verifyEmail.subject'),
+    html: layout([
+      `<p>${t('verifyEmail.intro')}</p>`,
+      `<p><a href="${verifyUrl}">${t('verifyEmail.cta')}</a></p>`,
+      `<p>${t('verifyEmail.expiry')}</p>`,
+      `<p>${t('verifyEmail.ignore')}</p>`,
+    ]),
+  }
+}
+
 export async function documentReminderEmail(
   locale: Locale,
   input: { documentLabel: string; vehicleName: string; daysUntilLabel: string; vehicleUrl: string }

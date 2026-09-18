@@ -96,6 +96,97 @@ grant originally lived only in the credentials route, which quietly made
 the promotion "the first hundred passwords" rather than "the first hundred
 accounts"; a test asserts neither path calls `prisma.user.create` directly.
 
+### Confirming an email address (`src/lib/emailVerification.ts`)
+A password signup gets `emailVerifiedAt = null` and an emailed link. A
+**Google signup is verified at creation** and never sees one: the `signIn`
+callback above already refuses an address Google reports as
+`email_verified: false`, so the claim has been checked by the party that
+owns the mailbox. Mailing a link to prove it again would be a worse
+version of something already done.
+
+**Never read `emailVerifiedAt` directly.** Three questions live in that
+module and they are not the same question:
+- `isEmailVerified()` is the fact, and it never softens — the settings
+  page reports it, and a card saying "confirmed" because the operator
+  forgot a mail key would be a false statement about somebody's account.
+- `isVerificationEnforced()` is whether the rule can fairly be applied.
+- `isBlockedAsUnverified()` is the two together, and is what gates read.
+
+**It fails open, and that is load-bearing.** Enforcing needs a mail
+provider *and* a resolvable `NEXTAUTH_URL` — the link has to be sent and
+it has to point somewhere. Missing either switches the rule off rather
+than walling every new account behind a message that can never arrive.
+Same call the rate limiter makes about an unreachable database: a
+misconfiguration should degrade a defence, not brick the product.
+`/admin/diagnostics` reports the degraded state, because the signup flow
+looks completely normal with it off.
+
+**What it gates is the writes that reach other people**, not the garage:
+publishing a build, inviting a collaborator, and posting/commenting/voting
+on the feedback and parts boards. Logging work on your own vehicle needs
+no confirmed address — holding that hostage would punish somebody for a
+link still in transit. `requireVerifiedSession()` (authz.ts) is the gate;
+publishing is checked at the *field* instead, inside `PATCH
+/api/vehicles/[id]`, because every other field on that route edits a
+private record. `emailVerification.test.ts` asserts both lists against the
+source, so a handler pasted from an old one cannot quietly drop the gate.
+
+**The gate reads the database rather than the token.** `active` and
+`isAdmin` ride on the JWT and are refreshed on an interval, which suits
+flags that change rarely. Verification changes exactly once, and the
+instant after it changes is precisely when the person retries the thing
+they were blocked from — they clicked the link and came straight back. A
+token-cached flag would refuse them for up to a minute while telling them
+to do what they have just done.
+
+Accounts predating this were **grandfathered by the migration** to their
+own `createdAt`, not to `NOW()`. They were never asked, and locking people
+out under a rule that did not exist when they joined is the worse wrong;
+the timestamp at least does not claim the address was proved today.
+
+Resends leave older tokens alive — somebody resends because the first has
+not arrived, and whichever one they open has to work. Consuming any token
+spends all of the account's outstanding ones, so nothing is left live
+afterwards. A **spent** token on a verified account answers success, not
+"invalid": mail clients prefetch links and people press back.
+
+### Bot protection (`src/lib/turnstile.ts`, `src/lib/turnstileClient.ts`)
+Cloudflare Turnstile on the three forms a stranger can POST to:
+`/register`, `/login`, `/forgot-password`. It does **not** replace the
+rate limiter and the limiter does not replace it — the limiter bounds how
+fast one key can be hit, which does nothing about a hundred residential
+proxies doing three requests each.
+
+**Both keys or neither.** A site key without `TURNSTILE_SECRET_KEY`
+renders a widget whose tokens could only be waved through unverified —
+forms that look protected and are not. A secret without the site key
+means no form can produce a token, so enforcing would refuse every visitor
+on the site. Both half-configured states are treated as *off* and reported
+as a **failure** on `/admin/diagnostics`.
+
+**Unreachable Cloudflare is allowed through**, same reasoning as the rate
+limiter's fail-open. A rejection Cloudflare actually issues is never waved
+through; only the absence of an answer is.
+
+**Tokens are single-use.** Cloudflare answers `timeout-or-duplicate` to a
+second presentation, so a form that keeps its first token turns one
+mistyped password into a form that never works again — and it surfaces as
+"incorrect password", which sends the person looking in the wrong place.
+`useTurnstile()` owns `reset()` after every attempt so that cannot be left
+out of one of the three forms.
+
+The split between the two modules matters: `turnstile.ts` reads the secret
+and calls siteverify, `turnstileClient.ts` holds the script URL and the
+public site key. Components import the client one — otherwise the
+verification path ships to every visitor as dead code that looks like a
+security boundary. `NEXT_PUBLIC_TURNSTILE_SITE_KEY` must stay a **literal**
+property access: Next substitutes it textually at build time, and a
+computed lookup typechecks fine and arrives undefined in the browser,
+which reads exactly like "Turnstile is switched off".
+
+Putting the domain behind Cloudflare's proxy — WAF, DDoS absorption, Bot
+Fight Mode — is DNS configuration this repo cannot do. See DEPLOY.md, 6.9.
+
 ### API routes (`src/app/api/`)
 Every handler starts with `requireSession()` from `src/lib/authz.ts`, then
 does its own ownership/collaborator check — there are no roles in the

@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
-import { requireSession } from '@/lib/authz'
+import { requireVerifiedSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
 
 // RL-024: "respond with a comment" — open to any logged-in user, not just
 // Pro (posting the request itself is Pro-gated; replying to help someone
 // out isn't, matching the community spirit of the feature).
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const auth = await requireSession()
+  // Reaches other people: this replies on the parts-wanted feed. A throwaway
+  // address must not be able to do it — see requireVerifiedSession.
+  const auth = await requireVerifiedSession()
   if (!auth.ok) return auth.error
   const { session } = auth
 

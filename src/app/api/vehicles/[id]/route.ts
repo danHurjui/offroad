@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
+import { isBlockedAsUnverified, VERIFICATION_SELECT } from '@/lib/emailVerification'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess, requireVehicleOwner } from '@/lib/access'
@@ -80,6 +81,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.isPublic !== undefined) data.isPublic = Boolean(body.isPublic)
     if (body.hideCostsFromCollaborators !== undefined) data.hideCostsFromCollaborators = Boolean(body.hideCostsFromCollaborators)
     if (body.hidePublicCost !== undefined) data.hidePublicCost = Boolean(body.hidePublicCost)
+
+    // Publishing is the one field on this route that reaches strangers:
+    // it puts the build, its photos and (unless hidden) its costs on the
+    // open web under a URL anyone can read. So the confirmed-address rule
+    // applies to *this field* rather than to the whole route — everything
+    // else here edits a private record, and refusing somebody the ability
+    // to correct their own mileage over an unclicked link would be
+    // punishing them for nothing.
+    if (data.isPublic === true) {
+      const owner = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: VERIFICATION_SELECT,
+      })
+      if (isBlockedAsUnverified(owner)) return await apiError('emailNotVerified', 403)
+    }
 
     // RL-018: a vehicle/owner created before this ticket shipped might
     // still be missing a slug/username — backfill both the moment it's

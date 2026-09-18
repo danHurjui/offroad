@@ -9,21 +9,41 @@ import AuthShell from '@/components/AuthShell'
 import FormError from '@/components/FormError'
 import PasswordInput from '@/components/PasswordInput'
 import GoogleSignInButton from '@/components/GoogleSignInButton'
+import { useTurnstile } from '@/components/useTurnstile'
 
 export default function LoginPage() {
   const t = useTranslations('auth.login')
+  const tt = useTranslations('auth.turnstile')
   const tc = useTranslations('common')
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const turnstile = useTurnstile('login')
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+
+    // Held rather than sent: the server cannot tell a missing token from a
+    // failed one, so submitting now would come back as "incorrect email or
+    // password" for a password that is perfectly correct.
+    if (turnstile.pending) {
+      setError(tt(turnstile.holdReason))
+      return
+    }
+
     setLoading(true)
-    const result = await signIn('credentials', { email, password, redirect: false })
+    const result = await signIn('credentials', {
+      email,
+      password,
+      turnstileToken: turnstile.token ?? '',
+      redirect: false,
+    })
+    // Spent either way — Cloudflare refuses a second look at the same
+    // token, so a retry needs a fresh one.
+    turnstile.reset()
     setLoading(false)
     if (result?.error) {
       setError(t('badCredentials'))
@@ -73,6 +93,7 @@ export default function LoginPage() {
             invalid={Boolean(error)}
             describedBy={error ? 'login-error' : undefined}
           />
+          {turnstile.widget}
           <FormError id="login-error">{error}</FormError>
           <button type="submit" className="btn-primary w-full" disabled={loading}>
             {loading ? t('submitting') : t('submit')}

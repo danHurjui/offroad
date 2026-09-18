@@ -72,6 +72,21 @@ export const RATE_LIMITS = {
   forgotPassword: { limit: 3, windowSeconds: 60 * 60 },
   forgotPasswordIp: { limit: 20, windowSeconds: 60 * 60 },
   resetPassword: { limit: 20, windowSeconds: 60 * 60 },
+  /**
+   * Resending the confirmation link. Keyed on the **user id** — there is
+   * always a session behind it — so the tight budget only ever affects the
+   * one account pressing the button, and cannot be tripped by a stranger
+   * sharing a NAT. The IP companion is the looser one, per the rule above.
+   */
+  verifyEmailSend: { limit: 5, windowSeconds: 60 * 60 },
+  verifyEmailSendIp: { limit: 20, windowSeconds: 60 * 60 },
+  /**
+   * Presenting a confirmation token. Not about mail volume: it is what
+   * stops someone grinding through 32-byte tokens. Loose enough that a
+   * person opening the link in three browsers and a prefetching mail
+   * client never notices.
+   */
+  verifyEmailConsume: { limit: 30, windowSeconds: 60 * 60 },
   /** Public write surfaces. */
   ticketCreate: { limit: 10, windowSeconds: 60 * 60 },
   ticketComment: { limit: 30, windowSeconds: 60 * 60 },

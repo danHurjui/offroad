@@ -6,18 +6,27 @@ import { sendEmail, passwordResetEmail, emailLocale, isEmailConfigured } from '@
 import { readJsonBody } from '@/lib/requestBody'
 import { consumeRateLimit, rateLimitResponse, clientIp } from '@/lib/rateLimit'
 import { resolveAppUrl } from '@/lib/appUrl'
+import { verifyTurnstile } from '@/lib/turnstile'
 
 const TOKEN_TTL_MS = 60 * 60 * 1000 // 1 hour
 
 // RL-001: request a password reset; always returns 200 regardless of
 // whether the email exists, to avoid leaking account existence.
 export async function POST(req: NextRequest) {
-  const ipLimit = await consumeRateLimit('forgotPasswordIp', `ip:${clientIp(req.headers)}`)
+  const ip = clientIp(req.headers)
+  const ipLimit = await consumeRateLimit('forgotPasswordIp', `ip:${ip}`)
   if (!ipLimit.ok) return await rateLimitResponse(ipLimit)
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
   const body = parsed.body
+
+  // This route sends mail to an address chosen by whoever calls it, which
+  // makes it the one anonymous endpoint here that can be pointed at a
+  // stranger. The per-address limit below bounds how often any one inbox
+  // can be hit; this bounds how cheaply the attempt can be made at all.
+  const bot = await verifyTurnstile(body.turnstileToken, ip)
+  if (!bot.ok) return await apiError('botCheckFailed', 400)
 
   try {
     const email = typeof body.email === 'string' ? body.email.toLowerCase().trim() : ''

@@ -170,6 +170,12 @@
       "mismatch": "Parolele nu coincid.",
       "mismatchYet": "Încă nu coincid.",
       "submit": "Salvează parola nouă"
+    },
+    "turnstile": {
+      "label": "Verificare anti-robot",
+      "pending": "Se așteaptă verificarea anti-robot…",
+      "failed": "Verificarea anti-robot nu a trecut. Reîncarcă pagina și încearcă din nou.",
+      "blocked": "Verificarea anti-robot nu s-a putut încărca — o extensie sau un filtru de rețea poate bloca challenges.cloudflare.com. Permite-l sau încearcă altă rețea."
     }
   },
   "vocab": {
@@ -1524,6 +1530,13 @@
       "body": "{vehicle}, un proiect pe care îl urmărești pe RigLog, tocmai {message}.",
       "cta": "Vezi ce e nou",
       "footer": "Primești acest mesaj pentru că urmărești acest proiect. Îl poți opri oricând din setările contului RigLog."
+    },
+    "verifyEmail": {
+      "subject": "Confirmă adresa ta de e-mail RigLog",
+      "intro": "Bine ai venit în RigLog. Confirmă această adresă ca să știm că te putem contacta — aici îți trimitem memento-urile pentru ITP și asigurare.",
+      "cta": "Confirmă adresa mea de e-mail",
+      "expiry": "Linkul este valabil 24 de ore. După aceea, autentifică-te și cere unul nou din Setări.",
+      "ignore": "Dacă nu ți-ai creat tu cont RigLog, ignoră acest e-mail. Contul rămâne neconfirmat, deci nu poate publica un proiect, nu poate invita pe nimeni și nu poate posta în comunitate."
     }
   },
   "notify": {
@@ -1618,6 +1631,12 @@
         "purpose": "Livrarea notificărilor web push.",
         "dataShared": "Conținutul notificării, trimis la adresa pe care ne-a dat-o browserul tău. Ce serviciu este depinde de browser.",
         "when": "Doar dacă activezi notificările push."
+      },
+      "cloudflare": {
+        "name": "Cloudflare (Turnstile)",
+        "purpose": "Deosebirea unui om de un script pe formularele de înregistrare, autentificare și resetare a parolei.",
+        "dataShared": "Adresa ta IP, browserul și un token generat de widget. Cloudflare declară că Turnstile nu folosește cookie-uri de urmărire și nu creează profiluri ale vizitatorilor. Adresa ta de e-mail și parola nu ajung niciodată la el.",
+        "when": "Doar pe cele trei formulare și doar dacă operatorul a configurat cheile Turnstile."
       }
     },
     "retention": {
@@ -1634,8 +1653,8 @@
         "howLong": "Se păstrează și după ștergerea contului, cu contul tău desprins de ele. O plată care a avut loc este o înregistrare contabilă; ce se elimină este legătura cu tine."
       },
       "resetTokens": {
-        "what": "Token-urile de resetare a parolei",
-        "howLong": "O oră, după care nu mai funcționează. Se șterg odată cu contul."
+        "what": "Token-urile de resetare a parolei și de confirmare a e-mailului",
+        "howLong": "O oră pentru resetare, 24 de ore pentru confirmare, după care nu mai funcționează. Se șterg odată cu contul."
       },
       "rateLimits": {
         "what": "Contoarele de limitare, care opresc atacurile prin forță brută și spamul",
@@ -1976,7 +1995,9 @@
     "bodyNotMultipart": "Corpul cererii trebuie să fie multipart form data",
     "amountNegative": "{field} trebuie să fie un număr mai mare sau egal cu zero",
     "fieldRequired": "{field} este obligatoriu",
-    "fieldTooLong": "{field} trebuie să aibă cel mult {max} caractere"
+    "fieldTooLong": "{field} trebuie să aibă cel mult {max} caractere",
+    "emailNotVerified": "Confirmă-ți mai întâi adresa de e-mail. Caută linkul în inbox sau trimite unul nou din Setări.",
+    "botCheckFailed": "Verificarea anti-robot nu a trecut. Reîncarcă pagina și încearcă din nou."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2056,5 +2077,33 @@
     "grantedOn": "acordat {date}",
     "grantedBy": " de {who}",
     "unknownDate": "necunoscut"
+  },
+  "verifyEmail": {
+    "bannerTitle": "Confirmă-ți adresa de e-mail",
+    "bannerBody": "Până când {email} nu e confirmată, acest cont nu poate publica un proiect, nu poate invita un mecanic și nu poate posta în comunitate. Linkul e în e-mailul de confirmare — sau trimite altul.",
+    "bannerDismiss": "Mai târziu",
+    "resend": "Trimite din nou",
+    "resending": "Se trimite…",
+    "resent": "Trimis. Verifică-ți inboxul — și folderul de spam, fiind primul mesaj pe care ți-l trimitem.",
+    "resendFailed": "Nu s-a trimis. Ori adresa nu poate primi e-mail, ori pe această instalare nu e configurat niciun furnizor de e-mail.",
+    "resendRateLimited": "Prea multe cereri. Încearcă din nou în aproximativ {minutes, plural, one {un minut} few {# minute} other {# de minute}}.",
+    "settingsTitle": "Adresa de e-mail",
+    "verified": "Confirmată pe {date}.",
+    "unverified": "Neconfirmată încă.",
+    "unverifiedHelp": "Confirmarea dovedește că adresa e a ta. Până atunci garajul tău funcționează normal — se oprește doar ce ajunge la alți oameni: publicarea unui proiect, invitarea unui mecanic și postarea pe panoul de feedback și pe cel de piese.",
+    "notEnforced": "Această instalare nu poate trimite e-mailuri, deci nu se oprește nimic și nu se poate trimite niciun link. Configurează un furnizor de e-mail ca să reactivezi confirmarea — vezi /admin/diagnostics.",
+    "checking": "Se confirmă adresa ta…",
+    "successTitle": "E-mail confirmat",
+    "successBody": "Adresa ta este confirmată. Tot ce are RigLog îți este deschis.",
+    "alreadyBody": "Adresa era deja confirmată — probabil ai deschis linkul de două ori. Nu mai e nimic de făcut.",
+    "expiredTitle": "Linkul a expirat",
+    "expiredBody": "Linkurile de confirmare sunt valabile 24 de ore. Autentifică-te și trimite-ți unul nou din Setări.",
+    "invalidTitle": "Linkul nu funcționează",
+    "invalidBody": "Unele aplicații de e-mail rup linkurile lungi pe două rânduri. Copiază linkul întreg din e-mail sau autentifică-te și trimite unul nou din Setări.",
+    "missingTitle": "Linkul este incomplet",
+    "missingBody": "A ajuns fără token. Copiază linkul întreg din e-mail sau autentifică-te și trimite unul nou din Setări.",
+    "toDashboard": "Mergi la garajul tău",
+    "toLogin": "Autentifică-te",
+    "nothingToSend": "Adresa e deja confirmată — nu e nimic de trimis."
   }
 }

@@ -13,6 +13,12 @@ const scriptSrc = [
   "'unsafe-inline'", // TODO: replace with per-request nonce (tracked as follow-up)
   ...(isDev ? ["'unsafe-eval'"] : []), // Next.js HMR needs unsafe-eval in dev only
   'https://accounts.google.com',
+  // Cloudflare Turnstile. The widget's script comes from here and it
+  // draws its challenge in an iframe from the same origin, so both
+  // script-src and the frame-src below need it — a policy that allows
+  // only the script leaves a widget that loads and then renders nothing,
+  // with the reason buried in the console.
+  'https://challenges.cloudflare.com',
 ].join(' ');
 
 const connectSrc = [
@@ -28,7 +34,7 @@ const csp = [
   "img-src 'self' data: blob: https:",
   "font-src 'self'",
   `connect-src ${connectSrc}`,
-  "frame-src 'self' https://accounts.google.com",
+  "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com",
   "frame-ancestors 'none'",
 ].join('; ');
 

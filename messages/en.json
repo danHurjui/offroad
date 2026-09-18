@@ -170,6 +170,12 @@
       "mismatch": "The two passwords do not match.",
       "mismatchYet": "These don’t match yet.",
       "submit": "Save new password"
+    },
+    "turnstile": {
+      "label": "Anti-bot check",
+      "pending": "Waiting for the anti-bot check…",
+      "failed": "The anti-bot check did not pass. Reload the page and try again.",
+      "blocked": "The anti-bot check could not load — an extension or a network filter may be blocking challenges.cloudflare.com. Allow it, or try another network."
     }
   },
   "vocab": {
@@ -1524,6 +1530,13 @@
       "body": "{vehicle}, a project you follow on RigLog, just {message}.",
       "cta": "See what’s new",
       "footer": "You’re getting this because you follow this project. Turn it off any time in your RigLog account settings."
+    },
+    "verifyEmail": {
+      "subject": "Confirm your RigLog email address",
+      "intro": "Welcome to RigLog. Confirm this address so we know we can reach you — your ITP and insurance reminders are sent here.",
+      "cta": "Confirm my email address",
+      "expiry": "This link works for 24 hours. After that, log in and ask for a new one from Settings.",
+      "ignore": "If you did not create a RigLog account, ignore this email. The account stays unconfirmed, so it cannot publish a build, invite anyone, or post in the community."
     }
   },
   "notify": {
@@ -1618,6 +1631,12 @@
         "purpose": "Delivering web push notifications.",
         "dataShared": "The notification’s contents, sent to the endpoint your browser gave us. Which service that is depends on your browser.",
         "when": "Only if you turn push notifications on."
+      },
+      "cloudflare": {
+        "name": "Cloudflare (Turnstile)",
+        "purpose": "Telling a person apart from a script on the sign-up, log-in and password-reset forms.",
+        "dataShared": "Your IP address, browser and a token the widget generates. Cloudflare states that Turnstile does not use cookies for tracking and does not profile visitors. Your email address and password are never sent to it.",
+        "when": "Only on those three forms, and only when the operator has configured Turnstile keys."
       }
     },
     "retention": {
@@ -1634,8 +1653,8 @@
         "howLong": "Kept after account deletion, with your account detached from them. A payment that happened is an accounting record; what is removed is the link to you."
       },
       "resetTokens": {
-        "what": "Password reset tokens",
-        "howLong": "One hour, then they stop working. Deleted with your account."
+        "what": "Password reset and email confirmation tokens",
+        "howLong": "One hour for a reset, 24 hours for a confirmation, then they stop working. Deleted with your account."
       },
       "rateLimits": {
         "what": "Rate-limiting counters, which stop brute-force and spam",
@@ -1976,7 +1995,9 @@
     "bodyNotMultipart": "Request body must be multipart form data",
     "amountNegative": "{field} must be a non-negative number",
     "fieldRequired": "{field} is required",
-    "fieldTooLong": "{field} must be {max} characters or fewer"
+    "fieldTooLong": "{field} must be {max} characters or fewer",
+    "emailNotVerified": "Confirm your email address first. Check your inbox for the link, or send a new one from Settings.",
+    "botCheckFailed": "The anti-bot check did not pass. Reload the page and try again."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2056,5 +2077,33 @@
     "grantedOn": "granted {date}",
     "grantedBy": " by {who}",
     "unknownDate": "unknown"
+  },
+  "verifyEmail": {
+    "bannerTitle": "Confirm your email address",
+    "bannerBody": "Until {email} is confirmed, this account cannot publish a build, invite a mechanic, or post in the community. The link is in the confirmation email — or send another.",
+    "bannerDismiss": "Not now",
+    "resend": "Send it again",
+    "resending": "Sending…",
+    "resent": "Sent. Check your inbox — and your spam folder, since it is the first message we have sent you.",
+    "resendFailed": "That did not send. Either the address cannot receive mail, or this deployment has no mail provider set up.",
+    "resendRateLimited": "Too many requests. Try again in about {minutes, plural, one {a minute} other {# minutes}}.",
+    "settingsTitle": "Email address",
+    "verified": "Confirmed on {date}.",
+    "unverified": "Not confirmed yet.",
+    "unverifiedHelp": "Confirming proves the address is yours. Until then your garage works normally — what is held back is everything that reaches other people: publishing a build, inviting a mechanic, and posting on the feedback and parts boards.",
+    "notEnforced": "This deployment cannot send email, so nothing is being held back and no link can be sent. Set a mail provider to switch confirmation back on — see /admin/diagnostics.",
+    "checking": "Confirming your address…",
+    "successTitle": "Email confirmed",
+    "successBody": "Your address is confirmed. Everything in RigLog is open to you.",
+    "alreadyBody": "This address was already confirmed — you may have opened the link twice. Nothing more to do.",
+    "expiredTitle": "That link has expired",
+    "expiredBody": "Confirmation links last 24 hours. Log in and send yourself a new one from Settings.",
+    "invalidTitle": "That link does not work",
+    "invalidBody": "Some mail apps break a long link across two lines. Copy the whole link out of the email, or log in and send a new one from Settings.",
+    "missingTitle": "This link is incomplete",
+    "missingBody": "It arrived without its token. Copy the whole link from the email, or log in and send a new one from Settings.",
+    "toDashboard": "Go to your garage",
+    "toLogin": "Log in",
+    "nothingToSend": "This address is already confirmed — there is nothing to send."
   }
 }
