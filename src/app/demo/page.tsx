@@ -1,9 +1,13 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getTranslations } from 'next-intl/server'
-import { DEMO_SECTIONS } from '@/lib/demoTour'
+import { getLocale, getTranslations } from 'next-intl/server'
+import { appUrlForMetadata } from '@/lib/appUrl'
+import { publicPageMetadata } from '@/lib/pageMetadata'
+import { breadcrumbJsonLd, softwareApplicationJsonLd } from '@/lib/structuredData'
+import { DEMO_FAQ_IDS, DEMO_SECTIONS } from '@/lib/demoTour'
 import { FREE_TIER } from '@/lib/pro'
 import { PRO_PLANS } from '@/lib/stripe'
+import JsonLd from '@/components/JsonLd'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 import DemoScreen from '@/components/demo/DemoScreen'
@@ -38,7 +42,11 @@ import {
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('demo')
-  return { title: t('metaTitle'), description: t('metaDescription') }
+  return await publicPageMetadata({
+    path: '/demo',
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+  })
 }
 
 /**
@@ -81,6 +89,7 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function DemoPage() {
   const t = await getTranslations('demo')
+  const locale = await getLocale()
 
   /**
    * Every chapter's screen, already rendered.
@@ -126,8 +135,39 @@ export default async function DemoPage() {
 
   const featureCount = DEMO_SECTIONS.reduce((sum, section) => sum + section.chapters.length, 0)
 
+  const origin = appUrlForMetadata()
+
   return (
     <div className="min-h-screen bg-background">
+      {/*
+        What the page is, stated for a machine.
+
+        `featureList` is built from the tour itself, so a feature added
+        there is advertised here and one removed stops being advertised —
+        structured data that describes something the page does not show is
+        a spam-policy violation, not just untidy.
+      */}
+      <JsonLd
+        data={softwareApplicationJsonLd(
+          {
+            url: origin,
+            name: 'RigLog',
+            description: t('metaDescription'),
+            inLanguage: locale,
+          },
+          DEMO_SECTIONS.flatMap((section) =>
+            section.chapters.map((chapter) => t(`chapter.${chapter.id}.title`))
+          )
+        )}
+      />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: 'RigLog', url: origin },
+          // A short label, not the meta title: a breadcrumb is a trail,
+          // and Search renders it as one.
+          { name: t('breadcrumb'), url: `${origin}/demo` },
+        ])}
+      />
       <PublicHeader />
 
       <section className="border-b border-surface-border bg-gradient-to-b from-brand-50 to-surface dark:from-brand-400/10">
@@ -150,8 +190,84 @@ export default async function DemoPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12">
+      <section className="mx-auto max-w-6xl px-4 py-12" aria-labelledby="explore-heading">
+        <h2 id="explore-heading" className="sr-only">
+          {t('explore')}
+        </h2>
         <DemoExplorer previews={previews} />
+      </section>
+
+      {/*
+        Every feature named in plain, always-visible text.
+
+        The explorer keeps twenty-five of its twenty-six panels `hidden`,
+        and while Search does index hidden tab content it does not weigh
+        it the same as what is on the page. This list costs a reader
+        nothing — it is the index of a long page, which is useful on its
+        own — and it puts every feature name in the document unhidden,
+        with an anchor that now opens that feature thanks to the
+        explorer's hashchange handling.
+      */}
+      <section className="border-t border-surface-border bg-surface" aria-labelledby="all-features-heading">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <h2 id="all-features-heading" className="text-2xl font-bold text-ink">
+            {t('allFeatures')}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-ink-muted">{t('allFeaturesBody')}</p>
+          <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {DEMO_SECTIONS.map((section) => (
+              <div key={section.id}>
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                  {t(`section.${section.id}.eyebrow`)}
+                </h3>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {section.chapters.map((chapter) => (
+                    <li key={chapter.id}>
+                      <a
+                        href={`#${chapter.id}`}
+                        className="text-brand-600 hover:underline dark:text-brand-300"
+                      >
+                        {t(`chapter.${chapter.id}.title`)}
+                      </a>{' '}
+                      <span className="text-xs text-ink-faint">
+                        {t(chapter.tier === 'pro' ? 'tierPro' : 'tierFree')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/*
+        The questions, as prose.
+
+        Not `FAQPage` structured data: Google retired the FAQ rich result
+        on 7 May 2026, so the markup would produce nothing in Search.
+        These earn their place the ordinary way — somebody searching "is
+        it free" or "îmi aduce aminte de ITP" is asking to be sold to, and
+        this answers in the words they used.
+      */}
+      <section className="mx-auto max-w-3xl px-4 py-12" aria-labelledby="faq-heading">
+        <h2 id="faq-heading" className="text-2xl font-bold text-ink sm:text-3xl">
+          {t('faqTitle')}
+        </h2>
+        <dl className="mt-8 space-y-6">
+          {DEMO_FAQ_IDS.map((id) => (
+            <div key={id}>
+              <dt className="font-semibold text-ink">
+                {/* h3 as well as dt: the heading outline is how a reader
+                    skimming with a screen reader moves between them. */}
+                <h3 className="text-base font-semibold">{t(`faq.${id}.q`)}</h3>
+              </dt>
+              <dd className="mt-1.5 text-ink-muted">
+                {t(`faq.${id}.a`, { price: PRO_PLANS.MONTHLY.priceRon })}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       <section className="border-t border-surface-border bg-surface">

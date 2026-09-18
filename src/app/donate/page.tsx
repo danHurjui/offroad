@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/pageMetadata'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
@@ -11,7 +12,11 @@ import DonateForm from '@/components/DonateForm'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('donate')
-  return { title: t('metaTitle'), description: t('metaDescription') }
+  return await publicPageMetadata({
+    path: '/donate',
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+  })
 }
 
 // Supporters and totals must reflect settled payments only, and the

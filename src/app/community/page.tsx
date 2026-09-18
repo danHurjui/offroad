@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import PublicHeader from '@/components/PublicHeader'
 import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/pageMetadata'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -12,7 +13,11 @@ import { getTranslations } from 'next-intl/server'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('community')
-  return { title: t('metaTitle'), description: t('metaDescription') }
+  return await publicPageMetadata({
+    path: '/community',
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+  })
 }
 
 const PAGE_SIZE = 20

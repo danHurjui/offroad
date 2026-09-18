@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/pageMetadata'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
@@ -19,7 +20,11 @@ import TicketVoteButton from '@/components/TicketVoteButton'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('tickets')
-  return { title: t('metaTitle'), description: t('metaDescription') }
+  return await publicPageMetadata({
+    path: '/tickets',
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+  })
 }
 
 export const dynamic = 'force-dynamic'

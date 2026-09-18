@@ -7,6 +7,7 @@ import KeyboardShortcuts from '@/components/KeyboardShortcuts'
 import CookieNotice from '@/components/CookieNotice'
 import { THEME_SCRIPT } from '@/lib/theme'
 import { messagesForClient } from '@/i18n/config'
+import { appUrlForMetadata } from '@/lib/appUrl'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
 
 /**
@@ -15,8 +16,23 @@ import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
  */
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('meta')
+  const locale = await getLocale()
 
   return {
+    /**
+     * Every relative URL in any page's metadata resolves against this.
+     *
+     * Without it Next emits `<link rel="canonical" href="/sitemap">` and
+     * resolves social-preview URLs against `localhost:3000`. A relative
+     * canonical happens to work — a crawler resolves it against the page
+     * it found — but an image URL pointing at localhost does not, and a
+     * canonical is the one tag that must never be ambiguous, because
+     * getting it wrong tells Search the wrong page is the real one.
+     *
+     * `appUrlForMetadata()` is the same resolver the sitemap and
+     * robots.txt use, so all three agree on what this site's address is.
+     */
+    metadataBase: new URL(appUrlForMetadata()),
     title: 'RigLog',
     description: t('description'),
     // One SVG for every slot. Browsers scale it for the tab, iOS uses it
@@ -25,6 +41,24 @@ export async function generateMetadata(): Promise<Metadata> {
       icon: [{ url: '/icons/icon.svg', type: 'image/svg+xml' }],
       apple: [{ url: '/icons/icon.svg' }],
     },
+    /**
+     * Shared link-preview defaults. A page that sets its own `openGraph`
+     * merges over these rather than replacing them, so `siteName` and the
+     * locale are stated once.
+     *
+     * `locale` is the one the reader's cookie selected, which is the
+     * language this response is actually in — the site serves one URL per
+     * page in whichever language was picked (src/i18n/config.ts), so
+     * there is no alternate to declare here either.
+     */
+    openGraph: {
+      type: 'website',
+      siteName: 'RigLog',
+      locale: locale === 'ro' ? 'ro_RO' : 'en_GB',
+      title: 'RigLog',
+      description: t('description'),
+    },
+    twitter: { card: 'summary', title: 'RigLog', description: t('description') },
   }
 }
 

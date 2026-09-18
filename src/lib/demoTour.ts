@@ -131,3 +131,28 @@ export function chapterValues(chapterId: string): Record<string, string | number
   }
   return undefined
 }
+
+/**
+ * The questions on `/demo`, in the order they are asked.
+ *
+ * Ordinary prose on the page, not `FAQPage` JSON-LD: Google retired the
+ * FAQ rich result on 7 May 2026, so the markup would render nothing
+ * anywhere. See the note in `src/lib/structuredData.ts`. What these are
+ * for is the long-tail query itself — somebody typing "is it free" or
+ * "îmi aduce aminte de ITP" is asking to be sold to, and the page should
+ * answer in the words they used.
+ *
+ * Only `free` interpolates anything, and the page supplies it: the price
+ * belongs to `PRO_PLANS`, which lives in `src/lib/stripe.ts` and must not
+ * be imported from here — `DemoExplorer` is a Client Component and pulls
+ * this module into the browser bundle with it.
+ */
+export const DEMO_FAQ_IDS = [
+  'free',
+  'phone',
+  'reminders',
+  'mechanic',
+  'private',
+  'daily',
+  'leave',
+] as const

@@ -243,6 +243,50 @@ Provider rejections are logged with the provider's own response body and
 the `from` address that was tried; without that the operator sees only a
 generic 500 and the usual cause (an unverified sender) is invisible.
 
+### Search and link previews (`src/lib/pageMetadata.ts`, `src/lib/structuredData.ts`)
+The public pages are the only ones a search engine sees — everything else
+needs a session — so the metadata on those five is the whole SEO surface.
+
+`metadataBase` is set once in the root layout from `appUrlForMetadata()`,
+the same resolver `sitemap.ts` and `robots.ts` use. Without it Next
+resolves every relative `canonical` and social URL against
+`localhost:3000`, which is a canonical pointing at a host Google cannot
+reach — the one tag that must never be ambiguous, because getting it
+wrong tells Search the wrong page is the real one.
+
+`publicPageMetadata()` is what each public page returns. **It restates
+`siteName` and `locale` deliberately**: a page setting its own
+`openGraph` *replaces* the layout's object rather than merging into it,
+which silently cost every one of these pages its `og:site_name` and
+`og:locale`. Anything added to the layout's `openGraph` has to be
+repeated there too. Note what its canonical does for `/community`: it
+points at the unfiltered feed, so a filtered view is the same content
+narrowed rather than a page competing with its own parent.
+
+`structuredData.ts` is the JSON-LD. `SoftwareApplication` (on `/` and
+`/demo`, under one shared `@id`, so the two pages describe one product
+rather than two) carries the offers, built from `PRO_PLANS` — the same
+table the checkout charges against — with the free tier listed first,
+because software shown at a price while a free tier exists reads as
+paid-only. `WebSite` carries the search box, pointed at `/community`
+since that is the only search a stranger can use. **No `aggregateRating`
+and no `review`**: there are none, and inventing them is the single most
+common way a site earns a manual action. Every value is derived from the
+module that owns it rather than written out again, because structured
+data that stops matching its page is a spam-policy violation, not just
+untidy.
+
+**There is no `FAQPage` markup, on purpose.** Google restricted the FAQ
+rich result to health and government sites in 2023 and retired it
+entirely on 7 May 2026, with the Search Console report and the Rich
+Results Test following. The markup is still valid Schema.org and would do
+nothing at all in Search. The questions live on `/demo` as ordinary
+prose, which is what actually earns the long-tail query.
+
+`serializeJsonLd()` escapes `<` so a string value can never close its own
+`<script>` tag. Nothing here takes user input today; that function is the
+boundary where it would stop being true.
+
 ### Absolute URLs (`src/lib/appUrl.ts`)
 Every absolute link the server builds — reset emails, invitations, follow
 and price notifications, document reminders, Stripe redirects, the sitemap,
@@ -294,6 +338,13 @@ it are load-bearing rather than decorative.
 **Every panel is in the first response, with `hidden` on all but one.**
 Mounting only the selected one would leave twenty-five of the twenty-six
 features out of the page a crawler reads and out of the reader's Ctrl+F.
+
+**Every feature is also named in plain, always-visible text**, in the
+index at the foot of the page. Search does index hidden tab content but
+does not weigh it the same as what is on the page, and the explorer hides
+twenty-five of its twenty-six panels — so the index is what puts every
+feature name in the document unhidden. Its anchors open the matching
+feature, via the hashchange handling below.
 
 **A `<noscript>` stylesheet turns it back into the plain stacked page** —
 it un-hides every `[data-demo-panel]` and removes every

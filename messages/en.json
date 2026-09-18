@@ -404,7 +404,7 @@
     "viewPublicPage": "View public page"
   },
   "home": {
-    "metaTitle": "RigLog — build tracker, restoration journal & repair log",
+    "metaTitle": "Car build, restoration and repair log — RigLog",
     "heroTitle": "Every bolt, every lei, every photo — in one place.",
     "heroBody": "RigLog is a build tracker for off-road rigs, a restoration journal for classics, and a repair log for the car you drive every day. Keep the history your vehicle deserves.",
     "ctaStart": "Start logging — free",
@@ -491,12 +491,12 @@
         "body": "Every project is private by default. Publish it when you want a public page, a shareable card, and a spot in the community feed."
       }
     },
-    "metaDescription": "Log every modification, restoration stage and repair on your vehicle: costs, photos, receipts and document reminders, in one place. Free to start.",
+    "metaDescription": "Log every modification, restoration stage and repair on your vehicle: costs, photos, receipts and reminders for insurance and inspection, all in one place. Free to start.",
     "ctaDemo": "See the features"
   },
   "demo": {
-    "metaTitle": "See what RigLog does",
-    "metaDescription": "A tour of every feature — the log, the costs, the documents, the community — with sample screens. No account needed.",
+    "metaTitle": "Every feature, with sample screens — RigLog",
+    "metaDescription": "See what RigLog does before signing up: jobs with costs, before-and-after photos, receipts, document reminders, PDF reports and spend analysis. Real screens, no account needed.",
     "heroTitle": "Everything RigLog does, before you sign up",
     "heroBody": "A walk through every feature — {count} of them — with sample screens from the app itself. Pick a category, filter by plan, and open whichever one you came for.",
     "heroNote": "The screens below use made-up data. Your own log is yours alone.",
@@ -798,7 +798,42 @@
       "plan": "Plan",
       "mode": "Mode",
       "all": "All"
-    }
+    },
+    "allFeatures": "All features",
+    "allFeaturesBody": "Every feature on this page, in one list. Follow any of them to open it above.",
+    "explore": "Explore by category",
+    "faqTitle": "Questions people ask first",
+    "faq": {
+      "free": {
+        "q": "Is it free?",
+        "a": "Yes. A free account covers one vehicle, with unlimited jobs, photos, documents and reminders. Pro starts at {price} RON a month and adds unlimited vehicles, spend analysis, PDF export and the rest. No card is asked for to start, and nothing expires."
+      },
+      "phone": {
+        "q": "Does it work on a phone?",
+        "a": "Yes. It is a web app built for a phone first, and it installs to the home screen and opens full screen — no app store, and nothing to update. It works on a laptop the same way."
+      },
+      "reminders": {
+        "q": "Will it remind me about the inspection and the insurance?",
+        "a": "Yes. Enter the expiry date once and RigLog emails you 30 days out, again at 14 and again at 3 — once each, not once per check. Renewing the document re-arms all three."
+      },
+      "mechanic": {
+        "q": "Can my mechanic add the work they did?",
+        "a": "Yes, on a single vehicle you invite them to. They can add the jobs they did and nothing else, and one toggle hides every price from them — which matters when the person adding the job is also the person charging for it."
+      },
+      "private": {
+        "q": "Is my log private?",
+        "a": "Yes, until you say otherwise. A vehicle is private until you switch it to public, and even then the costs stay hidden unless you choose to show them. Nothing is shared and nothing is advertised against."
+      },
+      "daily": {
+        "q": "Is it only for project cars?",
+        "a": "No. Daily-driver mode is a plain repair and service log: what was done, when, at what mileage and what it cost. It never asks how far along you are, because a repair log does not finish."
+      },
+      "leave": {
+        "q": "What if I want to leave?",
+        "a": "Download everything RigLog holds about you as JSON, or delete the account and take the photos with it. Both are buttons in settings, not an email to support."
+      }
+    },
+    "breadcrumb": "Features"
   },
   "task": {
     "name": "Name",
