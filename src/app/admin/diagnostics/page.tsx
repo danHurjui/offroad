@@ -5,6 +5,7 @@ import {
   foundingMembersCheck,
   stripeAccountCheck,
   stripePricesCheck,
+  stripeWebhookCheck,
   worstStatus,
   type CheckStatus,
   type DiagnosticCheck,
@@ -59,9 +60,10 @@ export default async function AdminDiagnosticsPage() {
   // and it is the slowest thing on the page — so it runs after the cheap
   // checks rather than gating them. The founding count is a database read
   // and independent of it, so the two go together.
-  const [accountCheck, prices, founding] = await Promise.all([
+  const [accountCheck, prices, webhook, founding] = await Promise.all([
     stripeAccountCheck(),
     stripePricesCheck(),
+    stripeWebhookCheck(),
     foundingMembersCheck(),
   ])
   const withAccount = groups.map((group) =>
@@ -71,7 +73,13 @@ export default async function AdminDiagnosticsPage() {
           // `prices` is null when there is no key or no price to ask about;
           // the shape checks have already said so and repeating it would
           // read as a second problem.
-          checks: [...group.checks, accountCheck, ...(prices ? [prices] : []), founding],
+          checks: [
+            ...group.checks,
+            accountCheck,
+            ...(prices ? [prices] : []),
+            ...(webhook ? [webhook] : []),
+            founding,
+          ],
         }
       : group
   )

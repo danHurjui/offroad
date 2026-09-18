@@ -172,3 +172,91 @@ describe('stripePricesCheck', () => {
     expect(await stripePricesCheck()).toBeNull()
   })
 })
+
+/**
+ * The webhook is the only writer of "this was paid". A signing secret from
+ * the wrong mode passes every check that looks at configuration alone, and
+ * then rejects every event — so the card is charged and nothing is
+ * recorded. Listing the endpoints is the only way to see it coming.
+ */
+describe('stripeWebhookCheck', () => {
+  const list = jest.fn()
+
+  const endpoint = (over: Record<string, unknown> = {}) => ({
+    url: 'http://localhost:3000/api/webhooks/stripe',
+    status: 'enabled',
+    enabled_events: [
+      'checkout.session.completed',
+      'invoice.payment_failed',
+      'invoice.payment_succeeded',
+      'customer.subscription.deleted',
+    ],
+    ...over,
+  })
+
+  beforeEach(() => {
+    jest.resetModules()
+    jest.clearAllMocks()
+    process.env.STRIPE_SECRET_KEY = 'sk_test_51abcdef'
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_abc'
+    process.env.NEXTAUTH_URL = 'http://localhost:3000'
+  })
+
+  async function load() {
+    jest.doMock('@/lib/stripe', () => ({
+      ...jest.requireActual('@/lib/stripe'),
+      getStripe: () => ({ webhookEndpoints: { list } }),
+    }))
+    return import('@/lib/diagnostics')
+  }
+
+  it('passes when an enabled endpoint here carries every event', async () => {
+    list.mockResolvedValue({ data: [endpoint()] })
+    const { stripeWebhookCheck } = await load()
+    expect((await stripeWebhookCheck())?.status).toBe('ok')
+  })
+
+  it('accepts a wildcard subscription', async () => {
+    list.mockResolvedValue({ data: [endpoint({ enabled_events: ['*'] })] })
+    const { stripeWebhookCheck } = await load()
+    expect((await stripeWebhookCheck())?.status).toBe('ok')
+  })
+
+  it('fails when no endpoint in this mode points here, and says what it costs', async () => {
+    list.mockResolvedValue({ data: [endpoint({ url: 'https://elsewhere.example/hook' })] })
+    const { stripeWebhookCheck } = await load()
+    const result = await stripeWebhookCheck()
+    expect(result?.status).toBe('fail')
+    expect(result?.detail).toMatch(/per-mode/)
+    // The point a set-but-wrong secret hides: money moves anyway.
+    expect(result?.detail).toMatch(/charged/)
+  })
+
+  it('fails a disabled endpoint', async () => {
+    list.mockResolvedValue({ data: [endpoint({ status: 'disabled' })] })
+    const { stripeWebhookCheck } = await load()
+    expect((await stripeWebhookCheck())?.status).toBe('fail')
+  })
+
+  it('singles out a missing checkout.session.completed as the settling event', async () => {
+    list.mockResolvedValue({ data: [endpoint({ enabled_events: ['invoice.payment_failed'] })] })
+    const { stripeWebhookCheck } = await load()
+    const result = await stripeWebhookCheck()
+    expect(result?.status).toBe('fail')
+    expect(result?.detail).toMatch(/checkout\.session\.completed is the one that settles/)
+  })
+
+  it('does not blame the webhook when Stripe could not be asked', async () => {
+    list.mockRejectedValue(Object.assign(new Error('nope'), { type: 'StripeAPIError' }))
+    const { stripeWebhookCheck } = await load()
+    const result = await stripeWebhookCheck()
+    expect(result?.status).toBe('warn')
+    expect(result?.detail).toMatch(/not evidence that/i)
+  })
+
+  it('stays quiet when no secret is configured — the shape check says that', async () => {
+    delete process.env.STRIPE_WEBHOOK_SECRET
+    const { stripeWebhookCheck } = await load()
+    expect(await stripeWebhookCheck()).toBeNull()
+  })
+})

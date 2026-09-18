@@ -347,6 +347,123 @@ export async function stripePricesCheck(): Promise<DiagnosticCheck | null> {
   }
 }
 
+/** The events the webhook route actually acts on. */
+const REQUIRED_WEBHOOK_EVENTS = [
+  'checkout.session.completed',
+  'invoice.payment_failed',
+  'invoice.payment_succeeded',
+  'customer.subscription.deleted',
+]
+
+/**
+ * Whether an endpoint in *this mode* points at this deployment.
+ *
+ * Webhook endpoints and their signing secrets are per-mode, exactly like
+ * keys and prices, and `whsec_…` does not say which mode issued it. So the
+ * shape check — "STRIPE_WEBHOOK_SECRET is set" — passes happily with a
+ * test-mode secret against a live key, and the result is the worst failure
+ * this app has: checkout opens, the card is charged, every event is
+ * rejected as an invalid signature, the donation stays PENDING and the Pro
+ * subscription is never granted. Nobody finds out from the paying side.
+ *
+ * Listing the endpoints is the only way to see it, and the list is scoped
+ * to the key's mode for free.
+ *
+ * Returns null when an earlier check already covers the reason — no
+ * secret, no usable key, no public URL to compare against.
+ */
+export async function stripeWebhookCheck(): Promise<DiagnosticCheck | null> {
+  if (!process.env.STRIPE_WEBHOOK_SECRET?.trim()) return null
+
+  let stripe
+  try {
+    stripe = getStripe()
+  } catch {
+    return null
+  }
+
+  const appUrl = resolveAppUrl()
+  if (!appUrl) return null
+
+  const expected = `${appUrl}/api/webhooks/stripe`
+  const mode = isStripeTestMode() ? 'test' : 'live'
+
+  let endpoints
+  try {
+    endpoints = (await stripe.webhookEndpoints.list({ limit: 100 })).data
+  } catch (e) {
+    return {
+      id: 'stripe-webhook-endpoint',
+      label: 'Stripe webhook endpoint',
+      status: 'warn',
+      detail: sentences(
+        'Could not list the webhook endpoints, so whether one points here is unknown — this is a ' +
+          'problem reaching Stripe or a key without permission to read them, not evidence that ' +
+          'the webhook is wrong',
+        describeStripeFailure(e).summary
+      ),
+    }
+  }
+
+  const match = endpoints.find((e) => e.url === expected)
+
+  if (!match) {
+    return {
+      id: 'stripe-webhook-endpoint',
+      label: 'Stripe webhook endpoint',
+      status: 'fail',
+      variables: ['STRIPE_WEBHOOK_SECRET'],
+      detail:
+        `No webhook endpoint in ${mode} mode points at ${expected}` +
+        (endpoints.length > 0 ? ` (${endpoints.length} other endpoint(s) exist here)` : '') +
+        '. Endpoints and their signing secrets are per-mode, and a whsec_ value does not say ' +
+        'which mode issued it — so a secret from the other mode passes the "is it set?" check and ' +
+        'then rejects every event as an invalid signature. Payments still go through: the card is ' +
+        'charged, the donation stays PENDING and Pro is never granted. Add the endpoint under ' +
+        `Developers → Webhooks in ${mode} mode and set STRIPE_WEBHOOK_SECRET to its signing secret.`,
+    }
+  }
+
+  if (match.status !== 'enabled') {
+    return {
+      id: 'stripe-webhook-endpoint',
+      label: 'Stripe webhook endpoint',
+      status: 'fail',
+      detail:
+        `The endpoint for ${expected} exists in ${mode} mode but is ${match.status}, so nothing ` +
+        'is delivered. Re-enable it under Developers → Webhooks.',
+    }
+  }
+
+  // '*' is Stripe's "send everything", which covers all of them.
+  const subscribed = new Set(match.enabled_events)
+  const absent = subscribed.has('*')
+    ? []
+    : REQUIRED_WEBHOOK_EVENTS.filter((event) => !subscribed.has(event))
+
+  if (absent.length > 0) {
+    const settlement = absent.includes('checkout.session.completed')
+    return {
+      id: 'stripe-webhook-endpoint',
+      label: 'Stripe webhook endpoint',
+      status: 'fail',
+      detail:
+        `The endpoint for ${expected} is not subscribed to ${absent.join(', ')}. ` +
+        (settlement
+          ? 'checkout.session.completed is the one that settles a payment — without it a card is ' +
+            'charged and nothing is ever recorded as paid.'
+          : 'Those events keep a subscription in step with Stripe after the first payment.'),
+    }
+  }
+
+  return {
+    id: 'stripe-webhook-endpoint',
+    label: 'Stripe webhook endpoint',
+    status: 'ok',
+    detail: `An enabled ${mode}-mode endpoint points at ${expected} and carries every event this app acts on.`,
+  }
+}
+
 /** Everything that can be answered without a network call. */
 export function configurationGroups(): DiagnosticGroup[] {
   const appUrl = resolveAppUrl()
