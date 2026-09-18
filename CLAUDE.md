@@ -465,6 +465,27 @@ and pins the sizes; the `pwa` live suite additionally fetches every
 declared icon, because a manifest naming a file that 404s passes every
 static check there is.
 
+**There is no browser pop-up, by design.** Deferring the event is what
+suppresses Chromium's own banner, and the app does that so the offer can
+be made somewhere chosen rather than wherever the browser felt like
+interrupting. Having taken that on, the app has to actually make it:
+`InstallPromptBanner` in the dashboard layout is where somebody meets it,
+because the only other placements were the collapsed mobile menu and a
+card on the settings page — so on a desktop browser an installable app
+offered nothing anyone would find. It is dismissible, and a dismissal is
+remembered for 30 days: returning tomorrow is nagging, never returning
+punishes one mis-tap.
+
+**The install card says why when it has nothing to offer.** It used to
+return `null`, so the settings section rendered a heading with empty
+space under it — indistinguishable from a broken one, which is exactly
+how an SVG-only manifest went unnoticed. The full (non-compact) placement
+now names the likely causes and offers `InstallDiagnostics`, which checks
+on the device in front of the person the three things that are ours to
+get right: secure context, a manifest with the required PNG icons, and a
+registered worker. It cannot report *why* a browser withheld a prompt —
+no browser says — and it does not pretend to.
+
 **`beforeinstallprompt` has to be caught before hydration.** Chromium
 fires it once, without replay, as soon as it judges the app installable —
 routinely before the page's own bundle has run — so the listener
