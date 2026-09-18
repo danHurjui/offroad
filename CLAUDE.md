@@ -449,6 +449,37 @@ proves nothing. Donations and Pro purchases share the
 fall through and grant Pro.** The `status: 'PENDING'` filter in its
 `updateMany` is what makes a Stripe retry idempotent.
 
+### Installing as an app (`src/lib/installPrompt.ts`, `public/manifest.json`)
+Two things decide whether a browser offers to install this, and **both
+fail silently** — valid manifest, no console error, the button simply
+never appears.
+
+**The manifest must declare a 192px and a 512px PNG.** Chromium does not
+accept SVG for its installability check, so the SVG-only manifest this
+shipped with was a perfectly valid manifest that was never installable.
+The icons are rasterised from `public/icons/*.svg` by Chromium itself
+(same engine that draws them on a home screen) and the SVG stays as the
+favicon and iOS home-screen icon, declared in the layout's `icons`
+metadata where SVG does work. `installPrompt.test.ts` reads the manifest
+and pins the sizes; the `pwa` live suite additionally fetches every
+declared icon, because a manifest naming a file that 404s passes every
+static check there is.
+
+**`beforeinstallprompt` has to be caught before hydration.** Chromium
+fires it once, without replay, as soon as it judges the app installable —
+routinely before the page's own bundle has run — so the listener
+`InstallAppButton` used to attach in a `useEffect` heard nothing whenever
+hydration lost that race. `INSTALL_PROMPT_SCRIPT` runs inline in `<head>`
+alongside `THEME_SCRIPT`, for the same class of reason: it
+`preventDefault()`s the event (which suppresses Chromium's own
+mini-infobar and has to happen on the event itself), parks it on a
+global, and raises `riglog:installprompt`. The component reads the global
+on mount *and* subscribes to that event, so it is right on either side of
+the race. **Don't add a `beforeinstallprompt` listener back into a
+component** — it cannot hear what already happened, and it double-handles
+the one that arrives late. The script is a string nothing type-checks, so
+its test executes it against a stub window.
+
 ### Theme (`src/lib/theme.ts`, `src/app/globals.css`)
 Light/dark/system, `darkMode: 'class'` on `<html>`. Nothing re-themes by
 hand: `surface`/`ink`/`background` are Tailwind tokens backed by CSS

@@ -6,6 +6,7 @@ import Providers from '@/components/Providers'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts'
 import CookieNotice from '@/components/CookieNotice'
 import { THEME_SCRIPT } from '@/lib/theme'
+import { INSTALL_PROMPT_SCRIPT } from '@/lib/installPrompt'
 import { messagesForClient } from '@/i18n/config'
 import { appUrlForMetadata } from '@/lib/appUrl'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
@@ -100,6 +101,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* Runs before first paint so a dark-theme user never sees a white
             flash while React hydrates. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* Catches `beforeinstallprompt`, which Chromium fires as soon as
+            it judges the app installable — often before this page's own
+            bundle has run. See src/lib/installPrompt.ts: the event is not
+            replayed, so a listener attached at hydration time loses the
+            race and the install offer disappears with no error anywhere. */}
+        <script dangerouslySetInnerHTML={{ __html: INSTALL_PROMPT_SCRIPT }} />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F2F4F6" />
         <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0B0E12" />

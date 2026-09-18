@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { isIosSafari, isStandalone, type InstallPromptEvent } from '@/lib/installPrompt'
+import {
+  INSTALL_PROMPT_EVENT,
+  clearCapturedInstallPrompt,
+  isIosSafari,
+  isStandalone,
+  readCapturedInstallPrompt,
+  type InstallPromptEvent,
+} from '@/lib/installPrompt'
 
 /**
  * Offers to install the PWA, and only when that means something.
@@ -12,6 +19,14 @@ import { isIosSafari, isStandalone, type InstallPromptEvent } from '@/lib/instal
  * button), and iOS, which can install but exposes no API for it (the
  * manual steps). Everything else renders nothing rather than a button
  * that would do nothing when pressed.
+ *
+ * **It does not listen for `beforeinstallprompt` itself.** The inline
+ * head script does (src/lib/installPrompt.ts), because Chromium fires
+ * that event before this component — before React — exists, and it is
+ * never replayed. This reads what the script caught and subscribes to the
+ * event it raises, so it is correct on either side of that race. Adding a
+ * `beforeinstallprompt` listener back here would not help and would
+ * double-handle the one that arrives late.
  */
 export default function InstallAppButton({ compact = false }: { compact?: boolean }) {
   const t = useTranslations('install')
@@ -25,22 +40,20 @@ export default function InstallAppButton({ compact = false }: { compact?: boolea
     setInstalled(isStandalone())
     setIos(isIosSafari(navigator.userAgent, navigator.maxTouchPoints) && !isStandalone())
 
-    const onPrompt = (e: Event) => {
-      // Chromium shows its own mini-infobar unless the event is
-      // preventDefault()ed; deferring it is what lets the app put the
-      // offer somewhere the person will actually find it.
-      e.preventDefault()
-      setPromptEvent(e as InstallPromptEvent)
-    }
+    // Read first: on a fast hydration the event has already been caught
+    // and parked, and nothing further will be raised for it.
+    const sync = () => setPromptEvent(readCapturedInstallPrompt())
+    sync()
+
     const onInstalled = () => {
       setInstalled(true)
       setPromptEvent(null)
     }
 
-    window.addEventListener('beforeinstallprompt', onPrompt)
+    window.addEventListener(INSTALL_PROMPT_EVENT, sync)
     window.addEventListener('appinstalled', onInstalled)
     return () => {
-      window.removeEventListener('beforeinstallprompt', onPrompt)
+      window.removeEventListener(INSTALL_PROMPT_EVENT, sync)
       window.removeEventListener('appinstalled', onInstalled)
     }
   }, [])
@@ -52,7 +65,10 @@ export default function InstallAppButton({ compact = false }: { compact?: boolea
     const { outcome } = await promptEvent.userChoice
     setBusy(false)
     // The event is single-use: the browser will fire a fresh one if it
-    // still considers the app installable, so drop this one either way.
+    // still considers the app installable, so drop this one either way —
+    // from the global as well, or the next mount would read a spent event
+    // and render a button that does nothing.
+    clearCapturedInstallPrompt()
     setPromptEvent(null)
     if (outcome === 'dismissed') setDismissed(true)
   }
