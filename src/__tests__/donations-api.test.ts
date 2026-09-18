@@ -43,6 +43,26 @@ describe('POST /api/donations/checkout', () => {
     expect(await res.json()).toEqual({ url: 'https://checkout.stripe.test/cs_test_1' })
   })
 
+  // Managed Payments is Stripe acting as merchant of record. It refuses a
+  // line item whose product has no tax code, and a donation has no product
+  // to classify — so the session opts out rather than inventing one.
+  it('opts out of Managed Payments', async () => {
+    await donateCheckout(req({ amountRon: 50 }))
+    expect(sessionsCreate.mock.calls[0][0].managed_payments).toEqual({ enabled: false })
+  })
+
+  it('still opts out on the retry after a stale customer', async () => {
+    mockSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockUserFindUnique.mockResolvedValue({ id: 'u1', email: 'a@b.com', stripeCustomerId: 'cus_old' })
+    sessionsCreate
+      .mockRejectedValueOnce(
+        Object.assign(new Error('No such customer'), { code: 'resource_missing', param: 'customer' })
+      )
+      .mockResolvedValue({ id: 'cs_2', url: 'https://checkout.stripe.test/cs_2' })
+    await donateCheckout(req({ amountRon: 50 }))
+    expect(sessionsCreate.mock.calls[1][0].managed_payments).toEqual({ enabled: false })
+  })
+
   it('charges the requested amount in bani', async () => {
     await donateCheckout(req({ amountRon: 50 }))
     const args = sessionsCreate.mock.calls[0][0]

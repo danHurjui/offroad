@@ -236,6 +236,20 @@ function adviceForStripeError(type?: string, code?: string, message?: string): s
         'is intercepting the connection.'
       )
     case 'StripeInvalidRequestError':
+      // Managed Payments is Stripe acting as merchant of record, and it is
+      // on by default for accounts created since it shipped. It refuses any
+      // line item whose product carries no tax code, which is easy to hit
+      // without ever having heard of the feature.
+      if (message && /tax.?code|managed.?payments/i.test(message)) {
+        return (
+          'Managed Payments (Stripe as merchant of record) is enabled on this account, and it ' +
+          'requires a tax code on the product behind every line item. Donations opt out of it per ' +
+          'session, since a contribution is not a sale and has no honest tax code. For the Pro ' +
+          'plans, either set a tax code on each product in the Stripe dashboard (Product ' +
+          'catalogue → the product → Tax code) or turn Managed Payments off by default under ' +
+          'Settings → Managed payments.'
+        )
+      }
       if (code === 'resource_missing') {
         return (
           'Stripe has no such object under this key. Test and live are separate spaces, so a live ' +

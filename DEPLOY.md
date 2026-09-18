@@ -302,6 +302,22 @@ Stripe rather than from configuration.
 The symptom tells you which half is wrong. They fail in different places
 and have nothing to do with each other.
 
+### Checkout fails with "the product tax code is missing"
+
+Stripe's **Managed Payments** — Stripe acting as merchant of record — is
+enabled by default on accounts created since it shipped, and it refuses
+any line item whose product has no tax code.
+
+Donations are already handled: their session opts out of Managed
+Payments, because a contribution is not a sale and has no honest tax code
+to give it. Nothing to do there.
+
+The Pro plans are not opted out, because that is a real sale and the
+choice is yours. If Pro checkout fails this way, either set a tax code on
+each product (Stripe dashboard → Product catalogue → the product → Tax
+code), or turn Managed Payments off by default under Settings → Managed
+payments.
+
 ### Checkout or a donation says payments are not set up
 
 That wording (HTTP 503) means the app refused before contacting Stripe,

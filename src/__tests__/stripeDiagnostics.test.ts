@@ -57,6 +57,26 @@ describe('describeStripeFailure separates our fault from Stripe\'s', () => {
     expect(failure.summary).toContain('No such customer: cus_dead')
   })
 
+  // Stripe's own wording names the field but assumes you know what
+  // Managed Payments is; most operators have never switched it on.
+  it('explains a Managed Payments tax-code rejection', () => {
+    const failure = describeStripeFailure(
+      stripeError({
+        type: 'StripeInvalidRequestError',
+        statusCode: 400,
+        message:
+          'Invalid line_items[0]: the product tax code is missing. Set the product\'s tax_code ' +
+          'field to an eligible product tax code. Product tax code is required for Managed ' +
+          'Payments, which is enabled by default on your account.',
+      })
+    )
+    expect(failure.kind).toBe('stripe')
+    expect(failure.advice).toMatch(/merchant of record/i)
+    // Both remedies, because they apply to different halves of the app.
+    expect(failure.advice).toMatch(/Donations opt out/i)
+    expect(failure.advice).toMatch(/Tax code/)
+  })
+
   it('explains resource_missing as a test/live mix-up, which Stripe does not', () => {
     const failure = describeStripeFailure(
       stripeError({ type: 'StripeInvalidRequestError', code: 'resource_missing', message: 'No such price' })

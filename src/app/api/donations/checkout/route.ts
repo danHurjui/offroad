@@ -65,6 +65,24 @@ export async function POST(req: NextRequest) {
       stripe.checkout.sessions.create({
         ...payer,
         mode: 'payment',
+        // Managed Payments — Stripe acting as merchant of record — is on by
+        // default for new accounts, and it requires every line item to carry
+        // a product tax code. A donation has no product to classify: it is a
+        // contribution towards hosting, not a sale, so there is no honest tax
+        // code to give it, and putting a gift through merchant-of-record
+        // would have Stripe sell something on the site's behalf and take a
+        // further cut of it. Opting this session out is Stripe's own
+        // suggested alternative and keeps the arrangement as it was.
+        //
+        // The Pro plans are deliberately left alone: their Prices are
+        // configured in the Stripe dashboard, where a tax code can be set on
+        // the product, so whether to use merchant of record for an actual
+        // sale stays the operator's decision.
+        //
+        // Safe on accounts old enough to predate the feature — Stripe treats
+        // a new optional request parameter as backwards-compatible across
+        // every API version.
+        managed_payments: { enabled: false },
         line_items: [
           {
             quantity: 1,
