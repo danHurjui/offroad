@@ -2,7 +2,16 @@ import { resolveAppUrl } from '@/lib/appUrl'
 import { emailProvider } from '@/lib/email'
 import { isPushConfigured } from '@/lib/webpush'
 import { isStorageConfigured, storageBackend } from '@/lib/storage'
-import { stripeConfigProblems, isStripeTestMode, describeStripeFailure, getStripe } from '@/lib/stripe'
+import {
+  stripeConfigProblems,
+  isStripeTestMode,
+  describeStripeFailure,
+  getStripe,
+  priceIdFor,
+  StripeConfigError,
+  PRO_PLANS,
+  type ProPlanId,
+} from '@/lib/stripe'
 import { DONATION_CURRENCY } from '@/lib/donations'
 import { foundingMemberReconciliation } from '@/lib/foundingMembers'
 
@@ -79,9 +88,14 @@ function paymentChecks(): DiagnosticCheck[] {
       status: 'ok',
       variables: ['STRIPE_SECRET_KEY'],
       detail: isStripeTestMode()
-        ? 'Set, and it is a TEST key. Checkout opens and test cards work, but no real money can ' +
-          'be taken — swap it for the live key when you are ready to accept payments.'
-        : 'Set, and it is a live key.',
+        ? 'Set, and it is a TEST key (sk_test_…), so checkout opens, test cards work, and a real ' +
+          'card is declined. Nothing here can change that — this reads STRIPE_SECRET_KEY, so the ' +
+          'switch happens where that variable is set, not in the app. To go live: turn the ' +
+          'dashboard\'s test-mode toggle off, copy Developers → API keys → Secret key (sk_live_…), ' +
+          'set it on the Production environment, and REDEPLOY — changing a variable does not ' +
+          'touch the deployment already running. Replace the three STRIPE_PRICE_ ids in the same ' +
+          'pass: a Price created in test mode does not exist in live mode.'
+        : 'Set, and it is a live key. Real cards are charged.',
     })
   } else {
     for (const problem of blocking) {
@@ -234,6 +248,102 @@ export async function foundingMembersCheck(): Promise<DiagnosticCheck> {
           'of founding places taken do not have to match'
         : ''
     ),
+  }
+}
+
+/**
+ * Whether the configured Price ids actually exist under the current key.
+ *
+ * Test and live are separate object spaces, so the moment
+ * STRIPE_SECRET_KEY is switched to live, three perfectly valid-looking
+ * `price_…` ids created in test mode stop existing. Nothing about the id
+ * says which mode it came from, so the shape checks cannot catch it and
+ * the first symptom is "No such price" on a customer's upgrade attempt.
+ * Asking Stripe is the only way to know, and this is the one screen where
+ * that round trip is free.
+ *
+ * Returns null when there is nothing to check — no usable key, or no
+ * price configured — since the shape checks already report those.
+ */
+export async function stripePricesCheck(): Promise<DiagnosticCheck | null> {
+  let stripe
+  try {
+    stripe = getStripe()
+  } catch {
+    return null
+  }
+
+  const configured: Array<{ variable: string; priceId: string }> = []
+  for (const plan of Object.keys(PRO_PLANS) as ProPlanId[]) {
+    try {
+      configured.push({ variable: PRO_PLANS[plan].envVar, priceId: priceIdFor(plan) })
+    } catch (e) {
+      if (!(e instanceof StripeConfigError)) throw e
+    }
+  }
+  if (configured.length === 0) return null
+
+  const results = await Promise.all(
+    configured.map(async ({ variable, priceId }) => {
+      try {
+        await stripe.prices.retrieve(priceId)
+        return { variable, priceId, outcome: 'ok' as const, why: '' }
+      } catch (e) {
+        // Only `resource_missing` means the price genuinely is not there.
+        // Anything else — an unreachable Stripe, a refused key — has to be
+        // reported as itself, or this check invents a wrong cause for a
+        // failure that has nothing to do with the price ids.
+        const missing = (e as { code?: string })?.code === 'resource_missing'
+        return {
+          variable,
+          priceId,
+          outcome: missing ? ('missing' as const) : ('unknown' as const),
+          why: describeStripeFailure(e).summary,
+        }
+      }
+    })
+  )
+
+  const mode = isStripeTestMode() ? 'test' : 'live'
+  const missing = results.filter((r) => r.outcome === 'missing')
+  const unchecked = results.filter((r) => r.outcome === 'unknown')
+
+  if (missing.length > 0) {
+    return {
+      id: 'stripe-prices',
+      label: 'Pro prices',
+      status: 'fail',
+      variables: missing.map((m) => m.variable),
+      detail: sentences(
+        `Stripe has no such price in ${mode} mode for ` +
+          missing.map((m) => `${m.variable} (${m.priceId})`).join(', ') +
+          '. The usual cause is a Price created in the other mode — the id is real, just not in ' +
+          `${mode}. Open the Product catalogue in ${mode} mode and copy the Price id from there`,
+        'Donations are unaffected; they need no Price id'
+      ),
+    }
+  }
+
+  if (unchecked.length > 0) {
+    return {
+      id: 'stripe-prices',
+      label: 'Pro prices',
+      status: 'warn',
+      variables: unchecked.map((u) => u.variable),
+      detail: sentences(
+        'Could not check whether the configured Price ids exist — this is a problem reaching ' +
+          'Stripe, not evidence that anything is wrong with them',
+        unchecked[0].why
+      ),
+    }
+  }
+
+  return {
+    id: 'stripe-prices',
+    label: 'Pro prices',
+    status: 'ok',
+    detail: `All ${results.length} configured Price ids exist in ${mode} mode.`,
+    variables: configured.map((c) => c.variable),
   }
 }
 

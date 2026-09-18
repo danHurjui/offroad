@@ -71,10 +71,17 @@ export function getStripe(): Stripe {
   return new Stripe(key)
 }
 
-/** Whether the configured secret key is a test-mode one. */
+/**
+ * Whether the configured secret key is a test-mode one.
+ *
+ * Trimmed, because `getStripe()` trims: a key pasted with a stray space or
+ * trailing newline still authenticates, and without the trim here that same
+ * key would be reported as *live* while every charge went to the test
+ * ledger. Wrong in the direction that loses money quietly.
+ */
 export function isStripeTestMode(): boolean {
-  return (process.env.STRIPE_SECRET_KEY ?? '').startsWith('sk_test_') ||
-    (process.env.STRIPE_SECRET_KEY ?? '').startsWith('rk_test_')
+  const key = (process.env.STRIPE_SECRET_KEY ?? '').trim()
+  return key.startsWith('sk_test_') || key.startsWith('rk_test_')
 }
 
 export type ProPlanId = 'MONTHLY' | 'ANNUAL' | 'LIFETIME'
