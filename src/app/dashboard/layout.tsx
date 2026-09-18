@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
 import Nav from '@/components/Nav'
+import InstallPromptBanner from '@/components/InstallPromptBanner'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const tc = await getTranslations('common')
@@ -26,6 +27,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         avatarUrl={user?.avatarUrl}
         isAdmin={session.user.isAdmin}
       />
+      {/* Directly under the header, above everything else the page has to
+          say — and it renders nothing unless the browser has actually
+          offered an install and the person has not waved it away. */}
+      <InstallPromptBanner />
       {user?.proPaymentFailedAt && (
         <div className="bg-red-600 px-4 py-2 text-center text-sm text-white">
           {t.rich('paymentFailed', {

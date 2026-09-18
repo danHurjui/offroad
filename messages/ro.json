@@ -107,7 +107,24 @@
     "installed": "RigLog este instalată pe acest dispozitiv.",
     "dismissed": "Nu acum. O poți instala de aici oricând.",
     "iosTitle": "Instalează pe iPhone sau iPad",
-    "iosBody": "Safari nu oferă un buton de instalare. Apasă Partajează, apoi „Adaugă la ecranul principal”."
+    "iosBody": "Safari nu oferă un buton de instalare. Apasă Partajează, apoi „Adaugă la ecranul principal”.",
+    "notNow": "Nu acum",
+    "bannerTitle": "Instalează RigLog pe acest dispozitiv",
+    "bannerBody": "Se deschide pe tot ecranul de pe ecranul principal și merge offline la fel ca acum.",
+    "noOffer": "Browserul tău nu a oferit instalarea RigLog pe acest dispozitiv.",
+    "noOfferWhy": "De obicei asta înseamnă că e deja instalată sau că browserul nu poate instala aplicații web — Chrome, Edge și Samsung Internet pot, pe Android și pe desktop; Firefox și Safari pe desktop nu pot.",
+    "noOfferAddressBar": "Acolo unde poate, un browser de desktop arată și o iconiță de instalare la capătul din dreapta al barei de adrese.",
+    "noBrowserPopup": "RigLog întreabă aici, în loc să lase browserul să te întrerupă, așa că nu ai ce pop-up să aștepți.",
+    "whyTitle": "Ce raportează acest dispozitiv",
+    "check": {
+      "https": "Servit pe o conexiune securizată",
+      "manifest": "Manifest de aplicație cu iconițele cerute de browser",
+      "worker": "Worker offline înregistrat",
+      "offered": "Browserul a oferit instalarea"
+    },
+    "checkYes": "da",
+    "checkNo": "nu",
+    "checking": "Se verifică…"
   },
   "auth": {
     "login": {

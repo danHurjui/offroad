@@ -107,7 +107,24 @@
     "installed": "RigLog is installed on this device.",
     "dismissed": "Not now. You can install it from here any time.",
     "iosTitle": "Install on iPhone or iPad",
-    "iosBody": "Safari does not offer an install button. Tap Share, then \"Add to Home Screen\"."
+    "iosBody": "Safari does not offer an install button. Tap Share, then \"Add to Home Screen\".",
+    "notNow": "Not now",
+    "bannerTitle": "Install RigLog on this device",
+    "bannerBody": "It opens full screen from your home screen, and works the same offline as it does now.",
+    "noOffer": "Your browser has not offered to install RigLog on this device.",
+    "noOfferWhy": "Usually that means it is already installed, or this browser cannot install web apps — Chrome, Edge and Samsung Internet can, on Android and on desktop; Firefox and Safari on desktop cannot.",
+    "noOfferAddressBar": "Where it can, a desktop browser also shows an install icon at the right-hand end of the address bar.",
+    "noBrowserPopup": "RigLog asks here rather than letting the browser interrupt you, so there is no pop-up to wait for.",
+    "whyTitle": "What this device reports",
+    "check": {
+      "https": "Served over a secure connection",
+      "manifest": "App manifest with the icons a browser requires",
+      "worker": "Offline worker registered",
+      "offered": "This browser has offered an install"
+    },
+    "checkYes": "yes",
+    "checkNo": "no",
+    "checking": "Checking…"
   },
   "auth": {
     "login": {

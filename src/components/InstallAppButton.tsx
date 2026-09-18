@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import InstallDiagnostics from './InstallDiagnostics'
 import {
   INSTALL_PROMPT_EVENT,
   clearCapturedInstallPrompt,
@@ -80,7 +81,14 @@ export default function InstallAppButton({ compact = false }: { compact?: boolea
   if (promptEvent) {
     return (
       <div>
-        {!compact && <p className="mb-3 text-xs text-ink-muted">{t('body')}</p>}
+        {!compact && (
+          <>
+            <p className="mb-1 text-xs text-ink-muted">{t('body')}</p>
+            {/* Deferring the event is what suppresses the browser's own
+                banner, so somebody waiting for one waits forever. */}
+            <p className="mb-3 text-xs text-ink-faint">{t('noBrowserPopup')}</p>
+          </>
+        )}
         <button type="button" className={compact ? 'btn-secondary w-full' : 'btn-primary'} onClick={onInstall} disabled={busy}>
           {busy ? t('installing') : t('button')}
         </button>
@@ -100,7 +108,23 @@ export default function InstallAppButton({ compact = false }: { compact?: boolea
     )
   }
 
-  // Already installed on another browser, not installable, or the browser
-  // has not decided yet — nothing honest to offer.
-  return null
+  // Nothing to offer: already installed elsewhere, a browser that cannot
+  // install web apps, or one that simply has not offered.
+  //
+  // The compact placement still renders nothing — a header is no place
+  // for an explanation. The full one says so out loud, because a card
+  // with a heading and empty space under it cannot be told apart from a
+  // broken one. That is precisely how a manifest carrying no PNG icons —
+  // valid, and never installable — sat unnoticed: the button stopped
+  // appearing and the page had no way to say why.
+  if (compact) return null
+
+  return (
+    <div className="text-sm text-ink-muted">
+      <p>{t('noOffer')}</p>
+      <p className="mt-1 text-xs">{t('noOfferWhy')}</p>
+      <p className="mt-1 text-xs">{t('noOfferAddressBar')}</p>
+      <InstallDiagnostics offered={false} />
+    </div>
+  )
 }
