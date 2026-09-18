@@ -70,6 +70,9 @@ export default async function Home() {
             <Link href="/register" className="btn-primary px-6 py-3 text-base">
               {t('ctaStart')}
             </Link>
+            <Link href="/demo" className="btn-secondary px-6 py-3 text-base">
+              {t('ctaDemo')}
+            </Link>
             <Link href="/community" className="btn-secondary px-6 py-3 text-base">
               {t('ctaBrowse')}
             </Link>
@@ -126,6 +129,13 @@ export default async function Home() {
               <p className="text-sm text-ink-muted">{t(`feature.${key}.body`)}</p>
             </div>
           ))}
+        </div>
+        {/* These six are the summary. /demo is the same list at length,
+            with a sample screen against each one. */}
+        <div className="mt-6">
+          <Link href="/demo" className="btn-secondary">
+            {t('ctaDemo')}
+          </Link>
         </div>
       </Section>
 

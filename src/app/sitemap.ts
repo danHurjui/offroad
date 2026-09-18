@@ -65,6 +65,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, changeFrequency: 'monthly', priority: 1 },
+    // The feature tour. Second only to the homepage: it is the page that
+    // answers "what is this", and the one worth ranking for the question.
+    { url: `${baseUrl}/demo`, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${baseUrl}/community`, changeFrequency: 'daily', priority: 0.8 },
     // Public, and reachable from the community feed — but absent here, so
     // it depended on a crawler following that link.

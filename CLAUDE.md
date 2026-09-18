@@ -269,14 +269,40 @@ notification was skipped, `appUrlForMetadata()` falls back to localhost.
 Outside production `resolveAppUrl()` falls back to localhost; in production
 it returns null, because an email linking to localhost looks like it worked.
 
-### Public site (`/`, `/tickets`, `/donate`)
+### Public site (`/`, `/demo`, `/tickets`, `/donate`)
 `/` used to redirect to `/dashboard` or `/login`; it's now a real marketing
-homepage, and three surfaces are readable with **no session at all**:
-the homepage, the feedback board (`/tickets`) and the donate page. They
+homepage, and four surfaces are readable with **no session at all**:
+the homepage, the feature tour (`/demo`), the feedback board (`/tickets`)
+and the donate page. They
 share `PublicHeader`/`PublicFooter` (distinct from `Nav.tsx`, which is the
 in-app header) — `PublicHeader` swaps its CTA to "Dashboard" when a session
 exists. Marketing copy pulls prices from `PRO_PLANS` and mode names from
 `PROJECT_TYPE_CONFIG` rather than restating them, so it can't drift.
+
+**The feature tour** (`/demo`, `src/lib/demoTour.ts`) is the long version
+of the homepage's six cards: every feature, grouped into four sections,
+each marked Free or Pro, most with a mock screen built from the app's own
+components and invented rows. `DemoScreen` labels every one of those as
+sample data — the previews are fabricated, and showing invented numbers in
+the product's own chrome without saying so claims something the page
+hasn't earned.
+
+It is mock-ups rather than a shared demo account on purpose: an account
+anyone can open is writable by everyone who finds it, needs seeding and
+moderation, and cannot show a Pro feature without either granting Pro to a
+public login or showing the upgrade wall instead of the thing being
+demonstrated.
+
+A tour rots quietly — nothing breaks when it goes stale — so the three
+things that drift are not written in it. The vocabulary comes from
+`PROJECT_TYPE_CONFIG` through `getAllVocabulary()` (`DemoModeSwitcher` is
+the interactive proof of it), the free-tier numbers from `FREE_TIER` via
+`chapterValues()`, and the prices from `PRO_PLANS`. `demoTour.test.ts`
+holds the rest: both languages cover every chapter, no chapter asks for a
+placeholder the page doesn't pass, no string quotes a RON price that
+didn't come from `PRO_PLANS`, and **no chapter links anywhere behind a
+session** — a "see it live" pointing into `/dashboard` answers with the
+login screen, and looks fine to whoever added it.
 
 **Feedback board** (`src/lib/tickets.ts`, `Ticket`/`TicketVote`/
 `TicketComment`). Reading is public; posting, voting and commenting need a

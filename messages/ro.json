@@ -323,7 +323,8 @@
     "addVehicle": "Adaugă un vehicul",
     "menu": "Meniu",
     "closeMenu": "Închide meniul",
-    "openMenu": "Deschide meniul"
+    "openMenu": "Deschide meniul",
+    "demo": "Demo"
   },
   "footer": {
     "tagline": "Jurnal de build, de restaurare și de reparații.",
@@ -335,7 +336,8 @@
     "terms": "Termeni",
     "privacy": "Confidențialitate",
     "cookies": "Cookie-uri",
-    "sitemap": "Harta site-ului"
+    "sitemap": "Harta site-ului",
+    "demo": "Demo"
   },
   "sitemapPage": {
     "metaTitle": "Harta site-ului — RigLog",
@@ -358,7 +360,8 @@
     "terms": "Termeni",
     "privacy": "Confidențialitate",
     "cookies": "Cookie-uri",
-    "xmlNote": "Motoarele de căutare preferă <link>sitemap.xml</link>."
+    "xmlNote": "Motoarele de căutare preferă <link>sitemap.xml</link>.",
+    "demo": "Demo — toate funcțiile"
   },
   "dashboard": {
     "title": "Vehiculele tale",
@@ -488,7 +491,215 @@
         "body": "Fiecare proiect e privat implicit. Îl publici când vrei o pagină publică, un card de partajat și un loc în fluxul comunității."
       }
     },
-    "metaDescription": "Notează fiecare modificare, etapă de restaurare și reparație a vehiculului tău: costuri, poze, bonuri și notificări pentru documente, într-un singur loc. Gratuit la început."
+    "metaDescription": "Notează fiecare modificare, etapă de restaurare și reparație a vehiculului tău: costuri, poze, bonuri și notificări pentru documente, într-un singur loc. Gratuit la început.",
+    "ctaDemo": "Vezi funcțiile"
+  },
+  "demo": {
+    "metaTitle": "Vezi ce face RigLog",
+    "metaDescription": "Un tur prin toate funcțiile — jurnalul, costurile, documentele, comunitatea — cu ecrane de exemplu. Fără cont.",
+    "heroTitle": "Tot ce face RigLog, înainte să-ți faci cont",
+    "heroBody": "Un tur prin fiecare funcție, cu ecrane de exemplu din aplicație. Nimic de aici nu cere un cont și nimic nu e ascuns după un formular.",
+    "heroNote": "Ecranele de mai jos folosesc date inventate. Jurnalul tău rămâne doar al tău.",
+    "ctaStart": "Creează un cont gratuit",
+    "ctaBrowse": "Vezi build-uri reale",
+    "ctaPricing": "Vezi prețurile",
+    "contents": "Cuprins",
+    "sampleData": "Date de exemplu",
+    "tierFree": "Gratuit",
+    "tierPro": "Pro",
+    "onlyIn": "doar la {modes}",
+    "seeItLive": "Vezi live →",
+    "closingTitle": "Începe cu mașina pe care o ai deja",
+    "closingBody": "Contul gratuit acoperă {vehicles, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}, cu lucrări, poze, documente și memento-uri nelimitate. Pro adaugă restul, de la {price} RON pe lună, iar pe gratuit poți rămâne oricât.",
+    "modePreview": {
+      "pick": "Alege un mod",
+      "categories": "Categorii",
+      "statuses": "Etichete de stare",
+      "wishlistNote": "În acest mod, lista de piese se numește „{name}”."
+    },
+    "section": {
+      "log": {
+        "eyebrow": "Jurnalul",
+        "title": "Scrii o singură dată",
+        "body": "Fiecare lucrare, fiecare piesă, fiecare bon, atașate vehiculului de care țin. Asta e jumătatea gratuită a RigLog și e jumătatea pe care o vei folosi în fiecare săptămână."
+      },
+      "pro": {
+        "eyebrow": "Cu Pro",
+        "title": "Când un singur vehicul nu ajunge",
+        "body": "Pro deschide garajul pentru oricâte vehicule vrei și adaugă lucrurile care răspund la întrebări despre jurnal, nu care îl umplu: unde s-au dus banii, cine îl mai poate vedea și cum arată totul pentru altcineva."
+      },
+      "community": {
+        "eyebrow": "Comunitate",
+        "title": "Arăți, dacă vrei",
+        "body": "Nimic din ce scrii nu e public până nu spui tu. Când o faci, build-ul primește o adresă a lui, pe care o poate citi oricine, fără cont."
+      },
+      "app": {
+        "eyebrow": "Aplicația în sine",
+        "title": "Lucruri mici care contează",
+        "body": "RigLog e o aplicație web care se instalează ca una nativă, vorbește română și engleză și îți dă datele înapoi oricând le ceri."
+      }
+    },
+    "chapter": {
+      "modes": {
+        "title": "Trei moduri, o aplicație",
+        "body": "Un build off-road, o restaurare și o mașină de zi cu zi au nevoie de cuvinte diferite pentru aceleași ecrane. Alegi modul când adaugi vehiculul, iar categoriile, etichetele de stare și tipurile de poze se schimbă odată cu el. Încearcă — în previzualizare e vocabularul real."
+      },
+      "tasks": {
+        "title": "Lucrări, cu tot ce au costat",
+        "body": "O lucrare are nume, categorie, stare și cât ai dat pe piese și pe manoperă. Costul stă pe lucrare, nu într-un tabel ținut separat — singurul fel în care rămâne corect."
+      },
+      "photos": {
+        "title": "Înainte, montaj, după",
+        "body": "Pozele se atașează lucrării de care țin și primesc o etichetă, așa că peste un an tot găsești cadrul cu suportul făcut înainte să-l tai. Sunt redimensionate întâi în browser, ca o poză de telefon să nu te coste un minut."
+      },
+      "documents": {
+        "title": "Documente care îți aduc aminte",
+        "body": "Ții ITP-ul, asigurarea și restul cu datele lor de expirare. RigLog îți scrie pe mail cu 30 de zile înainte, apoi la 14 și la 3 — o dată fiecare, nu o dată la fiecare verificare."
+      },
+      "costs": {
+        "title": "Cât a costat până acum",
+        "body": "Piesele și manopera se adună pe lucrare, pe categorie și pe vehicul. Un cont gratuit vede totalul; Pro vede și cum s-a ajuns la el."
+      },
+      "wishlist": {
+        "title": "Piesele care îți mai lipsesc",
+        "body": "Ții lista cu ce cauți, cu o stare de la documentare până la comandat. Marchezi una ca montată și devine lucrare pe vehicul, cu prețul deja atașat."
+      },
+      "foundState": {
+        "title": "Cum ai găsit-o",
+        "body": "O restaurare începe cu o consemnare cinstită a ce ai cumpărat: rugina, ornamentele lipsă, cutia cu piese din portbagaj. Nu se mai schimbă după aceea — de-aia ajung pozele de după să însemne ceva."
+      },
+      "jobReport": {
+        "title": "Un raport pentru următorul proprietar",
+        "body": "Orice lucrare se exportă ca PDF, cu pozele, costurile și datele ei — pentru o garanție, pentru un cumpărător sau pentru service-ul care a făcut-o. Gratuit, pe orice cont."
+      },
+      "analytics": {
+        "title": "Unde s-au dus banii",
+        "body": "Cheltuieli pe categorie, pe lună și pe orice interval alegi, pentru un vehicul sau pentru tot garajul. De obicei e lucrul care îți spune că build-ul a costat mai mult în anvelope decât în suspensie."
+      },
+      "collaborators": {
+        "title": "Lasă mecanicul înăuntru",
+        "body": "Inviți un service sau un prieten la un singur vehicul. Poate adăuga lucrările pe care le-a făcut el și nimic altceva — iar un singur comutator îi ascunde toate prețurile, ceea ce contează când cel care adaugă lucrarea e și cel care o facturează."
+      },
+      "trailLog": {
+        "title": "Pe unde ai umblat cu ea",
+        "body": "Înregistrezi traseul de pe telefon, pui waypoint-uri cu notă și poză și ții tura lângă build-ul de care ține. Harta e OpenStreetMap, iar înregistrarea merge cât timp ecranul e pornit."
+      },
+      "cards": {
+        "title": "O imagine de postat",
+        "body": "Un buton transformă build-ul într-un PNG pe măsura unui ecran de telefon — vehiculul, cifrele și, la o restaurare, înainte și după una lângă alta."
+      },
+      "limits": {
+        "title": "Oricâte vehicule ai",
+        "body": "Un cont gratuit acoperă {vehicles, plural, one {un vehicul} few {# vehicule} other {# de vehicule}} și {photos} poze pe lucrare. Pro le ridică pe amândouă — momentul în care un garaj cu un proiect și o mașină de zi cu zi încetează să mai fie două conturi."
+      },
+      "pdfExport": {
+        "title": "Tot istoricul, ca PDF",
+        "body": "Fiecare lucrare, cost și poză într-un singur document, așezat ca să fie citit, nu doar vărsat pe hârtie. Îl printezi pentru dosar sau îl dai odată cu cheile."
+      },
+      "originality": {
+        "title": "Cât de originală mai e",
+        "body": "Marchezi fiecare lucrare terminată ca OEM, reproducere sau modificare, iar scorul urmează: cât din mașină e încă de fabrică. Cumpărătorii și jurizarea întreabă; asta răspunde."
+      },
+      "vinDecoder": {
+        "title": "Ce spune seria de șasiu",
+        "body": "Decodifică VIN-ul în an, uzină și model acolo unde poate — Dacia și Renault România dintr-un tabel local, restul prin baza de date gratuită NHTSA — și te lasă să completezi manual acolo unde nu poate."
+      },
+      "priceAlert": {
+        "title": "Anunță-mă când scade",
+        "body": "Notezi prețul de fiecare dată când găsești piesa, pui prețul la care chiar ai da banii, iar RigLog îți scrie prima dată când un preț notat îl atinge. Nu se citește nimic automat de pe site-uri — tu scrii ce găsești."
+      },
+      "publicBuild": {
+        "title": "Build-ul tău, la adresa lui",
+        "body": "Treci vehiculul pe public și primește o adresă pe care o poate deschide oricine — lucrările, pozele și progresul, fără costuri dacă nu vrei să le arăți."
+      },
+      "feed": {
+        "title": "Ce construiesc ceilalți",
+        "body": "Un flux cu build-uri, restaurări și mașini de zi cu zi publicate, filtrat pe mod și cu căutare. Urmărești unul și afli pe mail sau prin notificare când se mișcă."
+      },
+      "partsWanted": {
+        "title": "Cere piesa",
+        "body": "Postezi ce nu găsești și unde ești, iar restul tabloului răspunde. Postarea cere Pro; răspunsul la anunțul altcuiva e gratuit pentru toată lumea."
+      },
+      "roadmap": {
+        "title": "Lista după care lucrăm",
+        "body": "Cereri de funcții și raportări de erori la vedere, cu voturi. Cititul nu cere cont, iar starea fiecăreia o punem noi, nu autorul."
+      },
+      "languages": {
+        "title": "Română și engleză",
+        "body": "Toată interfața, mailurile și PDF-urile, în ambele. Schimbi din capul oricărei pagini: alegerea rămâne pe browser, iar mailurile urmează contul."
+      },
+      "install": {
+        "title": "Se instalează ca o aplicație",
+        "body": "O adaugi pe ecranul principal și se deschide pe tot ecranul, fără bara de browser. Rămâne același site, deci nu ai ce actualiza."
+      },
+      "theme": {
+        "title": "Luminos și întunecat",
+        "body": "O temă întunecată gândită, nu inversată automat, și o setare care urmează telefonul. Preferința rămâne pe dispozitiv."
+      },
+      "shortcuts": {
+        "title": "De la tastatură, dacă preferi",
+        "body": "g apoi d pentru garaj, n pentru o lucrare nouă, ? pentru listă. Sunt ignorate cât timp scrii într-un câmp — de-aia le poți avea."
+      },
+      "yourData": {
+        "title": "Datele tale, la cerere",
+        "body": "Descarci ca JSON tot ce ține RigLog despre tine sau ștergi contul și duci pozele odată cu el. Amândouă sunt butoane în setări, nu un mail către suport."
+      }
+    },
+    "sample": {
+      "task": {
+        "lift": "Kit de înălțare 2\" și amortizoare",
+        "winch": "Troliu și suport de bară",
+        "bar": "Bară de LED-uri",
+        "diff": "Blocare diferențial spate"
+      },
+      "photosNote": "Fiecare poză poartă o etichetă și lucrarea de care ține, ca să se citească cronologia în ordine.",
+      "document": {
+        "itp": "ITP",
+        "rca": "Asigurare RCA",
+        "rovinieta": "Rovinietă"
+      },
+      "expiresIn": "{days, plural, one {expiră în # zi} few {expiră în # zile} other {expiră în # de zile}}",
+      "documentsNote": "Trimise pe mail, o dată pentru fiecare prag — reînnoirea documentului le rearmează pe toate.",
+      "stat": {
+        "total": "Total cheltuit",
+        "jobs": "Lucrări",
+        "perMonth": "Medie / lună"
+      },
+      "trackAlt": "Un traseu înregistrat, desenat ca o linie cu trei waypoint-uri pe ea",
+      "trailName": "Creasta Bucegi, octombrie",
+      "trail": {
+        "distance": "Distanță",
+        "duration": "Durată",
+        "waypoints": "Waypoint-uri"
+      },
+      "buildPublic": "Public",
+      "buildName": "Toyota Land Cruiser HDJ80, 1997",
+      "buildOwner": "de andrei_m",
+      "buildNote": "Oricine are linkul îl poate citi — fără cont și fără costuri, dacă proprietarul nu le arată.",
+      "card": {
+        "mods": "Modificări",
+        "spent": "Cheltuit",
+        "progress": "Terminat"
+      },
+      "person": {
+        "owner": {
+          "name": "Andrei M.",
+          "email": "andrei@example.com",
+          "role": "Proprietar"
+        },
+        "mechanic": {
+          "name": "Service Vulcan",
+          "email": "contact@example.com",
+          "role": "Mecanic"
+        },
+        "invited": {
+          "name": "Radu P.",
+          "email": "radu@example.com",
+          "role": "Invitat"
+        }
+      },
+      "hideCosts": "„Ascunde costurile de colaboratori” e pornit, așa că service-ul vede lucrarea, nu prețurile."
+    }
   },
   "task": {
     "name": "Denumire",
