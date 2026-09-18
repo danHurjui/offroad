@@ -316,6 +316,14 @@ existing `STRIPE_SECRET_KEY`. Amounts are held in **bani** (integer minor
 units) and validated server-side by `parseDonationBani()` — that function
 is the only thing between a hand-crafted request and a charge.
 
+A misconfiguration answers **503 `paymentsUnavailable`**, not the 500
+`checkoutStartFailed` a real payment failure gets — `describeStripeFailure()`
+(`src/lib/stripe.ts`) is what separates the two, and `StripeConfigError`
+is what it keys off. The distinction matters because the two have
+different owners: retrying never fixes the first, and telling a donor
+their payment failed when the site was never set up is a lie that costs a
+donation.
+
 A `Donation` row is created `PENDING` at checkout and only the webhook
 marks it `PAID`, the same rule as `User.isPro`: reaching the success URL
 proves nothing. Donations and Pro purchases share the
@@ -484,6 +492,16 @@ operator error, so it logs loudly.
 Ticket triage has **no separate admin write path** — the admin screens
 call the same `PATCH /api/tickets/[id]` the public detail page uses, which
 already separates author edits from admin status changes.
+
+`/admin/diagnostics` (`src/lib/diagnostics.ts`) is where a configuration
+fault becomes visible without a server log: payments, storage, email, push
+and the public URL, each naming the variable at fault. It reuses
+`getStripe()`, `priceIdFor()`, `isStorageConfigured()`, `emailProvider()`
+and `isPushConfigured()` rather than re-stating their rules — a check that
+can drift out of step with the thing it checks reports health while the
+feature fails. Its detail text is deliberately **not translated**: it
+names environment variables and Stripe dashboard paths, which aren't
+translated where the operator goes to fix them.
 
 ## What's not built yet
 
@@ -698,3 +716,18 @@ as the rest of this file — see "What this is" above):
     importing `TrailMap` directly. Don't import `leaflet` from a Server
     Component or from a client component that isn't itself behind an
     `ssr: false` dynamic import.
+
+16. **`User.stripeCustomerId` outlives the key that created it** — a
+    Stripe customer belongs to one account *and* one mode, so every stored
+    id becomes meaningless the moment `STRIPE_SECRET_KEY` is switched
+    between test and live, or to another account. All three payment routes
+    hand that id to Stripe, so the users who had already reached checkout
+    once were exactly the ones who could never pay again — Pro and
+    donations alike, since the donation route reuses the same id.
+    `isMissingCustomerError()` / `forgetStripeCustomer()`
+    (`src/lib/stripeCustomer.ts`) repair it optimistically: use the id,
+    and only replace it if Stripe says it is missing. Anything new that
+    passes `stripeCustomerId` to Stripe needs the same handling.
+    Note that `resource_missing` is also how a missing *Price* reports
+    itself, and the Pro checkout passes both in one call — so the check
+    establishes which object Stripe meant before discarding anything.

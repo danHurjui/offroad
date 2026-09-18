@@ -1,0 +1,256 @@
+import { resolveAppUrl } from '@/lib/appUrl'
+import { emailProvider } from '@/lib/email'
+import { isPushConfigured } from '@/lib/webpush'
+import { isStorageConfigured, storageBackend } from '@/lib/storage'
+import { stripeConfigProblems, isStripeTestMode, describeStripeFailure, getStripe } from '@/lib/stripe'
+import { DONATION_CURRENCY } from '@/lib/donations'
+
+/**
+ * What is and isn't configured on this deployment, for the admin
+ * diagnostics screen.
+ *
+ * Every integration here already refuses loudly and logs why — email,
+ * storage, push and Stripe each say the variable to set. That is only
+ * useful to someone reading a server log, and the symptom always reaches
+ * the operator somewhere else: a donor sees "could not start payment", an
+ * upload 500s, a follower's notification never arrives. This collects the
+ * same answers into a page they can open.
+ *
+ * ## Why the detail text is not translated
+ *
+ * It names environment variables, Stripe dashboard paths and provider
+ * settings, none of which are translated where the operator will go to
+ * fix them. Translating the sentence around `STRIPE_SECRET_KEY` would
+ * make it harder to act on, not easier. The page's own chrome — headings,
+ * status words — is translated like every other admin screen.
+ */
+
+export type CheckStatus = 'ok' | 'warn' | 'fail'
+
+export interface DiagnosticCheck {
+  /** Stable identifier, used as a React key and as a test anchor. */
+  id: string
+  label: string
+  status: CheckStatus
+  /** What is true right now, and what to change when it isn't right. */
+  detail: string
+  /** The environment variables this check reads. */
+  variables?: string[]
+}
+
+export interface DiagnosticGroup {
+  id: string
+  label: string
+  checks: DiagnosticCheck[]
+}
+
+/** Whether anything here needs the operator's attention. */
+export function worstStatus(groups: DiagnosticGroup[]): CheckStatus {
+  const all = groups.flatMap((g) => g.checks.map((c) => c.status))
+  if (all.includes('fail')) return 'fail'
+  if (all.includes('warn')) return 'warn'
+  return 'ok'
+}
+
+/**
+ * Joins two sentences when the first may not be punctuated. The Stripe
+ * config messages are written to stand alone, so some end in a full stop
+ * and some don't; without this the page reads "STRIPE_PRICE_ANNUAL is not
+ * set Donations are unaffected".
+ */
+function sentences(...parts: string[]): string {
+  return parts
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => (/[.!?]$/.test(part) ? part : `${part}.`))
+    .join(' ')
+}
+
+function paymentChecks(): DiagnosticCheck[] {
+  const problems = stripeConfigProblems()
+  const checks: DiagnosticCheck[] = []
+
+  const blocking = problems.filter((p) => p.affects === 'payments')
+  if (blocking.length === 0) {
+    checks.push({
+      id: 'stripe-key',
+      label: 'Stripe secret key',
+      status: 'ok',
+      variables: ['STRIPE_SECRET_KEY'],
+      detail: isStripeTestMode()
+        ? 'Set, and it is a TEST key. Checkout opens and test cards work, but no real money can ' +
+          'be taken — swap it for the live key when you are ready to accept payments.'
+        : 'Set, and it is a live key.',
+    })
+  } else {
+    for (const problem of blocking) {
+      checks.push({
+        id: 'stripe-key',
+        label: 'Stripe secret key',
+        status: 'fail',
+        variables: [problem.variable],
+        detail: sentences(problem.message, 'Until this is fixed, donations and Pro both fail'),
+      })
+    }
+  }
+
+  for (const problem of problems.filter((p) => p.affects === 'pro')) {
+    checks.push({
+      id: `price-${problem.variable}`,
+      label: `Pro price (${problem.variable})`,
+      status: 'fail',
+      variables: [problem.variable],
+      detail: sentences(
+        problem.message,
+        'Donations are unaffected — they build their amount inline and need no Price id'
+      ),
+    })
+  }
+
+  for (const problem of problems.filter((p) => p.affects === 'settlement')) {
+    checks.push({
+      id: 'stripe-webhook',
+      label: 'Stripe webhook',
+      status: 'fail',
+      variables: [problem.variable],
+      detail: problem.message,
+    })
+  }
+
+  return checks
+}
+
+/**
+ * Asks Stripe about the account the key belongs to.
+ *
+ * This is the check that the shape tests above cannot do. A key can be
+ * perfectly well-formed and still be revoked, belong to someone else's
+ * account, or belong to an account that has not finished activation — and
+ * an unactivated account is the one failure that looks exactly like a
+ * working setup from the outside, right up until a real card is entered.
+ *
+ * Admin-only and never part of rendering a payment, so a slow or failing
+ * call costs a diagnostics page and nothing else.
+ */
+export async function stripeAccountCheck(): Promise<DiagnosticCheck> {
+  try {
+    const account = await getStripe().accounts.retrieveCurrent()
+    const currencies = [account.default_currency, ...(account.country === 'RO' ? ['ron'] : [])]
+    const takesDonationCurrency = currencies.includes(DONATION_CURRENCY)
+
+    if (!account.charges_enabled) {
+      return {
+        id: 'stripe-account',
+        label: 'Stripe account',
+        status: 'fail',
+        detail:
+          `The key reaches account ${account.id}, but Stripe has charges disabled on it` +
+          (account.details_submitted
+            ? '. The details have been submitted, so this is usually Stripe still reviewing them, ' +
+              'or a request for more information waiting on the dashboard.'
+            : ' because activation is unfinished. Complete the business details on the Stripe ' +
+              'dashboard — checkout cannot open in live mode until then.'),
+      }
+    }
+
+    return {
+      id: 'stripe-account',
+      label: 'Stripe account',
+      status: takesDonationCurrency ? 'ok' : 'warn',
+      detail:
+        `Reached account ${account.id}` +
+        (account.country ? ` (${account.country})` : '') +
+        ', charges enabled' +
+        (takesDonationCurrency
+          ? '.'
+          : `. Its default currency is ${(account.default_currency ?? 'unknown').toUpperCase()}, ` +
+            `while donations are charged in ${DONATION_CURRENCY.toUpperCase()}. Stripe can present ` +
+            'a foreign currency, but confirm it is enabled for this account if donations fail.'),
+    }
+  } catch (e) {
+    const failure = describeStripeFailure(e)
+    return {
+      id: 'stripe-account',
+      label: 'Stripe account',
+      // A configuration fault is already reported by its own check above;
+      // repeating it as an account failure would read as two problems.
+      status: failure.kind === 'config' ? 'warn' : 'fail',
+      detail:
+        failure.kind === 'config'
+          ? 'Not checked — no usable key to check it with.'
+          : sentences(failure.summary, failure.advice),
+    }
+  }
+}
+
+/** Everything that can be answered without a network call. */
+export function configurationGroups(): DiagnosticGroup[] {
+  const appUrl = resolveAppUrl()
+  const provider = emailProvider()
+  const backend = storageBackend()
+
+  return [
+    { id: 'payments', label: 'Payments', checks: paymentChecks() },
+    {
+      id: 'site',
+      label: 'Site',
+      checks: [
+        {
+          id: 'app-url',
+          label: 'Public address',
+          status: appUrl ? 'ok' : 'fail',
+          variables: ['NEXTAUTH_URL'],
+          detail: appUrl
+            ? `Links are built as ${appUrl}. If that is not this site's address, every password ` +
+              'reset, invitation and Stripe redirect points at the wrong place.'
+            : 'No usable public address. Password resets, invitations, Stripe redirects and the ' +
+              'sitemap have nowhere to point. Set NEXTAUTH_URL to the full origin, for example ' +
+              'https://riglog.ro — a bare hostname or a pasted secret does not count.',
+        },
+        {
+          id: 'storage',
+          label: 'Photo and document storage',
+          status: isStorageConfigured() ? 'ok' : 'fail',
+          variables: ['BLOB_READ_WRITE_TOKEN'],
+          detail: isStorageConfigured()
+            ? backend === 'blob'
+              ? 'Vercel Blob. Uploads are durable.'
+              : 'Local disk. Correct off Vercel; anything deployed to Vercel needs a Blob store.'
+            : 'Running on Vercel with no Blob store linked, so uploads are being written to a ' +
+              'read-only filesystem and every one of them fails with a 500. Link a Blob store to ' +
+              'the project and redeploy — see DEPLOY.md.',
+        },
+      ],
+    },
+    {
+      id: 'notifications',
+      label: 'Notifications',
+      checks: [
+        {
+          id: 'email',
+          label: 'Email',
+          status: provider ? 'ok' : 'fail',
+          variables: ['BREVO_API_KEY', 'RESEND_API_KEY', 'EMAIL_FROM'],
+          detail: provider
+            ? `Sending through ${provider === 'brevo' ? 'Brevo' : 'Resend'}, from ` +
+              `${process.env.EMAIL_FROM ?? 'an unset EMAIL_FROM'}. That address must be one you ` +
+              'have verified with the provider, or every send is rejected.'
+            : 'No provider key set, so email is only written to the server log. Password resets ' +
+              'refuse outright rather than pretending to have sent. Set BREVO_API_KEY (a single ' +
+              'verified sender address is enough) or RESEND_API_KEY.',
+        },
+        {
+          id: 'push',
+          label: 'Web push',
+          status: isPushConfigured() ? 'ok' : 'warn',
+          variables: ['VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'NEXT_PUBLIC_VAPID_PUBLIC_KEY'],
+          detail: isPushConfigured()
+            ? 'VAPID keys are set.'
+            : 'No VAPID keys, so every push notification is dropped — including for people who ' +
+              'granted the browser permission and were told notifications were on. Email ' +
+              'notifications are unaffected. See DEPLOY.md, "Configure Web Push".',
+        },
+      ],
+    },
+  ]
+}

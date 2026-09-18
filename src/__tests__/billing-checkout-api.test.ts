@@ -81,4 +81,73 @@ describe('POST /api/billing/checkout', () => {
     const body = await res.json()
     expect(body.url).toBe('https://checkout.stripe.com/session123')
   })
+  // Going live after testing, or moving to another Stripe account, makes
+  // every stored customer id meaningless. Nothing re-created them, so the
+  // users who had already reached checkout once were the ones who could
+  // never buy again.
+  describe('when the stored Stripe customer no longer exists', () => {
+    beforeEach(() => {
+      mockUserFindUnique.mockResolvedValue({
+        id: 'u1', email: 'u1@x.com', isPro: false, stripeCustomerId: 'cus_old',
+      })
+      mockCheckoutCreate
+        .mockRejectedValueOnce(
+          Object.assign(new Error('No such customer: cus_old'), {
+            code: 'resource_missing',
+            param: 'customer',
+          })
+        )
+        .mockResolvedValue({ url: 'https://checkout.stripe.com/session456' })
+    })
+
+    it('replaces it and completes the checkout', async () => {
+      const res = await POST(req({ plan: 'MONTHLY' }))
+      expect(res.status).toBe(200)
+      expect(mockCustomersCreate).toHaveBeenCalledTimes(1)
+      expect(mockCheckoutCreate.mock.calls[1][0].customer).toBe('cus_new')
+    })
+
+    it('saves the replacement so the next attempt does not repeat the work', async () => {
+      await POST(req({ plan: 'MONTHLY' }))
+      expect(mockUserUpdate).toHaveBeenCalledWith({
+        where: { id: 'u1' },
+        data: { stripeCustomerId: 'cus_new' },
+      })
+    })
+
+    it('gives up rather than looping if the replacement fails too', async () => {
+      mockCheckoutCreate.mockReset()
+      mockCheckoutCreate.mockRejectedValue(
+        Object.assign(new Error('No such customer'), { code: 'resource_missing', param: 'customer' })
+      )
+      const res = await POST(req({ plan: 'MONTHLY' }))
+      expect(res.status).toBe(500)
+      expect(mockCheckoutCreate).toHaveBeenCalledTimes(2)
+    })
+
+    // A mistyped Price id reports resource_missing too, and discarding a
+    // good customer id over it would be a silent second bug.
+    it('leaves the customer alone when it is the price that is missing', async () => {
+      mockCheckoutCreate.mockReset()
+      mockCheckoutCreate.mockRejectedValue(
+        Object.assign(new Error('No such price: price_monthly'), {
+          code: 'resource_missing',
+          param: 'line_items[0][price]',
+        })
+      )
+      const res = await POST(req({ plan: 'MONTHLY' }))
+      expect(res.status).toBe(500)
+      expect(mockCheckoutCreate).toHaveBeenCalledTimes(1)
+      expect(mockUserUpdate).not.toHaveBeenCalled()
+    })
+  })
+
+  it('answers a misconfigured site with 503 rather than a payment failure', async () => {
+    delete process.env.STRIPE_PRICE_MONTHLY
+    const res = await POST(req({ plan: 'MONTHLY' }))
+    expect(res.status).toBe(503)
+    expect((await res.json()).code).toBe('paymentsUnavailable')
+    // And nothing was created at Stripe on the way to finding out.
+    expect(mockCustomersCreate).not.toHaveBeenCalled()
+  })
 })

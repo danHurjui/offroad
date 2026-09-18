@@ -283,16 +283,31 @@ build page ranking separately, that needs URL-prefixed routing
   verified sending domain for `EMAIL_FROM` (their default onboarding
   domain works for testing but not for real users).
 
+## Troubleshooting: check the diagnostics page first
+
+Sign in as an admin and open **`/admin/diagnostics`**. It reports, in one
+place, whether payments, storage, email, push and the public address are
+configured — naming the variable at fault and what to change. For Stripe
+it goes one further and asks Stripe about the account the key belongs to,
+which is the only way to catch a key that is well-formed but revoked, or
+an account that has not finished activation and so cannot take live
+charges.
+
+Everything below is the same information, found by hand. Use it when you
+have no admin account yet, or when the page says the failure came from
+Stripe rather than from configuration.
+
 ## Troubleshooting: Stripe is configured but nothing happens
 
 The symptom tells you which half is wrong. They fail in different places
 and have nothing to do with each other.
 
-### The Upgrade page says it could not start checkout
+### Checkout or a donation says payments are not set up
 
-Nothing reached Stripe. The cause is in the runtime log, on a line
-beginning `Stripe checkout failed:` — the app now names the variable
-rather than passing Stripe's answer through, so look for one of:
+That wording (HTTP 503) means the app refused before contacting Stripe,
+because its own configuration is wrong — retrying will never help. The
+cause is on `/admin/diagnostics`, and in the runtime log on a line
+beginning `[billing]` or `[donation]`. Look for one of:
 
 - `STRIPE_PRICE_MONTHLY holds a product id (prod_…)` — the Price id lives
   *under* the product in the catalogue, and starts with `price_`. Pasting
