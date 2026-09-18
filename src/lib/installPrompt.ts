@@ -51,3 +51,67 @@ export function isStandalone(): boolean {
   const iosStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true
   return iosStandalone || window.matchMedia?.('(display-mode: standalone)').matches === true
 }
+
+/**
+ * Where the pre-hydration capture parks the event, and the event it
+ * raises to say so.
+ */
+export const INSTALL_PROMPT_GLOBAL = '__riglogInstallPrompt'
+export const INSTALL_PROMPT_EVENT = 'riglog:installprompt'
+
+/**
+ * Catches `beforeinstallprompt` before React exists.
+ *
+ * Chromium fires it as soon as it decides the app is installable, which
+ * is routinely *before* the page's own JavaScript has run — and a
+ * listener attached in a `useEffect` cannot hear an event that already
+ * happened. The event fires once and is not replayed, so the offer was
+ * simply lost, silently, on exactly the fast-hydration-loses-the-race
+ * basis that makes it look intermittent rather than broken.
+ *
+ * So this runs inline in `<head>`, like THEME_SCRIPT and for the same
+ * class of reason: some things have to happen before the framework
+ * boots. It parks the event on a global and raises a plain DOM event, so
+ * a component mounting later can pick it up whichever side of the race
+ * it lands on.
+ *
+ * `preventDefault()` is what suppresses Chromium's own mini-infobar and
+ * hands the timing to the app — it has to happen on the event itself,
+ * which is another reason this cannot wait for hydration.
+ *
+ * It is a string nothing type-checks, so `installPrompt.test.ts` executes
+ * it for real against a stub window.
+ */
+export const INSTALL_PROMPT_SCRIPT = `(function(){try{
+var w=window;
+w.${INSTALL_PROMPT_GLOBAL}=null;
+w.addEventListener('beforeinstallprompt',function(e){
+e.preventDefault();
+w.${INSTALL_PROMPT_GLOBAL}=e;
+w.dispatchEvent(new Event('${INSTALL_PROMPT_EVENT}'));
+});
+w.addEventListener('appinstalled',function(){
+w.${INSTALL_PROMPT_GLOBAL}=null;
+w.dispatchEvent(new Event('${INSTALL_PROMPT_EVENT}'));
+});
+}catch(e){}})()`
+
+type WindowWithPrompt = Window & { [INSTALL_PROMPT_GLOBAL]?: InstallPromptEvent | null }
+
+/** Whatever the head script caught, if anything. */
+export function readCapturedInstallPrompt(): InstallPromptEvent | null {
+  if (typeof window === 'undefined') return null
+  return (window as WindowWithPrompt)[INSTALL_PROMPT_GLOBAL] ?? null
+}
+
+/**
+ * Drops the captured event.
+ *
+ * `prompt()` may be called once per event; the browser fires a fresh one
+ * if it still considers the app installable. Leaving a spent event on the
+ * global would offer a button that does nothing.
+ */
+export function clearCapturedInstallPrompt(): void {
+  if (typeof window === 'undefined') return
+  ;(window as WindowWithPrompt)[INSTALL_PROMPT_GLOBAL] = null
+}
