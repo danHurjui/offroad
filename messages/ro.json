@@ -498,12 +498,11 @@
     "metaTitle": "Vezi ce face RigLog",
     "metaDescription": "Un tur prin toate funcțiile — jurnalul, costurile, documentele, comunitatea — cu ecrane de exemplu. Fără cont.",
     "heroTitle": "Tot ce face RigLog, înainte să-ți faci cont",
-    "heroBody": "Un tur prin fiecare funcție, cu ecrane de exemplu din aplicație. Nimic de aici nu cere un cont și nimic nu e ascuns după un formular.",
+    "heroBody": "Un tur prin fiecare funcție — {count} la număr — cu ecrane de exemplu din aplicație. Alegi o categorie, filtrezi după plan și deschizi exact ce te interesează.",
     "heroNote": "Ecranele de mai jos folosesc date inventate. Jurnalul tău rămâne doar al tău.",
     "ctaStart": "Creează un cont gratuit",
     "ctaBrowse": "Vezi build-uri reale",
     "ctaPricing": "Vezi prețurile",
-    "contents": "Cuprins",
     "sampleData": "Date de exemplu",
     "tierFree": "Gratuit",
     "tierPro": "Pro",
@@ -698,7 +697,107 @@
           "role": "Invitat"
         }
       },
-      "hideCosts": "„Ascunde costurile de colaboratori” e pornit, așa că service-ul vede lucrarea, nu prețurile."
+      "hideCosts": "„Ascunde costurile de colaboratori” e pornit, așa că service-ul vede lucrarea, nu prețurile.",
+      "cost": {
+        "parts": "Piese",
+        "labour": "Manoperă service",
+        "diyHours": "Timpul tău",
+        "hours": "{hours} h",
+        "total": "Total"
+      },
+      "wishlist": {
+        "a": "Bară față ARB",
+        "b": "Kit de șnorkel",
+        "c": "Blocare diferențial spate"
+      },
+      "targetPrice": "țintă {price}",
+      "found": {
+        "acquired": "Cumpărată în martie 2024",
+        "rating": "Stare {rating}/10",
+        "front": {
+          "label": "Față",
+          "note": "Aripi ruginite prin ambele părți, bara lipsă."
+        },
+        "engine": {
+          "label": "Motor",
+          "note": "Se rotește la mână, nepornit. Instalația tăiată la bord."
+        },
+        "interior": {
+          "label": "Interior",
+          "note": "Scaune utilizabile, plafonul dus, bordul crăpat."
+        }
+      },
+      "pdf": {
+        "job": {
+          "title": "Raport de lucrare",
+          "footer": "O singură lucrare — poze, costuri și date."
+        },
+        "history": {
+          "title": "Istoricul build-ului",
+          "footer": "Fiecare lucrare, cost și poză, în ordine."
+        }
+      },
+      "originality": {
+        "label": "dintre lucrările terminate sunt OEM originale"
+      },
+      "vin": {
+        "manufacturer": "Marcă",
+        "year": "An model",
+        "factory": "Uzină",
+        "source": "Decodificat din: {source}"
+      },
+      "price": {
+        "hit": "țintă atinsă la {price}",
+        "chartAlt": "Cinci prețuri notate, coborând spre linia țintă",
+        "target": "Țintă {price}",
+        "entries": "{count, plural, one {# preț notat} few {# prețuri notate} other {# de prețuri notate}}"
+      },
+      "garage": {
+        "a": "Land Cruiser HDJ80",
+        "b": "Logan 1.5 dCi",
+        "c": "Dacia 1310, 1986"
+      },
+      "feed": {
+        "a": "80 Series pe 35",
+        "b": "Dacia 1310 înapoi la 1986",
+        "c": "Logan de zi cu zi",
+        "jobs": "{count, plural, one {# lucrare} few {# lucrări} other {# de lucrări}}"
+      },
+      "parts": {
+        "a": {
+          "name": "Aripă față stânga, Dacia 1310",
+          "where": "Cluj — mă deplasez"
+        },
+        "b": {
+          "name": "Garnitură ușă spate HDJ80",
+          "where": "București"
+        },
+        "replies": "{count, plural, =0 {niciun răspuns încă} one {# răspuns} few {# răspunsuri} other {# de răspunsuri}}"
+      },
+      "ticket": {
+        "a": "Export costuri în CSV",
+        "b": "Memento-uri prin SMS",
+        "c": "Filtrare flux după județ"
+      },
+      "languageNote": "Interfața, mailurile și PDF-urile, în ambele sensuri.",
+      "theme": {
+        "light": "Luminos",
+        "dark": "Întunecat",
+        "note": "Același ecran, ales, nu inversat."
+      },
+      "data": {
+        "exportNote": "Profil, vehicule, lucrări, costuri, documente — ca JSON.",
+        "deleteNote": "Șterge contul, și pozele odată cu el."
+      }
+    },
+    "categories": "Categorii",
+    "countFeatures": "{count, plural, =0 {nimic aici} one {# funcție} few {# funcții} other {# de funcții}}",
+    "chooseFeature": "Alege o funcție",
+    "noMatches": "Nimic din această categorie nu se potrivește cu filtrele alese.",
+    "filters": {
+      "plan": "Plan",
+      "mode": "Mod",
+      "all": "Toate"
     }
   },
   "task": {

@@ -280,12 +280,33 @@ exists. Marketing copy pulls prices from `PRO_PLANS` and mode names from
 `PROJECT_TYPE_CONFIG` rather than restating them, so it can't drift.
 
 **The feature tour** (`/demo`, `src/lib/demoTour.ts`) is the long version
-of the homepage's six cards: every feature, grouped into four sections,
-each marked Free or Pro, most with a mock screen built from the app's own
+of the homepage's six cards: every feature, in four categories, each
+marked Free or Pro, each with a mock screen built from the app's own
 components and invented rows. `DemoScreen` labels every one of those as
 sample data — the previews are fabricated, and showing invented numbers in
 the product's own chrome without saying so claims something the page
 hasn't earned.
+
+`DemoExplorer` is the page: pick a category, filter by plan or by mode,
+click a feature, and its panel appears beside the list. Three things about
+it are load-bearing rather than decorative.
+
+**Every panel is in the first response, with `hidden` on all but one.**
+Mounting only the selected one would leave twenty-five of the twenty-six
+features out of the page a crawler reads and out of the reader's Ctrl+F.
+
+**A `<noscript>` stylesheet turns it back into the plain stacked page** —
+it un-hides every `[data-demo-panel]` and removes every
+`[data-demo-controls]`. Without it, scripting off means one feature
+instead of a tour, and a row of buttons that cannot do anything. Anything
+new that only works once React has hydrated needs that attribute.
+
+**The hash is read on arrival *and* on `hashchange`.** `/demo#analytics`
+is a link people share; changing only the fragment is a same-document
+navigation, so a mount-only read would ignore a link from one part of the
+tour to another. `replaceState` keeps the address bar on the open feature
+without filling the back button, and does not fire `hashchange`, so the
+two do not fight.
 
 It is mock-ups rather than a shared demo account on purpose: an account
 anyone can open is writable by everyone who finds it, needs seeding and
@@ -297,7 +318,13 @@ A tour rots quietly — nothing breaks when it goes stale — so the three
 things that drift are not written in it. The vocabulary comes from
 `PROJECT_TYPE_CONFIG` through `getAllVocabulary()` (`DemoModeSwitcher` is
 the interactive proof of it), the free-tier numbers from `FREE_TIER` via
-`chapterValues()`, and the prices from `PRO_PLANS`. `demoTour.test.ts`
+`chapterValues()`, and the prices from `PRO_PLANS`. Several previews go
+further and run the real thing rather than describing it: `VinPreview`
+calls `decodeVin()` on a well-formed UU1 chassis number (the local
+Dacia/Renault-Romania path, so no network), `ShortcutsPreview` reads
+`SHORTCUTS` and `formatKeys()`, `OriginalityPreview` uses the real
+condition vocabulary, `RoadmapPreview` the real ticket statuses and their
+palette, `InstallPreview` and `DataRightsPreview` the app's own strings. `demoTour.test.ts`
 holds the rest: both languages cover every chapter, no chapter asks for a
 placeholder the page doesn't pass, no string quotes a RON price that
 didn't come from `PRO_PLANS`, and **no chapter links anywhere behind a

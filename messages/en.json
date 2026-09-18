@@ -498,12 +498,11 @@
     "metaTitle": "See what RigLog does",
     "metaDescription": "A tour of every feature — the log, the costs, the documents, the community — with sample screens. No account needed.",
     "heroTitle": "Everything RigLog does, before you sign up",
-    "heroBody": "A walk through every feature, with sample screens from the app itself. Nothing here needs an account, and nothing is hidden behind a form.",
+    "heroBody": "A walk through every feature — {count} of them — with sample screens from the app itself. Pick a category, filter by plan, and open whichever one you came for.",
     "heroNote": "The screens below use made-up data. Your own log is yours alone.",
     "ctaStart": "Create a free account",
     "ctaBrowse": "Browse real builds",
     "ctaPricing": "See the pricing",
-    "contents": "Contents",
     "sampleData": "Sample data",
     "tierFree": "Free",
     "tierPro": "Pro",
@@ -698,7 +697,107 @@
           "role": "Invited"
         }
       },
-      "hideCosts": "Hide costs from collaborators is on, so the workshop sees the work and not the prices."
+      "hideCosts": "Hide costs from collaborators is on, so the workshop sees the work and not the prices.",
+      "cost": {
+        "parts": "Parts",
+        "labour": "Workshop labour",
+        "diyHours": "Your own time",
+        "hours": "{hours} h",
+        "total": "Total"
+      },
+      "wishlist": {
+        "a": "ARB front bumper",
+        "b": "Snorkel kit",
+        "c": "Rear locker"
+      },
+      "targetPrice": "target {price}",
+      "found": {
+        "acquired": "Bought in March 2024",
+        "rating": "Condition {rating}/10",
+        "front": {
+          "label": "Front",
+          "note": "Wings rusted through both sides, bumper missing."
+        },
+        "engine": {
+          "label": "Engine",
+          "note": "Turns by hand, never run. Loom cut at the bulkhead."
+        },
+        "interior": {
+          "label": "Interior",
+          "note": "Seats usable, headlining gone, dash cracked."
+        }
+      },
+      "pdf": {
+        "job": {
+          "title": "Job report",
+          "footer": "One job — photos, costs and dates."
+        },
+        "history": {
+          "title": "Build history",
+          "footer": "Every job, cost and photo, in order."
+        }
+      },
+      "originality": {
+        "label": "of the finished jobs are OEM original"
+      },
+      "vin": {
+        "manufacturer": "Marque",
+        "year": "Model year",
+        "factory": "Plant",
+        "source": "Decoded from: {source}"
+      },
+      "price": {
+        "hit": "target reached at {price}",
+        "chartAlt": "Five logged prices, falling towards the target line",
+        "target": "Target {price}",
+        "entries": "{count, plural, one {# logged price} other {# logged prices}}"
+      },
+      "garage": {
+        "a": "Land Cruiser HDJ80",
+        "b": "Logan 1.5 dCi",
+        "c": "Dacia 1310, 1986"
+      },
+      "feed": {
+        "a": "80 Series on 35s",
+        "b": "Dacia 1310 back to 1986",
+        "c": "Logan daily",
+        "jobs": "{count, plural, one {# job} other {# jobs}}"
+      },
+      "parts": {
+        "a": {
+          "name": "Front left wing, Dacia 1310",
+          "where": "Cluj — will travel"
+        },
+        "b": {
+          "name": "HDJ80 rear door seal",
+          "where": "Bucharest"
+        },
+        "replies": "{count, plural, =0 {no replies yet} one {# reply} other {# replies}}"
+      },
+      "ticket": {
+        "a": "Export costs to CSV",
+        "b": "Reminders by SMS",
+        "c": "Filter the feed by county"
+      },
+      "languageNote": "The interface, the emails and the PDFs, both ways.",
+      "theme": {
+        "light": "Light",
+        "dark": "Dark",
+        "note": "Same screen, chosen rather than inverted."
+      },
+      "data": {
+        "exportNote": "Profile, vehicles, jobs, costs, documents — as JSON.",
+        "deleteNote": "Deletes the account, and the photos with it."
+      }
+    },
+    "categories": "Categories",
+    "countFeatures": "{count, plural, =0 {nothing here} one {# feature} other {# features}}",
+    "chooseFeature": "Choose a feature",
+    "noMatches": "Nothing in this category matches those filters.",
+    "filters": {
+      "plan": "Plan",
+      "mode": "Mode",
+      "all": "All"
     }
   },
   "task": {
