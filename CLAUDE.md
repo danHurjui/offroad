@@ -592,6 +592,59 @@ component** — it cannot hear what already happened, and it double-handles
 the one that arrives late. The script is a string nothing type-checks, so
 its test executes it against a stub window.
 
+### Which build you are running (`src/lib/version.ts`, `src/lib/serviceWorker.ts`)
+The version is resolved in `next.config.mjs` and inlined at **build** time
+through `env`. That timing is the requirement, not a convenience: this is
+a PWA, so the bundle in somebody's browser can be older than the code on
+the server, and a version read per request would report the current deploy
+to a person whose tab is three deploys behind. `NEXT_PUBLIC_*` must stay a
+**literal** property access or the substitution does not happen (same trap
+as the Turnstile site key).
+
+**Nothing invents a version.** Every resolver falls to null and
+`versionLabel()` returns null rather than a string, so the screens render
+their own translated "unknown" — a number shown here is quoted back in a
+bug report as fact. The **commit** is the identity, not the semver:
+`package.json`'s version is a label somebody has to remember to bump, and
+this repo already has one constant that rots exactly that way
+(`LEGAL_LAST_UPDATED`).
+
+**The service worker is generated per build**, from
+`serviceWorkerSource()` via `src/app/sw.js/route.ts`, and it used to be
+`public/sw.js` with `CACHE_NAME = 'riglog-shell-v1'`. Two things followed
+from that pinned name, both invisible. The `activate` handler deletes
+every cache whose key is not the current name — with a name that never
+changed, it could never match, so it was dead code and the shell cache
+accumulated across every deploy since RL-010. And a browser only installs
+a new worker when the script's **bytes** change, so a byte-identical
+static file meant no new cache name could ever have taken effect anyway.
+Serving it with the build id interpolated fixes both at once. Don't move
+it back into `public/`.
+
+**The worker does not `skipWaiting()` on install.** It waits, and
+`ServiceWorkerRegistration` offers the reload. Two guards there are
+load-bearing and both look removable: the update is announced only when
+`navigator.serviceWorker.controller` is non-null (otherwise a first-ever
+install is announced as an update to a brand new visitor), and the reload
+on `controllerchange` fires only when the person accepted (otherwise
+`clients.claim()` on that same first install reloads them, and again on
+the next one).
+
+A bug report carries `Ticket.appVersion` — the build the **reporter's
+browser** said it was running, sent from the client because that is the
+only thing that knows it. It is untrusted and goes through
+`sanitizeReportedVersion()`; it is not a privilege claim like
+`TicketComment.isStaff`, so it may come from the body, but it is rendered
+on an admin screen and is bounded and stripped first. A ticket whose
+version differs from `/admin/diagnostics` means that reporter was on an
+older bundle — which is a finding, not a fault.
+
+**There is no `/changelog`.** Considered and left out: an entry per
+release, in both languages, with nothing generating it, is a page that
+goes stale and then misleads. The version string plus the update prompt
+answers the question people actually have ("am I on the fixed one?")
+without anything to maintain.
+
 ### Theme (`src/lib/theme.ts`, `src/app/globals.css`)
 Light/dark/system, `darkMode: 'class'` on `<html>`. Nothing re-themes by
 hand: `surface`/`ink`/`background` are Tailwind tokens backed by CSS

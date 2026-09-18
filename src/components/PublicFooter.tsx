@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
+import AppVersion from './AppVersion'
 
 export default async function PublicFooter() {
   const t = await getTranslations('footer')
@@ -10,6 +11,10 @@ export default async function PublicFooter() {
         <div>
           <div className="font-semibold text-ink">RigLog</div>
           <p className="text-ink-muted">{t('tagline')}</p>
+          {/* Small and out of the way, but on every public page: it is
+              the first thing worth knowing about a report that says
+              "this button does nothing". */}
+          <AppVersion className="mt-1 -ml-1 block" />
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-ink-muted">
           <Link href="/demo" className="hover:text-ink">

@@ -2076,7 +2076,8 @@
     "paidPro": "Paid Pro stays",
     "grantedOn": "granted {date}",
     "grantedBy": " by {who}",
-    "unknownDate": "unknown"
+    "unknownDate": "unknown",
+    "reportedVersion": "Version reported by the reporter's browser"
   },
   "verifyEmail": {
     "bannerTitle": "Confirm your email address",
@@ -2105,5 +2106,20 @@
     "toDashboard": "Go to your garage",
     "toLogin": "Log in",
     "nothingToSend": "This address is already confirmed — there is nothing to send."
+  },
+  "version": {
+    "unknown": "Version unknown",
+    "copy": "Copy this version",
+    "copied": "Copied",
+    "builtOn": "Built {date}",
+    "settingsTitle": "App version",
+    "settingsHelp": "The build running in this browser. Tap to copy it — including it in a bug report is the fastest way to tell whether a fix has reached you.",
+    "unknownHelp": "This build carries no version information, which happens when it was built outside the normal deploy. Nothing is wrong with the app."
+  },
+  "appUpdate": {
+    "title": "A newer version of RigLog is ready",
+    "body": "Reload to use it. Anything you are part-way through typing will be lost, so finish first if you are in the middle of something.",
+    "reload": "Reload now",
+    "later": "Later"
   }
 }

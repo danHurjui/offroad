@@ -18,6 +18,8 @@ export type AdminTicketView = {
   voteCount: number
   commentCount: number
   createdAt: string
+  /** The build the reporter's browser said it was running. Untrusted. */
+  appVersion: string | null
 }
 
 /**
@@ -101,6 +103,12 @@ export default function AdminTicketRow({ ticket }: { ticket: AdminTicketView }) 
               {ticket.authorName}
             </Link>{' '}
             · {ticket.authorEmail} · {new Date(ticket.createdAt).toLocaleDateString('ro-RO')}
+            {/* Labelled as reported rather than stated as fact: it comes
+                from the reporter's browser, which is the only thing that
+                knows it and also the one thing here nobody verified. */}
+            {ticket.appVersion && (
+              <> · <span title={t('reportedVersion')} className="font-mono">{ticket.appVersion}</span></>
+            )}
           </div>
         </div>
         <div className="flex shrink-0 gap-2">

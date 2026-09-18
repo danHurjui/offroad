@@ -14,6 +14,7 @@ import {
 } from '@/lib/stripe'
 import { DONATION_CURRENCY } from '@/lib/donations'
 import { verificationDisabledReason } from '@/lib/emailVerification'
+import { APP_VERSION, BUILD_SHA, BUILD_TIME, isBuildKnown } from '@/lib/version'
 import { isTurnstileConfigured, turnstileConfigProblem } from '@/lib/turnstile'
 import { foundingMemberReconciliation } from '@/lib/foundingMembers'
 
@@ -583,6 +584,43 @@ function turnstileCheck(): DiagnosticCheck {
   }
 }
 
+/**
+ * Which build is deployed.
+ *
+ * Here so the operator and a person reporting a bug are quoting the same
+ * string. Note the asymmetry worth remembering when reading a report: this
+ * is the **server's** build, while the version on a ticket is whatever the
+ * reporter's browser said — a service worker can keep somebody several
+ * deploys behind, and the two disagreeing is a finding, not a fault.
+ */
+function buildCheck(): DiagnosticCheck {
+  if (!isBuildKnown()) {
+    return {
+      id: 'build',
+      label: 'Build',
+      status: 'warn',
+      variables: ['VERCEL_GIT_COMMIT_SHA'],
+      detail:
+        'This deployment carries no commit id, so a bug report cannot be tied back to what was ' +
+        'running. That happens when the build had no git history and VERCEL_GIT_COMMIT_SHA was ' +
+        'unset — a tarball deploy, or a shallow checkout. The app is unaffected; only the ' +
+        'ability to answer "which version was that" is.',
+    }
+  }
+
+  return {
+    id: 'build',
+    label: 'Build',
+    status: 'ok',
+    detail: sentences(
+      `Commit ${BUILD_SHA}${APP_VERSION ? `, version ${APP_VERSION}` : ''}`,
+      BUILD_TIME ? `built ${BUILD_TIME}` : '',
+      'A ticket showing a different version means that reporter was on an older bundle when ' +
+        'they hit the problem — the service worker had not picked this build up yet'
+    ),
+  }
+}
+
 export function configurationGroups(): DiagnosticGroup[] {
   const appUrl = resolveAppUrl()
   const provider = emailProvider()
@@ -594,6 +632,7 @@ export function configurationGroups(): DiagnosticGroup[] {
       id: 'site',
       label: 'Site',
       checks: [
+        buildCheck(),
         {
           id: 'app-url',
           label: 'Public address',

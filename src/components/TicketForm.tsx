@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { TICKET_TYPE_VALUES, TICKET_TITLE_MAX, TICKET_DESCRIPTION_MAX, type TicketType } from '@/lib/tickets'
+import { versionLabel } from '@/lib/version'
 
 import FormError from './FormError'
 
@@ -26,7 +27,12 @@ export default function TicketForm() {
       const res = await fetch('/api/tickets', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ type, title, description }),
+        // Sent from the browser because only the browser knows it: a
+        // service worker can be serving this person a bundle from several
+        // deploys ago while the server answers as the current one. That
+        // gap is the first thing worth knowing about "this button does
+        // nothing".
+        body: JSON.stringify({ type, title, description, appVersion: versionLabel() }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {

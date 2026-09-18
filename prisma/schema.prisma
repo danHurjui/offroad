@@ -691,6 +691,19 @@ model Ticket {
   /// Set by an admin when closing as DECLINED/DUPLICATE, or to explain a
   /// status change on the ticket itself.
   adminNote   String?
+  /// The build the reporter's browser was running, as *it* reported it —
+  /// see sanitizeReportedVersion() in src/lib/version.ts.
+  ///
+  /// It comes from the request body, which is the only place it can come
+  /// from: the server knows its own version, and on a PWA with a stale
+  /// service-worker cache those two disagree. That disagreement is the
+  /// whole point — "works on the current build" and "still broken here"
+  /// are both true when somebody is three deploys behind.
+  ///
+  /// Untrusted, therefore, and shown to admins labelled as reported
+  /// rather than as fact. Null for tickets opened before this existed, or
+  /// by a client that did not send one.
+  appVersion  String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 

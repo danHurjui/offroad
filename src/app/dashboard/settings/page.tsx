@@ -8,6 +8,7 @@ import LanguageToggle from '@/components/LanguageToggle'
 import DataExportCard from '@/components/DataExportCard'
 import InstallAppButton from '@/components/InstallAppButton'
 import VerifyEmailResend from '@/components/VerifyEmailResend'
+import AppVersion from '@/components/AppVersion'
 import { isEmailVerified, isVerificationEnforced } from '@/lib/emailVerification'
 
 export default async function SettingsPage() {
@@ -17,6 +18,7 @@ export default async function SettingsPage() {
   const tl = await getTranslations('settings.language')
   const ti = await getTranslations('install')
   const tv = await getTranslations('verifyEmail')
+  const tver = await getTranslations('version')
   const session = await requireSessionOrRedirect()
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: session.user.id },
@@ -119,6 +121,16 @@ export default async function SettingsPage() {
       <div className="mt-6">
         <DataExportCard />
       </div>
+
+      {/* Last, because nobody comes here for it — but it is the first
+          thing worth knowing when they are here to report that something
+          is broken. The dashboard has no footer, so without this there is
+          nowhere inside the app to find it. */}
+      <section className="card mt-6 p-5">
+        <h2 className="mb-1 text-sm font-semibold text-ink">{tver('settingsTitle')}</h2>
+        <AppVersion className="-ml-1" />
+        <p className="mt-2 text-xs text-ink-faint">{tver('settingsHelp')}</p>
+      </section>
     </div>
   )
 }
