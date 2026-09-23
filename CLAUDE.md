@@ -723,6 +723,20 @@ in step and backfilled by the migration, deliberately not order-checked).
 Future-dated readings are refused. `distanceCovered()` sums per segment —
 it is what cost per km (slice 5) must use.
 
+### Fuel log (`src/lib/fuel.ts`, RL-044 — slice 3)
+`FuelEntry` stores litres and the total only; price per litre is derived.
+The km at the pump is an `OdometerReading` (source `FUEL`) written in the
+same transaction, so a km that breaks the history refuses the fill-up.
+**Consumption is only measured between two full tanks** — partials in
+between add their litres but never close an interval, an end without km or
+an odometer override inside it drops the interval, and the average is total
+litres over total km (not a mean of ratios). No estimate is ever shown.
+
+Deleting a fill-up (or a job) deletes the reading it created and its files.
+Receipts are filed under the vehicle **owner's** prefix whoever uploads them,
+and are listed in `collectStorageKeys()`. No OCR until a provider is chosen
+(RL-048).
+
 Phase 5 follows the adapted plan on #49 (one additive migration per slice,
 each slice deployable alone): identity → odometer → fuel log → Car Health
 → TCO → service book → passport → accidents; OCR waits on a provider

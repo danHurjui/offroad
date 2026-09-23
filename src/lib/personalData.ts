@@ -31,7 +31,7 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     ? { vehicleId, vehicle: { ownerId: userId } }
     : { vehicle: { ownerId: userId } }
 
-  const [user, vehicles, tasks, taskPhotos, foundStatePhotos, waypoints, documents] = await Promise.all([
+  const [user, vehicles, tasks, taskPhotos, foundStatePhotos, waypoints, documents, fuelEntries] = await Promise.all([
     // A user's avatar isn't tied to a vehicle, so it's skipped when the
     // caller only wants one vehicle's files.
     vehicleId ? null : prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } }),
@@ -47,6 +47,8 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
       select: { photoUrl: true },
     }),
     prisma.document.findMany({ where: { ...underVehicle, fileUrl: { not: null } }, select: { fileUrl: true } }),
+    // RL-044: fill-up receipts.
+    prisma.fuelEntry.findMany({ where: { ...underVehicle, receiptUrl: { not: null } }, select: { receiptUrl: true } }),
   ])
 
   const keys = [
@@ -57,6 +59,7 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     ...foundStatePhotos.map((p) => p.url),
     ...waypoints.map((w) => w.photoUrl),
     ...documents.map((d) => d.fileUrl),
+    ...fuelEntries.map((f) => f.receiptUrl),
   ]
 
   // De-duplicated: the same key can legitimately appear twice (a cover
@@ -187,6 +190,7 @@ function fetchVehicles(userId: string) {
       trailRuns: { include: { waypoints: true } },
       collaborators: true,
       odometerReadings: { orderBy: { readAt: 'asc' } },
+      fuelEntries: { orderBy: { date: 'asc' } },
     },
     orderBy: { createdAt: 'asc' },
   })
@@ -212,6 +216,11 @@ function serializeVehicle(vehicle: VehicleWithRelations) {
         ...entry,
         priceRon: toNumberOrNull(entry.priceRon),
       })),
+    })),
+    fuelEntries: vehicle.fuelEntries.map((entry) => ({
+      ...entry,
+      litres: toNumberOrNull(entry.litres),
+      totalRon: toNumberOrNull(entry.totalRon),
     })),
   }
 }

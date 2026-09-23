@@ -85,3 +85,23 @@ interface WishlistPriceEntryLike {
 export function serializeWishlistPriceEntry<T extends WishlistPriceEntryLike>(entry: T) {
   return { ...entry, priceRon: toNumberOrNull(entry.priceRon) as number }
 }
+
+/**
+ * RL-044: a fill-up as the client sees it — Decimals as numbers (pitfall
+ * #5), the km lifted off its odometer reading, and the price per litre
+ * derived rather than stored.
+ */
+export function serializeFuelEntry<
+  T extends { litres: Decimal | number; totalRon: Decimal | number; odometerReading?: { km: number } | null },
+>(entry: T) {
+  const { odometerReading, ...rest } = entry
+  const litres = toNumberOrNull(entry.litres) ?? 0
+  const totalRon = toNumberOrNull(entry.totalRon) ?? 0
+  return {
+    ...rest,
+    litres,
+    totalRon,
+    km: odometerReading?.km ?? null,
+    pricePerLitre: litres > 0 ? Math.round((totalRon / litres) * 1000) / 1000 : null,
+  }
+}

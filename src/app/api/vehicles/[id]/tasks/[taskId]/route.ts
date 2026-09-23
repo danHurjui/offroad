@@ -10,6 +10,7 @@ import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
 import { parseKm } from '@/lib/odometer'
 import { ReadingConflict, conflictResponse, futureResponse, isFutureDay, syncTaskReading } from '@/lib/odometerRecords'
+import { deleteStoredFiles } from '@/lib/personalData'
 
 async function loadTask(vehicleId: string, taskId: string) {
   const task = await prisma.task.findUnique({ where: { id: taskId }, include: { photos: true } })
@@ -178,7 +179,16 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!task) return await apiError('notFound', 404)
 
   try {
+    // Pitfall #14: the photo and receipt files are gathered before the
+    // rows cascade away, or nothing is left to find them by. This handler
+    // used to skip that, so every deleted job orphaned its files.
+    const keys = [task.receiptUrl, ...task.photos.map((p) => p.url)].filter((k): k is string => Boolean(k))
+    // RL-044: the km typed with the job goes with it — a job deleted as a
+    // mistake usually had the wrong km too. The relation is SetNull only
+    // as the database's safety net.
+    await prisma.odometerReading.deleteMany({ where: { taskId: task.id, source: 'TASK' } })
     await prisma.task.delete({ where: { id: task.id } })
+    await deleteStoredFiles(keys)
     return NextResponse.json({ message: 'Task deleted' })
   } catch {
     return await apiError('internalError', 500)

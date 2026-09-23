@@ -5,7 +5,7 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
-import { currentReading, distanceCovered, isOverrideReason } from '@/lib/odometer'
+import { ODOMETER_SOURCES, currentReading, distanceCovered, isOverrideReason } from '@/lib/odometer'
 import OdometerQuickAdd from '@/components/OdometerQuickAdd'
 import { ReadingRow, RemoveReadingButton } from '@/components/OdometerReadingRow'
 
@@ -79,7 +79,7 @@ export default async function OdometerPage({ params }: { params: { id: string } 
                         {r.task.name}
                       </Link>
                     ) : (
-                      t(`source.${r.source === 'FOUND_STATE' ? 'FOUND_STATE' : r.source === 'TASK' ? 'TASK' : 'MANUAL'}`)
+                      t(`source.${(ODOMETER_SOURCES as readonly string[]).includes(r.source) ? r.source : 'MANUAL'}`)
                     )}
                   </div>
                   {r.note && <p className="mt-1 text-sm text-ink">{r.note}</p>}
