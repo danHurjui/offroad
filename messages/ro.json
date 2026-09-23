@@ -2882,6 +2882,22 @@
     "days": "{days, plural, one {# zi} few {# zile} other {# de zile}}",
     "historic": "istoric",
     "footnote": "Zilele vin din datele de expirare introduse la fiecare vehicul, același calcul folosit de emailurile de reamintire. „Neînregistrat” înseamnă că RigLog nu are o înregistrare, nu că vehiculul nu are documentul. Statutul istoric este afișat, dar nu schimbă nimic aici.",
-    "open": "Conformitatea flotei"
+    "open": "Conformitatea flotei",
+    "cost": {
+      "open": "Costul flotei",
+      "title": "Costul flotei",
+      "intro": "Cât costă întreținerea flotei, din evidența costului de deținere a fiecărui vehicul. Nimic nu este estimat: un vehicul cu goluri în evidență este marcat, iar pagina lui le enumeră.",
+      "range": "Perioadă",
+      "running": "Cost de exploatare",
+      "perVehicleMonth": "Pe vehicul pe lună",
+      "perMonth": "Pe lună",
+      "total": "Total cu achizițiile",
+      "withGaps": "Vehicule cu goluri",
+      "trend": "Cost de exploatare pe lună",
+      "caption": "Costul fiecărui vehicul în perioadă",
+      "gaps": "{count, plural, one {# gol} few {# goluri} other {# de goluri}}",
+      "noCosts": "Niciun cost înregistrat în această perioadă.",
+      "footnote": "Costul de exploatare nu include prețul de achiziție, care nu este un cost lunar. Pe vehicul pe lună împarte costul de exploatare la lunile în care fiecare vehicul a fost deținut în perioadă. Cifrele fiecărui vehicul sunt cele de pe propria lui pagină de costuri."
+    }
   }
 }

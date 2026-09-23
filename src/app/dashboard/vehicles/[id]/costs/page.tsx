@@ -5,10 +5,10 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
-import { toNumberOrNull } from '@/lib/serialize'
 import { isDateRange, type DateRange } from '@/lib/analytics'
 import { ownershipReport, type CostCategory, type CostLine, type Message } from '@/lib/ownershipCosts'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { loadOwnershipInputs } from '@/lib/ownershipRecords'
 
 const RANGES: DateRange[] = ['3m', '12m', 'all']
 const money = (n: number) => n.toLocaleString('ro-RO', { maximumFractionDigits: 2 })
@@ -82,51 +82,11 @@ export default async function OwnershipCostsPage({
   const isPro = hasPro(owner)
   const range: DateRange = isPro && isDateRange(searchParams.range) ? searchParams.range : 'all'
 
-  const [tasks, fuel, documents, tyreSets, expenses, readings] = await Promise.all([
-    prisma.task.findMany({
-      where: { vehicleId: vehicle.id },
-      select: { id: true, name: true, category: true, date: true, workType: true, costRon: true, partsCostRon: true, labourCostRon: true },
-    }),
-    prisma.fuelEntry.findMany({ where: { vehicleId: vehicle.id }, select: { id: true, date: true, totalRon: true, station: true } }),
-    prisma.document.findMany({ where: { vehicleId: vehicle.id }, select: { id: true, type: true, costRon: true, paidAt: true, createdAt: true } }),
-    prisma.tyreSet.findMany({
-      where: { vehicleId: vehicle.id },
-      select: { id: true, season: true, label: true, costRon: true, purchasedAt: true, fittedAt: true, createdAt: true },
-    }),
-    prisma.vehicleExpense.findMany({ where: { vehicleId: vehicle.id }, select: { id: true, date: true, kind: true, amountRon: true, note: true } }),
-    prisma.odometerReading.findMany({ where: { vehicleId: vehicle.id }, select: { id: true, km: true, readAt: true, isOverride: true, createdAt: true } }),
-  ])
-
-  const report = ownershipReport(
-    {
-      vehicleId: vehicle.id,
-      projectType: vehicle.projectType,
-      now: new Date(),
-      vehicle: {
-        createdAt: vehicle.createdAt,
-        purchaseDate: vehicle.purchaseDate,
-        purchasePriceRon: toNumberOrNull(vehicle.purchasePriceRon),
-        currentValueRon: toNumberOrNull(vehicle.currentValueRon),
-        currentValueAt: vehicle.currentValueAt,
-        financeType: vehicle.financeType,
-        financeMonthlyRon: toNumberOrNull(vehicle.financeMonthlyRon),
-        financeStartDate: vehicle.financeStartDate,
-        financeEndDate: vehicle.financeEndDate,
-      },
-      tasks: tasks.map((task) => ({
-        ...task,
-        costRon: toNumberOrNull(task.costRon),
-        partsCostRon: toNumberOrNull(task.partsCostRon),
-        labourCostRon: toNumberOrNull(task.labourCostRon),
-      })),
-      fuel: fuel.map((f) => ({ ...f, totalRon: toNumberOrNull(f.totalRon) ?? 0 })),
-      documents: documents.map((d) => ({ ...d, costRon: toNumberOrNull(d.costRon) })),
-      tyreSets: tyreSets.map((s) => ({ ...s, costRon: toNumberOrNull(s.costRon) })),
-      expenses: expenses.map((e) => ({ ...e, amountRon: toNumberOrNull(e.amountRon) ?? 0 })),
-      readings,
-    },
-    range
-  )
+  // The same loader as the fleet cost page (RL-039), so the two add up
+  // the same rows.
+  const now = new Date()
+  const inputs = await loadOwnershipInputs([vehicle], now)
+  const report = ownershipReport(inputs.get(vehicle.id)!, range)
 
   const say = (m: Message) => {
     const values: Record<string, string | number> = { ...(m.values ?? {}) }

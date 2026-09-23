@@ -2882,6 +2882,22 @@
     "days": "{days, plural, one {# day} other {# days}}",
     "historic": "historic",
     "footnote": "Days come from the expiry dates entered on each vehicle, the same count the reminder emails use. “None recorded” means RigLog has no record, not that the vehicle has none. Historic status is shown but changes nothing here.",
-    "open": "Fleet compliance"
+    "open": "Fleet compliance",
+    "cost": {
+      "open": "Fleet cost",
+      "title": "Fleet cost",
+      "intro": "What the fleet costs to run, from each vehicle’s own cost-of-ownership record. Nothing is estimated: a vehicle whose record has gaps is marked, and its page lists them.",
+      "range": "Period",
+      "running": "Running cost",
+      "perVehicleMonth": "Per vehicle per month",
+      "perMonth": "Per month",
+      "total": "Total incl. purchases",
+      "withGaps": "Vehicles with gaps",
+      "trend": "Running cost per month",
+      "caption": "Cost per vehicle in the period",
+      "gaps": "{count, plural, one {# gap} other {# gaps}}",
+      "noCosts": "No costs recorded in this period.",
+      "footnote": "Running cost leaves out the purchase price, which isn’t a monthly cost. Per vehicle per month divides the running cost by the months each vehicle was owned in the period. Each vehicle’s figures are the ones on its own costs page."
+    }
   }
 }

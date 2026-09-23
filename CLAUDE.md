@@ -931,7 +931,7 @@ plus a grep that fails on any `ownerId` comparison with the caller outside
   the same transaction as the membership, so a double click or a
   simultaneous withdrawal cannot make a member.
 
-### Fleet compliance (`src/lib/fleet.ts`, RL-039 — slice 1 of #51)
+### Fleet compliance and cost (`src/lib/fleet.ts`, RL-039 — #51)
 `/dashboard/organizations/[id]/fleet`, for OWNER/FLEET_MANAGER (404 for
 anyone else): every company vehicle × `FLEET_DOCUMENT_TYPES` (ITP, RCA,
 CASCO, rovinietă, first-aid kit, extinguisher — not the travel vignette).
@@ -948,6 +948,19 @@ the function the documents board and the reminder cron use.
   duplicate, and one recipient's failed send is caught so the next still
   gets theirs.
 - No site/depot filter: organisations have no depots yet.
+
+**Fleet cost** (slice 2, `/fleet/costs`, same roles): `fleetCost()` is
+`ownershipReport()` per vehicle, added up — a vehicle's line is the total on
+its own costs page. Both pages load through `loadOwnershipInputs()`
+(`src/lib/ownershipRecords.ts`: six batched queries for any number of
+vehicles, Decimals converted), so they cannot add up different rows.
+- Running cost leaves out the purchase; per vehicle per month is running
+  cost over **vehicle-months** owned in the period, so a van bought last
+  month doesn't count as a year.
+- Nothing is estimated: vehicles whose report lists coverage gaps are
+  counted and badged, linking to their own page.
+- The trend is running cost per calendar month, empty months as zero, the
+  last `FLEET_TREND_MAX_MONTHS`; colours from `useChartTheme()`.
 
 ### Write feedback (`src/lib/writeFeedback.ts`, `src/components/Toaster.tsx`, RL-034)
 One toast layer, mounted in `Providers` above every page. Toasts are for

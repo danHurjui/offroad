@@ -1,4 +1,6 @@
 import { getDocumentStatus, isHistoricVehicle, type DocumentStatus } from './documents'
+import { ownershipReport, type OwnershipInput } from './ownershipCosts'
+import type { DateRange } from './analytics'
 
 /**
  * RL-039 fleet dashboard: the compliance board — every vehicle of an
@@ -110,4 +112,102 @@ export function complianceBoard(vehicles: FleetVehicle[], documents: FleetDocume
       missingItpOrRca: rows.filter((r) => r.missing.includes('ITP') || r.missing.includes('RCA')).length,
     },
   }
+}
+
+// ─── Fleet cost (RL-039 slice 2) ────────────────────────────────────────
+
+export interface FleetCostRow {
+  vehicleId: string
+  /** Everything in the period, the purchase included. */
+  total: number
+  /** Without the purchase — what running it cost. */
+  runningTotal: number
+  /** Months of the period this vehicle was owned for (at least one). */
+  months: number
+  /** Running cost per month owned. */
+  perMonth: number
+  /** How many things its total does not know (the report's coverage list). */
+  gaps: number
+}
+
+export interface FleetCost {
+  rows: FleetCostRow[]
+  total: number
+  runningTotal: number
+  /** Running cost per vehicle per month: all running cost over all vehicle-months. */
+  perVehiclePerMonth: number | null
+  /** Running cost per calendar month across the fleet, oldest first. */
+  trend: Array<{ month: string; total: number }>
+  vehiclesWithGaps: number
+}
+
+const MONTH_DAYS = 365.25 / 12
+/** A trend longer than this shows its most recent months only. */
+export const FLEET_TREND_MAX_MONTHS = 60
+
+/**
+ * The fleet's cost is `ownershipReport()` per vehicle, added up — the same
+ * report the vehicle's own costs page shows, so a vehicle's line here is
+ * the total on its page. Nothing is estimated: a vehicle's gaps (no fuel
+ * logged, unpriced documents…) are counted and linked, not filled in.
+ *
+ * Per month is running cost only: a purchase is not a monthly cost, and
+ * averaging it in would make a new van look expensive for years. The
+ * fleet figure weighs by vehicle-months, so a van owned for a month does
+ * not count like one owned all year.
+ */
+export function fleetCost(inputs: OwnershipInput[], range: DateRange): FleetCost {
+  const reports = inputs.map((input) => ({ input, report: ownershipReport(input, range) }))
+  const rows: FleetCostRow[] = reports.map(({ input, report }) => {
+    const months = Math.max(1, (report.to.getTime() - report.from.getTime()) / 86_400_000 / MONTH_DAYS)
+    return {
+      vehicleId: input.vehicleId,
+      total: report.total,
+      runningTotal: report.runningTotal,
+      months,
+      perMonth: round2(report.runningTotal / months),
+      gaps: report.coverage.length,
+    }
+  })
+
+  const byMonth = new Map<string, number>()
+  for (const { report } of reports) {
+    for (const line of report.lines) {
+      if (line.source === 'purchase') continue
+      const key = line.date.toISOString().slice(0, 7)
+      byMonth.set(key, (byMonth.get(key) ?? 0) + line.amount)
+    }
+  }
+  const trend: FleetCost['trend'] = []
+  const keys = [...byMonth.keys()].sort()
+  if (keys.length > 0) {
+    const now = inputs[0].now
+    const last = now.toISOString().slice(0, 7)
+    let [y, m] = keys[0].split('-').map(Number)
+    for (;;) {
+      const key = `${y}-${String(m).padStart(2, '0')}`
+      trend.push({ month: key, total: round2(byMonth.get(key) ?? 0) })
+      if (key >= last) break
+      m += 1
+      if (m > 12) {
+        m = 1
+        y += 1
+      }
+    }
+  }
+
+  const runningTotal = round2(rows.reduce((s, r) => s + r.runningTotal, 0))
+  const vehicleMonths = rows.reduce((s, r) => s + r.months, 0)
+  return {
+    rows,
+    total: round2(rows.reduce((s, r) => s + r.total, 0)),
+    runningTotal,
+    perVehiclePerMonth: rows.length ? round2(runningTotal / vehicleMonths) : null,
+    trend: trend.slice(-FLEET_TREND_MAX_MONTHS),
+    vehiclesWithGaps: rows.filter((r) => r.gaps > 0).length,
+  }
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100
 }
