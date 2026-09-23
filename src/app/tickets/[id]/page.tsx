@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { isBlockedAsUnverified, VERIFICATION_SELECT } from '@/lib/emailVerification'
 import { TICKET_TYPES, TICKET_STATUSES, type TicketStatus } from '@/lib/tickets'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
@@ -48,7 +49,7 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
   if (!ticket) notFound()
 
   const viewer = session
-    ? await prisma.user.findUnique({ where: { id: session.user.id }, select: { isAdmin: true } })
+    ? await prisma.user.findUnique({ where: { id: session.user.id }, select: { isAdmin: true, ...VERIFICATION_SELECT } })
     : null
   const isAdmin = Boolean(viewer?.isAdmin)
 
@@ -67,6 +68,7 @@ export default async function TicketDetailPage({ params }: { params: { id: strin
             initialVoted={Array.isArray(ticket.votes) && ticket.votes.length > 0}
             initialCount={ticket._count.votes}
             signedIn={Boolean(session)}
+            mayVote={Boolean(session) && !isBlockedAsUnverified(viewer)}
           />
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex flex-wrap items-center gap-2">

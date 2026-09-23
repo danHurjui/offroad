@@ -1,11 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { labelFor, type ProjectType } from '@/lib/projectType'
-import { useVocabulary } from '@/lib/vocabulary'
+import { useVocabulary, type VocabularyConfig } from '@/lib/vocabulary'
+import { tryFetch } from '@/lib/writeFeedback'
+import { HideWhilePending, useToast } from './Toaster'
+import { useFailureReason, useOptimisticWrite } from './useOptimisticWrite'
 
 interface WishlistItem {
   id: string
@@ -74,9 +77,32 @@ export default function WishlistBoard({
   const terminalStatus = config.wishlistStatuses[config.wishlistStatuses.length - 1].value
   const convertLabel = t(CONVERT_KEYS[projectType])
 
-  const [items, setItems] = useState(initialItems)
+  const toast = useToast()
+  const reasonFor = useFailureReason()
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+
+  const byId = useMemo(() => new Map(initialItems.map((item) => [item.id, item])), [initialItems])
+  const serverOrder = useMemo(() => initialItems.map((item) => item.id), [initialItems])
+
+  // RL-034: the list reorders on the tap; the POST follows, one at a
+  // time, carrying the latest order. The route only accepts the complete
+  // list, so a stale tab gets refused and put back, never merged.
+  const { value: order, submit: submitOrder } = useOptimisticWrite<string[]>({
+    serverValue: serverOrder,
+    fallbackError: t('reorderFailed'),
+    equals: (a, b) => a.length === b.length && a.every((id, i) => id === b[i]),
+    send: async (next) => {
+      const res = await tryFetch(`/api/vehicles/${vehicleId}/wishlist/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderedIds: next }),
+      })
+      if (!res?.ok) return { ok: false, reason: await reasonFor(res, t('reorderFailed')) }
+      return { ok: true }
+    },
+  })
+  const items = order.map((id) => byId.get(id)).filter((item): item is WishlistItem => Boolean(item))
 
   const totalBudget = items.reduce((sum, i) => sum + (i.estimatedCostRon ?? 0), 0)
   const byCategory = new Map<string, number>()
@@ -85,59 +111,50 @@ export default function WishlistBoard({
     byCategory.set(key, (byCategory.get(key) ?? 0) + (item.estimatedCostRon ?? 0))
   }
 
-  async function persistOrder(next: WishlistItem[]) {
-    setItems(next)
-    await fetch(`/api/vehicles/${vehicleId}/wishlist/reorder`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderedIds: next.map((i) => i.id) }),
-    })
-    router.refresh()
-  }
-
   function move(index: number, direction: -1 | 1) {
     const target = index + direction
-    if (target < 0 || target >= items.length) return
-    const next = [...items]
+    if (target < 0 || target >= order.length) return
+    const next = [...order]
     ;[next[index], next[target]] = [next[target], next[index]]
-    persistOrder(next)
+    void submitOrder(next)
   }
 
   function onDrop(index: number) {
     if (dragIndex === null || dragIndex === index) return
-    const next = [...items]
+    const next = [...order]
     const [moved] = next.splice(dragIndex, 1)
     next.splice(index, 0, moved)
     setDragIndex(null)
-    persistOrder(next)
+    void submitOrder(next)
   }
 
   async function onConvert(item: WishlistItem) {
     if (!confirm(t('confirmConvert', { action: convertLabel }))) return
     setBusyId(item.id)
-    const res = await fetch(`/api/vehicles/${vehicleId}/wishlist/${item.id}/convert`, {
+    const res = await tryFetch(`/api/vehicles/${vehicleId}/wishlist/${item.id}/convert`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     })
     setBusyId(null)
-    if (res.ok) {
+    if (res?.ok) {
       const task = await res.json()
       router.push(`/dashboard/vehicles/${vehicleId}/tasks/${task.id}`)
       router.refresh()
       return
     }
-    const data = await res.json()
-    alert(data.error ?? t('convertFailed'))
+    toast.error(await reasonFor(res, t('convertFailed')))
   }
 
-  async function onDelete(item: WishlistItem) {
-    if (!confirm(t('confirmDelete', { name: item.name }))) return
-    setBusyId(item.id)
-    await fetch(`/api/vehicles/${vehicleId}/wishlist/${item.id}`, { method: 'DELETE' })
-    setBusyId(null)
-    setItems((prev) => prev.filter((i) => i.id !== item.id))
-    router.refresh()
+  // RL-034: no confirm — gone at once, deleted when the undo window closes.
+  function onDelete(item: WishlistItem) {
+    toast.undoable({
+      key: `wishlist:${item.id}`,
+      message: t('deleted', { name: item.name }),
+      request: { url: `/api/vehicles/${vehicleId}/wishlist/${item.id}`, method: 'DELETE' },
+      onCommitted: () => router.refresh(),
+      onFailed: async (res) => toast.error(await reasonFor(res, t('deleteFailed', { name: item.name }))),
+    })
   }
 
   return (
@@ -167,68 +184,124 @@ export default function WishlistBoard({
       </div>
 
       {items.length === 0 ? (
-        <div className="card p-10 text-center text-ink-muted">
-          {t('emptyList', { list: config.wishlistLabel.toLowerCase() })}
+        <div className="card flex flex-col items-center gap-3 p-10 text-center">
+          <p className="max-w-prose text-ink-muted">{t('emptyList')}</p>
+          <Link href={`/dashboard/vehicles/${vehicleId}/wishlist/new`} className="btn-primary">
+            {t('addItem')}
+          </Link>
         </div>
       ) : (
         <div className="card divide-y divide-surface-border">
           {items.map((item, index) => (
-            <div
-              key={item.id}
-              draggable
-              onDragStart={() => setDragIndex(index)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => onDrop(index)}
-              className="flex items-center gap-3 p-4"
-            >
-              <div className="flex shrink-0 flex-col text-ink-faint">
-                <button type="button" aria-label={t('moveUp')} onClick={() => move(index, -1)} disabled={index === 0} className="disabled:opacity-30">
-                  ▲
-                </button>
-                <button type="button" aria-label={t('moveDown')} onClick={() => move(index, 1)} disabled={index === items.length - 1} className="disabled:opacity-30">
-                  ▼
-                </button>
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-ink">{item.name}</span>
-                  {item.hardToFind && <span className="badge badge-danger">{t('hardToFind')}</span>}
-                  <span className={`badge ${statusColors[item.status] ?? 'bg-surface-subtle text-ink-muted'}`}>
-                    {labelFor(config.wishlistStatuses, item.status)}
-                  </span>
-                </div>
-                <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-ink-faint">
-                  {item.category && <span>{labelFor(config.categories, item.category)}</span>}
-                  {item.estimatedCostRon != null && <span>{item.estimatedCostRon.toLocaleString('ro-RO')} RON</span>}
-                  {item.supplierUrl && (
-                    <a href={item.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
-                      {t('supplierLink')}
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex shrink-0 flex-wrap gap-2">
-                {item.status !== terminalStatus && (
-                  <button type="button" className="btn-secondary" onClick={() => onConvert(item)} disabled={busyId === item.id}>
-                    {convertLabel}
+            <HideWhilePending key={item.id} pendingKey={`wishlist:${item.id}`}>
+              <div
+                draggable
+                onDragStart={() => setDragIndex(index)}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => onDrop(index)}
+                className="flex items-center gap-3 p-4"
+              >
+                <div className="flex shrink-0 flex-col text-ink-faint">
+                  <button type="button" aria-label={t('moveUp')} onClick={() => move(index, -1)} disabled={index === 0} className="disabled:opacity-30">
+                    ▲
                   </button>
-                )}
-                <Link href={`/dashboard/vehicles/${vehicleId}/wishlist/${item.id}`} className="btn-secondary">
-                  {t('priceAlert')}
-                </Link>
-                <Link href={`/dashboard/vehicles/${vehicleId}/wishlist/${item.id}/edit`} className="btn-secondary">
-                  {tc('edit')}
-                </Link>
-                <button type="button" className="btn-danger" onClick={() => onDelete(item)} disabled={busyId === item.id}>
-                  {tc('delete')}
-                </button>
+                  <button type="button" aria-label={t('moveDown')} onClick={() => move(index, 1)} disabled={index === items.length - 1} className="disabled:opacity-30">
+                    ▼
+                  </button>
+                </div>
+  
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium text-ink">{item.name}</span>
+                    {item.hardToFind && <span className="badge badge-danger">{t('hardToFind')}</span>}
+                    <WishlistStatusSelect
+                      vehicleId={vehicleId}
+                      item={item}
+                      config={config}
+                      statusColors={statusColors}
+                    />
+                  </div>
+                  <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-ink-faint">
+                    {item.category && <span>{labelFor(config.categories, item.category)}</span>}
+                    {item.estimatedCostRon != null && <span>{item.estimatedCostRon.toLocaleString('ro-RO')} RON</span>}
+                    {item.supplierUrl && (
+                      <a href={item.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
+                        {t('supplierLink')}
+                      </a>
+                    )}
+                  </div>
+                </div>
+  
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  {item.status !== terminalStatus && (
+                    <button type="button" className="btn-secondary" onClick={() => onConvert(item)} disabled={busyId === item.id}>
+                      {convertLabel}
+                    </button>
+                  )}
+                  <Link href={`/dashboard/vehicles/${vehicleId}/wishlist/${item.id}`} className="btn-secondary">
+                    {t('priceAlert')}
+                  </Link>
+                  <Link href={`/dashboard/vehicles/${vehicleId}/wishlist/${item.id}/edit`} className="btn-secondary">
+                    {tc('edit')}
+                  </Link>
+                  <button type="button" className="btn-danger" onClick={() => onDelete(item)} disabled={busyId === item.id}>
+                    {tc('delete')}
+                  </button>
+                </div>
               </div>
-            </div>
+            </HideWhilePending>
           ))}
         </div>
       )}
     </div>
+  )
+}
+
+/**
+ * RL-034: a wishlist item's status, changed in place. Optimistic, like the
+ * task status: the badge moves on selection and returns, with the
+ * server's reason, if refused. Owner-only page, no Pro gate — nothing it
+ * can meet is a refusal the owner could have been told about first.
+ */
+function WishlistStatusSelect({
+  vehicleId,
+  item,
+  config,
+  statusColors,
+}: {
+  vehicleId: string
+  item: WishlistItem
+  config: VocabularyConfig
+  statusColors: Record<string, string>
+}) {
+  const t = useTranslations('wishlist')
+  const reasonFor = useFailureReason()
+  const { value, submit } = useOptimisticWrite<string>({
+    serverValue: item.status,
+    fallbackError: t('statusFailed'),
+    send: async (next) => {
+      const res = await tryFetch(`/api/vehicles/${vehicleId}/wishlist/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: next }),
+      })
+      if (!res?.ok) return { ok: false, reason: await reasonFor(res, t('statusFailed')) }
+      return { ok: true }
+    },
+  })
+
+  return (
+    <select
+      aria-label={t('statusLabel', { name: item.name })}
+      value={value}
+      onChange={(e) => submit(e.target.value)}
+      className={`badge cursor-pointer border-0 ${statusColors[value] ?? 'bg-surface-subtle text-ink-muted'} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400`}
+    >
+      {config.wishlistStatuses.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   )
 }

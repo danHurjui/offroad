@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { isBlockedAsUnverified, VERIFICATION_SELECT } from '@/lib/emailVerification'
 import {
   TICKET_TYPES,
   TICKET_STATUSES,
@@ -47,7 +48,7 @@ export default async function TicketsPage({
 
   const where = { ...(type ? { type } : {}), ...(status ? { status } : {}) }
 
-  const [tickets, total] = await Promise.all([
+  const [tickets, total, viewer] = await Promise.all([
     prisma.ticket.findMany({
       where,
       orderBy:
@@ -63,6 +64,11 @@ export default async function TicketsPage({
       },
     }),
     prisma.ticket.count({ where }),
+    // Whether a vote can be shown before the server confirms it: never
+    // for an account the confirmed-address gate will refuse (RL-034).
+    session
+      ? prisma.user.findUnique({ where: { id: session.user.id }, select: VERIFICATION_SELECT })
+      : Promise.resolve(null),
   ])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
@@ -169,6 +175,7 @@ export default async function TicketsPage({
                   initialVoted={Array.isArray(ticket.votes) && ticket.votes.length > 0}
                   initialCount={ticket._count.votes}
                   signedIn={Boolean(session)}
+                  mayVote={Boolean(session) && !isBlockedAsUnverified(viewer)}
                 />
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-2">

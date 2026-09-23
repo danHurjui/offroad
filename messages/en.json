@@ -186,6 +186,7 @@
         "progressLabel": "Build progress",
         "addTaskCta": "+ Add modification",
         "namePlaceholder": "e.g. 2\" lift kit + shocks",
+        "description": "For a rig you are modifying: every part you fit, what it cost, and how far the build has come.",
         "wishlistLabel": "Wishlist",
         "communityTabLabel": "Builds"
       },
@@ -195,6 +196,7 @@
         "progressLabel": "Restoration progress",
         "addTaskCta": "+ Add task / stage",
         "namePlaceholder": "e.g. Strip and re-chrome front bumper",
+        "description": "For a classic you are bringing back: the state you found it in, each stage of the work, and how original it still is.",
         "wishlistLabel": "Parts hunt",
         "communityTabLabel": "Restorations"
       },
@@ -204,6 +206,7 @@
         "progressLabel": "Jobs logged",
         "addTaskCta": "+ Log a repair",
         "namePlaceholder": "e.g. Front brake pads and discs",
+        "description": "For the car you drive every day: repairs and servicing, what they cost, and when the ITP and RCA run out.",
         "wishlistLabel": "Planned work",
         "communityTabLabel": "Daily drivers"
       }
@@ -391,10 +394,27 @@
     "freeLimitTitle": "Free tier is limited to 1 vehicle",
     "freeLimitBadge": "Free plan — 1/1 vehicles",
     "addVehicle": "+ Add vehicle",
-    "empty": "No vehicles yet — log your first build or restoration.",
     "collaborator": "Collaborator",
     "accountFallback": "Account",
-    "paymentFailed": "Your last RigLog Pro payment failed. <link>Update your payment method</link> to keep Pro access."
+    "paymentFailed": "Your last RigLog Pro payment failed. <link>Update your payment method</link> to keep Pro access.",
+    "emptyTitle": "Start with one vehicle",
+    "emptyBody": "Everything in RigLog hangs off a vehicle. When you add one, you choose what kind of log it keeps:",
+    "emptyModeFixed": "The mode can’t be changed afterwards, because each one records work in its own categories and statuses.",
+    "emptyDemo": "See what a filled-in log looks like",
+    "checklist": {
+      "title": "Getting started",
+      "progress": "{done} of {total} done",
+      "dismiss": "Hide",
+      "dismissLabel": "Hide the getting-started checklist for good",
+      "dismissFailed": "Couldn’t hide the checklist. Try again.",
+      "done": "Done",
+      "step": {
+        "vehicle": "Add a vehicle",
+        "task": "Log your first job",
+        "photo": "Add a photo to a job",
+        "document": "Set a document’s expiry date"
+      }
+    }
   },
   "vehicle": {
     "photos": "Photos",
@@ -424,7 +444,9 @@
     "addedByDeleted": "Added by an account that has since been deleted",
     "addedBy": "Added by {name}",
     "addedByRemoved": "{name} (collaborator access removed)",
-    "viewPublicPage": "View public page"
+    "viewPublicPage": "View public page",
+    "emptyTitle": "Nothing logged yet",
+    "emptyBody": "Each job goes under one of the categories below: what was done, when, what it cost, and photos of it. Pick a category to log the first one."
   },
   "home": {
     "metaTitle": "Car build, restoration and repair log — RigLog",
@@ -893,7 +915,11 @@
     "photos": "Photos",
     "partsLabour": "Parts / Labour",
     "totalCostLabel": "Total cost",
-    "editTitle": "Edit task"
+    "editTitle": "Edit task",
+    "statusLabel": "Status",
+    "statusFailed": "Couldn’t change the status.",
+    "deleted": "Deleted “{name}”.",
+    "deleteFailed": "Couldn’t delete “{name}”."
   },
   "era": {
     "pre1970": "Pre-1970",
@@ -999,7 +1025,7 @@
     "adding": "Adding…",
     "addDocument": "+ Add document",
     "expiryRequired": "Expiry date is required",
-    "empty": "No documents tracked yet.",
+    "empty": "Nothing tracked yet. Pick the ITP, RCA, rovinieta or anything else with an expiry date in the form above, and the reminders start from there.",
     "viewFile": "View attached file",
     "newExpiryFor": "New expiry date for {type}",
     "renew": "Renew",
@@ -1035,16 +1061,16 @@
     "totalBudget": "Total {list} budget",
     "confirmConvert": "{action}? This creates a task from this item.",
     "convertFailed": "Could not convert item",
-    "confirmDelete": "Delete “{name}”?",
-    "emptyList": "Nothing on your {list} yet."
+    "emptyList": "Parts and jobs you are planning go here, with an estimated cost and a link to where you saw them. Mark one done and it moves into the log as a job.",
+    "addItem": "+ Add item",
+    "statusLabel": "Status of {name}",
+    "statusFailed": "Couldn’t change the status.",
+    "reorderFailed": "Couldn’t save the new order.",
+    "deleted": "Removed “{name}”.",
+    "deleteFailed": "Couldn’t remove “{name}”."
   },
   "vehicleNew": {
     "projectType": "Project type",
-    "blurb": {
-      "OFFROAD": "What have I bolted on?",
-      "RESTORATION": "What stage is the car at?",
-      "DAILY_DRIVER": "What’s been fixed, and what’s due?"
-    },
     "make": "Make",
     "makePlaceholder": "Dacia",
     "model": "Model",
@@ -1058,7 +1084,8 @@
     "createFailed": "Could not create vehicle",
     "creating": "Creating…",
     "create": "Create vehicle",
-    "pageTitle": "Add a vehicle"
+    "pageTitle": "Add a vehicle",
+    "modeFixed": "This can’t be changed later. Each mode records work in its own categories and statuses, so pick the one that matches how you’ll use the log."
   },
   "collaborators": {
     "inviteTitle": "Invite a collaborator",
@@ -1081,8 +1108,10 @@
     "inviteFailed": "Could not send invite",
     "resendFailed": "Could not resend invite",
     "revokeFailed": "Could not revoke access",
-    "confirmRevoke": "Revoke this collaborator’s access? They will lose access immediately.",
-    "pageTitle": "Collaborators"
+    "pageTitle": "Collaborators",
+    "revoked": "Access removed for {name}.",
+    "invited": "Invite sent to {email}.",
+    "resent": "Invite sent again."
   },
   "wishlistForm": {
     "name": "Name",
@@ -1253,7 +1282,11 @@
       "IMPROVEMENT": "What works today but could work better, and what makes it awkward right now?"
     },
     "newMetaTitle": "Open a ticket — RigLog",
-    "backToRoadmap": "← Back to the roadmap"
+    "backToRoadmap": "← Back to the roadmap",
+    "vote": "Vote for this",
+    "unvote": "Remove your vote",
+    "logInToVote": "Log in to vote",
+    "voteFailed": "Couldn’t record your vote."
   },
   "upgrade": {
     "backToSettings": "← Back to settings",
@@ -1298,9 +1331,10 @@
     "allCategories": "All categories",
     "newestFirst": "Newest first",
     "oldestFirst": "Oldest first",
-    "empty": "No photos yet — add photos from a task.",
+    "empty": "Photos belong to jobs, so each one sits next to the work it shows. Open a job, or log a new one, and add before and after shots there.",
     "trailRuns": "Trail runs",
-    "trailRunsHeading": "Trail runs"
+    "trailRunsHeading": "Trail runs",
+    "emptyFiltered": "No photos match these filters."
   },
   "jobReport": {
     "title": "Job report",
@@ -1410,7 +1444,8 @@
     "next": "Next ›",
     "empty": "No photos yet.",
     "uploadFailed": "Upload failed",
-    "confirmDelete": "Delete this photo?"
+    "deleted": "Photo deleted.",
+    "deleteFailed": "Couldn’t delete the photo."
   },
   "card": {
     "beforePhoto": "Before photo",
@@ -1451,7 +1486,8 @@
       "new": "New — task on a vehicle, otherwise a new vehicle",
       "search": "Jump to the search box on this page",
       "showList": "Show this list",
-      "close": "Close this dialog"
+      "close": "Close this dialog",
+      "undo": "Undo the last removal, while its notice is showing"
     },
     "then": "then",
     "typingNote": "Shortcuts are ignored while you’re typing in a field. Press <key></key> any time to bring this back."
@@ -2121,5 +2157,17 @@
     "body": "Reload to use it. Anything you are part-way through typing will be lost, so finish first if you are in the middle of something.",
     "reload": "Reload now",
     "later": "Later"
+  },
+  "toast": {
+    "regionLabel": "Notifications",
+    "undo": "Undo",
+    "dismiss": "Dismiss"
+  },
+  "follow": {
+    "follow": "Follow",
+    "following": "Following",
+    "followers": "{count, plural, one {# follower} other {# followers}}",
+    "logInToFollow": "Log in to follow",
+    "failed": "Couldn’t update following."
   }
 }

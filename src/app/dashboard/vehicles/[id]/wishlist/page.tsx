@@ -10,6 +10,7 @@ import WishlistBoard from '@/components/WishlistBoard'
 
 export default async function WishlistPage({ params }: { params: { id: string } }) {
   const tc = await getTranslations('common')
+  const t = await getTranslations('wishlist')
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) notFound()
@@ -28,7 +29,7 @@ export default async function WishlistPage({ params }: { params: { id: string } 
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-ink">{config.wishlistLabel}</h1>
         <Link href={`/dashboard/vehicles/${vehicle.id}/wishlist/new`} className="btn-primary">
-          + Add item
+          {t('addItem')}
         </Link>
       </div>
       <WishlistBoard

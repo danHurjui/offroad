@@ -1,23 +1,51 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { useToast } from './Toaster'
+import { useFailureReason } from './useOptimisticWrite'
 
-export default function DeleteTaskButton({ vehicleId, taskId }: { vehicleId: string; taskId: string }) {
+/**
+ * RL-034: no confirm dialog. The task disappears and the owner lands back
+ * on the vehicle, where a toast offers Undo for a few seconds; the DELETE
+ * is only sent once that window closes (src/lib/writeFeedback.ts,
+ * UndoQueue). The vehicle page hides the row meanwhile through
+ * `HideWhilePending` keyed `task:<id>`.
+ */
+export default function DeleteTaskButton({
+  vehicleId,
+  taskId,
+  taskName,
+}: {
+  vehicleId: string
+  taskId: string
+  taskName: string
+}) {
+  const t = useTranslations('task')
+  const tc = useTranslations('common')
   const router = useRouter()
-  const [deleting, setDeleting] = useState(false)
+  const toast = useToast()
+  const reasonFor = useFailureReason()
 
-  async function onDelete() {
-    if (!confirm('Delete this task and all its photos? This cannot be undone.')) return
-    setDeleting(true)
-    await fetch(`/api/vehicles/${vehicleId}/tasks/${taskId}`, { method: 'DELETE' })
-    router.push(`/dashboard/vehicles/${vehicleId}`)
-    router.refresh()
+  function onDelete() {
+    const vehicleUrl = `/dashboard/vehicles/${vehicleId}`
+    toast.undoable({
+      key: `task:${taskId}`,
+      message: t('deleted', { name: taskName }),
+      request: { url: `/api/vehicles/${vehicleId}/tasks/${taskId}`, method: 'DELETE' },
+      onUndo: () => router.push(`${vehicleUrl}/tasks/${taskId}`),
+      onCommitted: () => router.refresh(),
+      onFailed: async (res) => {
+        toast.error(await reasonFor(res, t('deleteFailed', { name: taskName })))
+        router.refresh()
+      },
+    })
+    router.push(vehicleUrl)
   }
 
   return (
-    <button type="button" className="btn-danger" onClick={onDelete} disabled={deleting}>
-      {deleting ? 'Deleting…' : 'Delete'}
+    <button type="button" className="btn-danger" onClick={onDelete}>
+      {tc('delete')}
     </button>
   )
 }

@@ -200,6 +200,7 @@ describe('the project-type vocabulary', () => {
         'progressLabel',
         'addTaskCta',
         'namePlaceholder',
+        'description',
         'wishlistLabel',
         'communityTabLabel',
       ]) {

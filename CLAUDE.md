@@ -695,6 +695,47 @@ and runs before first paint so there's no white flash; it's a string
 nothing type-checks, so `theme.test.ts` executes it for real (a throw there
 is a blank page, not a wrong colour).
 
+### Write feedback (`src/lib/writeFeedback.ts`, `src/components/Toaster.tsx`, RL-034)
+One toast layer, mounted in `Providers` above every page. Toasts are for
+**action outcomes** (a button, a status change, a removal); `FormError`
+stays for form validation, next to the field `aria-describedby` points at.
+A toast never takes focus.
+
+**Optimistic writes** go through `useOptimisticWrite()` →
+`LatestWinsWriter`: the screen moves first, one request in flight, only the
+latest wish queued behind it, never an automatic retry (the rate limiter
+counts every attempt). A failure rolls back to the last server-confirmed
+value and toasts the reason from the response's `code`
+(`useFailureReason()`). Used for task status, wishlist status and order,
+follow and ticket vote. **Never for a gated action** — a Pro or
+confirmed-address 403 must not look like it succeeded first. That is why
+`TicketVoteButton` only goes optimistic with `mayVote`, which the ticket
+pages compute from `isBlockedAsUnverified()`.
+
+**Destructive actions offer Undo instead of a confirm dialog** (task,
+photo, collaborator, wishlist item): `toast.undoable()` hides the thing at
+once and only sends the request when the window closes, so undo needs no
+restore endpoint. A page closed inside the window still commits
+(`pagehide` + `keepalive`). Anything listing a row another page may be
+deleting wraps it in `HideWhilePending` with the same key (`task:<id>`
+etc.). `u` undoes the newest one (shortcut sheet lists it).
+
+**Skeletons** are `loading.tsx` files, and a `loading.tsx` covers every
+page nested below it — so `/dashboard` and the vehicle page live in the
+`(garage)` / `(overview)` route groups to scope theirs to one page.
+
+### First run (`src/lib/onboarding.ts`, RL-036)
+A new account's dashboard explains the three modes (from
+`config.description`, via the vocabulary, not hand-written copy) and shows
+a four-step checklist: vehicle → job → photo → document. Steps are
+**derived from the account's own rows**, never recorded as events.
+`User.onboardingClosedAt` ends it for good — set by Hide or the first time
+the dashboard sees every step done, and never cleared, so deleting a
+vehicle doesn't bring it back. It is per account, not localStorage. The
+migration closed it for every account that already owned a vehicle with a
+job, and it never shows to someone who only collaborates on other people's
+vehicles.
+
 ### Forms (`src/components/{AutocompleteInput,MoneyInput,PasswordInput,FormError}.tsx`)
 Every RON amount goes through `MoneyInput` (decimal keypad, `min=0`,
 `step=0.01`) and every error through `FormError` (`role="alert"`, with the

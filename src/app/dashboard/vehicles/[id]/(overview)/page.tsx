@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { HideWhilePending } from '@/components/Toaster'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
@@ -282,6 +283,16 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         />
       </div>
 
+      {tasks.length === 0 && (
+        /* RL-036: the categories below already carry an add link each, but
+           a first-time owner sees a column of identical links with nothing
+           saying what a "job" holds. One card says it, once. */
+        <div className="card mb-6 p-4">
+          <h2 className="mb-1 font-semibold text-ink">{t('emptyTitle')}</h2>
+          <p className="text-sm text-ink-muted">{t('emptyBody')}</p>
+        </div>
+      )}
+
       <div className="space-y-6">
         {sortedGroups.map(([categoryValue, categoryTasks]) => (
           <div key={categoryValue}>
@@ -304,36 +315,39 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
                  chosen. */
               <div className="card divide-y divide-surface-border">
                 {categoryTasks.map((task) => (
-                  <Link
-                    key={task.id}
-                    href={`/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`}
-                    className="flex items-center justify-between gap-3 p-4 hover:bg-surface-muted"
-                  >
-                    <div className="flex items-center gap-2">
-                      {task.workType === 'WORKSHOP' && <span title={t('workshopTask')}>🔧</span>}
-                      {/* addedByUserId is null once the account that added
-                          the task is deleted — the work stays in the log,
-                          the attribution doesn't. */}
-                      {task.addedByUserId !== vehicle.ownerId && (
-                        <AddedByBadge
-                          name={task.addedBy?.displayName ?? null}
-                          removed={
-                            task.addedByUserId === null ||
-                            removedCollaboratorUserIds.has(task.addedByUserId)
-                          }
-                        />
-                      )}
-                      <div>
-                        <div className="font-medium text-ink">{task.name}</div>
-                        <div className="text-xs text-ink-faint">
-                          {new Date(task.date).toLocaleDateString('ro-RO')}
+                  // Hidden while its deletion waits out the undo window
+                  // (RL-034) — the task page sent the owner back here.
+                  <HideWhilePending key={task.id} pendingKey={`task:${task.id}`}>
+                    <Link
+                      href={`/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`}
+                      className="flex items-center justify-between gap-3 p-4 hover:bg-surface-muted"
+                    >
+                      <div className="flex items-center gap-2">
+                        {task.workType === 'WORKSHOP' && <span title={t('workshopTask')}>🔧</span>}
+                        {/* addedByUserId is null once the account that added
+                            the task is deleted — the work stays in the log,
+                            the attribution doesn't. */}
+                        {task.addedByUserId !== vehicle.ownerId && (
+                          <AddedByBadge
+                            name={task.addedBy?.displayName ?? null}
+                            removed={
+                              task.addedByUserId === null ||
+                              removedCollaboratorUserIds.has(task.addedByUserId)
+                            }
+                          />
+                        )}
+                        <div>
+                          <div className="font-medium text-ink">{task.name}</div>
+                          <div className="text-xs text-ink-faint">
+                            {new Date(task.date).toLocaleDateString('ro-RO')}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <span className={statusBadgeClass(config.statusTags, task.status)}>
-                      {labelFor(config.statusTags, task.status)}
-                    </span>
-                  </Link>
+                      <span className={statusBadgeClass(config.statusTags, task.status)}>
+                        {labelFor(config.statusTags, task.status)}
+                      </span>
+                    </Link>
+                  </HideWhilePending>
                 ))}
                 <Link
                   href={`/dashboard/vehicles/${vehicle.id}/tasks/new?category=${categoryValue}`}

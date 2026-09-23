@@ -34,6 +34,13 @@ export interface Shortcut {
 }
 
 /** The order the help sheet lists its sections in. */
+/**
+ * Raised by `u`; the toast layer (src/components/Toaster.tsx) owns what it
+ * means — undo the newest removal still inside its window. An event
+ * rather than an import keeps this module free of React.
+ */
+export const UNDO_EVENT = 'riglog:undo'
+
 export const SHORTCUT_GROUPS: ShortcutGroup[] = ['goTo', 'actions', 'help']
 
 export const SHORTCUTS: Shortcut[] = [
@@ -44,6 +51,7 @@ export const SHORTCUTS: Shortcut[] = [
   { id: 'settings', keys: ['g', 's'], group: 'goTo', href: '/dashboard/settings' },
   { id: 'new', keys: ['n'], group: 'actions' },
   { id: 'search', keys: ['/'], group: 'actions' },
+  { id: 'undo', keys: ['u'], group: 'actions' },
   { id: 'showList', keys: ['?'], group: 'help' },
   { id: 'close', keys: ['Escape'], group: 'help' },
 ]

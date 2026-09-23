@@ -48,6 +48,7 @@ export interface VocabularyConfig {
   progressLabel: string
   addTaskCta: string
   namePlaceholder: string
+  description: string
   wishlistLabel: string
   communityTabLabel: string
   statusTags: StatusOption[]
@@ -98,6 +99,7 @@ export function translateConfig(projectType: ProjectType, t: Translator): Vocabu
     progressLabel: t(`mode.${projectType}.progressLabel`),
     addTaskCta: t(`mode.${projectType}.addTaskCta`),
     namePlaceholder: t(`mode.${projectType}.namePlaceholder`),
+    description: t(`mode.${projectType}.description`),
     wishlistLabel: t(`mode.${projectType}.wishlistLabel`),
     communityTabLabel: t(`mode.${projectType}.communityTabLabel`),
 

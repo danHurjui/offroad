@@ -186,6 +186,7 @@
         "progressLabel": "Progres build",
         "addTaskCta": "+ Adaugă modificare",
         "namePlaceholder": "ex. kit de înălțare 2\" + amortizoare",
+        "description": "Pentru o mașină pe care o modifici: fiecare piesă montată, cât a costat și cât de avansat e build-ul.",
         "wishlistLabel": "Listă de dorințe",
         "communityTabLabel": "Build-uri"
       },
@@ -195,6 +196,7 @@
         "progressLabel": "Progres restaurare",
         "addTaskCta": "+ Adaugă etapă / lucrare",
         "namePlaceholder": "ex. Demontare și recromare bară față",
+        "description": "Pentru un clasic pe care îl readuci la viață: starea în care l-ai găsit, fiecare etapă a lucrării și cât de original a rămas.",
         "wishlistLabel": "Căutare piese",
         "communityTabLabel": "Restaurări"
       },
@@ -204,6 +206,7 @@
         "progressLabel": "Lucrări înregistrate",
         "addTaskCta": "+ Înregistrează o reparație",
         "namePlaceholder": "ex. Plăcuțe și discuri de frână față",
+        "description": "Pentru mașina de zi cu zi: reparații și revizii, cât au costat și când expiră ITP-ul și RCA-ul.",
         "wishlistLabel": "Lucrări planificate",
         "communityTabLabel": "Mașini de zi cu zi"
       }
@@ -391,10 +394,27 @@
     "freeLimitTitle": "Planul gratuit permite un singur vehicul",
     "freeLimitBadge": "Plan gratuit — 1/1 vehicule",
     "addVehicle": "+ Adaugă vehicul",
-    "empty": "Niciun vehicul încă — începe-ți primul build sau prima restaurare.",
     "collaborator": "Colaborator",
     "accountFallback": "Cont",
-    "paymentFailed": "Ultima plată RigLog Pro a eșuat. <link>Actualizează metoda de plată</link> ca să păstrezi accesul Pro."
+    "paymentFailed": "Ultima plată RigLog Pro a eșuat. <link>Actualizează metoda de plată</link> ca să păstrezi accesul Pro.",
+    "emptyTitle": "Începe cu un vehicul",
+    "emptyBody": "Totul în RigLog pornește de la un vehicul. Când îl adaugi, alegi ce fel de jurnal ține:",
+    "emptyModeFixed": "Modul nu se mai poate schimba după aceea, pentru că fiecare înregistrează lucrările cu propriile categorii și stadii.",
+    "emptyDemo": "Vezi cum arată un jurnal completat",
+    "checklist": {
+      "title": "Primii pași",
+      "progress": "{done} din {total} gata",
+      "dismiss": "Ascunde",
+      "dismissLabel": "Ascunde definitiv lista de primi pași",
+      "dismissFailed": "Nu am putut ascunde lista. Încearcă din nou.",
+      "done": "Gata",
+      "step": {
+        "vehicle": "Adaugă un vehicul",
+        "task": "Înregistrează prima lucrare",
+        "photo": "Adaugă o poză la o lucrare",
+        "document": "Setează data de expirare a unui document"
+      }
+    }
   },
   "vehicle": {
     "photos": "Poze",
@@ -424,7 +444,9 @@
     "addedByDeleted": "Adăugat de un cont care a fost între timp șters",
     "addedBy": "Adăugat de {name}",
     "addedByRemoved": "{name} (acces de colaborator revocat)",
-    "viewPublicPage": "Vezi pagina publică"
+    "viewPublicPage": "Vezi pagina publică",
+    "emptyTitle": "Nimic înregistrat încă",
+    "emptyBody": "Fiecare lucrare intră la una dintre categoriile de mai jos: ce s-a făcut, când, cât a costat și poze. Alege o categorie ca să o înregistrezi pe prima."
   },
   "home": {
     "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
@@ -893,7 +915,11 @@
     "photos": "Poze",
     "partsLabour": "Piese / manoperă",
     "totalCostLabel": "Cost total",
-    "editTitle": "Editează lucrarea"
+    "editTitle": "Editează lucrarea",
+    "statusLabel": "Stadiu",
+    "statusFailed": "Nu am putut schimba stadiul.",
+    "deleted": "Ai șters „{name}”.",
+    "deleteFailed": "Nu am putut șterge „{name}”."
   },
   "era": {
     "pre1970": "Înainte de 1970",
@@ -999,7 +1025,7 @@
     "adding": "Se adaugă…",
     "addDocument": "+ Adaugă document",
     "expiryRequired": "Data expirării este obligatorie",
-    "empty": "Niciun document urmărit încă.",
+    "empty": "Nimic urmărit încă. Alege în formularul de mai sus ITP-ul, RCA-ul, rovinieta sau orice altceva care expiră, iar de acolo pornesc reamintirile.",
     "viewFile": "Vezi fișierul atașat",
     "newExpiryFor": "Noua dată de expirare pentru {type}",
     "renew": "Reînnoiește",
@@ -1035,16 +1061,16 @@
     "totalBudget": "Buget total — {list}",
     "confirmConvert": "{action}? Se creează o lucrare din acest articol.",
     "convertFailed": "Nu am putut converti articolul",
-    "confirmDelete": "Ștergi „{name}”?",
-    "emptyList": "Nu ai încă nimic în {list}."
+    "emptyList": "Aici intră piesele și lucrările pe care le plănuiești, cu costul estimat și un link unde le-ai văzut. Marchează una ca făcută și trece în jurnal ca lucrare.",
+    "addItem": "+ Adaugă",
+    "statusLabel": "Stadiul pentru {name}",
+    "statusFailed": "Nu am putut schimba stadiul.",
+    "reorderFailed": "Nu am putut salva noua ordine.",
+    "deleted": "Ai eliminat „{name}”.",
+    "deleteFailed": "Nu am putut elimina „{name}”."
   },
   "vehicleNew": {
     "projectType": "Tip de proiect",
-    "blurb": {
-      "OFFROAD": "Ce am montat pe ea?",
-      "RESTORATION": "În ce stadiu e mașina?",
-      "DAILY_DRIVER": "Ce s-a reparat și ce urmează?"
-    },
     "make": "Marcă",
     "makePlaceholder": "Dacia",
     "model": "Model",
@@ -1058,7 +1084,8 @@
     "createFailed": "Nu am putut crea vehiculul",
     "creating": "Se creează…",
     "create": "Creează vehiculul",
-    "pageTitle": "Adaugă un vehicul"
+    "pageTitle": "Adaugă un vehicul",
+    "modeFixed": "Nu se mai poate schimba ulterior. Fiecare mod înregistrează lucrările cu propriile categorii și stadii, așa că alege-l pe cel care se potrivește cu felul în care vei folosi jurnalul."
   },
   "collaborators": {
     "inviteTitle": "Invită un colaborator",
@@ -1081,8 +1108,10 @@
     "inviteFailed": "Nu am putut trimite invitația",
     "resendFailed": "Nu am putut retrimite invitația",
     "revokeFailed": "Nu am putut revoca accesul",
-    "confirmRevoke": "Revoci accesul acestui colaborator? Îl pierde imediat.",
-    "pageTitle": "Colaboratori"
+    "pageTitle": "Colaboratori",
+    "revoked": "Accesul a fost retras pentru {name}.",
+    "invited": "Invitație trimisă la {email}.",
+    "resent": "Invitația a fost retrimisă."
   },
   "wishlistForm": {
     "name": "Denumire",
@@ -1253,7 +1282,11 @@
       "IMPROVEMENT": "Ce funcționează azi, dar ar putea funcționa mai bine, și ce îl face incomod acum?"
     },
     "newMetaTitle": "Deschide o solicitare — RigLog",
-    "backToRoadmap": "← Înapoi la planul de dezvoltare"
+    "backToRoadmap": "← Înapoi la planul de dezvoltare",
+    "vote": "Votează",
+    "unvote": "Retrage votul",
+    "logInToVote": "Autentifică-te ca să votezi",
+    "voteFailed": "Nu am putut înregistra votul."
   },
   "upgrade": {
     "backToSettings": "← Înapoi la setări",
@@ -1298,9 +1331,10 @@
     "allCategories": "Toate categoriile",
     "newestFirst": "Întâi cele mai noi",
     "oldestFirst": "Întâi cele mai vechi",
-    "empty": "Nicio poză încă — adaugă poze dintr-o lucrare.",
+    "empty": "Pozele aparțin lucrărilor, așa că fiecare stă lângă lucrarea pe care o arată. Deschide o lucrare sau înregistrează una nouă și adaugă acolo pozele de dinainte și de după.",
     "trailRuns": "Trasee înregistrate",
-    "trailRunsHeading": "Trasee înregistrate"
+    "trailRunsHeading": "Trasee înregistrate",
+    "emptyFiltered": "Nicio poză nu corespunde acestor filtre."
   },
   "jobReport": {
     "title": "Raport de lucrări",
@@ -1410,7 +1444,8 @@
     "next": "Următoarea ›",
     "empty": "Nicio poză încă.",
     "uploadFailed": "Încărcarea a eșuat",
-    "confirmDelete": "Ștergi această poză?"
+    "deleted": "Poză ștearsă.",
+    "deleteFailed": "Nu am putut șterge poza."
   },
   "card": {
     "beforePhoto": "Poză „înainte”",
@@ -1451,7 +1486,8 @@
       "new": "Nou — o lucrare pe vehiculul curent, altfel un vehicul nou",
       "search": "Sari la caseta de căutare din pagină",
       "showList": "Arată această listă",
-      "close": "Închide fereastra"
+      "close": "Închide fereastra",
+      "undo": "Anulează ultima ștergere, cât timp notificarea e afișată"
     },
     "then": "apoi",
     "typingNote": "Scurtăturile sunt ignorate cât timp scrii într-un câmp. Apasă <key></key> oricând ca să revii la această listă."
@@ -2121,5 +2157,17 @@
     "body": "Reîncarcă pentru a o folosi. Ce ai scris pe jumătate se pierde, așa că termină întâi dacă ești în mijlocul a ceva.",
     "reload": "Reîncarcă acum",
     "later": "Mai târziu"
+  },
+  "toast": {
+    "regionLabel": "Notificări",
+    "undo": "Anulează",
+    "dismiss": "Închide"
+  },
+  "follow": {
+    "follow": "Urmărește",
+    "following": "Urmărești",
+    "followers": "{count, plural, one {# urmăritor} few {# urmăritori} other {# de urmăritori}}",
+    "logInToFollow": "Autentifică-te ca să urmărești",
+    "failed": "Nu am putut actualiza urmărirea."
   }
 }

@@ -121,6 +121,7 @@ export async function collectUserData(userId: string) {
       // reason the password hash does — they are credentials, and an
       // export file is not where a live one should end up.
       emailVerifiedAt: true,
+      onboardingClosedAt: true,
       createdAt: true,
       updatedAt: true,
     },

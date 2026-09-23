@@ -1,8 +1,12 @@
 import Link from 'next/link'
 import VehicleForm from '@/components/VehicleForm'
 import { getTranslations } from 'next-intl/server'
+import { isProjectType } from '@/lib/projectType'
 
-export default async function NewVehiclePage() {
+export default async function NewVehiclePage({ searchParams }: { searchParams: { type?: string } }) {
+  // Set by the empty garage's mode cards. Only a preselection — the form
+  // still lets somebody change their mind before creating anything.
+  const initialType = isProjectType(searchParams.type) ? searchParams.type : null
   const t = await getTranslations('vehicleNew')
   const tc = await getTranslations('common')
   const td = await getTranslations('dashboard')
@@ -12,7 +16,7 @@ export default async function NewVehiclePage() {
         {tc('backTo', { screen: td('title') })}
       </Link>
       <h1 className="mb-6 text-2xl font-bold text-ink">{t('pageTitle')}</h1>
-      <VehicleForm />
+      <VehicleForm initialType={initialType} />
     </div>
   )
 }
