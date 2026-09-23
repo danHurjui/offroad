@@ -736,8 +736,56 @@ litres over total km (not a mean of ratios). No estimate is ever shown.
 
 Deleting a fill-up (or a job) deletes the reading it created and its files.
 Receipts are filed under the vehicle **owner's** prefix whoever uploads them,
-and are listed in `collectStorageKeys()`. No OCR until a provider is chosen
-(RL-048).
+and are listed in `collectStorageKeys()`.
+
+### Scanning a receipt (`src/lib/ocr.ts`, `src/lib/receiptParse.ts`, RL-048 — slice 1)
+Tesseract.js (Apache-2.0), **run in the browser**, on the fuel form. The
+photo is read on the device and never sent anywhere to be read, so there is
+no OCR sub-processor and no per-scan cost; the model is cached in IndexedDB
+(listed in `LOCAL_STORAGE_ENTRIES`). It is Pro — the account of record's
+plan, like every Pro feature on a vehicle — and a UI gate only, since there
+is nothing on the server to meter.
+- **Every file is served from this site.** `scripts/copy-ocr-assets.js`
+  (postinstall and `vercel-build`) copies the worker, the three LSTM cores
+  and the Romanian `best_int` model into `public/ocr` (gitignored).
+  Tesseract.js fetches anything it is not given a path for from jsDelivr,
+  so `ocr.ts` always passes all three and `workerBlobURL: false`; the CSP
+  has `worker-src 'self'` and `'wasm-unsafe-eval'` for it. `ocr.test.ts`
+  holds the wiring, including that no other file imports `tesseract.js`.
+- **It proposes, never saves**: the scan fills the form and the person
+  adds it. A value read below `MIN_CONFIDENCE` is dropped and flagged;
+  litres × price that doesn't match the total makes all three unsure; a
+  missing figure is never derived from the others. A scan that reads
+  nothing says so and leaves the photo attached.
+- **The photo is cleaned first** (`receiptImage.ts`, pure): the lighting is
+  flattened — each pixel divided by the local paper brightness (per-cell
+  90th percentile, 3×3 median, light blur) — then contrast-stretched. A
+  global stretch alone fails a hand's shadow, a dark counter and faded
+  print; a neighbourhood *maximum* bleeds the lit side into the shadow.
+  Never thresholded (Tesseract binarises per region). Small text is
+  upscaled up to 2× towards 2000px.
+- **Two looks, merged conservatively** (`scanFuelReceipt()`): sparse text
+  first; only if date, litres or total isn't confirmed, single-block on the
+  same loaded engine. `mergeProposals()` takes litres/price/total as a
+  group from the reading that verified more, and a field the two read
+  differently is unsure.
+- **Rows are rebuilt from geometry** (`mergeSplitRows()`): Tesseract returns
+  "TOTAL LEI" and its right-aligned "233,32" as separate lines; fragments
+  side by side whose baselines meet (along their slope, so tilted photos
+  work) are one row.
+- **The fuel line's own amount** (`… L x 7,29 = 441,41`, or alone on the
+  next row) checks litres × price and is the fuel total — the receipt's
+  TOTAL may include a coffee. The tolerance is **from the printed precision**
+  (`arithmeticTolerance()`), not fixed: 0.10 lei let `25,000` L misread as
+  `25,006` through.
+- `receiptParse.test.ts` is the Romanian formats: comma decimals, the VAT
+  line that isn't the total, month names, future/validity dates skipped,
+  and the chains ("OMV PETROM MARKETING" is printed by both OMV and Petrom,
+  so it names neither). On a bench of 5 chain layouts × 7 damage kinds
+  (shadow, dim, noise, tilt, faded, far) rendered in Chromium it reads
+  170/175 fields right and none wrong; real crumpled receipts are still the
+  open question — add a failing one's OCR lines as a test case.
+- Service invoices (slice 2) are not built.
 
 ### Car Health (`src/lib/vehicleHealth.ts`, RL-046 — slice 4) and tyres (`src/lib/tyres.ts`)
 `computeHealth()` is pure and returns rows (documents per type, service,

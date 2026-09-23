@@ -36,6 +36,9 @@ next-env.d.ts
 # prisma
 /prisma/dev.db
 
+# receipt reader engine + model, copied from node_modules (scripts/copy-ocr-assets.js)
+/public/ocr/
+
 # uploaded user content (dev only — served from disk, not committed)
 /public/uploads/*
 !/public/uploads/.gitkeep

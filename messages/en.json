@@ -1660,6 +1660,9 @@
       },
       "trailRecording": {
         "purpose": "A crash-recovery copy of a GPS track while you are recording one, so closing the tab by accident does not lose the run. Cleared once the run is saved."
+      },
+      "ocrModel": {
+        "purpose": "The Romanian text-recognition model that reads receipts on your device, kept so it is downloaded only once. It holds no personal data; receipts are read on the device and never sent anywhere to be read."
       }
     },
     "subProcessor": {
@@ -2371,7 +2374,18 @@
     "empty": "No fill-ups yet. Enter what you paid, the litres and the odometer, and consumption appears after the second full tank.",
     "electric": "This vehicle is electric. Charging isn’t tracked yet; the fuel log is for litres.",
     "hidden": "Hidden",
-    "moreFields": "More details"
+    "moreFields": "More details",
+    "scan": "Scan a receipt",
+    "scanHelp": "Take a photo of the receipt. It is read on your phone and the figures are filled in for you to check — nothing is saved until you add it.",
+    "scanning": "Reading the receipt… {percent}%",
+    "scanRead": "Filled in from the receipt. Check each figure against it before adding — a misread number is easy to miss.",
+    "scanUnsure": "Couldn't read this clearly — type it from the receipt.",
+    "scanUnsureDate": "Couldn't read the date clearly — check it against the receipt.",
+    "scanFailed": "Couldn't read this receipt. Type the figures in — the photo is already attached.",
+    "scanPro": "Scan receipts instead of typing them — with Pro",
+    "receiptAttached": "Attached: {name}",
+    "receiptRemove": "Remove",
+    "scanningAgain": "Taking a second look… {percent}%"
   },
   "health": {
     "title": "Car health",

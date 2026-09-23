@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest --passWithNoTests",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && node scripts/copy-ocr-assets.js",
     "vercel-build": "node scripts/vercel-build.js",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@tesseract.js-data/ron": "^1.0.0",
     "@types/leaflet": "^1.9.22",
     "@types/pdfmake": "^0.3.3",
     "@vercel/blob": "^2.8.0",
@@ -42,6 +43,7 @@
     "react-leaflet": "^4.2.1",
     "recharts": "^3.10.1",
     "stripe": "^22.6.2",
+    "tesseract.js": "^7.0.0",
     "web-push": "^3.6.7"
   },
   "devDependencies": {

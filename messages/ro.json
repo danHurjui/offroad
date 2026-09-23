@@ -1660,6 +1660,9 @@
       },
       "trailRecording": {
         "purpose": "O copie de siguranță a traseului GPS în timp ce înregistrezi, ca închiderea accidentală a filei să nu piardă traseul. Se șterge după salvarea traseului."
+      },
+      "ocrModel": {
+        "purpose": "Modelul de recunoaștere a textului în limba română care citește bonurile pe dispozitivul tău, păstrat ca să fie descărcat o singură dată. Nu conține date personale; bonurile sunt citite pe dispozitiv și nu sunt trimise nicăieri pentru a fi citite."
       }
     },
     "subProcessor": {
@@ -2371,7 +2374,18 @@
     "empty": "Nicio alimentare încă. Notează cât ai plătit, litrii și kilometrajul, iar consumul apare după al doilea plin.",
     "electric": "Acest vehicul e electric. Încărcările nu sunt urmărite încă; jurnalul de combustibil e pentru litri.",
     "hidden": "Ascuns",
-    "moreFields": "Mai multe detalii"
+    "moreFields": "Mai multe detalii",
+    "scan": "Scanează bonul",
+    "scanHelp": "Fotografiază bonul. Este citit pe telefon și cifrele sunt completate ca să le verifici — nimic nu se salvează până nu adaugi.",
+    "scanning": "Se citește bonul… {percent}%",
+    "scanRead": "Completat din bon. Verifică fiecare cifră cu bonul înainte să adaugi — o cifră citită greșit trece ușor neobservată.",
+    "scanUnsure": "Nu s-a putut citi clar — scrie valoarea de pe bon.",
+    "scanUnsureDate": "Data nu s-a putut citi clar — verific-o pe bon.",
+    "scanFailed": "Bonul nu a putut fi citit. Scrie cifrele — fotografia este deja atașată.",
+    "scanPro": "Scanează bonurile în loc să le scrii — cu Pro",
+    "receiptAttached": "Atașat: {name}",
+    "receiptRemove": "Elimină",
+    "scanningAgain": "Încă o citire, pentru verificare… {percent}%"
   },
   "health": {
     "title": "Starea mașinii",
