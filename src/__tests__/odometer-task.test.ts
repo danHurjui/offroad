@@ -4,6 +4,7 @@
  */
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
 jest.mock('@/lib/auth', () => ({ authOptions: {} }))
+jest.mock('@/lib/storage', () => ({ deleteUpload: jest.fn().mockResolvedValue(undefined) }))
 jest.mock('@/lib/prisma', () => {
   const client = {
     vehicle: { findUnique: jest.fn(), update: jest.fn() },
@@ -72,4 +73,31 @@ it('leaves a job without km on the old path, with no transaction', async () => {
   expect(res.status).toBe(201)
   expect(prisma.$transaction).not.toHaveBeenCalled()
   expect(prisma.odometerReading.create).not.toHaveBeenCalled()
+})
+
+/**
+ * Deleting a job: pitfall #14 says the files go too (this handler used to
+ * orphan every photo and receipt), and RL-044 says its km does.
+ */
+describe('DELETE a job', () => {
+  it('removes its files and its own TASK reading', async () => {
+    const { prisma: client } = jest.requireMock('@/lib/prisma') as { prisma: Record<string, Record<string, jest.Mock>> }
+    client.task.findUnique = jest.fn().mockResolvedValue({
+      id: 't1',
+      vehicleId: 'v1',
+      receiptUrl: 'owner/v1/receipt.pdf',
+      photos: [{ url: 'owner/v1/a.jpg' }, { url: 'owner/v1/b.jpg' }],
+    })
+    client.task.delete = jest.fn().mockResolvedValue({})
+    client.odometerReading.deleteMany = jest.fn().mockResolvedValue({ count: 1 })
+    const storage = jest.requireMock('@/lib/storage') as { deleteUpload: jest.Mock }
+    const { DELETE } = await import('@/app/api/vehicles/[id]/tasks/[taskId]/route')
+
+    const res = await DELETE({} as never, { params: { id: 'v1', taskId: 't1' } })
+    expect(res.status).toBe(200)
+    expect(client.odometerReading.deleteMany).toHaveBeenCalledWith({ where: { taskId: 't1', source: 'TASK' } })
+    expect(storage.deleteUpload.mock.calls.map((c) => c[0]).sort()).toEqual(
+      ['owner/v1/a.jpg', 'owner/v1/b.jpg', 'owner/v1/receipt.pdf'].sort()
+    )
+  })
 })

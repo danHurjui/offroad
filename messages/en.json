@@ -446,7 +446,8 @@
     "addedByRemoved": "{name} (collaborator access removed)",
     "viewPublicPage": "View public page",
     "emptyTitle": "Nothing logged yet",
-    "emptyBody": "Each job goes under one of the categories below: what was done, when, what it cost, and photos of it. Pick a category to log the first one."
+    "emptyBody": "Each job goes under one of the categories below: what was done, when, what it cost, and photos of it. Pick a category to log the first one.",
+    "fuel": "Fuel"
   },
   "home": {
     "metaTitle": "Car build, restoration and repair log — RigLog",
@@ -2040,7 +2041,10 @@
     "odometerDeleteOwnOnly": "You can only remove readings you recorded.",
     "odometerFuture": "A reading can’t be dated in the future.",
     "odometerKmInvalid": "Enter the odometer as a whole number of kilometres.",
-    "odometerOverrideInvalid": "That isn’t a recognised reason for an exception."
+    "odometerOverrideInvalid": "That isn’t a recognised reason for an exception.",
+    "fuelLitresInvalid": "Enter the litres as a number above zero.",
+    "fuelOwnOnly": "You can only change fill-ups you recorded.",
+    "fuelTotalInvalid": "Enter the total paid, in lei, as a number above zero."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2238,7 +2242,8 @@
     "source": {
       "MANUAL": "Entered by hand",
       "TASK": "Logged with a job",
-      "FOUND_STATE": "At acquisition"
+      "FOUND_STATE": "At acquisition",
+      "FUEL": "At a fill-up"
     },
     "deleted": "Removed the {km} km reading.",
     "deleteFailed": "Couldn’t remove the reading.",
@@ -2247,5 +2252,41 @@
     "taskKmHelp": "What the odometer read when the job was done. It goes into the vehicle’s mileage history.",
     "taskKmShown": "Odometer",
     "why": "Readings stay in date order: each one must sit between the ones before and after it."
+  },
+  "fuel": {
+    "title": "Fuel",
+    "pageTitle": "Fuel log",
+    "average": "Average consumption",
+    "averageValue": "{value} l/100 km",
+    "last": "Last full-to-full: {value} l/100 km",
+    "notYet": "Consumption appears after two full tanks with the odometer recorded at each.",
+    "measuredOver": "Measured over {km} km",
+    "spent": "Spent on fuel",
+    "litresTotal": "{litres} l in {fills, plural, one {# fill-up} other {# fill-ups}}",
+    "totalRon": "Paid (lei)",
+    "litres": "Litres",
+    "km": "Odometer (km)",
+    "fullTank": "Filled to full",
+    "fullTankHelp": "Consumption can only be measured between two full tanks, so leave this on unless you stopped early.",
+    "date": "Date",
+    "station": "Station (optional)",
+    "receipt": "Receipt photo (optional)",
+    "add": "Save fill-up",
+    "adding": "Saving…",
+    "saved": "Fill-up saved.",
+    "saveFailed": "Couldn’t save the fill-up.",
+    "receiptFailed": "The fill-up was saved, but the receipt didn’t upload.",
+    "perLitre": "{price} lei/l",
+    "partial": "Partial",
+    "consumption": "{value} l/100 km since the last full tank",
+    "viewReceipt": "Receipt",
+    "remove": "Remove",
+    "deleted": "Removed the fill-up from {date}.",
+    "deleteFailed": "Couldn’t remove the fill-up.",
+    "history": "Fill-ups",
+    "empty": "No fill-ups yet. Enter what you paid, the litres and the odometer, and consumption appears after the second full tank.",
+    "electric": "This vehicle is electric. Charging isn’t tracked yet; the fuel log is for litres.",
+    "hidden": "Hidden",
+    "moreFields": "More details"
   }
 }

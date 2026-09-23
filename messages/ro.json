@@ -446,7 +446,8 @@
     "addedByRemoved": "{name} (acces de colaborator revocat)",
     "viewPublicPage": "Vezi pagina publică",
     "emptyTitle": "Nimic înregistrat încă",
-    "emptyBody": "Fiecare lucrare intră la una dintre categoriile de mai jos: ce s-a făcut, când, cât a costat și poze. Alege o categorie ca să o înregistrezi pe prima."
+    "emptyBody": "Fiecare lucrare intră la una dintre categoriile de mai jos: ce s-a făcut, când, cât a costat și poze. Alege o categorie ca să o înregistrezi pe prima.",
+    "fuel": "Combustibil"
   },
   "home": {
     "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
@@ -2040,7 +2041,10 @@
     "odometerDeleteOwnOnly": "Poți șterge doar citirile înregistrate de tine.",
     "odometerFuture": "O citire nu poate avea o dată din viitor.",
     "odometerKmInvalid": "Introdu kilometrajul ca număr întreg de kilometri.",
-    "odometerOverrideInvalid": "Acesta nu e un motiv recunoscut pentru o excepție."
+    "odometerOverrideInvalid": "Acesta nu e un motiv recunoscut pentru o excepție.",
+    "fuelLitresInvalid": "Introdu litrii ca număr mai mare decât zero.",
+    "fuelOwnOnly": "Poți modifica doar alimentările înregistrate de tine.",
+    "fuelTotalInvalid": "Introdu totalul plătit, în lei, ca număr mai mare decât zero."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2238,7 +2242,8 @@
     "source": {
       "MANUAL": "Introdusă manual",
       "TASK": "Înregistrată cu o lucrare",
-      "FOUND_STATE": "La achiziție"
+      "FOUND_STATE": "La achiziție",
+      "FUEL": "La o alimentare"
     },
     "deleted": "Am șters citirea de {km} km.",
     "deleteFailed": "Nu am putut șterge citirea.",
@@ -2247,5 +2252,41 @@
     "taskKmHelp": "Ce arăta kilometrajul când s-a făcut lucrarea. Intră în istoricul de kilometraj al vehiculului.",
     "taskKmShown": "Kilometraj",
     "why": "Citirile rămân în ordinea datelor: fiecare trebuie să fie între cea de dinainte și cea de după."
+  },
+  "fuel": {
+    "title": "Combustibil",
+    "pageTitle": "Jurnal de combustibil",
+    "average": "Consum mediu",
+    "averageValue": "{value} l/100 km",
+    "last": "Ultimul plin-la-plin: {value} l/100 km",
+    "notYet": "Consumul apare după două plinuri cu kilometrajul notat la fiecare.",
+    "measuredOver": "Măsurat pe {km} km",
+    "spent": "Cheltuit pe combustibil",
+    "litresTotal": "{litres} l în {fills, plural, one {# alimentare} few {# alimentări} other {# de alimentări}}",
+    "totalRon": "Plătit (lei)",
+    "litres": "Litri",
+    "km": "Kilometraj (km)",
+    "fullTank": "Plin complet",
+    "fullTankHelp": "Consumul se poate măsura doar între două plinuri, așa că lasă bifat dacă nu te-ai oprit mai devreme.",
+    "date": "Data",
+    "station": "Benzinărie (opțional)",
+    "receipt": "Poză bon (opțional)",
+    "add": "Salvează alimentarea",
+    "adding": "Se salvează…",
+    "saved": "Alimentare salvată.",
+    "saveFailed": "Nu am putut salva alimentarea.",
+    "receiptFailed": "Alimentarea a fost salvată, dar bonul nu s-a încărcat.",
+    "perLitre": "{price} lei/l",
+    "partial": "Parțial",
+    "consumption": "{value} l/100 km de la plinul anterior",
+    "viewReceipt": "Bon",
+    "remove": "Șterge",
+    "deleted": "Am șters alimentarea din {date}.",
+    "deleteFailed": "Nu am putut șterge alimentarea.",
+    "history": "Alimentări",
+    "empty": "Nicio alimentare încă. Notează cât ai plătit, litrii și kilometrajul, iar consumul apare după al doilea plin.",
+    "electric": "Acest vehicul e electric. Încărcările nu sunt urmărite încă; jurnalul de combustibil e pentru litri.",
+    "hidden": "Ascuns",
+    "moreFields": "Mai multe detalii"
   }
 }

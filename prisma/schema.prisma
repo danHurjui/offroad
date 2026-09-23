@@ -187,6 +187,7 @@ model User {
   partsRequestComments PartsRequestComment[]
   tickets              Ticket[]              @relation("TicketAuthor")
   odometerReadings     OdometerReading[]     @relation("OdometerReadingBy")
+  fuelEntries          FuelEntry[]           @relation("FuelEntryBy")
   ticketVotes          TicketVote[]
   ticketComments       TicketComment[]
   donations            Donation[]
@@ -389,6 +390,7 @@ model Vehicle {
   trailRuns     TrailRun[]
   followers     Follow[]
   odometerReadings OdometerReading[]
+  fuelEntries   FuelEntry[]
 
   @@unique([ownerId, slug])
   @@index([ownerId])
@@ -869,7 +871,7 @@ model OdometerReading {
   km             Int
   /// The day the reading was taken, stored at 00:00 UTC.
   readAt         DateTime
-  /// MANUAL | TASK | FOUND_STATE — see ODOMETER_SOURCES.
+  /// MANUAL | TASK | FOUND_STATE | FUEL — see ODOMETER_SOURCES.
   source         String
   note           String?
   isOverride     Boolean  @default(false)
@@ -886,7 +888,42 @@ model OdometerReading {
   vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   task      Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
   createdBy User?   @relation("OdometerReadingBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  fuelEntry FuelEntry?
 
   @@index([vehicleId, readAt])
+  @@index([createdByUserId])
+}
+
+/// RL-044 slice 3 of #49: a fill-up (src/lib/fuel.ts).
+///
+/// Only litres and the total are stored; the price per litre is derived
+/// on display, so the three can never disagree. The km at the pump is an
+/// OdometerReading (source FUEL) rather than a column here — one history
+/// for mileage, per RL-044. Consumption is only ever computed between two
+/// full tanks: a partial fill gives a figure that is simply wrong, and a
+/// wrong l/100km is worse than a blank one because it gets quoted.
+model FuelEntry {
+  id                String   @id @default(cuid())
+  vehicleId         String
+  /// The day of the fill-up, stored at 00:00 UTC like OdometerReading.readAt.
+  date              DateTime
+  litres            Decimal  @db.Decimal(8, 2)
+  totalRon          Decimal  @db.Decimal(10, 2)
+  isFullTank        Boolean  @default(true)
+  station           String?
+  /// Storage key of the receipt, never a URL. collectStorageKeys() lists
+  /// it, or the file would survive an erasure request (pitfall #14).
+  receiptUrl        String?
+  /// SetNull: removing the reading from the odometer history leaves the
+  /// fill-up, which then simply stops counting towards consumption.
+  odometerReadingId String?  @unique
+  createdByUserId   String?
+  createdAt         DateTime @default(now())
+
+  vehicle         Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  odometerReading OdometerReading? @relation(fields: [odometerReadingId], references: [id], onDelete: SetNull)
+  createdBy       User?            @relation("FuelEntryBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([vehicleId, date])
   @@index([createdByUserId])
 }
