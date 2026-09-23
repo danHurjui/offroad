@@ -5,6 +5,7 @@ jest.mock('@/lib/prisma', () => ({
     vehicle: { findUnique: jest.fn() },
     projectCollaborator: { findFirst: jest.fn() },
     foundState: { findUnique: jest.fn(), upsert: jest.fn() },
+    odometerReading: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() },
   },
 }))
 
@@ -67,5 +68,33 @@ describe('PUT /api/vehicles/[id]/found-state', () => {
     const data = await res.json()
     expect(res.status).toBe(200)
     expect(data.purchasePriceRon).toBe(1500)
+  })
+
+  // RL-044: the intake odometer is the first reading of one history.
+  it('records the intake odometer as the vehicle’s first reading', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockVehicleFindUnique.mockResolvedValue({ id: 'v1', ownerId: 'u1', projectType: 'RESTORATION' })
+    mockUpsert.mockResolvedValue({
+      id: 'fs1', vehicleId: 'v1', odometer: 88000, acquisitionDate: new Date('2025-01-01T10:00:00Z'),
+      purchasePriceRon: null, photos: [],
+    })
+    ;(prisma.odometerReading.findFirst as jest.Mock).mockResolvedValue(null)
+    await PUT(makePutReq({ acquisitionDate: '2025-01-01', odometer: 88000 }), { params })
+    expect(prisma.odometerReading.create).toHaveBeenCalledWith({
+      data: {
+        vehicleId: 'v1', km: 88000, readAt: new Date('2025-01-01T00:00:00.000Z'), source: 'FOUND_STATE', createdByUserId: 'u1',
+      },
+    })
+  })
+
+  it('removes that reading when the intake odometer is cleared', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockVehicleFindUnique.mockResolvedValue({ id: 'v1', ownerId: 'u1', projectType: 'RESTORATION' })
+    mockUpsert.mockResolvedValue({
+      id: 'fs1', vehicleId: 'v1', odometer: null, acquisitionDate: new Date('2025-01-01'), purchasePriceRon: null, photos: [],
+    })
+    ;(prisma.odometerReading.findFirst as jest.Mock).mockResolvedValue({ id: 'r1' })
+    await PUT(makePutReq({ acquisitionDate: '2025-01-01' }), { params })
+    expect(prisma.odometerReading.delete).toHaveBeenCalledWith({ where: { id: 'r1' } })
   })
 })

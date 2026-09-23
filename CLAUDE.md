@@ -695,6 +695,39 @@ and runs before first paint so there's no white flash; it's a string
 nothing type-checks, so `theme.test.ts` executes it for real (a throw there
 is a blank page, not a wrong colour).
 
+### Vehicle identity (`src/lib/vehicleProfile.ts`, RL-050 — phase 5 slice 1 of #49)
+Plate and talon fields on `Vehicle`, all optional (a barn find has none).
+Fuel type and gearbox are stored as codes and labelled from the
+`vehicleProfile` catalogue, like the project-type vocabulary. The plate is
+**not** validated against the Romanian format (temporary, foreign and
+historic plates are real), only charset and length. It is identifying, so
+like the raw VIN it is **never rendered on a public surface**;
+`vehicleProfile.test.ts` reads every public page/card/sitemap file to hold
+that line. When testing that by hand, don't use `B 123 ABC` — it is the
+input placeholder and ships in every page's catalogue payload.
+
+### Odometer history (`src/lib/odometer.ts`, `odometerRecords.ts`, RL-044 — slice 2)
+**Current mileage is derived from the newest `OdometerReading`, never
+stored on `Vehicle`** (a test reads the schema for that). Readings stay in
+**date** order — each must sit between its date neighbours, so back-filling
+old history is fine — and a refusal (409) names the reading it collided
+with. The two real exceptions (`CLUSTER_REPLACED`, `CORRECTION`) are kept as
+`isOverride` with a reason; an override starts a new segment and bounds are
+never checked across one. Same-day readings don't bound each other.
+
+Readings arrive three ways: by hand (owner or active collaborator; a
+collaborator deletes only their own), as `odometerKm` on a job (written in
+the same transaction, so a refused km refuses the job; the job's date moves
+its reading), and from the restoration intake (`FoundState.odometer`, kept
+in step and backfilled by the migration, deliberately not order-checked).
+Future-dated readings are refused. `distanceCovered()` sums per segment —
+it is what cost per km (slice 5) must use.
+
+Phase 5 follows the adapted plan on #49 (one additive migration per slice,
+each slice deployable alone): identity → odometer → fuel log → Car Health
+→ TCO → service book → passport → accidents; OCR waits on a provider
+choice.
+
 ### Write feedback (`src/lib/writeFeedback.ts`, `src/components/Toaster.tsx`, RL-034)
 One toast layer, mounted in `Providers` above every page. Toasts are for
 **action outcomes** (a button, a status change, a removal); `FormError`
@@ -705,8 +738,9 @@ A toast never takes focus.
 `LatestWinsWriter`: the screen moves first, one request in flight, only the
 latest wish queued behind it, never an automatic retry (the rate limiter
 counts every attempt). A failure rolls back to the last server-confirmed
-value and toasts the reason from the response's `code`
-(`useFailureReason()`). Used for task status, wishlist status and order,
+value and toasts the server's reason — its `error` sentence, which
+`apiError()` builds from the `code` with any values filled in, then the
+catalogue entry for the `code` (`useFailureReason()`). Used for task status, wishlist status and order,
 follow and ticket vote. **Never for a gated action** — a Pro or
 confirmed-address 403 must not look like it succeeded first. That is why
 `TicketVoteButton` only goes optimistic with `mayVote`, which the ticket

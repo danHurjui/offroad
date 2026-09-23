@@ -186,6 +186,7 @@ function fetchVehicles(userId: string) {
       documents: true,
       trailRuns: { include: { waypoints: true } },
       collaborators: true,
+      odometerReadings: { orderBy: { readAt: 'asc' } },
     },
     orderBy: { createdAt: 'asc' },
   })

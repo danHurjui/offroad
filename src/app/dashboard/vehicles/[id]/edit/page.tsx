@@ -60,6 +60,14 @@ export default async function EditVehiclePage({ params }: { params: { id: string
           hidePublicCost: vehicle.hidePublicCost,
           slug: vehicle.slug,
           ownerUsername: owner?.username ?? null,
+          plate: vehicle.plate,
+          firstRegistrationDate: vehicle.firstRegistrationDate?.toISOString() ?? null,
+          fuelType: vehicle.fuelType,
+          transmission: vehicle.transmission,
+          engineCapacityCc: vehicle.engineCapacityCc,
+          powerKw: vehicle.powerKw,
+          colour: vehicle.colour,
+          seats: vehicle.seats,
         }}
         coverCandidates={coverCandidates}
       />

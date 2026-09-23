@@ -6,6 +6,7 @@ import { isProjectType, PROJECT_TYPES } from '@/lib/projectType'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
 import { readJsonBody } from '@/lib/requestBody'
 import { hasPro, PRO_SELECT, FREE_TIER } from '@/lib/pro'
+import { parseProfile } from '@/lib/vehicleProfile'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 
@@ -72,6 +73,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // RL-050: the create form offers the plate; the rest of the profile
+    // is accepted here too so an import or a future form needs no change.
+    const profile = parseProfile(body)
+    if (!profile.ok) return await apiErrorWith('profileFieldInvalid', { field: profile.field }, 400)
+
     const slug = await generateVehicleSlug(session.user.id, yearNum, make, model)
 
     const vehicle = await prisma.vehicle.create({
@@ -86,6 +92,7 @@ export async function POST(req: NextRequest) {
         vin: vin || null,
         coverPhotoUrl: coverPhotoUrl || null,
         slug,
+        ...profile.data,
       },
     })
 

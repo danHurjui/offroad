@@ -12,6 +12,8 @@ import { getDocumentStatus, isHistoricVehicle } from '@/lib/documents'
 import { computeOriginalityScore } from '@/lib/originality'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
 import OriginalityBadge from '@/components/OriginalityBadge'
+import { PlateBadge, RegistrationSummary } from '@/components/VehicleIdentity'
+import OdometerQuickAdd from '@/components/OdometerQuickAdd'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-003: project dashboard — build overview screen.
@@ -28,7 +30,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
   const config = await getVocabulary(vehicle.projectType)
   const completeStatus = config.completeStatus
 
-  const [tasks, foundState, documents, collaborators] = await Promise.all([
+  const [tasks, foundState, documents, collaborators, latestReading] = await Promise.all([
     prisma.task.findMany({
       where: { vehicleId: vehicle.id },
       orderBy: { updatedAt: 'desc' },
@@ -41,6 +43,13 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
     prisma.projectCollaborator.findMany({
       where: { vehicleId: vehicle.id },
       select: { collaboratorUserId: true, status: true },
+    }),
+    // RL-044: the current mileage is the newest reading — derived here,
+    // never stored on the vehicle. Same order as currentReading().
+    prisma.odometerReading.findFirst({
+      where: { vehicleId: vehicle.id },
+      orderBy: [{ readAt: 'desc' }, { createdAt: 'desc' }],
+      select: { km: true, readAt: true },
     }),
   ])
   // RL-019: Pro-gated, restoration only — the vehicle owner's isPro (a
@@ -121,10 +130,14 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
             </span>
           )}
           <h1 className="mt-2 text-2xl font-bold text-ink">{config.screenTitle}</h1>
-          <p className="text-ink-muted">
-            {vehicle.year} {vehicle.make} {vehicle.model}
-            {vehicle.generation ? ` (${vehicle.generation})` : ''}
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-ink-muted">
+            <span>
+              {vehicle.year} {vehicle.make} {vehicle.model}
+              {vehicle.generation ? ` (${vehicle.generation})` : ''}
+            </span>
+            <PlateBadge plate={vehicle.plate} />
           </p>
+          <RegistrationSummary vehicle={vehicle} />
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={`/dashboard/vehicles/${vehicle.id}/photos`} className="btn-secondary">
@@ -283,6 +296,8 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         />
       </div>
 
+      <OdometerCard vehicleId={vehicle.id} latest={latestReading} />
+
       {tasks.length === 0 && (
         /* RL-036: the categories below already carry an add link each, but
            a first-time owner sees a column of identical links with nothing
@@ -402,6 +417,34 @@ function StatCard({ label, value }: { label: string; value: string }) {
     <div className="card p-4">
       <div className="text-xs text-ink-faint">{label}</div>
       <div className="text-lg font-semibold text-ink">{value}</div>
+    </div>
+  )
+}
+
+/** RL-044: what the odometer reads, and the one-number way to update it. */
+async function OdometerCard({ vehicleId, latest }: { vehicleId: string; latest: { km: number; readAt: Date } | null }) {
+  const t = await getTranslations('odometer')
+  return (
+    <div className="card mb-6 p-4">
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <div className="text-xs text-ink-faint">{t('title')}</div>
+          {latest ? (
+            <div className="text-ink">
+              <span className="text-lg font-semibold">{t('km', { km: latest.km.toLocaleString('ro-RO') })}</span>{' '}
+              <span className="text-sm text-ink-muted">
+                {t('readOn', { date: latest.readAt.toLocaleDateString('ro-RO', { timeZone: 'UTC' }) })}
+              </span>
+            </div>
+          ) : (
+            <div className="text-sm text-ink-muted">{t('none')}</div>
+          )}
+        </div>
+        <Link href={`/dashboard/vehicles/${vehicleId}/odometer`} className="text-sm text-brand-600 hover:underline dark:text-brand-300">
+          {t('seeHistory')}
+        </Link>
+      </div>
+      <OdometerQuickAdd vehicleId={vehicleId} compact />
     </div>
   )
 }

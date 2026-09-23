@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import AutocompleteInput from './AutocompleteInput'
 import CoverPhotoField, { type CoverCandidate } from './CoverPhotoField'
 import FormError from './FormError'
+import RegistrationFields, { registrationValuesFrom, type RegistrationValues } from './RegistrationFields'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
 import type { ProjectType } from '@/lib/projectType'
@@ -27,6 +28,14 @@ interface Vehicle {
   hidePublicCost: boolean
   slug: string | null
   ownerUsername: string | null
+  plate: string | null
+  firstRegistrationDate: string | null
+  fuelType: string | null
+  transmission: string | null
+  engineCapacityCc: number | null
+  powerKw: number | null
+  colour: string | null
+  seats: number | null
 }
 
 export default function VehicleEditForm({
@@ -51,6 +60,7 @@ export default function VehicleEditForm({
     hideCostsFromCollaborators: vehicle.hideCostsFromCollaborators,
     hidePublicCost: vehicle.hidePublicCost,
   })
+  const [registration, setRegistration] = useState<RegistrationValues>(() => registrationValuesFrom(vehicle))
   const publicUrl = vehicle.ownerUsername && vehicle.slug ? `/builds/${vehicle.ownerUsername}/${vehicle.slug}` : null
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -83,7 +93,7 @@ export default function VehicleEditForm({
     const res = await fetch(`/api/vehicles/${vehicle.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, year: Number(form.year) }),
+      body: JSON.stringify({ ...form, ...registration, year: Number(form.year) }),
     })
     if (!res.ok) {
       setLoading(false)
@@ -200,6 +210,8 @@ export default function VehicleEditForm({
             />
           </div>
         </div>
+
+        <RegistrationFields values={registration} onChange={setRegistration} />
 
         <CoverPhotoField
           currentUrl={coverUrl}

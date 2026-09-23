@@ -136,14 +136,14 @@ describe('reasonFromResponse', () => {
   const response = (body: unknown, status = 400) =>
     ({ status, ok: false, json: async () => body }) as unknown as Response
 
-  it('prefers the catalogue entry for the response’s code', async () => {
-    const res = response({ code: 'editOwnTasksOnly', error: 'Poți edita doar lucrările adăugate de tine.' }, 403)
-    await expect(reasonFromResponse(res, t, 'fallback')).resolves.toBe('You can only edit tasks you added.')
+  it('prefers the server’s sentence, which has the message’s values filled in', async () => {
+    const res = response({ code: 'amountNegative', error: 'costRon must be a non-negative number' })
+    await expect(reasonFromResponse(res, t, 'fallback')).resolves.toBe('costRon must be a non-negative number')
   })
 
-  it('falls back to the server’s own sentence for a code it does not know', async () => {
-    const res = response({ code: 'RATE_LIMITED', error: 'Too many attempts.' }, 429)
-    await expect(reasonFromResponse(res, t, 'fallback')).resolves.toBe('Too many attempts.')
+  it('falls back to the catalogue entry for a code that came without a sentence', async () => {
+    const res = response({ code: 'editOwnTasksOnly' }, 403)
+    await expect(reasonFromResponse(res, t, 'fallback')).resolves.toBe('You can only edit tasks you added.')
   })
 
   it('uses the caller’s fallback only when the server said nothing usable', async () => {

@@ -158,6 +158,13 @@ body {
     @apply rounded border border-surface-border bg-surface-subtle px-1.5 py-0.5 font-mono text-xs text-ink-muted;
   }
 
+  /* RL-050: a licence plate reads as one at a glance — white, black
+     characters, a dark rim — in both themes, because the object it stands
+     for is white in both. The one deliberately literal colour here. */
+  .plate {
+    @apply inline-flex items-center rounded border-2 border-neutral-800 bg-white px-1.5 font-mono text-xs font-bold uppercase leading-5 tracking-wide text-neutral-900 dark:border-neutral-300;
+  }
+
   /* RL-034 toasts (src/components/Toaster.tsx). The plain toast is an
      inverted surface so it reads as "the app speaking" over any page; the
      error and success variants are tints named by meaning, like badges. */

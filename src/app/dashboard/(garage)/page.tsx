@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPES, type ProjectType } from '@/lib/projectType'
 import { getAllVocabulary, getVocabulary } from '@/lib/vocabulary'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
+import { PlateBadge } from '@/components/VehicleIdentity'
+import { matchesVehicleSearch } from '@/lib/vehicleProfile'
 import FirstVehicleChecklist, { type ChecklistStep } from '@/components/FirstVehicleChecklist'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
 import {
@@ -15,7 +17,7 @@ import {
   type OnboardingStep,
 } from '@/lib/onboarding'
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: { q?: string } }) {
   const t = await getTranslations('dashboard')
   const ta = await getTranslations('analytics')
   const session = await requireSessionOrRedirect()
@@ -30,6 +32,10 @@ export default async function DashboardPage() {
   ])
 
   const atFreeLimit = !hasPro(user) && owned.length >= 1
+  const tp = await getTranslations('vehicleProfile')
+  const query = (searchParams.q ?? '').slice(0, 60)
+  const shownOwned = owned.filter((v) => matchesVehicleSearch(v, query))
+  const shownCollaborating = collaborating.filter((v) => matchesVehicleSearch(v, query))
   const checklist = await checklistSteps(session.user.id, user?.onboardingClosedAt ?? null, owned, collaborating.length)
 
   return (
@@ -59,14 +65,23 @@ export default async function DashboardPage() {
       {owned.length === 0 && collaborating.length === 0 ? (
         <EmptyGarage />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {owned.map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} />
-          ))}
-          {collaborating.map((vehicle) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} collaborator />
-          ))}
-        </div>
+        <>
+          {/* RL-050: find a vehicle by plate. Offered once there is more
+              than one to choose between; `/` focuses it. */}
+          {(owned.length + collaborating.length > 1 || query) && <GarageSearch query={query} />}
+          {shownOwned.length + shownCollaborating.length === 0 ? (
+            <p className="card p-6 text-center text-ink-muted">{tp('searchNone', { q: query })}</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {shownOwned.map((vehicle) => (
+                <VehicleCard key={vehicle.id} vehicle={vehicle} />
+              ))}
+              {shownCollaborating.map((vehicle) => (
+                <VehicleCard key={vehicle.id} vehicle={vehicle} collaborator />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -151,7 +166,15 @@ async function VehicleCard({
   vehicle,
   collaborator,
 }: {
-  vehicle: { id: string; make: string; model: string; year: number; projectType: ProjectType; coverPhotoUrl: string | null }
+  vehicle: {
+    id: string
+    make: string
+    model: string
+    year: number
+    projectType: ProjectType
+    coverPhotoUrl: string | null
+    plate: string | null
+  }
   collaborator?: boolean
 }) {
   const t = await getTranslations('dashboard')
@@ -167,7 +190,36 @@ async function VehicleCard({
         <h2 className="font-semibold text-ink">
           {vehicle.year} {vehicle.make} {vehicle.model}
         </h2>
+        {vehicle.plate && (
+          <div className="mt-1">
+            <PlateBadge plate={vehicle.plate} />
+          </div>
+        )}
       </div>
     </Link>
+  )
+}
+
+/** A plain GET form: works without script, and the result is a shareable URL. */
+async function GarageSearch({ query }: { query: string }) {
+  const t = await getTranslations('vehicleProfile')
+  return (
+    <form role="search" action="/dashboard" className="mb-4 flex gap-2">
+      <label htmlFor="garage-search" className="sr-only">{t('searchLabel')}</label>
+      <input
+        id="garage-search"
+        type="search"
+        name="q"
+        defaultValue={query}
+        placeholder={t('searchPlaceholder')}
+        className="input min-w-0 flex-1"
+        autoComplete="off"
+      />
+      {query && (
+        <Link href="/dashboard" className="btn-secondary shrink-0">
+          {t('searchClear')}
+        </Link>
+      )}
+    </form>
   )
 }

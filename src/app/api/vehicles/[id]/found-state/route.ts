@@ -6,6 +6,7 @@ import { requireVehicleAccess } from '@/lib/access'
 import { toNumberOrNull } from '@/lib/serialize'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
+import { syncFoundStateReading } from '@/lib/odometerRecords'
 
 // RL-008: found state intake — restoration mode only, editable after creation.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -93,6 +94,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       create: { vehicleId: vehicle.id, ...data },
       update: data,
       include: { photos: true },
+    })
+    // RL-044: one mileage history, not a snapshot beside it.
+    await syncFoundStateReading({
+      vehicleId: vehicle.id,
+      km: foundState.odometer,
+      acquisitionDate: foundState.acquisitionDate,
+      userId: session.user.id,
     })
 
     return NextResponse.json({ ...foundState, purchasePriceRon: toNumberOrNull(foundState.purchasePriceRon) })

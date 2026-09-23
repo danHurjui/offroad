@@ -10,6 +10,8 @@ import { sendEmail, collaboratorTaskAddedEmail, emailLocale } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
 import { appUrlForNotification } from '@/lib/appUrl'
+import { parseKm } from '@/lib/odometer'
+import { ReadingConflict, conflictResponse, futureResponse, isFutureDay, syncTaskReading } from '@/lib/odometerRecords'
 
 // RL-004: add / edit a task or modification. RL-029: DIY/workshop split.
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -85,32 +87,63 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (!date || Number.isNaN(new Date(date).getTime())) {
       return await apiError('dateRequired', 400)
     }
-    const resolvedWorkType = workType === 'WORKSHOP' ? 'WORKSHOP' : 'DIY'
+    const resolvedWorkType: 'WORKSHOP' | 'DIY' = workType === 'WORKSHOP' ? 'WORKSHOP' : 'DIY'
     if (resolvedWorkType === 'WORKSHOP' && !workshopName) {
       return await apiError('workshopNameRequired', 400)
     }
 
-    const task = await prisma.task.create({
-      data: {
-        vehicleId: vehicle.id,
-        addedByUserId: session.user.id,
-        name,
-        brand: brand || null,
-        category,
-        status,
-        workType: resolvedWorkType,
-        costRon: resolvedWorkType === 'DIY' && costRon != null ? Number(costRon) : null,
-        partsCostRon: resolvedWorkType === 'WORKSHOP' && partsCostRon != null ? Number(partsCostRon) : null,
-        labourCostRon: resolvedWorkType === 'WORKSHOP' && labourCostRon != null ? Number(labourCostRon) : null,
-        date: new Date(date),
-        notes: notes || null,
-        supplierUrl: supplierUrl || null,
-        workshopName: resolvedWorkType === 'WORKSHOP' ? workshopName : null,
-        workshopContact: resolvedWorkType === 'WORKSHOP' ? workshopContact || null : null,
-        workshopId: workshopId || null,
-        originalityCondition: originalityCondition || null,
-      },
-    })
+    // RL-044: the km the job was done at, recorded as a side-effect of
+    // logging the job — the common case, and the one that makes the
+    // odometer history fill in without being a chore of its own.
+    const km = parseKm(body.odometerKm)
+    if (!km.ok) return await apiError('odometerKmInvalid', 400)
+    if (km.km !== null && isFutureDay(new Date(date))) return await futureResponse()
+
+    const taskData = {
+      vehicleId: vehicle.id,
+      addedByUserId: session.user.id,
+      name,
+      brand: brand || null,
+      category,
+      status,
+      workType: resolvedWorkType,
+      costRon: resolvedWorkType === 'DIY' && costRon != null ? Number(costRon) : null,
+      partsCostRon: resolvedWorkType === 'WORKSHOP' && partsCostRon != null ? Number(partsCostRon) : null,
+      labourCostRon: resolvedWorkType === 'WORKSHOP' && labourCostRon != null ? Number(labourCostRon) : null,
+      date: new Date(date),
+      notes: notes || null,
+      supplierUrl: supplierUrl || null,
+      workshopName: resolvedWorkType === 'WORKSHOP' ? workshopName : null,
+      workshopContact: resolvedWorkType === 'WORKSHOP' ? workshopContact || null : null,
+      workshopId: workshopId || null,
+      originalityCondition: originalityCondition || null,
+    }
+
+    let task
+    if (km.km === null) {
+      task = await prisma.task.create({ data: taskData })
+    } else {
+      // One transaction: a refused reading rolls the task back with it, so
+      // the job is never saved with half of what was typed.
+      const kmValue = km.km
+      try {
+        task = await prisma.$transaction(async (tx) => {
+          const created = await tx.task.create({ data: taskData })
+          const check = await syncTaskReading(tx, {
+            vehicleId: vehicle.id,
+            taskId: created.id,
+            km: kmValue,
+            date: created.date,
+            userId: session.user.id,
+          })
+          if (!check.ok) throw new ReadingConflict(check, kmValue)
+          return created
+        })
+      } catch (e) {
+        if (e instanceof ReadingConflict) return await conflictResponse(e.check, e.km)
+        throw e
+      }
+    }
 
     // touch the vehicle so dashboard "most recently updated" sort reflects it
     await prisma.vehicle.update({ where: { id: vehicle.id }, data: { updatedAt: new Date() } })

@@ -2033,7 +2033,14 @@
     "fieldRequired": "{field} este obligatoriu",
     "fieldTooLong": "{field} trebuie să aibă cel mult {max} caractere",
     "emailNotVerified": "Confirmă-ți mai întâi adresa de e-mail. Caută linkul în inbox sau trimite unul nou din Setări.",
-    "botCheckFailed": "Verificarea anti-robot nu a trecut. Reîncarcă pagina și încearcă din nou."
+    "botCheckFailed": "Verificarea anti-robot nu a trecut. Reîncarcă pagina și încearcă din nou.",
+    "profileFieldInvalid": "{field} nu este valid",
+    "odometerAboveLater": "{km} km e mai mult decât cei {conflictKm} km înregistrați pe {date}.",
+    "odometerBelowEarlier": "{km} km e mai puțin decât cei {conflictKm} km înregistrați pe {date}.",
+    "odometerDeleteOwnOnly": "Poți șterge doar citirile înregistrate de tine.",
+    "odometerFuture": "O citire nu poate avea o dată din viitor.",
+    "odometerKmInvalid": "Introdu kilometrajul ca număr întreg de kilometri.",
+    "odometerOverrideInvalid": "Acesta nu e un motiv recunoscut pentru o excepție."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2169,5 +2176,76 @@
     "followers": "{count, plural, one {# urmăritor} few {# urmăritori} other {# de urmăritori}}",
     "logInToFollow": "Autentifică-te ca să urmărești",
     "failed": "Nu am putut actualiza urmărirea."
+  },
+  "vehicleProfile": {
+    "heading": "Înmatriculare",
+    "plate": "Număr de înmatriculare (opțional)",
+    "platePlaceholder": "B 123 ABC",
+    "plateHelp": "Îl vezi doar tu și colaboratorii tăi. Nu apare niciodată pe pagina publică.",
+    "firstRegistrationDate": "Prima înmatriculare",
+    "fuelType": "Combustibil",
+    "transmission": "Cutie de viteze",
+    "engineCapacityCc": "Capacitate cilindrică (cm³)",
+    "powerKw": "Putere (kW)",
+    "powerCp": "≈ {cp} CP",
+    "colour": "Culoare",
+    "seats": "Locuri",
+    "notSet": "Nesetat",
+    "fuel": {
+      "PETROL": "Benzină",
+      "DIESEL": "Motorină",
+      "LPG": "Benzină + GPL",
+      "HYBRID": "Hibrid",
+      "PLUGIN_HYBRID": "Hibrid plug-in",
+      "ELECTRIC": "Electric",
+      "OTHER": "Altul"
+    },
+    "gearbox": {
+      "MANUAL": "Manuală",
+      "AUTOMATIC": "Automată"
+    },
+    "summaryCc": "{cc} cm³",
+    "summaryKw": "{kw} kW ({cp} CP)",
+    "summarySeats": "{seats, plural, one {# loc} few {# locuri} other {# de locuri}}",
+    "searchLabel": "Caută în vehiculele tale",
+    "searchPlaceholder": "Număr, marcă sau model",
+    "searchNone": "Niciun vehicul nu corespunde cu „{q}”.",
+    "searchClear": "Șterge"
+  },
+  "odometer": {
+    "title": "Kilometraj",
+    "pageTitle": "Istoricul kilometrajului",
+    "current": "Citirea curentă",
+    "none": "Nicio citire încă.",
+    "readOn": "citit pe {date}",
+    "km": "{km} km",
+    "kmLabel": "Kilometraj (km)",
+    "dateLabel": "Data citirii",
+    "noteLabel": "Notă (opțional)",
+    "add": "Salvează citirea",
+    "adding": "Se salvează…",
+    "saved": "Am înregistrat {km} km.",
+    "saveFailed": "Nu am putut salva citirea.",
+    "history": "Istoric",
+    "seeHistory": "Vezi istoricul",
+    "distance": "{km} km înregistrați de la prima citire",
+    "overrideAsk": "Dacă numărul e corect, spune de ce strică ordinea și va fi păstrat ca excepție:",
+    "override": {
+      "CLUSTER_REPLACED": "Bordul a fost înlocuit",
+      "CORRECTION": "O citire anterioară era greșită"
+    },
+    "overrideBadge": "Excepție",
+    "source": {
+      "MANUAL": "Introdusă manual",
+      "TASK": "Înregistrată cu o lucrare",
+      "FOUND_STATE": "La achiziție"
+    },
+    "deleted": "Am șters citirea de {km} km.",
+    "deleteFailed": "Nu am putut șterge citirea.",
+    "remove": "Șterge",
+    "emptyHistory": "Notează ce arată acum kilometrajul și istoricul începe de aici. Citirile se adaugă și automat când completezi kilometrii la o lucrare.",
+    "taskKmHelp": "Ce arăta kilometrajul când s-a făcut lucrarea. Intră în istoricul de kilometraj al vehiculului.",
+    "taskKmShown": "Kilometraj",
+    "why": "Citirile rămân în ordinea datelor: fiecare trebuie să fie între cea de dinainte și cea de după."
   }
 }
