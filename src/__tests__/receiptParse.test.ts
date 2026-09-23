@@ -1,4 +1,15 @@
-import { MIN_CONFIDENCE, parseFuelReceipt, parseReceiptNumber, readAnything, type OcrLine } from '@/lib/receiptParse'
+import {
+  MIN_CONFIDENCE,
+  arithmeticTolerance,
+  isComplete,
+  mergeProposals,
+  mergeSplitRows,
+  parseFuelReceipt,
+  parseReceiptNumber,
+  readAnything,
+  type OcrLine,
+  type ReceiptProposal,
+} from '@/lib/receiptParse'
 
 /**
  * RL-048: what the fuel form is offered from a scanned receipt. The
@@ -199,5 +210,126 @@ TOTAL RON 300,00
     expect(p.litres.value).toBe(20)
     expect(p.pricePerLitre.value).toBe(7)
     expect(p.totalRon.value).toBe(140)
+  })
+})
+
+/** A line placed on the page: words at x positions, foot at `foot` (+ slope per px). */
+function placed(foot: number, words: [string, number][], slope = 0, confidence = 95): OcrLine {
+  const height = 30
+  const boxed = words.map(([text, x]) => {
+    const y1 = foot + slope * x
+    return { text, confidence, bbox: { x0: x, y0: y1 - height, x1: x + text.length * 18, y1 } }
+  })
+  const last = boxed[boxed.length - 1].bbox
+  return { words: boxed, baseline: { x0: boxed[0].bbox.x0, y0: boxed[0].bbox.y1, x1: last.x1, y1: foot + slope * last.x1 } }
+}
+
+describe('mergeSplitRows', () => {
+  it('puts a right-aligned amount back on its TOTAL row', () => {
+    const lines = [placed(100, [['TOTAL', 20], ['LEI', 140]]), placed(160, [['CARD', 20]]), placed(101, [['233,32', 700]])]
+    const rows = mergeSplitRows(lines).map((l) => l.words.map((w) => w.text).join(' '))
+    expect(rows).toEqual(['TOTAL LEI 233,32', 'CARD'])
+  })
+
+  it('follows the tilt of the photo rather than the height alone', () => {
+    // A 4° tilt: the amount's foot sits ~48px lower than the label's, more
+    // than a line height — yet it is the same printed row.
+    const slope = Math.tan((4 * Math.PI) / 180)
+    const lines = [placed(100, [['TOTAL', 20], ['LEI', 140]], slope), placed(140, [['TVA', 20]], slope), placed(100, [['233,32', 700]], slope)]
+    const rows = mergeSplitRows(lines).map((l) => l.words.map((w) => w.text).join(' '))
+    expect(rows).toContain('TOTAL LEI 233,32')
+    expect(rows).toContain('TVA')
+  })
+
+  it('never joins stacked rows, or fragments that overlap sideways', () => {
+    const lines = [placed(100, [['TOTAL', 20]]), placed(135, [['233,32', 700]]), placed(170, [['A', 30]]), placed(171, [['B', 40]])]
+    expect(mergeSplitRows(lines)).toHaveLength(4)
+  })
+
+  it('lines without word boxes pass through untouched', () => {
+    const lines = receipt('TOTAL\n233,32')
+    expect(mergeSplitRows(lines)).toEqual(lines)
+  })
+
+  it('reads the total a split row would otherwise have lost', () => {
+    const lines = [placed(100, [['32,45', 20], ['L', 150], ['x', 190], ['7,19', 230]]), placed(160, [['TOTAL', 20]]), placed(161, [['233,32', 700]])]
+    expect(parseFuelReceipt(lines, TODAY).totalRon).toEqual({ value: 233.32, state: 'read' })
+  })
+})
+
+describe('the fuel line’s own amount', () => {
+  it('checks litres × price, and is the fuel total when the receipt also has a coffee', () => {
+    const p = parseFuelReceipt(receipt('60,55 L x 7,29 = 441,41 B\nCAFEA 12,00 B\nTOTAL 453,41'), TODAY)
+    expect(p.litres.value).toBe(60.55)
+    expect(p.totalRon).toEqual({ value: 441.41, state: 'read' })
+  })
+
+  it('may be alone on the row below', () => {
+    const p = parseFuelReceipt(receipt('32,45 L x 7,19 LEI/L\n233,32 B\nTOTAL LEI 233,32'), TODAY)
+    expect(p.totalRon).toEqual({ value: 233.32, state: 'read' })
+  })
+
+  it('a misread litre figure it disagrees with is unsure — even with no TOTAL read', () => {
+    // 60,55 read as 50,55: the dangerous kind, a confident wrong digit.
+    const p = parseFuelReceipt(receipt('50,55 L x 7,29 441,41 B'), TODAY)
+    expect(p.litres).toEqual({ value: null, state: 'unsure' })
+    expect(p.pricePerLitre).toEqual({ value: null, state: 'unsure' })
+  })
+})
+
+describe('arithmeticTolerance comes from the printed precision', () => {
+  const r = (value: number, decimals: number) => ({ value, confidence: 95, decimals })
+
+  it('three decimals leave little room', () => {
+    // 25,000 L misread as 25,006 is 0.04 lei out — too far for 3 decimals.
+    expect(arithmeticTolerance(r(25.006, 3), r(7.09, 3))).toBeLessThan(0.03)
+    const p = parseFuelReceipt(receipt('25,006 LTR x 7,090\n177,25 A\nTOTAL 177,25'), TODAY)
+    expect(p.litres.state).toBe('unsure')
+  })
+
+  it('two decimals leave what the pump’s rounding needs', () => {
+    expect(arithmeticTolerance(r(32.45, 2), r(7.19, 2))).toBeGreaterThan(Math.abs(32.45 * 7.19 - 233.32))
+  })
+})
+
+describe('mergeProposals — two readings of one receipt', () => {
+  const read = <T,>(value: T) => ({ value, state: 'read' as const })
+  const none = { value: null, state: 'missing' as const }
+  const doubt = { value: null, state: 'unsure' as const }
+  const base: ReceiptProposal = { date: none, station: none, litres: none, pricePerLitre: none, totalRon: none }
+
+  it('takes the money fields together from the reading that verified more', () => {
+    const a = { ...base, litres: read(32.45), totalRon: doubt, pricePerLitre: doubt }
+    const b = { ...base, litres: read(32.45), pricePerLitre: read(7.19), totalRon: read(233.32) }
+    const m = mergeProposals(a, b)
+    expect([m.litres.value, m.pricePerLitre.value, m.totalRon.value]).toEqual([32.45, 7.19, 233.32])
+  })
+
+  it('never pairs litres from one with a total from the other', () => {
+    const a = { ...base, litres: read(32.45), pricePerLitre: read(7.19), totalRon: doubt }
+    const b = { ...base, litres: doubt, pricePerLitre: doubt, totalRon: read(233.32) }
+    const m = mergeProposals(a, b)
+    expect(m.litres.value).toBe(32.45)
+    expect(m.totalRon.state).toBe('unsure')
+  })
+
+  it('two readings that disagree make the field unsure', () => {
+    const a = { ...base, date: read('2026-09-12'), litres: read(25), pricePerLitre: read(7.09), totalRon: read(177.25) }
+    const b = { ...base, date: read('2026-09-13'), litres: read(25.006), pricePerLitre: read(7.09), totalRon: read(177.25) }
+    const m = mergeProposals(a, b)
+    expect(m.date.state).toBe('unsure')
+    expect(m.litres.state).toBe('unsure')
+    expect(m.totalRon).toEqual(read(177.25))
+  })
+
+  it('a field only one reading found is kept', () => {
+    const m = mergeProposals({ ...base, station: read('OMV') }, { ...base, date: read('2026-09-12') })
+    expect(m.station).toEqual(read('OMV'))
+    expect(m.date).toEqual(read('2026-09-12'))
+  })
+
+  it('isComplete needs date, litres and total all read', () => {
+    expect(isComplete({ ...base, date: read('2026-09-12'), litres: read(1), totalRon: read(7) })).toBe(true)
+    expect(isComplete({ ...base, date: read('2026-09-12'), litres: read(1), totalRon: doubt })).toBe(false)
   })
 })

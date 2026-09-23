@@ -757,14 +757,34 @@ is nothing on the server to meter.
   litres × price that doesn't match the total makes all three unsure; a
   missing figure is never derived from the others. A scan that reads
   nothing says so and leaves the photo attached.
-- Page segmentation is single-column (PSM 4), or "TOTAL … 233,32" splits
-  into two blocks. The image is greyscaled and contrast-stretched first,
-  never thresholded (Tesseract binarises per region itself).
+- **The photo is cleaned first** (`receiptImage.ts`, pure): the lighting is
+  flattened — each pixel divided by the local paper brightness (per-cell
+  90th percentile, 3×3 median, light blur) — then contrast-stretched. A
+  global stretch alone fails a hand's shadow, a dark counter and faded
+  print; a neighbourhood *maximum* bleeds the lit side into the shadow.
+  Never thresholded (Tesseract binarises per region). Small text is
+  upscaled up to 2× towards 2000px.
+- **Two looks, merged conservatively** (`scanFuelReceipt()`): sparse text
+  first; only if date, litres or total isn't confirmed, single-block on the
+  same loaded engine. `mergeProposals()` takes litres/price/total as a
+  group from the reading that verified more, and a field the two read
+  differently is unsure.
+- **Rows are rebuilt from geometry** (`mergeSplitRows()`): Tesseract returns
+  "TOTAL LEI" and its right-aligned "233,32" as separate lines; fragments
+  side by side whose baselines meet (along their slope, so tilted photos
+  work) are one row.
+- **The fuel line's own amount** (`… L x 7,29 = 441,41`, or alone on the
+  next row) checks litres × price and is the fuel total — the receipt's
+  TOTAL may include a coffee. The tolerance is **from the printed precision**
+  (`arithmeticTolerance()`), not fixed: 0.10 lei let `25,000` L misread as
+  `25,006` through.
 - `receiptParse.test.ts` is the Romanian formats: comma decimals, the VAT
   line that isn't the total, month names, future/validity dates skipped,
   and the chains ("OMV PETROM MARKETING" is printed by both OMV and Petrom,
-  so it names neither). Quality on real crumpled receipts is the open
-  question — add a failing real receipt's OCR lines as a test case.
+  so it names neither). On a bench of 5 chain layouts × 7 damage kinds
+  (shadow, dim, noise, tilt, faded, far) rendered in Chromium it reads
+  170/175 fields right and none wrong; real crumpled receipts are still the
+  open question — add a failing one's OCR lines as a test case.
 - Service invoices (slice 2) are not built.
 
 ### Car Health (`src/lib/vehicleHealth.ts`, RL-046 — slice 4) and tyres (`src/lib/tyres.ts`)

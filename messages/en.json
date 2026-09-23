@@ -2384,7 +2384,8 @@
     "scanFailed": "Couldn't read this receipt. Type the figures in — the photo is already attached.",
     "scanPro": "Scan receipts instead of typing them — with Pro",
     "receiptAttached": "Attached: {name}",
-    "receiptRemove": "Remove"
+    "receiptRemove": "Remove",
+    "scanningAgain": "Taking a second look… {percent}%"
   },
   "health": {
     "title": "Car health",

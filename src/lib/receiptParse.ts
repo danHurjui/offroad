@@ -20,14 +20,24 @@
  * month names, and the chains people fill up at.
  */
 
+export interface Box {
+  x0: number
+  y0: number
+  x1: number
+  y1: number
+}
+
 export interface OcrWord {
   text: string
   /** 0–100, as Tesseract reports it. */
   confidence: number
+  bbox?: Box
 }
 
 export interface OcrLine {
   words: OcrWord[]
+  /** Where the line sits, tilt included: x0,y0 → x1,y1 along its foot. */
+  baseline?: Box
 }
 
 export type FieldState = 'read' | 'unsure' | 'missing'
@@ -52,8 +62,17 @@ export interface ReceiptProposal {
  */
 export const MIN_CONFIDENCE = 70
 
-/** How far litres × price may sit from the total: pumps round each. */
-const ARITHMETIC_TOLERANCE_RON = 0.1
+/**
+ * How far litres × price may sit from the amount charged. It is worked out
+ * from what the receipt printed, not fixed: litres and price are each off
+ * by up to half a unit in their last printed digit, and the pump rounds the
+ * amount to the ban. A fixed allowance was loose enough to let `25,000` L
+ * read as `25,006` through (0.04 lei out), so it is not one.
+ */
+export function arithmeticTolerance(litres: Read, price: Read): number {
+  const half = (decimals: number) => 0.5 * 10 ** -decimals
+  return half(2) + price.value * half(litres.decimals) + litres.value * half(price.decimals) + 1e-9
+}
 
 const LITRES_RANGE = { min: 0.5, max: 2000 }
 const PRICE_RANGE = { min: 1, max: 50 }
@@ -130,7 +149,7 @@ function confidenceOf(line: IndexedLine, start: number, end: number): number {
 function normalise(text: string): string {
   return text
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
 }
 
@@ -151,26 +170,63 @@ export function parseReceiptNumber(raw: string): number | null {
 
 const NUMBER = String.raw`\d[\dOo]*(?:[.,]\d[\dOo]*)*`
 
-type Read = { value: number; confidence: number }
+export type Read = {
+  value: number
+  confidence: number
+  /** Digits printed after the decimal separator. */
+  decimals: number
+}
+
+function decimalsOf(raw: string): number {
+  const m = /[.,](\d[\dOo]*)$/.exec(raw.trim())
+  return m ? m[1].length : 0
+}
+
+function reading(raw: string, value: number, confidence: number): Read {
+  return { value, confidence, decimals: decimalsOf(raw) }
+}
 
 function inRange(value: number, range: { min: number; max: number }): boolean {
   return value >= range.min && value <= range.max
 }
 
-/** Litres × price on one line: `32,45 L x 7,19`, `32.450 LITRI * 7.190 LEI/L`. */
-function readQuantityLine(lines: IndexedLine[]): { litres: Read; price: Read } | null {
+/**
+ * Litres × price on one line — `32,45 L x 7,19`, `32.450 LITRI * 7.190
+ * LEI/L` — and the amount the pump charged for them: after the price on
+ * the same row (`= 441,41 B`), or alone on the row below (`233,32 B`).
+ */
+function readQuantityLine(lines: IndexedLine[]): { litres: Read; price: Read; amount: Read | null } | null {
   const pattern = new RegExp(String.raw`(${NUMBER})\s*(?:L|LT|LTR|LITRI|LITRU)\b\.?\s*[X×*]\s*(${NUMBER})`, 'i')
-  for (const line of lines) {
-    const match = pattern.exec(normalise(line.text))
+  const lone = new RegExp(String.raw`^=?\s*(${NUMBER})(?:\s+[A-E])?$`)
+  for (const [index, line] of lines.entries()) {
+    const match = pattern.exec(line.text)
     if (!match) continue
     const litres = parseReceiptNumber(match[1])
     const price = parseReceiptNumber(match[2])
     if (litres === null || price === null) continue
     const litresAt = match.index
     const priceAt = match.index + match[0].lastIndexOf(match[2])
+
+    let amount: Read | null = null
+    const rest = match.index + match[0].length
+    const after = new RegExp(String.raw`^\s*(?:(?:LEI|RON)\s*\/\s*L(?:ITRU)?\b)?\s*=?\s*(${NUMBER})`).exec(line.text.slice(rest))
+    if (after) {
+      const at = rest + after[0].length - after[1].length
+      const value = parseReceiptNumber(after[1])
+      if (value !== null) amount = reading(after[1], value, confidenceOf(line, at, at + after[1].length))
+    } else if (lines[index + 1]) {
+      const next = lines[index + 1]
+      const m = lone.exec(next.text)
+      const value = m ? parseReceiptNumber(m[1]) : null
+      if (m && value !== null) {
+        const at = next.text.indexOf(m[1])
+        amount = reading(m[1], value, confidenceOf(next, at, at + m[1].length))
+      }
+    }
     return {
-      litres: { value: litres, confidence: confidenceOf(line, litresAt, litresAt + match[1].length) },
-      price: { value: price, confidence: confidenceOf(line, priceAt, priceAt + match[2].length) },
+      litres: reading(match[1], litres, confidenceOf(line, litresAt, litresAt + match[1].length)),
+      price: reading(match[2], price, confidenceOf(line, priceAt, priceAt + match[2].length)),
+      amount,
     }
   }
   return null
@@ -184,7 +240,7 @@ function readWithUnit(lines: IndexedLine[], unit: string): Read | null {
     if (!match) continue
     const value = parseReceiptNumber(match[1])
     if (value === null) continue
-    return { value, confidence: confidenceOf(line, match.index, match.index + match[1].length) }
+    return reading(match[1], value, confidenceOf(line, match.index, match.index + match[1].length))
   }
   return null
 }
@@ -201,7 +257,7 @@ function readLabelled(lines: IndexedLine[], label: RegExp): Read | null {
     const value = parseReceiptNumber(numberMatch[0])
     if (value === null) continue
     const at = after + numberMatch.index
-    return { value, confidence: confidenceOf(line, at, at + numberMatch[0].length) }
+    return reading(numberMatch[0], value, confidenceOf(line, at, at + numberMatch[0].length))
   }
   return null
 }
@@ -220,7 +276,7 @@ function readTotal(lines: IndexedLine[]): Read | null {
     if (!last || last.index === undefined) continue
     const value = parseReceiptNumber(last[0])
     if (value === null) continue
-    return { value, confidence: confidenceOf(line, last.index, last.index + last[0].length) }
+    return reading(last[0], value, confidenceOf(line, last.index, last.index + last[0].length))
   }
   return null
 }
@@ -297,9 +353,89 @@ function field<T>(read: { value: T; confidence: number } | null, valid: (v: T) =
   return { value: read.value, state: 'read' }
 }
 
+interface RowGeometry {
+  line: OcrLine
+  left: number
+  right: number
+  top: number
+  height: number
+  /** The foot of the row at a given x — follows the tilt of the photo. */
+  footAt: (x: number) => number
+}
+
+function geometry(line: OcrLine): RowGeometry | null {
+  const boxes = line.words.map((w) => w.bbox).filter((b): b is Box => !!b)
+  if (boxes.length === 0 || boxes.length !== line.words.length) return null
+  const heights = boxes.map((b) => b.y1 - b.y0).sort((a, b) => a - b)
+  const b = line.baseline
+  const footAt =
+    b && b.x1 !== b.x0
+      ? (x: number) => b.y0 + ((x - b.x0) * (b.y1 - b.y0)) / (b.x1 - b.x0)
+      : (() => {
+          const foot = Math.max(...boxes.map((box) => box.y1))
+          return () => foot
+        })()
+  return {
+    line,
+    left: Math.min(...boxes.map((box) => box.x0)),
+    right: Math.max(...boxes.map((box) => box.x1)),
+    top: Math.min(...boxes.map((box) => box.y0)),
+    height: heights[Math.floor(heights.length / 2)],
+    footAt,
+  }
+}
+
+/**
+ * Puts back together the rows Tesseract split. A receipt prints
+ * "TOTAL LEI" on the left and "233,32" far to the right, and the engine
+ * often returns them as two lines — or two blocks — which leaves a TOTAL
+ * with no amount and an amount with no label. Two fragments are one row
+ * when they sit side by side and the foot of one, carried along its own
+ * slope, lands on the foot of the other: that holds on a tilted photo,
+ * where comparing heights alone would join the wrong rows.
+ *
+ * Lines without word boxes (older callers, tests) are returned as they are.
+ */
+export function mergeSplitRows(lines: OcrLine[]): OcrLine[] {
+  const rows: RowGeometry[] = []
+  const untouched: OcrLine[] = []
+  for (const line of lines) {
+    const g = geometry(line)
+    if (!g) {
+      untouched.push(line)
+      continue
+    }
+    const partner = rows.find((row) => {
+      const apart = g.left >= row.right - 2 || g.right <= row.left + 2
+      if (!apart) return false
+      const x = g.left >= row.right ? g.left : g.right
+      const tolerance = 0.6 * Math.max(row.height, g.height)
+      return Math.abs(row.footAt(x) - g.footAt(x)) < tolerance
+    })
+    if (!partner) {
+      rows.push(g)
+      continue
+    }
+    const words = [...partner.line.words, ...line.words].sort((a, b) => (a.bbox?.x0 ?? 0) - (b.bbox?.x0 ?? 0))
+    // The wider fragment's slope is the better measure of the row's.
+    const wider = partner.right - partner.left >= g.right - g.left ? partner : g
+    const merged: RowGeometry = {
+      line: { words, baseline: wider.line.baseline },
+      left: Math.min(partner.left, g.left),
+      right: Math.max(partner.right, g.right),
+      top: Math.min(partner.top, g.top),
+      height: Math.max(partner.height, g.height),
+      footAt: wider.footAt,
+    }
+    rows[rows.indexOf(partner)] = merged
+  }
+  if (rows.length === 0) return lines
+  return [...rows.sort((a, b) => a.top - b.top).map((r) => r.line), ...untouched]
+}
+
 /** Reads a fuel receipt's lines into a proposal. `today` bounds the date. */
 export function parseFuelReceipt(ocrLines: OcrLine[], today: Date = new Date()): ReceiptProposal {
-  const lines = ocrLines.map(indexLine).filter((l) => l.text.trim() !== '')
+  const lines = mergeSplitRows(ocrLines).map(indexLine).filter((l) => l.text.trim() !== '')
 
   const quantity = readQuantityLine(lines)
   const litresRead =
@@ -318,17 +454,81 @@ export function parseFuelReceipt(ocrLines: OcrLine[], today: Date = new Date()):
     pricePerLitre: field(priceRead, (v) => inRange(v, PRICE_RANGE)),
     totalRon: field(readTotal(lines), (v) => inRange(v, TOTAL_RANGE)),
   }
+  // Checks run on what was read, before the confidence cut, so they use
+  // the printed precision; a doubtful value has already been emptied.
+  const agrees = (amountRon: number) =>
+    litresRead !== null &&
+    priceRead !== null &&
+    Math.abs(litresRead.value * priceRead.value - amountRon) <= arithmeticTolerance(litresRead, priceRead)
 
-  const { litres, pricePerLitre, totalRon } = proposal
-  if (litres.value !== null && pricePerLitre.value !== null && totalRon.value !== null) {
-    const expected = litres.value * pricePerLitre.value
-    if (Math.abs(expected - totalRon.value) > ARITHMETIC_TOLERANCE_RON) {
-      proposal.litres = unsure()
-      proposal.pricePerLitre = unsure()
-      proposal.totalRon = unsure()
+  // The fuel line's own amount checks litres × price first. When they
+  // agree it is also the better total for a *fuel* entry: the receipt's
+  // TOTAL includes the coffee.
+  const amount = field(quantity?.amount ?? null, (v) => inRange(v, TOTAL_RANGE))
+  const { litres, pricePerLitre } = proposal
+  if (amount.value !== null && litres.value !== null && pricePerLitre.value !== null) {
+    if (agrees(amount.value)) {
+      proposal.totalRon = { value: amount.value, state: 'read' }
+      return proposal
     }
+    proposal.litres = unsure()
+    proposal.pricePerLitre = unsure()
+    // Which of the three was misread is unknowable; the receipt's TOTAL,
+    // read on its own row, is only kept if it matches the line's amount.
+    if (proposal.totalRon.value !== null && Math.abs(proposal.totalRon.value - amount.value) > 0.005) proposal.totalRon = unsure()
+    return proposal
+  }
+
+  const { totalRon } = proposal
+  if (litres.value !== null && pricePerLitre.value !== null && totalRon.value !== null && !agrees(totalRon.value)) {
+    proposal.litres = unsure()
+    proposal.pricePerLitre = unsure()
+    proposal.totalRon = unsure()
   }
   return proposal
+}
+
+/**
+ * Whether a proposal has everything the fuel form needs from it, checked:
+ * the date, and litres and total (which only come out `read` once their
+ * arithmetic has agreed).
+ */
+export function isComplete(proposal: ReceiptProposal): boolean {
+  return proposal.date.state === 'read' && proposal.litres.state === 'read' && proposal.totalRon.state === 'read'
+}
+
+const MONEY_FIELDS = ['litres', 'pricePerLitre', 'totalRon'] as const
+
+/**
+ * Two readings of the same receipt (different page segmentation) combined
+ * without weakening either's checks:
+ * - litres, price and total travel **together**, from the reading that
+ *   verified more of them — taking litres from one and the total from the
+ *   other would pair figures no arithmetic ever checked against each other;
+ * - a field both readings read, differently, is unsure: one of them is
+ *   wrong and nothing says which.
+ */
+export function mergeProposals(a: ReceiptProposal, b: ReceiptProposal): ReceiptProposal {
+  const readCount = (p: ReceiptProposal) => MONEY_FIELDS.filter((f) => p[f].state === 'read').length
+  const money = readCount(b) > readCount(a) ? b : a
+  const merged: ReceiptProposal = {
+    date: pickOne(a.date, b.date),
+    station: pickOne(a.station, b.station),
+    litres: money.litres,
+    pricePerLitre: money.pricePerLitre,
+    totalRon: money.totalRon,
+  }
+  for (const f of MONEY_FIELDS) {
+    if (a[f].state === 'read' && b[f].state === 'read' && a[f].value !== b[f].value) merged[f] = unsure()
+  }
+  return merged
+}
+
+function pickOne<T>(a: ProposedField<T>, b: ProposedField<T>): ProposedField<T> {
+  if (a.state === 'read' && b.state === 'read') return a.value === b.value ? a : unsure()
+  if (a.state === 'read') return a
+  if (b.state === 'read') return b
+  return a.state === 'unsure' || b.state === 'unsure' ? unsure() : missing()
 }
 
 /** Whether the scan found anything worth proposing. */

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { compressImageIfNeeded } from '@/lib/compressImage'
-import { parseFuelReceipt, readAnything, type FieldState } from '@/lib/receiptParse'
+import { readAnything, type FieldState } from '@/lib/receiptParse'
+import type { ScanProgress } from '@/lib/ocr'
 import { tryFetch } from '@/lib/writeFeedback'
 import FormError from './FormError'
 import MoneyInput from './MoneyInput'
@@ -58,7 +59,7 @@ export default function FuelQuickAdd({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [moreOpen, setMoreOpen] = useState(false)
-  const [scanProgress, setScanProgress] = useState<number | null>(null)
+  const [scanProgress, setScanProgress] = useState<ScanProgress | null>(null)
   const [scanOutcome, setScanOutcome] = useState<'read' | 'failed' | null>(null)
   const [scanStates, setScanStates] = useState<Partial<Record<ScanField, FieldState>>>({})
 
@@ -66,10 +67,10 @@ export default function FuelQuickAdd({
     setReceipt(file)
     setScanOutcome(null)
     setScanStates({})
-    setScanProgress(0)
+    setScanProgress({ pass: 1, fraction: 0 })
     try {
-      const { readReceipt } = await import('@/lib/ocr')
-      const proposal = parseFuelReceipt(await readReceipt(file, setScanProgress))
+      const { scanFuelReceipt } = await import('@/lib/ocr')
+      const proposal = await scanFuelReceipt(file, setScanProgress)
       if (!readAnything(proposal)) throw new Error('nothing read')
       // What was read is written in; what was read badly is cleared, so an
       // earlier figure (a previous scan's, say) can't pass for this
@@ -147,7 +148,9 @@ export default function FuelQuickAdd({
       {canScan && (
         <div>
           <label className="btn-secondary inline-flex cursor-pointer items-center focus-within:ring-2 focus-within:ring-brand-500">
-            {scanProgress !== null ? t('scanning', { percent: Math.round(scanProgress * 100) }) : t('scan')}
+            {scanProgress === null
+              ? t('scan')
+              : t(scanProgress.pass === 1 ? 'scanning' : 'scanningAgain', { percent: Math.round(scanProgress.fraction * 100) })}
             <input
               type="file"
               accept="image/*"

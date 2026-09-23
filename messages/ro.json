@@ -2384,7 +2384,8 @@
     "scanFailed": "Bonul nu a putut fi citit. Scrie cifrele — fotografia este deja atașată.",
     "scanPro": "Scanează bonurile în loc să le scrii — cu Pro",
     "receiptAttached": "Atașat: {name}",
-    "receiptRemove": "Elimină"
+    "receiptRemove": "Elimină",
+    "scanningAgain": "Încă o citire, pentru verificare… {percent}%"
   },
   "health": {
     "title": "Starea mașinii",
