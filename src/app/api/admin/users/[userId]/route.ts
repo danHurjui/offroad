@@ -24,6 +24,7 @@ export async function GET(_req: NextRequest, { params }: { params: { userId: str
         proCompedAt: true,
         proCompedReason: true,
         proCompedById: true,
+        orgBetaAt: true,
         isAdmin: true,
         active: true,
         accountType: true,
@@ -48,10 +49,13 @@ export async function GET(_req: NextRequest, { params }: { params: { userId: str
 }
 
 /**
- * An admin may change exactly two things here:
+ * An admin may change exactly three things here:
  *
  * - **`active`** — the moderation lever.
  * - **`isProComped`** — complimentary Pro.
+ * - **`orgBeta`** — whether the account may create organisations (RL-038's
+ *   closed beta, until the Business tier exists). Switching it off stops
+ *   new organisations and leaves the existing ones alone.
  *
  * Two things remain deliberately *not* editable:
  *
@@ -84,7 +88,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
 
   const wantsActive = body.active !== undefined
   const wantsComp = body.isProComped !== undefined
-  if (!wantsActive && !wantsComp) {
+  const wantsOrgBeta = body.orgBeta !== undefined
+  if (!wantsActive && !wantsComp && !wantsOrgBeta) {
     return await apiError('adminFieldsLimited', 400)
   }
 
@@ -121,13 +126,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { userId: st
     }
   }
 
+  if (wantsOrgBeta) {
+    data.orgBetaAt = body.orgBeta ? new Date() : null
+  }
+
   try {
     const updated = await prisma.user.update({
       where: { id: target.id },
       data,
       select: {
         id: true, displayName: true, email: true, active: true,
-        isPro: true, isProComped: true, proCompedAt: true, proCompedReason: true,
+        isPro: true, isProComped: true, proCompedAt: true, proCompedReason: true, orgBetaAt: true,
       },
     })
     return NextResponse.json(updated)

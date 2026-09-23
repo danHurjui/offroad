@@ -44,6 +44,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
   const kind = proKind(profile)
   const [saved, setSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
   const [portalError, setPortalError] = useState<string | null>(null)
   const [notifyFollowedEmail, setNotifyFollowedEmail] = useState(profile.notifyFollowedEmail)
@@ -98,7 +99,23 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
     if (!confirm(t('confirmDelete'))) return
     if (!confirm(t('confirmDeleteAgain'))) return
     setDeleting(true)
-    await fetch('/api/me/account', { method: 'DELETE' })
+    setDeleteError(null)
+    // Signing out only once the server says the account is gone: a refusal
+    // (the last owner of an organisation others are in) must not look like
+    // a deletion that happened.
+    try {
+      const res = await fetch('/api/me/account', { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setDeleteError(data.error ?? tc('networkError'))
+        setDeleting(false)
+        return
+      }
+    } catch {
+      setDeleteError(tc('networkError'))
+      setDeleting(false)
+      return
+    }
     await signOut({ callbackUrl: '/' })
   }
 
@@ -232,6 +249,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
         <button type="button" className="btn-danger" onClick={onDeleteAccount} disabled={deleting}>
           {deleting ? tc('deleting') : t('deleteAccount')}
         </button>
+        {deleteError && <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">{deleteError}</p>}
       </div>
     </div>
   )

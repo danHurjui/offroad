@@ -91,6 +91,10 @@ export const RATE_LIMITS = {
   ticketCreate: { limit: 10, windowSeconds: 60 * 60 },
   ticketComment: { limit: 30, windowSeconds: 60 * 60 },
   partsRequest: { limit: 10, windowSeconds: 60 * 60 },
+  /** RL-038: creating an organisation, keyed on the user id. */
+  orgCreate: { limit: 5, windowSeconds: 60 * 60 },
+  /** Organisation invitations and resends — each one is an email to an address the owner chose. */
+  orgInvite: { limit: 20, windowSeconds: 60 * 60 },
   /** Donation checkout creates a Stripe session and a DB row per call. */
   donationCheckout: { limit: 10, windowSeconds: 60 * 60 },
   /**

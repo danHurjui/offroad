@@ -19,6 +19,7 @@ export default async function SettingsPage() {
   const ti = await getTranslations('install')
   const tv = await getTranslations('verifyEmail')
   const tver = await getTranslations('version')
+  const to = await getTranslations('organizations')
   const session = await requireSessionOrRedirect()
   const user = await prisma.user.findUniqueOrThrow({
     where: { id: session.user.id },
@@ -38,8 +39,13 @@ export default async function SettingsPage() {
       stripeCustomerId: true,
       notifyFollowedEmail: true,
       notifyFollowedPush: true,
+      orgBetaAt: true,
+      _count: { select: { organizationMemberships: true } },
     },
   })
+  // RL-038 closed beta: only accounts that can create one, or already
+  // belong to one, are shown the way in.
+  const showOrganizations = user.orgBetaAt !== null || user._count.organizationMemberships > 0
 
   const verified = isEmailVerified(user)
   const enforced = isVerificationEnforced()
@@ -113,6 +119,14 @@ export default async function SettingsPage() {
         <h2 className="mb-1 text-sm font-semibold text-ink">{ti('title')}</h2>
         <InstallAppButton />
       </section>
+
+      {showOrganizations && (
+        <section className="card mb-6 p-5">
+          <h2 className="mb-1 text-sm font-semibold text-ink">{to('title')}</h2>
+          <p className="mb-3 text-xs text-ink-muted">{to('settingsHelp')}</p>
+          <Link href="/dashboard/organizations" className="btn-secondary">{to('open')}</Link>
+        </section>
+      )}
 
       <SettingsForm profile={user} />
 

@@ -29,6 +29,7 @@ export default function robots(): MetadataRoute.Robots {
         '/dashboard/',
         '/api/',
         '/collaborate/',
+        '/organizations/',
         '/login',
         '/register',
         // The other two auth screens. /reset-password carries a token in

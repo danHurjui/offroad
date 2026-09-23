@@ -17,6 +17,7 @@ jest.mock('@/lib/prisma', () => ({
     follow: { findMany: jest.fn() },
     donation: { findMany: jest.fn() },
     oAuthAccount: { findMany: jest.fn() },
+    organizationMember: { findMany: jest.fn() },
   },
 }))
 jest.mock('@/lib/storage', () => ({ deleteUpload: jest.fn() }))
@@ -191,6 +192,7 @@ describe('collectUserData', () => {
     ;(prisma.follow.findMany as jest.Mock).mockResolvedValue([])
     ;(prisma.donation.findMany as jest.Mock).mockResolvedValue(overrides.donations ?? [])
     ;(prisma.oAuthAccount.findMany as jest.Mock).mockResolvedValue([])
+    ;(prisma.organizationMember.findMany as jest.Mock).mockResolvedValue([])
   }
 
   it('includes the account and every section', async () => {
@@ -203,6 +205,7 @@ describe('collectUserData', () => {
     expect(data).toHaveProperty('following')
     expect(data).toHaveProperty('donations')
     expect(data).toHaveProperty('linkedLogins')
+    expect(data).toHaveProperty('organizations')
     expect(data.exportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
   })
 
@@ -295,6 +298,18 @@ describe('collectUserData', () => {
     expect(vehicle.financeMonthlyRon).toBe(1200)
     // RL-050: accidents.
     expect(vehicle.accidents[0].repairCostRon).toBe(2400.5)
+  })
+
+  /**
+   * RL-038: which organisations the account is in and its role there —
+   * but not the other members, who are other people.
+   */
+  it('lists the account’s organisations without their other members', async () => {
+    stubExport()
+    await collectUserData('u1')
+    const args = (prisma.organizationMember.findMany as jest.Mock).mock.calls[0][0]
+    expect(args.where).toEqual({ userId: 'u1' })
+    expect(args.select.organization.select).not.toHaveProperty('members')
   })
 
   it('handles a vehicle with no found state', async () => {

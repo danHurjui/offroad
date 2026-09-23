@@ -281,6 +281,27 @@ export async function collaboratorInviteEmail(
   }
 }
 
+/** RL-038: an invitation to join an organisation with a role. */
+export async function organizationInviteEmail(
+  locale: Locale,
+  input: { inviterName: string; organizationName: string; role: string; acceptUrl: string }
+): Promise<EmailContent> {
+  const t = await strings(locale)
+  const roles = await translator(locale, 'organizations')
+  return {
+    subject: t('organizationInvite.subject', { inviter: input.inviterName, organization: input.organizationName }),
+    html: layout([
+      `<p>${t('organizationInvite.body', {
+        inviter: esc(input.inviterName),
+        organization: strong(input.organizationName),
+        role: esc(roles(`role.${input.role}`)),
+      })}</p>`,
+      `<p><a href="${input.acceptUrl}">${t('organizationInvite.cta')}</a></p>`,
+      `<p>${t('organizationInvite.expiry')}</p>`,
+    ]),
+  }
+}
+
 export async function collaboratorTaskAddedEmail(
   locale: Locale,
   input: { collaboratorName: string; taskName: string; vehicleName: string; vehicleUrl: string }

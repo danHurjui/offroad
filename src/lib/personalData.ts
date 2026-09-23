@@ -133,7 +133,7 @@ export async function collectUserData(userId: string) {
     },
   })
 
-  const [vehicles, tickets, ticketVotes, ticketComments, partsRequests, partsComments, follows, donations, oauthAccounts] =
+  const [vehicles, tickets, ticketVotes, ticketComments, partsRequests, partsComments, follows, donations, oauthAccounts, organizations] =
     await Promise.all([
       fetchVehicles(userId),
       prisma.ticket.findMany({ where: { authorId: userId }, orderBy: { createdAt: 'asc' } }),
@@ -149,6 +149,13 @@ export async function collectUserData(userId: string) {
       }),
       // Which providers are linked, not the tokens.
       prisma.oAuthAccount.findMany({ where: { userId }, select: { provider: true } }),
+      // RL-038: the organisations this account belongs to and its role in
+      // each. Other members are other people's data and stay out.
+      prisma.organizationMember.findMany({
+        where: { userId },
+        select: { role: true, createdAt: true, organization: { select: { name: true, cui: true, billingAddress: true } } },
+        orderBy: { createdAt: 'asc' },
+      }),
     ])
 
   return {
@@ -168,6 +175,7 @@ export async function collectUserData(userId: string) {
     following: follows,
     donations: donations.map((d) => ({ ...d, amountRon: d.amountBani / 100 })),
     linkedLogins: oauthAccounts,
+    organizations,
   }
 }
 
