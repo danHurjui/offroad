@@ -806,6 +806,35 @@ Reading is free (collaborators too, without costs under
 `hideCostsFromCollaborators`); the export is the owner's and Pro. No plate
 or VIN is printed — that choice belongs to the passport (RL-049).
 
+### Vehicle Passport (`src/lib/passport.ts`, RL-049 — slice 7)
+The first thing RigLog produces that can move somebody else's money, so its
+honesty rules are the point and each is tested (`passport.test.ts`):
+- **It says what it is in its heading** (`passport.what`: the owner's own
+  records, not a history report, registry check or inspection), on the
+  page and directly under the PDF title — never only in a footer.
+- **Every absence is an absence of records** — each `absence.*` string
+  names RigLog, and no catalogue string may claim a clean history ("no
+  accidents", "verified", "certified"…). Accidents are not tracked yet, so
+  `absence.accidentsNotTracked` is always present; when the accidents slice
+  lands, replace it with real rows, still phrased as records.
+- **Gaps of a year or more are listed** (`recordGaps()`), including before
+  the first and after the last entry — an empty history is one long gap.
+- **Each job shows when it was entered and last changed** beside when the
+  work happened (`ServiceRow.recordedAt`/`changedAt`); the rule is printed.
+- Jobs come through `loadServiceBook()`, so passport and service book agree.
+
+Sharing is a `PassportLink` token (32 random bytes) at `/passport/<token>`:
+session-free, `noindex`, `no-referrer`, disallowed in robots. **One live
+link per vehicle** — creating one withdraws the rest in the same
+transaction. Withdrawn and unknown tokens render the same "not available"
+page. Plate and VIN are **off unless chosen per link** (RL-050); costs can
+be switched off. Photos appear only for a vehicle that is already public,
+through RL-018's existing uploads carve-out — **a passport link must never
+widen `/api/uploads`**. Creating a link and the PDF (a dated snapshot) are
+owner + Pro; **withdrawing needs no Pro**, so a lapsed seller can still take
+it down; existing links keep working if Pro lapses. The data export lists
+links without their tokens.
+
 Phase 5 follows the adapted plan on #49 (one additive migration per slice,
 each slice deployable alone): identity → odometer → fuel log → Car Health
 → TCO → service book → passport → accidents; OCR waits on a provider

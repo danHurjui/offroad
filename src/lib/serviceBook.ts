@@ -38,6 +38,8 @@ export interface ServiceTaskLike extends CostTaskLike {
   workshopName: string | null
   receiptUrl: string | null
   createdAt: Date
+  /** Last change to the job, if the caller has it. */
+  updatedAt?: Date
   photoCount: number
   /** The km written with this job, if any (OdometerReading source TASK). */
   km: number | null
@@ -67,6 +69,10 @@ export interface ServiceRow {
   cost: number
   receiptUrl: string | null
   photoCount: number
+  /** When the entry was typed in — shown beside the work date by the passport. */
+  recordedAt: Date
+  /** When it was last changed, if that was more than a day after it was recorded. */
+  changedAt: Date | null
   flags: RowFlag[]
 }
 
@@ -124,6 +130,8 @@ export function serviceBook(
       cost: taskTotalCost(task),
       receiptUrl: task.receiptUrl,
       photoCount: task.photoCount,
+      recordedAt: task.createdAt,
+      changedAt: task.updatedAt && task.updatedAt.getTime() - task.createdAt.getTime() > DAY_MS ? task.updatedAt : null,
       flags,
     })
     if (task.km !== null) lastKm = Math.max(lastKm ?? 0, task.km)

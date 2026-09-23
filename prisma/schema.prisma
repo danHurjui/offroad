@@ -411,6 +411,7 @@ model Vehicle {
   fuelEntries   FuelEntry[]
   tyreSets      TyreSet[]
   expenses      VehicleExpense[]
+  passportLinks PassportLink[]
 
   @@unique([ownerId, slug])
   @@index([ownerId])
@@ -1011,4 +1012,25 @@ model VehicleExpense {
 
   @@index([vehicleId, date])
   @@index([createdByUserId])
+}
+
+/// RL-049 (phase 5 slice 7): a share link to the vehicle passport — the
+/// owner's own records, readable without an account at /passport/<token>.
+/// Revoking sets revokedAt; the page then answers "withdrawn", never the
+/// data. What the plate and VIN are, and whether costs show, is chosen per
+/// link: both are identifying and off by default (RL-050).
+model PassportLink {
+  id        String    @id @default(cuid())
+  vehicleId String
+  /// 32 random bytes, base64url. The only thing that grants access.
+  token     String    @unique
+  showPlate Boolean   @default(false)
+  showVin   Boolean   @default(false)
+  showCosts Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
 }

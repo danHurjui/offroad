@@ -36,6 +36,9 @@ export default function robots(): MetadataRoute.Robots {
         '/forgot-password',
         '/reset-password',
         '/donate/thanks',
+        // RL-049: a shared passport's URL is its only credential. The page
+        // is noindex too; this keeps crawlers from fetching one at all.
+        '/passport/',
         // The compose screens. Both need a session, and posting a parts
         // request needs Pro — a crawler indexing either finds a login
         // wall, which Search Console reports as a soft 404.
