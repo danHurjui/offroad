@@ -17,6 +17,7 @@ jest.mock('@/lib/rateLimit', () => {
 jest.mock('@/lib/personalData', () => ({ collectStorageKeys: jest.fn(), deleteStoredFiles: jest.fn() }))
 
 import fs from 'fs'
+import { Prisma } from '@prisma/client'
 import path from 'path'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/prisma'
@@ -216,13 +217,52 @@ describe('/api/organizations/[orgId]', () => {
     expect(org.delete).not.toHaveBeenCalled()
   })
 
-  it('is not deleted while it still has vehicles', async () => {
-    callerIs('OWNER')
-    vehicle.count.mockResolvedValue(2)
-    const res = await deleteOrg(req(), orgParams)
-    expect(res.status).toBe(409)
-    expect((await res.json()).code).toBe('orgHasVehicles')
-    expect(org.delete).not.toHaveBeenCalled()
+  describe('with vehicles', () => {
+    const VEHICLES = [{ id: 'v1', ownerId: 'alice' }, { id: 'v2', ownerId: 'bob' }]
+    const del = (body?: unknown) => deleteOrg(req(body), orgParams)
+
+    beforeEach(() => {
+      callerIs('OWNER')
+      vehicle.findMany.mockResolvedValue(VEHICLES)
+      ;(collectStorageKeys as jest.Mock).mockImplementation((uid: string, vid: string) => Promise.resolve([`${uid}/${vid}/a.jpg`]))
+    })
+
+    it('needs the name typed, exactly', async () => {
+      for (const body of [undefined, {}, { confirmName: 'transport srl' }, { confirmName: 'Other' }]) {
+        const res = await del(body)
+        expect(res.status).toBe(400)
+        expect((await res.json()).code).toBe('orgDeleteConfirm')
+      }
+      expect(org.delete).not.toHaveBeenCalled()
+      expect(vehicle.deleteMany).not.toHaveBeenCalled()
+    })
+
+    it('then deletes its vehicles and their files, gathered first', async () => {
+      const res = await del({ confirmName: ' Transport SRL ' })
+      expect(res.status).toBe(200)
+      expect(await res.json()).toMatchObject({ vehiclesDeleted: 2, filesDeleted: 2 })
+      expect(collectStorageKeys).toHaveBeenCalledWith('alice', 'v1')
+      expect(collectStorageKeys).toHaveBeenCalledWith('bob', 'v2')
+      expect(vehicle.deleteMany).toHaveBeenCalledWith({ where: { id: { in: ['v1', 'v2'] }, organizationId: 'o1' } })
+      expect(org.delete).toHaveBeenCalledWith({ where: { id: 'o1' } })
+      expect(deleteStoredFiles).toHaveBeenCalledWith(['alice/v1/a.jpg', 'bob/v2/a.jpg'])
+    })
+
+    it('a vehicle moved in meanwhile stops it, and no files are deleted', async () => {
+      org.delete.mockImplementationOnce(() => {
+        throw new Prisma.PrismaClientKnownRequestError('fk', { code: 'P2003', clientVersion: 'x' })
+      })
+      const res = await del({ confirmName: 'Transport SRL' })
+      expect(res.status).toBe(409)
+      expect((await res.json()).code).toBe('orgHasVehicles')
+      expect(deleteStoredFiles).not.toHaveBeenCalled()
+    })
+
+    it('a FLEET_MANAGER cannot, name or not', async () => {
+      callerIs('FLEET_MANAGER')
+      expect((await del({ confirmName: 'Transport SRL' })).status).toBe(403)
+      expect(vehicle.deleteMany).not.toHaveBeenCalled()
+    })
   })
 
   it('an owner edits and deletes it', async () => {

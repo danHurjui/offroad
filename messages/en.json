@@ -2110,10 +2110,12 @@
     "orgAlreadyMember": "That person is already a member of this organisation.",
     "orgAlreadyInvited": "There is already a pending invitation for that address. Resend it instead.",
     "orgInviteLimit": "This organisation has {limit} pending invitations. Withdraw some before sending more.",
-    "orgHasVehicles": "This organisation still has {count, plural, one {# vehicle} other {# vehicles}}. Deleting an organisation with vehicles isn’t available yet.",
+    "orgHasVehicles": "A vehicle was moved into this organisation while it was being deleted. Nothing was deleted; try again.",
     "companyVehicleNotPublic": "A company vehicle can’t be made public.",
     "vehicleAlreadyCompany": "This vehicle already belongs to an organisation.",
-    "orgMoveNotAllowed": "You can only move a vehicle into an organisation where you are an owner or fleet manager."
+    "orgMoveNotAllowed": "You can only move a vehicle into an organisation where you are an owner or fleet manager.",
+    "vehicleNotCompany": "This vehicle doesn’t belong to an organisation.",
+    "orgDeleteConfirm": "Type the organisation’s name exactly to delete it with its {count, plural, one {# vehicle} other {# vehicles}}."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2796,7 +2798,7 @@
     "removed": "{name} was removed.",
     "removeFailed": "Could not remove the member.",
     "deleteTitle": "Delete organisation",
-    "deleteHelp": "Deletes the organisation and every membership in it. People’s own accounts and personal vehicles are not touched. An organisation that still has vehicles can’t be deleted yet.",
+    "deleteHelp": "Deletes the organisation and every membership in it. People’s own accounts and personal vehicles are not touched.",
     "delete": "Delete organisation",
     "confirmDelete": "Delete {name} and every membership in it? This cannot be undone.",
     "deleted": "{name} was deleted.",
@@ -2838,17 +2840,28 @@
       "failed": "Could not accept the invitation."
     },
     "vehiclesTitle": "Vehicles",
-    "vehiclesHelp": "Move a vehicle in from its settings page. Everyone here can see these.",
+    "vehiclesHelp": "Move a vehicle in, or out to your own garage, from its settings page. Everyone here can see these.",
     "noVehicles": "No vehicles yet. The owner of a personal vehicle can move it in from the vehicle’s settings.",
     "move": {
       "title": "Move to an organisation",
-      "help": "The vehicle becomes the company’s: its owners and fleet managers manage it, its mechanics and drivers see it and log their work. You keep access through your role there. Moving it back out isn’t available yet.",
+      "help": "The vehicle becomes the company’s: its owners and fleet managers manage it, its mechanics and drivers see it and log their work. You keep access through your role there. An owner or fleet manager can move it back out to their own garage.",
       "unpublishes": "This vehicle is public. A company vehicle can’t be, so moving it makes it private.",
       "organization": "Organisation",
       "submit": "Move vehicle",
       "moving": "Moving…",
-      "confirm": "Move this vehicle to {name}? Who can see it will be decided by your roles there, and it can’t be moved back yet.",
+      "confirm": "Move this vehicle to {name}? Who can see it will be decided by the roles there.",
       "moved": "The vehicle now belongs to {name}.",
+      "failed": "Could not move the vehicle."
+    },
+    "deleteVehiclesWarning": "This also deletes its {count, plural, one {# vehicle} other {# vehicles}} with every job, photo, document and file. To keep one, move it to your garage from its settings first.",
+    "deleteTypeName": "Type “{name}” to confirm",
+    "moveOut": {
+      "title": "Move to my garage",
+      "help": "Takes this vehicle out of {name} and makes it one of your personal vehicles. Nobody in the organisation will see it any more, apart from collaborators you invited to it directly.",
+      "submit": "Move to my garage",
+      "moving": "Moving…",
+      "confirm": "Take this vehicle out of {name} and into your own garage? Its members lose access to it.",
+      "moved": "The vehicle is now in your garage.",
       "failed": "Could not move the vehicle."
     }
   }

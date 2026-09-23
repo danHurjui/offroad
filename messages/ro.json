@@ -2110,10 +2110,12 @@
     "orgAlreadyMember": "Această persoană este deja membră a organizației.",
     "orgAlreadyInvited": "Există deja o invitație în așteptare pentru această adresă. Retrimite-o în schimb.",
     "orgInviteLimit": "Această organizație are {limit} invitații în așteptare. Retrage câteva înainte de a trimite altele.",
-    "orgHasVehicles": "Această organizație mai are {count, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}. Ștergerea unei organizații cu vehicule nu este încă disponibilă.",
+    "orgHasVehicles": "Un vehicul a fost mutat în organizație în timp ce era ștearsă. Nu s-a șters nimic; încearcă din nou.",
     "companyVehicleNotPublic": "Un vehicul al firmei nu poate fi făcut public.",
     "vehicleAlreadyCompany": "Acest vehicul aparține deja unei organizații.",
-    "orgMoveNotAllowed": "Poți muta un vehicul doar într-o organizație în care ești proprietar sau manager de flotă."
+    "orgMoveNotAllowed": "Poți muta un vehicul doar într-o organizație în care ești proprietar sau manager de flotă.",
+    "vehicleNotCompany": "Acest vehicul nu aparține unei organizații.",
+    "orgDeleteConfirm": "Scrie exact numele organizației ca să o ștergi împreună cu {count, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2796,7 +2798,7 @@
     "removed": "{name} a fost eliminat.",
     "removeFailed": "Membrul nu a putut fi eliminat.",
     "deleteTitle": "Șterge organizația",
-    "deleteHelp": "Șterge organizația și toate calitățile de membru din ea. Conturile și vehiculele personale ale oamenilor nu sunt atinse. O organizație care mai are vehicule nu poate fi ștearsă încă.",
+    "deleteHelp": "Șterge organizația și toate calitățile de membru din ea. Conturile și vehiculele personale ale oamenilor nu sunt atinse.",
     "delete": "Șterge organizația",
     "confirmDelete": "Ștergi {name} și toate calitățile de membru din ea? Acțiunea nu poate fi anulată.",
     "deleted": "{name} a fost ștearsă.",
@@ -2838,17 +2840,28 @@
       "failed": "Invitația nu a putut fi acceptată."
     },
     "vehiclesTitle": "Vehicule",
-    "vehiclesHelp": "Mută un vehicul aici din pagina lui de setări. Toți cei de aici le pot vedea.",
+    "vehiclesHelp": "Mută un vehicul aici, sau în garajul tău, din pagina lui de setări. Toți cei de aici le pot vedea.",
     "noVehicles": "Niciun vehicul încă. Proprietarul unui vehicul personal îl poate muta aici din setările vehiculului.",
     "move": {
       "title": "Mută într-o organizație",
-      "help": "Vehiculul devine al firmei: proprietarii și managerii de flotă îl gestionează, mecanicii și șoferii îl văd și își înregistrează munca. Păstrezi accesul prin rolul tău de acolo. Mutarea înapoi nu este încă disponibilă.",
+      "help": "Vehiculul devine al firmei: proprietarii și managerii de flotă îl gestionează, mecanicii și șoferii îl văd și își înregistrează munca. Păstrezi accesul prin rolul tău de acolo. Un proprietar sau manager de flotă îl poate muta înapoi în garajul propriu.",
       "unpublishes": "Acest vehicul este public. Un vehicul al firmei nu poate fi, așa că mutarea îl face privat.",
       "organization": "Organizație",
       "submit": "Mută vehiculul",
       "moving": "Se mută…",
-      "confirm": "Muți acest vehicul în {name}? Cine îl poate vedea va fi decis de rolurile de acolo, iar mutarea înapoi nu este încă posibilă.",
+      "confirm": "Muți acest vehicul în {name}? Cine îl poate vedea va fi decis de rolurile de acolo.",
       "moved": "Vehiculul aparține acum organizației {name}.",
+      "failed": "Vehiculul nu a putut fi mutat."
+    },
+    "deleteVehiclesWarning": "Se șterg și {count, plural, one {# vehicul} few {# vehicule} other {# de vehicule}} ale ei, cu toate lucrările, fotografiile, documentele și fișierele. Ca să păstrezi unul, mută-l mai întâi în garajul tău din setările lui.",
+    "deleteTypeName": "Scrie „{name}” ca să confirmi",
+    "moveOut": {
+      "title": "Mută în garajul meu",
+      "help": "Scoate acest vehicul din {name} și îl face unul dintre vehiculele tale personale. Nimeni din organizație nu îl va mai vedea, în afară de colaboratorii invitați direct la el.",
+      "submit": "Mută în garajul meu",
+      "moving": "Se mută…",
+      "confirm": "Scoți acest vehicul din {name} și îl muți în garajul tău? Membrii ei nu îl vor mai putea accesa.",
+      "moved": "Vehiculul este acum în garajul tău.",
       "failed": "Vehiculul nu a putut fi mutat."
     }
   }

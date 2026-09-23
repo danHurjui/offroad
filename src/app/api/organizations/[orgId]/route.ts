@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
+import { collectStorageKeys, deleteStoredFiles } from '@/lib/personalData'
 import { apiError, apiErrorWith } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
@@ -63,12 +65,20 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 /**
- * Deletes the organisation and every membership in it. Owners only.
- * Refused while it still has vehicles (the foreign key is Restrict too):
- * what happens to a company's vehicles and their files is the next
- * slice's decision, not an accident of this one.
+ * Deletes the organisation, every membership in it and — RL-038 slice 4 —
+ * its vehicles with all their records and files. Owners only.
+ *
+ * With vehicles, the body must carry `confirmName` equal to the
+ * organisation's name: a request that deletes other people's working
+ * history needs more than a click. Anyone wanting to keep a vehicle moves
+ * it out first (DELETE /api/vehicles/[id]/organization).
+ *
+ * Files are gathered before the delete (pitfall #14) and removed after it.
+ * The vehicle delete is by the ids gathered, so a vehicle moved in
+ * meanwhile makes the organisation delete fail on its Restrict key (409)
+ * rather than go without its files being collected.
  */
-export async function DELETE(_req: NextRequest, { params }: Params) {
+export async function DELETE(req: NextRequest, { params }: Params) {
   const auth = await requireSession()
   if (!auth.ok) return auth.error
   const { session } = auth
@@ -76,13 +86,27 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   if (!loaded.ok) return loaded.error
   if (!canManageOrganization(loaded.role)) return await apiError('orgOwnerOnly', 403)
 
-  const vehicles = await prisma.vehicle.count({ where: { organizationId: params.orgId } })
-  if (vehicles > 0) return await apiErrorWith('orgHasVehicles', { count: vehicles }, 409)
+  const vehicles = await prisma.vehicle.findMany({ where: { organizationId: params.orgId }, select: { id: true, ownerId: true } })
+  if (vehicles.length > 0) {
+    const parsed = await readJsonBody(req)
+    const confirmName = parsed.ok && typeof parsed.body.confirmName === 'string' ? parsed.body.confirmName.trim() : ''
+    if (confirmName !== loaded.membership.organization.name.trim()) {
+      return await apiErrorWith('orgDeleteConfirm', { count: vehicles.length }, 400)
+    }
+  }
 
   try {
-    await prisma.organization.delete({ where: { id: params.orgId } })
-    return NextResponse.json({ ok: true })
-  } catch {
+    const keys = (await Promise.all(vehicles.map((v) => collectStorageKeys(v.ownerId, v.id)))).flat()
+    await prisma.$transaction([
+      prisma.vehicle.deleteMany({ where: { id: { in: vehicles.map((v) => v.id) }, organizationId: params.orgId } }),
+      prisma.organization.delete({ where: { id: params.orgId } }),
+    ])
+    await deleteStoredFiles(keys)
+    return NextResponse.json({ ok: true, vehiclesDeleted: vehicles.length, filesDeleted: keys.length })
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2003') {
+      return await apiErrorWith('orgHasVehicles', { count: vehicles.length + 1 }, 409)
+    }
     return await apiError('internalError', 500)
   }
 }

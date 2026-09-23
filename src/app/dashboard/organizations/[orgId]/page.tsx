@@ -116,7 +116,7 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
         <section className="card mt-8 p-5">
           <h2 className="mb-1 text-sm font-semibold text-ink">{t('deleteTitle')}</h2>
           <p className="mb-3 text-xs text-ink-muted">{t('deleteHelp')}</p>
-          <OrganizationDelete organizationId={org.id} name={org.name} />
+          <OrganizationDelete organizationId={org.id} name={org.name} vehicleCount={vehicles.length} />
         </section>
       )}
     </div>
