@@ -350,7 +350,8 @@
     "menu": "Meniu",
     "closeMenu": "Închide meniul",
     "openMenu": "Deschide meniul",
-    "demo": "Demo"
+    "demo": "Demo",
+    "business": "Firmă"
   },
   "footer": {
     "tagline": "Jurnal de build, de restaurare și de reparații.",
@@ -2127,7 +2128,10 @@
     "assignmentAlreadyEnded": "Această atribuire s-a încheiat deja.",
     "handoverStageInvalid": "Spune dacă fotografia este de la preluarea vehiculului sau de la predarea lui.",
     "handoverPhotoLimit": "Fiecare capăt al unei predări poate avea cel mult {limit} fotografii.",
-    "handoverStartRecorded": "Începutul acestei predări este deja înregistrat sau atribuirea s-a încheiat."
+    "handoverStartRecorded": "Începutul acestei predări este deja înregistrat sau atribuirea s-a încheiat.",
+    "reportPeriodInvalid": "Perioada raportului nu e validă. Alege o zi de început și una de sfârșit, începutul primul.",
+    "reportPeriodTooLong": "Un raport acoperă cel mult un an. Împarte perioada în două.",
+    "reportFailed": "Raportul nu a putut fi creat. Încearcă din nou."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2210,7 +2214,17 @@
     "reportedVersion": "Versiunea raportată de browserul celui care a semnalat",
     "orgBetaOn": "Permite organizații",
     "orgBetaOff": "Oprește organizațiile noi",
-    "orgBetaBadge": "Beta organizații"
+    "orgBetaBadge": "Beta organizații",
+    "organizations": "Organizații",
+    "organizationsIntro": "Toate organizațiile din beta închisă: cine le deține și cât de mari sunt. Doar citire — a fi admin nu dă acces la vehiculele sau înregistrările unei firme.",
+    "searchOrganizations": "Caută după nume sau CUI",
+    "noOrganizations": "Nicio organizație încă.",
+    "orgCreated": "creată pe {date}",
+    "memberCount": "{count, plural, one {# membru} few {# membri} other {# de membri}}",
+    "orgBetaAccounts": "Conturi cu beta pentru organizații",
+    "orgBetaAccountsHelp": "Pot crea o organizație. Se activează sau dezactivează din pagina fiecărui cont. Adminii pot crea oricând una.",
+    "orgBetaNone": "Niciun cont nu o are activată încă.",
+    "statOrganizations": "Organizații"
   },
   "verifyEmail": {
     "bannerTitle": "Confirmă-ți adresa de e-mail",
@@ -3007,5 +3021,84 @@
     "notesHeadingNoNumber": "Din factură:",
     "labour": "manoperă",
     "part": "piesă"
+  },
+  "fleetReport": {
+    "open": "Rapoarte pentru contabil",
+    "title": "Rapoarte flotă",
+    "intro": "Fișierele pe care le cere un contabil, pentru o perioadă: fiecare lucrare și fiecare cost într-un tabel și un rezumat PDF cu ce a cheltuit flota și ce documente au expirat sau au fost reînnoite.",
+    "from": "De la",
+    "to": "Până la (inclusiv)",
+    "limit": "Cel mult {days} de zile odată.",
+    "error": {
+      "reportPeriodInvalid": "Alege o zi de început cel târziu în ziua de sfârșit.",
+      "reportPeriodTooLong": "Un raport acoperă cel mult {days} de zile. Împarte perioada în două."
+    },
+    "download": "Descarcă",
+    "files": {
+      "summary": "Rezumat (PDF)",
+      "summaryHelp": "Cheltuieli pe vehicul, cu cine l-a condus, și pe categorie; documentele expirate sau reînnoite.",
+      "jobs": "Lucrări (CSV)",
+      "jobsHelp": "Fiecare lucrare din perioadă: vehicul, număr de înmatriculare, categorie, piese, manoperă, service și cine a înregistrat-o.",
+      "costs": "Istoric costuri (CSV)",
+      "costsHelp": "Fiecare cost — lucrări, carburant, documente, anvelope, cheltuieli, finanțare — cu șoferul alocat în ziua respectivă."
+    },
+    "footnote": "Cifrele sunt cele înregistrate în RigLog, nimic estimat, din aceleași înregistrări ca pagina de costuri a fiecărui vehicul. Sumele sunt în RON, scrise în format românesc (14.999,50). Tabelele folosesc „;” între coloane, cum așteaptă Excel cu setări românești. Sunt incluse doar vehiculele actuale ale organizației.",
+    "diy": "Intern",
+    "deletedAccount": "cont șters",
+    "csv": {
+      "date": "Data",
+      "vehicle": "Vehicul",
+      "registration": "Nr. înmatriculare",
+      "category": "Categorie",
+      "status": "Stare",
+      "description": "Descriere",
+      "notes": "Note",
+      "workshop": "Service",
+      "parts": "Piese (RON)",
+      "labour": "Manoperă (RON)",
+      "total": "Total (RON)",
+      "loggedBy": "Înregistrat de",
+      "driver": "Șofer în ziua respectivă",
+      "costCategory": "Categorie cost",
+      "item": "Element",
+      "note": "Notă",
+      "amount": "Sumă (RON)"
+    },
+    "pdf": {
+      "title": "Raport flotă",
+      "period": "{from} – {to}",
+      "generated": "Generat pe {date} din înregistrările ținute în RigLog.",
+      "tiles": {
+        "vehicles": "VEHICULE",
+        "jobs": "LUCRĂRI",
+        "running": "Cost de funcționare",
+        "total": "Total incl. achiziții"
+      },
+      "byVehicle": "Cheltuieli pe vehicul",
+      "drivers": "Șoferi în perioadă",
+      "lines": "Înregistrări",
+      "byCategory": "Cheltuieli pe categorie",
+      "compliance": "Documente",
+      "expiries": "Expirate în perioadă",
+      "expiredOn": "A expirat",
+      "outcomeColumn": "De atunci",
+      "outcome": {
+        "renewedLate": "Reînnoit pe {date}, cu {days, plural, one {# zi} few {# zile} other {# de zile}} întârziere",
+        "newerOnRecord": "Există unul mai nou de acest tip",
+        "notRenewed": "Nicio reînnoire înregistrată"
+      },
+      "renewals": "Reînnoite în perioadă",
+      "document": "Document",
+      "renewedOn": "Reînnoit",
+      "late": "{days, plural, one {# zi} few {# zile} other {# de zile}} întârziere",
+      "previousExpiry": "Era valabil până la",
+      "newExpiry": "Acum valabil până la",
+      "noCosts": "Niciun cost înregistrat în această perioadă.",
+      "noExpiries": "Nimic nu a expirat în această perioadă.",
+      "noRenewals": "Nicio reînnoire înregistrată în această perioadă.",
+      "renewalsNote": "Reînnoirile sunt cunoscute de când RigLog a început să le înregistreze (septembrie 2026); una făcută înainte nu apare. Un document e socotit expirat după ce s-a încheiat ziua expirării.",
+      "footnote": "Fiecare cifră este cea înregistrată în RigLog pentru aceste vehicule — nimic nu e estimat, iar un cost pe care nu l-a introdus nimeni nu apare aici. Costul de funcționare nu include prețurile de achiziție. Șoferii sunt cei alocați vehiculului în RigLog.",
+      "footer": "RigLog · {organization} · {from} – {to}"
+    }
   }
 }

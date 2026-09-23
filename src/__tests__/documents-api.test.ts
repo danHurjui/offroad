@@ -6,6 +6,7 @@ jest.mock('@/lib/prisma', () => ({
     projectCollaborator: { findFirst: jest.fn() },
     document: { findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() },
     vehicleExpense: { create: jest.fn() },
+    documentRenewal: { create: jest.fn() },
     $transaction: jest.fn(),
   },
 }))
@@ -74,6 +75,10 @@ describe('GET /api/vehicles/[id]/documents', () => {
 describe('PATCH /api/vehicles/[id]/documents/[docId]', () => {
   const docParams = { id: 'v1', docId: 'd1' }
 
+  beforeEach(() => {
+    ;(prisma.$transaction as jest.Mock).mockImplementation((fn: (tx: typeof prisma) => unknown) => fn(prisma))
+  })
+
   it('re-arms every reminder-sent field when expiryDate changes', async () => {
     mockDocFindUnique.mockResolvedValue({ id: 'd1', vehicleId: 'v1', expiryDate: new Date('2026-01-01') })
     mockDocUpdate.mockResolvedValue({ id: 'd1' })
@@ -115,6 +120,33 @@ describe('PATCH /api/vehicles/[id]/documents/[docId]', () => {
       expect.objectContaining({ data: expect.objectContaining({ costRon: 950, paidAt: expect.any(Date) }) })
     )
     expect((await res.json()).costRon).toBe(950)
+  })
+
+  // RL-041: the row forgets the expiry it replaces, so the renewal keeps it
+  // — the fleet report's "what expired, what was renewed" reads these.
+  it('an expiry moved later is recorded as a renewal, in the same transaction', async () => {
+    mockDocFindUnique.mockResolvedValue({ id: 'd1', vehicleId: 'v1', type: 'ITP', expiryDate: new Date('2026-01-01'), costRon: null, paidAt: null, createdAt: new Date('2025-01-01') })
+    mockDocUpdate.mockResolvedValue({ id: 'd1' })
+    const res = await docPatch(req({ expiryDate: '2027-01-01' }), { params: docParams })
+    expect(res.status).toBe(200)
+    expect(prisma.$transaction).toHaveBeenCalled()
+    expect(prisma.documentRenewal.create).toHaveBeenCalledWith({
+      data: { documentId: 'd1', previousExpiry: new Date('2026-01-01'), newExpiry: new Date('2027-01-01'), renewedByUserId: 'u1' },
+    })
+  })
+
+  it('an expiry moved earlier is a correction, not a renewal', async () => {
+    mockDocFindUnique.mockResolvedValue({ id: 'd1', vehicleId: 'v1', type: 'ITP', expiryDate: new Date('2027-01-01'), costRon: null, paidAt: null, createdAt: new Date('2025-01-01') })
+    mockDocUpdate.mockResolvedValue({ id: 'd1' })
+    await docPatch(req({ expiryDate: '2026-12-01' }), { params: docParams })
+    expect(prisma.documentRenewal.create).not.toHaveBeenCalled()
+  })
+
+  it('an unchanged expiry records nothing', async () => {
+    mockDocFindUnique.mockResolvedValue({ id: 'd1', vehicleId: 'v1', type: 'ITP', expiryDate: new Date('2027-01-01'), costRon: null, paidAt: null, createdAt: new Date('2025-01-01') })
+    mockDocUpdate.mockResolvedValue({ id: 'd1' })
+    await docPatch(req({ expiryDate: '2027-01-01' }), { params: docParams })
+    expect(prisma.documentRenewal.create).not.toHaveBeenCalled()
   })
 
   it('changing only the price keeps its paid date and archives nothing', async () => {

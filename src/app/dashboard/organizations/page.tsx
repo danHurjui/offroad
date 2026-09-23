@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
 import OrganizationForm from '@/components/OrganizationForm'
+import { canCreateOrganization } from '@/lib/organizations'
 
 // RL-038: the organisations this account belongs to, and — for an account
 // in the closed beta — the form that creates one.
@@ -12,7 +13,7 @@ export default async function OrganizationsPage() {
   const ts = await getTranslations('settings')
   const session = await requireSessionOrRedirect()
   const [user, memberships] = await Promise.all([
-    prisma.user.findUniqueOrThrow({ where: { id: session.user.id }, select: { orgBetaAt: true } }),
+    prisma.user.findUniqueOrThrow({ where: { id: session.user.id }, select: { orgBetaAt: true, isAdmin: true } }),
     prisma.organizationMember.findMany({
       where: { userId: session.user.id },
       include: { organization: { include: { _count: { select: { members: true } } } } },
@@ -48,7 +49,7 @@ export default async function OrganizationsPage() {
 
       <section className="card p-5">
         <h2 className="mb-1 text-sm font-semibold text-ink">{t('createTitle')}</h2>
-        {user.orgBetaAt ? (
+        {canCreateOrganization(user) ? (
           <>
             <p className="mb-3 text-xs text-ink-muted">{t('createHelp')}</p>
             <OrganizationForm />

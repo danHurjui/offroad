@@ -30,6 +30,8 @@ import {
   normalizeCui,
   organizationsOnAccountDeletion,
   parseOrganization,
+  canCreateOrganization,
+  showsBusiness,
 } from '@/lib/organizations'
 import { GET as listOrgs, POST as createOrg } from '@/app/api/organizations/route'
 import { GET as getOrg, PATCH as patchOrg, DELETE as deleteOrg } from '@/app/api/organizations/[orgId]/route'
@@ -145,6 +147,12 @@ describe('POST /api/organizations', () => {
     expect((await res.json()).code).toBe('orgBetaRequired')
     expect(consumeRateLimit).not.toHaveBeenCalled()
     expect(org.create).not.toHaveBeenCalled()
+  })
+
+  it('is open to an admin without the beta switched on — the people running it need to see it', async () => {
+    user.findUnique.mockResolvedValue({ orgBetaAt: null, isAdmin: true })
+    org.create.mockResolvedValue({ id: 'o1', name: 'Transport SRL' })
+    expect((await createOrg(req({ name: 'Transport SRL' }))).status).toBe(201)
   })
 
   it('creates it with the caller as its first owner, rate-limited by user id', async () => {
@@ -464,5 +472,29 @@ describe('schema', () => {
       'utf8'
     )
     expect(migration).toMatch(/CHECK \("organizationId" IS NULL OR "isPublic" = false\)/)
+  })
+})
+
+describe('canCreateOrganization / showsBusiness', () => {
+  it('is the beta switch, or being an admin', () => {
+    expect(canCreateOrganization({ orgBetaAt: new Date(), isAdmin: false })).toBe(true)
+    expect(canCreateOrganization({ orgBetaAt: null, isAdmin: true })).toBe(true)
+    expect(canCreateOrganization({ orgBetaAt: null, isAdmin: false })).toBe(false)
+    expect(canCreateOrganization(null)).toBe(false)
+  })
+
+  it('offers Business to a member even without the beta', () => {
+    expect(showsBusiness({ orgBetaAt: null, isAdmin: false }, 1)).toBe(true)
+    expect(showsBusiness({ orgBetaAt: null, isAdmin: false }, 0)).toBe(false)
+  })
+})
+
+describe('/admin/organizations', () => {
+  // Being an admin moderates; it grants no access to a company's records.
+  it('is admin-gated and links nowhere into an organisation’s own screens', () => {
+    const source = fs.readFileSync(path.join(process.cwd(), 'src/app/admin/organizations/page.tsx'), 'utf8')
+    expect(source).toContain('requireAdminOrNotFound()')
+    expect(source).not.toMatch(/\/dashboard\//)
+    expect(source).not.toMatch(/vehicles:\s*\{\s*select/)
   })
 })

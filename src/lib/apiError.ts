@@ -191,6 +191,9 @@ export type ApiErrorKey =
   | 'wishlistNeedsCategory'
   | 'workshopNameRequired'
   | 'yearInvalid'
+  | 'reportPeriodInvalid'
+  | 'reportPeriodTooLong'
+  | 'reportFailed'
 
 /**
  * A JSON error response with the message in the request's language.

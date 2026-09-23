@@ -6,6 +6,7 @@ import Nav from '@/components/Nav'
 import InstallPromptBanner from '@/components/InstallPromptBanner'
 import EmailVerificationBanner from '@/components/EmailVerificationBanner'
 import { isBlockedAsUnverified } from '@/lib/emailVerification'
+import { showsBusiness } from '@/lib/organizations'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const tc = await getTranslations('common')
@@ -20,6 +21,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
       avatarUrl: true,
       proPaymentFailedAt: true,
       emailVerifiedAt: true,
+      isAdmin: true,
+      orgBetaAt: true,
+      _count: { select: { organizationMemberships: true } },
     },
   })
 
@@ -35,6 +39,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         displayName={user?.displayName ?? t('accountFallback')}
         avatarUrl={user?.avatarUrl}
         isAdmin={session.user.isAdmin}
+        showBusiness={showsBusiness(user, user?._count.organizationMemberships ?? 0)}
       />
       {/* Directly under the header, above everything else the page has to
           say — and it renders nothing unless the browser has actually

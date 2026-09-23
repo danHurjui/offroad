@@ -28,6 +28,9 @@ describe('dashboard navigation', () => {
     '%s links back',
     (_label, file) => {
       const source = fs.readFileSync(file, 'utf8')
+      // A page that only redirects (the header's "Business") renders no
+      // screen to go back from.
+      if (/\bredirect\(/.test(source) && !/<[A-Za-z]/.test(source)) return
       // Either the shared `common.backTo` or one of the screen-specific
       // back keys that predate it.
       expect(source).toMatch(/backTo/)

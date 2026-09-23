@@ -119,7 +119,7 @@ export function toLocale(value: unknown): Locale {
  * missing namespace renders dotted keys, and being wrong in that
  * direction is visible immediately.
  */
-export const SERVER_ONLY_NAMESPACES = ['legal', 'legalPages', 'email', 'notify'] as const
+export const SERVER_ONLY_NAMESPACES = ['legal', 'legalPages', 'email', 'notify', 'fleetReport'] as const
 
 /** The catalogue minus the namespaces the browser will never ask for. */
 export function messagesForClient<T extends Record<string, unknown>>(messages: T): T {

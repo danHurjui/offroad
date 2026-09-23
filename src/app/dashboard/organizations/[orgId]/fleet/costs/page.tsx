@@ -8,9 +8,10 @@ import { isDateRange, type DateRange } from '@/lib/analytics'
 import { loadOwnershipInputs } from '@/lib/ownershipRecords'
 import { fleetCost } from '@/lib/fleet'
 import FleetCostChart from '@/components/FleetCostChart'
+import { formatRon } from '@/lib/money'
 
 const RANGES: DateRange[] = ['3m', '12m', 'all']
-const money = (n: number) => `${n.toLocaleString('ro-RO', { maximumFractionDigits: 0 })} RON`
+const money = (n: number) => formatRon(n, 0)
 
 type Params = { params: { orgId: string }; searchParams: { range?: string; vehicle?: string } }
 
@@ -24,6 +25,7 @@ export default async function FleetCostsPage({ params, searchParams }: Params) {
   const ta = await getTranslations('analytics')
   const tc = await getTranslations('common')
   const to = await getTranslations('organizations')
+  const tr = await getTranslations('fleetReport')
   const session = await requireSessionOrRedirect()
   const membership = await prisma.organizationMember.findUnique({
     where: { organizationId_userId: { organizationId: params.orgId, userId: session.user.id } },
@@ -54,7 +56,10 @@ export default async function FleetCostsPage({ params, searchParams }: Params) {
         {tc('backTo', { screen: tf('title') })}
       </Link>
       <h1 className="mb-1 text-2xl font-bold text-ink">{t('title')}</h1>
-      <p className="mb-6 text-sm text-ink-muted">{t('intro')}</p>
+      <p className="mb-3 text-sm text-ink-muted">{t('intro')}</p>
+      <Link href={`/dashboard/organizations/${org.id}/fleet/reports`} className="btn-secondary mb-6 inline-block">
+        {tr('open')}
+      </Link>
 
       <form method="get" className="mb-6 flex flex-wrap items-end gap-2">
         <div className="min-w-0">
