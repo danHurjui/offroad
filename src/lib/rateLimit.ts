@@ -105,6 +105,13 @@ export const RATE_LIMITS = {
    * calling it in a loop shouldn't be free.
    */
   dataExport: { limit: 10, windowSeconds: 60 * 60 },
+  /**
+   * RL-041 fleet reports: the next most expensive read after the data
+   * export, and it walks a whole fleet. Keyed on the user id. Each of the
+   * three files is one unit, so a month's CSVs and PDF for a few periods
+   * fit comfortably; a script looping over years does not.
+   */
+  fleetReport: { limit: 30, windowSeconds: 60 * 60 },
 } as const satisfies Record<string, RateLimitRule>
 
 export type RateLimitName = keyof typeof RATE_LIMITS

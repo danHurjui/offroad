@@ -1092,6 +1092,38 @@ vehicles, Decimals converted), so they cannot add up different rows.
 - The trend is running cost per calendar month, empty months as zero, the
   last `FLEET_TREND_MAX_MONTHS`; colours from `useChartTheme()`.
 
+**Fleet reports** (RL-041, #53, `/fleet/reports`, same roles):
+`src/lib/fleetReport.ts` (pure) and three routes under
+`/api/organizations/[orgId]/reports/` — `jobs` (CSV), `costs` (CSV, every
+cost line with the driver assigned that day) and `summary` (PDF on the
+RL-014 engine, `pdfFleetReport.ts`). All three go through `loadReport()`
+(`reports/load.ts`) before reading anything; a test holds that.
+- **Checked on the server**, whatever the form sent: OWNER/FLEET_MANAGER
+  (404 otherwise), the `fleetReport` rate limit per user id, whole days
+  with `from` ≤ `to` and at most `REPORT_MAX_DAYS` (366), and a `vehicle`
+  that is this organisation's (404 otherwise). Only current vehicles.
+- Figures come from `costLines()` and `taskTotalCost()` — the costs page's
+  own lines — so a file cannot add up differently from the screen.
+- **Drivers**: costs are dated by the day and assignments to the minute,
+  so a handover day names both drivers; no assignment, empty.
+- **Renewals**: a document is renewed in place, so the PATCH that moves
+  an expiry *later* writes a `DocumentRenewal` (previous and new expiry)
+  in the same transaction; moving it earlier is a correction. Renewals
+  before September 2026 were never recorded and the PDF says so. An
+  expiry counts once its day is over; one renewed ahead of it never
+  lapsed and is listed only as a renewal.
+- **CSV** (`src/lib/csv.ts`, the first in the repo): a field starting
+  `=`, `+`, `-`, `@` (or tab/CR, or spaces then one of those) gets a
+  leading `'` so Excel does not run it; every field quoted; `;` between
+  columns (the comma is the decimal); a UTF-8 BOM. Amounts in a CSV are
+  the figure alone (`14.999,50`) under a "(RON)" header, so the column
+  still sums.
+- **`formatRon()`** (`src/lib/money.ts`) is the one way to write RON
+  (`14.999,50 RON`); the fleet pages and the service-book PDF use it, and
+  the rest of the app can move over as it is touched.
+- `fleetReport` is a server-only namespace (the page is a Server
+  Component). Filenames are ASCII slugs — they go into a header.
+
 ### Write feedback (`src/lib/writeFeedback.ts`, `src/components/Toaster.tsx`, RL-034)
 One toast layer, mounted in `Providers` above every page. Toasts are for
 **action outcomes** (a button, a status change, a removal); `FormError`

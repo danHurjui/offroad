@@ -72,12 +72,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (renewing) Object.assign(data, { costRon: null, paidAt: null })
     Object.assign(data, cost.data)
 
-    const updated = archived
-      ? await prisma.$transaction(async (tx) => {
-          await tx.vehicleExpense.create({ data: { vehicleId: vehicle.id, ...archived, createdByUserId: session.user.id } })
-          return tx.document.update({ where: { id: document.id }, data })
-        })
-      : await prisma.document.update({ where: { id: document.id }, data })
+    // RL-041: an expiry moved later is a renewal, and the one it replaces
+    // is kept — the row itself forgets it. Moved earlier is a correction.
+    const renewal =
+      renewing && (data.expiryDate as Date) > document.expiryDate
+        ? { documentId: document.id, previousExpiry: document.expiryDate, newExpiry: data.expiryDate as Date, renewedByUserId: session.user.id }
+        : null
+
+    const updated =
+      archived || renewal
+        ? await prisma.$transaction(async (tx) => {
+            if (archived) await tx.vehicleExpense.create({ data: { vehicleId: vehicle.id, ...archived, createdByUserId: session.user.id } })
+            if (renewal) await tx.documentRenewal.create({ data: renewal })
+            return tx.document.update({ where: { id: document.id }, data })
+          })
+        : await prisma.document.update({ where: { id: document.id }, data })
     return NextResponse.json(serializeDocument(updated))
   } catch {
     return await apiError('internalError', 500)

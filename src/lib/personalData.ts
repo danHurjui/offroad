@@ -202,7 +202,7 @@ function fetchVehicles(userId: string) {
       tasks: { include: { photos: true }, orderBy: { date: 'asc' } },
       foundState: { include: { photos: true } },
       wishlistItems: { include: { priceHistory: true } },
-      documents: true,
+      documents: { include: { renewals: true } },
       trailRuns: { include: { waypoints: true } },
       collaborators: true,
       odometerReadings: { orderBy: { readAt: 'asc' } },

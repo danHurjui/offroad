@@ -22,6 +22,7 @@ export default async function FleetPage({ params, searchParams }: Params) {
   const th = await getTranslations('health')
   const td = await getTranslations('documents')
   const tc = await getTranslations('common')
+  const tr = await getTranslations('fleetReport')
   const session = await requireSessionOrRedirect()
   const membership = await prisma.organizationMember.findUnique({
     where: { organizationId_userId: { organizationId: params.orgId, userId: session.user.id } },
@@ -62,9 +63,14 @@ export default async function FleetPage({ params, searchParams }: Params) {
       </Link>
       <h1 className="mb-1 text-2xl font-bold text-ink">{t('title')}</h1>
       <p className="mb-3 text-sm text-ink-muted">{t('intro')}</p>
-      <Link href={`/dashboard/organizations/${org.id}/fleet/costs`} className="btn-secondary mb-6 inline-block">
-        {t('cost.open')}
-      </Link>
+      <div className="mb-6 flex flex-wrap gap-2">
+        <Link href={`/dashboard/organizations/${org.id}/fleet/costs`} className="btn-secondary">
+          {t('cost.open')}
+        </Link>
+        <Link href={`/dashboard/organizations/${org.id}/fleet/reports`} className="btn-secondary">
+          {tr('open')}
+        </Link>
+      </div>
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className={`card p-4 ${board.totals.offRoad > 0 ? 'note-danger' : ''}`}>

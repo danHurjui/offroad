@@ -201,6 +201,7 @@ model User {
   organizationInvitesSent OrganizationInvite[] @relation("OrgInvitedBy")
   vehicleAssignments   VehicleAssignment[]   @relation("AssignmentDriver")
   assignmentsMade      VehicleAssignment[]   @relation("AssignmentBy")
+  documentRenewals     DocumentRenewal[]     @relation("DocumentRenewedBy")
   ticketVotes          TicketVote[]
   ticketComments       TicketComment[]
   donations            Donation[]
@@ -698,9 +699,30 @@ model Document {
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
-  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicle  Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  renewals DocumentRenewal[]
 
   @@index([vehicleId])
+}
+
+/// RL-041: a document is renewed in place — its expiry moves on — so the
+/// expiry it had before is gone from the row. This keeps it, so a fleet
+/// report can say what expired in a period and when it was renewed. Written
+/// in the PATCH that moves the expiry later; a move earlier is a
+/// correction, not a renewal, and is not recorded.
+model DocumentRenewal {
+  id              String   @id @default(cuid())
+  documentId      String
+  previousExpiry  DateTime
+  newExpiry       DateTime
+  renewedAt       DateTime @default(now())
+  renewedByUserId String?
+
+  document  Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  renewedBy User?    @relation("DocumentRenewedBy", fields: [renewedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([documentId, renewedAt])
+  @@index([renewedByUserId])
 }
 
 /// Mechanic/specialist collaborator invite — RL-030/031/032. Invite

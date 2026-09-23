@@ -2127,7 +2127,10 @@
     "assignmentAlreadyEnded": "This assignment has already ended.",
     "handoverStageInvalid": "Say whether the photo is from taking the vehicle or handing it back.",
     "handoverPhotoLimit": "Each end of a handover can hold up to {limit} photos.",
-    "handoverStartRecorded": "The start of this handover is already on the record, or the assignment has ended."
+    "handoverStartRecorded": "The start of this handover is already on the record, or the assignment has ended.",
+    "reportPeriodInvalid": "The report period isn’t valid. Choose a start and an end day, the start first.",
+    "reportPeriodTooLong": "A report covers at most a year. Split the period in two.",
+    "reportFailed": "The report couldn’t be created. Please try again."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -3007,5 +3010,84 @@
     "notesHeadingNoNumber": "From the invoice:",
     "labour": "labour",
     "part": "part"
+  },
+  "fleetReport": {
+    "open": "Reports for the accountant",
+    "title": "Fleet reports",
+    "intro": "The files an accountant asks for, for one period: every job and every cost as a spreadsheet, and a PDF summary of what the fleet spent and which documents expired or were renewed.",
+    "from": "From",
+    "to": "To (included)",
+    "limit": "Up to {days} days at a time.",
+    "error": {
+      "reportPeriodInvalid": "Choose a start day on or before the end day.",
+      "reportPeriodTooLong": "A report covers at most {days} days. Split the period in two."
+    },
+    "download": "Download",
+    "files": {
+      "summary": "Summary (PDF)",
+      "summaryHelp": "Spend per vehicle, with who drove it, and per category; the documents that expired or were renewed.",
+      "jobs": "Jobs (CSV)",
+      "jobsHelp": "Every job in the period: vehicle, registration, category, parts, labour, workshop, and who logged it.",
+      "costs": "Cost history (CSV)",
+      "costsHelp": "Every cost — jobs, fuel, documents, tyres, expenses, finance — with the driver assigned that day."
+    },
+    "footnote": "Figures are what was recorded in RigLog, nothing estimated, from the same records as each vehicle’s costs page. Amounts are in RON, written the Romanian way (14.999,50). The spreadsheets use “;” between columns, which Excel expects under Romanian settings. Only the organisation’s current vehicles are included.",
+    "diy": "In-house",
+    "deletedAccount": "deleted account",
+    "csv": {
+      "date": "Date",
+      "vehicle": "Vehicle",
+      "registration": "Registration",
+      "category": "Category",
+      "status": "Status",
+      "description": "Description",
+      "notes": "Notes",
+      "workshop": "Workshop",
+      "parts": "Parts (RON)",
+      "labour": "Labour (RON)",
+      "total": "Total (RON)",
+      "loggedBy": "Logged by",
+      "driver": "Driver that day",
+      "costCategory": "Cost category",
+      "item": "Item",
+      "note": "Note",
+      "amount": "Amount (RON)"
+    },
+    "pdf": {
+      "title": "Fleet report",
+      "period": "{from} – {to}",
+      "generated": "Generated on {date} from the records kept in RigLog.",
+      "tiles": {
+        "vehicles": "VEHICLES",
+        "jobs": "JOBS",
+        "running": "Running cost",
+        "total": "Total incl. purchases"
+      },
+      "byVehicle": "Spend per vehicle",
+      "drivers": "Drivers in the period",
+      "lines": "Entries",
+      "byCategory": "Spend per category",
+      "compliance": "Documents",
+      "expiries": "Expired in the period",
+      "expiredOn": "Expired",
+      "outcomeColumn": "Since then",
+      "outcome": {
+        "renewedLate": "Renewed on {date}, {days, plural, one {# day} other {# days}} late",
+        "newerOnRecord": "A newer one of this type is on record",
+        "notRenewed": "No renewal on record"
+      },
+      "renewals": "Renewed in the period",
+      "document": "Document",
+      "renewedOn": "Renewed",
+      "late": "{days, plural, one {# day} other {# days}} late",
+      "previousExpiry": "Was valid to",
+      "newExpiry": "Now valid to",
+      "noCosts": "No costs recorded in this period.",
+      "noExpiries": "Nothing expired in this period.",
+      "noRenewals": "No renewals recorded in this period.",
+      "renewalsNote": "Renewals are known from when RigLog began recording them (September 2026); one made before that is not listed. A document is counted as expired once its expiry day is over.",
+      "footnote": "Every figure is what was recorded in RigLog for these vehicles — nothing is estimated, and a cost nobody entered is not here. Running cost leaves out purchase prices. Drivers are those assigned to the vehicle in RigLog.",
+      "footer": "RigLog · {organization} · {from} – {to}"
+    }
   }
 }
