@@ -1,0 +1,202 @@
+jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
+jest.mock('@/lib/auth', () => ({ authOptions: {} }))
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    vehicle: { findUnique: jest.fn() },
+    projectCollaborator: { findFirst: jest.fn() },
+    user: { findUnique: jest.fn() },
+    passportLink: { create: jest.fn(), updateMany: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
+    $transaction: jest.fn(),
+  },
+}))
+
+import fs from 'fs'
+import path from 'path'
+import { getServerSession } from 'next-auth'
+import { prisma } from '@/lib/prisma'
+import { buildPassport, recordGaps, type PassportInput } from '@/lib/passport'
+import { serviceBook } from '@/lib/serviceBook'
+import { newPassportToken } from '@/lib/passportRecords'
+import { POST } from '@/app/api/vehicles/[id]/passport-links/route'
+import { DELETE } from '@/app/api/vehicles/[id]/passport-links/[linkId]/route'
+
+const NOW = new Date('2026-09-23T12:00:00Z')
+const day = (d: string) => new Date(`${d}T00:00:00Z`)
+const read = (f: string) => fs.readFileSync(path.join(process.cwd(), f), 'utf8')
+const catalogue = (l: string) => JSON.parse(read(`messages/${l}.json`)).passport
+
+function input(o: Partial<PassportInput> = {}): PassportInput {
+  return {
+    now: NOW,
+    projectType: 'DAILY_DRIVER',
+    options: { showPlate: false, showVin: false, showCosts: true },
+    vehicle: { year: 2015, make: 'Dacia', model: 'Logan', generation: null, plate: 'CJ 77 QZW', vin: 'UU1LSDAAH53123456', purchaseDate: day('2024-01-10'), createdAt: day('2024-02-01') },
+    rows: [],
+    readings: [],
+    fuelDates: [],
+    documents: [],
+    tyreSets: [],
+    ...o,
+  }
+}
+
+const rows = serviceBook(
+  [
+    {
+      id: 't1', name: 'Revizie', status: 'DONE', category: 'SERVICING', workType: 'DIY', costRon: 850, partsCostRon: null, labourCostRon: null,
+      brand: null, notes: null, workshopName: null, receiptUrl: null, photoCount: 0, km: 124_200,
+      date: day('2025-03-12'), createdAt: day('2025-09-01'), updatedAt: day('2026-01-05'),
+    },
+  ],
+  'DONE'
+).rows
+
+describe('it never claims to be more than the owner’s records', () => {
+  it.each(['en', 'ro'])('%s: says what it is, and every absence is an absence of records in RigLog', (l) => {
+    const c = catalogue(l)
+    expect(c.what).toMatch(/RigLog/)
+    for (const [key, text] of Object.entries<string>(c.absence)) {
+      expect({ key, mentionsRigLog: /RigLog/.test(text) }).toEqual({ key, mentionsRigLog: true })
+    }
+  })
+
+  it('no string asserts a clean history', () => {
+    const en = JSON.stringify(catalogue('en')).toLowerCase()
+    for (const claim of ['no accidents', 'accident-free', 'accident free', 'verified', 'certified', 'guaranteed', 'full history']) {
+      expect({ claim, found: en.includes(claim) }).toEqual({ claim, found: false })
+    }
+  })
+
+  it('the statement is in the heading of the page and directly under the PDF title', () => {
+    const page = read('src/components/PassportDocument.tsx')
+    expect(page.indexOf("t('what')")).toBeGreaterThan(-1)
+    expect(page.indexOf("t('what')")).toBeLessThan(page.indexOf('</header>'))
+    const pdf = read('src/lib/pdfPassport.ts')
+    expect(pdf.indexOf("style: 'what'")).toBeLessThan(pdf.indexOf('strings.tiles'))
+  })
+
+  it('always says accidents are not tracked — never implies a clean record', () => {
+    const p = buildPassport(input({ rows, readings: [{ id: 'r', km: 1, readAt: day('2025-01-01'), isOverride: false }] }))
+    expect(p.absences.map((a) => a.key)).toContain('absence.accidentsNotTracked')
+  })
+})
+
+describe('gaps are shown as gaps', () => {
+  it('lists a year or more with nothing recorded, before, between and after entries', () => {
+    const gaps = recordGaps([day('2025-06-01')], day('2023-01-01'), day('2026-09-23'))
+    expect(gaps.map((g) => [g.from, g.to])).toEqual([
+      [day('2023-01-01'), day('2025-06-01')],
+      [day('2025-06-01'), day('2026-09-23')],
+    ])
+  })
+
+  it('a history with nothing in it is one long gap, not a clean one', () => {
+    const p = buildPassport(input())
+    expect(p.gaps).toHaveLength(1)
+    expect(p.absences.map((a) => a.key)).toEqual([
+      'absence.noJobs',
+      'absence.noMileage',
+      'absence.noDocuments',
+      'absence.noTyres',
+      'absence.accidentsNotTracked',
+    ])
+  })
+})
+
+describe('when an entry was written', () => {
+  it('each row carries when it was entered, and when it was last changed if later', () => {
+    const p = buildPassport(input({ rows }))
+    expect(p.jobs.rows[0]).toMatchObject({ date: day('2025-03-12'), recordedAt: day('2025-09-01'), changedAt: day('2026-01-05') })
+    expect(read('src/components/PassportDocument.tsx')).toMatch(/recordedOn[\s\S]*changedOn/)
+  })
+})
+
+describe('what the owner chose to share', () => {
+  it('plate and VIN only when asked for', () => {
+    expect(buildPassport(input())).toMatchObject({ plate: null, vin: null })
+    expect(buildPassport(input({ options: { showPlate: true, showVin: true, showCosts: true } }))).toMatchObject({
+      plate: 'CJ 77 QZW',
+      vin: 'UU1LSDAAH53123456',
+    })
+  })
+
+  it('no costs at all when costs are off', () => {
+    const p = buildPassport(input({ rows, options: { showPlate: false, showVin: false, showCosts: false } }))
+    expect(p.jobs.spend).toBeNull()
+    expect(p.jobs.rows.every((r) => r.cost === 0)).toBe(true)
+  })
+
+  it('photos only for a vehicle already public — the uploads carve-out is not widened', () => {
+    expect(read('src/lib/passportRecords.ts')).toMatch(/vehicle\.isPublic\s*\?\s*prisma\.taskPhoto\.findMany/)
+    expect(read('src/app/api/uploads/[...path]/route.ts')).not.toMatch(/passport/i)
+  })
+})
+
+describe('the shared link', () => {
+  it('is never indexed, never sent as a referrer, and a withdrawn one shows nothing', () => {
+    const page = read('src/app/passport/[token]/page.tsx')
+    expect(page).toMatch(/index: false/)
+    expect(page).toMatch(/referrer: 'no-referrer'/)
+    expect(page).toMatch(/!link \|\| link\.revokedAt/)
+    expect(read('src/app/robots.ts')).toMatch(/'\/passport\/'/)
+    expect(read('src/app/sitemap.ts')).not.toMatch(/passport/)
+  })
+
+  it('tokens are long and random', () => {
+    const a = newPassportToken()
+    expect(a).toMatch(/^[A-Za-z0-9_-]{43}$/)
+    expect(newPassportToken()).not.toBe(a)
+  })
+
+  it('the data export leaves the token out', () => {
+    expect(read('src/lib/personalData.ts')).toMatch(/passportLinks: \{ select: \{ id: true, showPlate/)
+  })
+})
+
+describe('link routes', () => {
+  const mockSession = getServerSession as jest.Mock
+  const req = (body: unknown) => ({ json: () => Promise.resolve(body) }) as never
+  beforeEach(() => {
+    jest.clearAllMocks()
+    ;(prisma.$transaction as jest.Mock).mockImplementation((fn: (tx: typeof prisma) => unknown) => fn(prisma))
+    mockSession.mockResolvedValue({ user: { id: 'owner' } })
+    ;(prisma.vehicle.findUnique as jest.Mock).mockResolvedValue({ id: 'v1', ownerId: 'owner' })
+    ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ isPro: true, isProComped: false })
+    ;(prisma.passportLink.create as jest.Mock).mockImplementation(({ data }) => Promise.resolve({ id: 'l1', ...data }))
+  })
+
+  it('creates a link with plate and VIN off by default, and withdraws the previous one', async () => {
+    const res = await POST(req({}), { params: { id: 'v1' } })
+    expect(res.status).toBe(201)
+    expect(prisma.passportLink.updateMany).toHaveBeenCalledWith({ where: { vehicleId: 'v1', revokedAt: null }, data: { revokedAt: expect.any(Date) } })
+    expect(prisma.passportLink.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ vehicleId: 'v1', showPlate: false, showVin: false, showCosts: true }),
+    })
+  })
+
+  it('sharing is Pro — a comped account counts', async () => {
+    ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ isPro: false, isProComped: false })
+    expect((await POST(req({}), { params: { id: 'v1' } })).status).toBe(403)
+    ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ isPro: false, isProComped: true })
+    expect((await POST(req({}), { params: { id: 'v1' } })).status).toBe(201)
+  })
+
+  it('a collaborator can neither share nor withdraw', async () => {
+    mockSession.mockResolvedValue({ user: { id: 'mechanic' } })
+    ;(prisma.projectCollaborator.findFirst as jest.Mock).mockResolvedValue({ id: 'c1' })
+    expect((await POST(req({}), { params: { id: 'v1' } })).status).toBe(404)
+    expect((await DELETE({} as never, { params: { id: 'v1', linkId: 'l1' } })).status).toBe(404)
+  })
+
+  it('withdrawing needs no Pro — a lapsed seller can still take it down', async () => {
+    ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ isPro: false, isProComped: false })
+    ;(prisma.passportLink.findUnique as jest.Mock).mockResolvedValue({ id: 'l1', vehicleId: 'v1', revokedAt: null })
+    expect((await DELETE({} as never, { params: { id: 'v1', linkId: 'l1' } })).status).toBe(200)
+    expect(prisma.passportLink.update).toHaveBeenCalledWith({ where: { id: 'l1' }, data: { revokedAt: expect.any(Date) } })
+  })
+
+  it('a link on another vehicle is not found', async () => {
+    ;(prisma.passportLink.findUnique as jest.Mock).mockResolvedValue({ id: 'l1', vehicleId: 'other', revokedAt: null })
+    expect((await DELETE({} as never, { params: { id: 'v1', linkId: 'l1' } })).status).toBe(404)
+  })
+})

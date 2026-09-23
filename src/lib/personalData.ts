@@ -193,6 +193,9 @@ function fetchVehicles(userId: string) {
       fuelEntries: { orderBy: { date: 'asc' } },
       tyreSets: true,
       expenses: { orderBy: { date: 'asc' } },
+      // The token is left out: it is a live credential, and an export file
+      // is copied, mailed and uploaded to other services.
+      passportLinks: { select: { id: true, showPlate: true, showVin: true, showCosts: true, createdAt: true, revokedAt: true } },
     },
     orderBy: { createdAt: 'asc' },
   })

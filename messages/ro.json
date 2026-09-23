@@ -451,7 +451,8 @@
     "tyres": "Anvelope",
     "expenses": "Alte costuri",
     "costs": "Costul deținerii",
-    "serviceBook": "Carte de service"
+    "serviceBook": "Carte de service",
+    "passport": "Pașaport"
   },
   "home": {
     "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
@@ -2060,7 +2061,9 @@
     "tyreFieldInvalid": "{field} nu este valid",
     "tyreOwnOnly": "Poți modifica doar seturile de anvelope adăugate de tine.",
     "proServiceBookExport": "Exportul cărții de service este o funcție Pro.",
-    "serviceBookFailed": "PDF-ul cărții de service nu a putut fi generat."
+    "serviceBookFailed": "PDF-ul cărții de service nu a putut fi generat.",
+    "proPassport": "Partajarea și exportul pașaportului sunt funcții Pro.",
+    "passportFailed": "PDF-ul pașaportului nu a putut fi generat."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2561,5 +2564,81 @@
       "work": "LUCRARE",
       "cost": "COST"
     }
+  },
+  "passport": {
+    "title": "Pașaportul vehiculului",
+    "what": "Evidențele proprietarului, ținute în RigLog. Nu este un istoric oficial al vehiculului, o verificare în registre sau o inspecție: RigLog păstrează ce a introdus proprietarul și nu verifică nimic.",
+    "asOf": "Vizualizare live, la data de {date}",
+    "snapshot": "Instantaneu generat pe {date}. Linkul partajat s-ar putea să se fi schimbat între timp.",
+    "summary": "Rezumat",
+    "ownedSince": "Deținut din",
+    "recordsSince": "Evidențe din",
+    "latestKm": "Ultima citire a kilometrajului",
+    "readOn": "citit pe {date}",
+    "jobs": "Lucrări înregistrate",
+    "spend": "{amount} înregistrați",
+    "spendLabel": "Cost înregistrat",
+    "none": "Nimic înregistrat",
+    "missingTitle": "Ce nu acoperă aceste evidențe",
+    "gap": "Nimic înregistrat între {from} și {to} ({days} zile)",
+    "resets": "{count, plural, one {Kilometrajul a fost înlocuit sau corectat o dată} few {Kilometrajul a fost înlocuit sau corectat de # ori} other {Kilometrajul a fost înlocuit sau corectat de # de ori}}; numărătoarea km pornește din nou de acolo.",
+    "absence": {
+      "noJobs": "Nicio lucrare finalizată înregistrată în RigLog.",
+      "noMileage": "Nicio citire de kilometraj înregistrată în RigLog.",
+      "noDocuments": "Niciun document înregistrat în RigLog.",
+      "noTyres": "Nicio anvelopă înregistrată în RigLog.",
+      "accidentsNotTracked": "Accidentele și avariile nu se înregistrează în RigLog, deci acest pașaport nu spune nimic despre ele, nici într-un sens, nici în altul."
+    },
+    "historyTitle": "Istoricul lucrărilor",
+    "datesRule": "Fiecare intrare arată ziua lucrării și ziua în care a fost introdusă în RigLog, plus ultima modificare dacă a fost mai târziu. Intrările scrise ulterior sunt normale, dar nu sunt același lucru cu cele scrise la momentul respectiv.",
+    "recordedOn": "introdusă pe {date}",
+    "changedOn": "modificată ultima dată pe {date}",
+    "kmRestarts": "km pornesc din nou după înlocuirea kilometrajului",
+    "workshop": "Service",
+    "diy": "Pe cont propriu",
+    "documentsTitle": "Documente",
+    "documentsNote": "Așa cum le-a introdus proprietarul, neverificate în vreun registru.",
+    "docStatus": {
+      "valid": "valabil până pe {date}",
+      "expiring": "expiră pe {date}",
+      "expired": "expirat pe {date}"
+    },
+    "tyresTitle": "Anvelope",
+    "tyreSets": "{count, plural, one {# set înregistrat} few {# seturi înregistrate} other {# de seturi înregistrate}}",
+    "fitted": "montat: {season} {label} {dot}",
+    "photosTitle": "Poze",
+    "buildPage": "Vezi pagina completă a proiectului",
+    "footer": "Generat de RigLog din evidențele proprietarului. RigLog nu este parte la nicio vânzare și nu verifică aceste evidențe.",
+    "footerPdf": "Instantaneu din {date}, generat de RigLog din evidențele proprietarului. RigLog nu le verifică și nu este parte la nicio vânzare.",
+    "col": {
+      "date": "DATA",
+      "km": "KM",
+      "work": "LUCRARE",
+      "cost": "COST"
+    },
+    "plateLine": "Număr {plate}",
+    "unavailable": "Acest pașaport nu este disponibil. Poate proprietarul l-a retras.",
+    "previewLabel": "Ce vede un cumpărător",
+    "shareTitle": "Trimite unui cumpărător",
+    "shareIntro": "Oricine are linkul poate citi pașaportul fără cont, până când îl retragi. Un link nou îl retrage pe cel vechi.",
+    "includeLegend": "Include",
+    "includePlate": "Numărul de înmatriculare",
+    "includeVin": "VIN",
+    "includeCosts": "Cât au costat lucrările",
+    "createLink": "Creează link de partajare",
+    "replaceLink": "Înlocuiește linkul cu aceste opțiuni",
+    "liveLink": "Link live",
+    "liveLinkHelp": "Arată evidențele așa cum sunt când e deschis, deci lucrările adăugate ulterior apar și ele.",
+    "copy": "Copiază",
+    "copied": "Link copiat",
+    "copyFailed": "Nu s-a putut copia. Selectează linkul și copiază-l manual.",
+    "withdraw": "Retrage",
+    "withdrawn": "Link retras. Nu se mai deschide.",
+    "withdrawFailed": "Linkul nu a putut fi retras",
+    "linkCreated": "Link de partajare creat",
+    "linkReplaced": "Link nou creat. Cel vechi nu se mai deschide.",
+    "shareFailed": "Linkul nu a putut fi creat",
+    "sharePro": "Partajarea pașaportului și exportul PDF sunt funcții Pro. Previzualizarea de mai jos este gratuită.",
+    "pdfHelp": "PDF-ul este un instantaneu datat, cu aceleași opțiuni ca linkul."
   }
 }

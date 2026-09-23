@@ -147,6 +147,8 @@ export type ApiErrorKey =
   | 'trailOffroadOnly'
   | 'tyreFieldInvalid'
   | 'proServiceBookExport'
+  | 'proPassport'
+  | 'passportFailed'
   | 'serviceBookFailed'
   | 'valuesFieldInvalid'
   | 'expenseFieldInvalid'
