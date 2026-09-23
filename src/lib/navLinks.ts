@@ -13,5 +13,9 @@ export function isActiveNavLink(pathname: string, href: string): boolean {
     // prefix but is its own entry, and is reached from the account side.
     return pathname === '/dashboard' || pathname.startsWith('/dashboard/vehicles')
   }
+  if (href === '/dashboard/business') {
+    // A redirect into the organisation screens, which are where it lands.
+    return pathname === href || pathname.startsWith('/dashboard/organizations')
+  }
   return pathname === href || pathname.startsWith(`${href}/`)
 }

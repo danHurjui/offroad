@@ -26,6 +26,13 @@ describe('isActiveNavLink', () => {
     expect(isActiveNavLink('/communityx', '/community')).toBe(false)
   })
 
+  it('marks Business on the organisation screens it redirects into, and nothing else', () => {
+    expect(isActiveNavLink('/dashboard/business', '/dashboard/business')).toBe(true)
+    expect(isActiveNavLink('/dashboard/organizations/o1/fleet/reports', '/dashboard/business')).toBe(true)
+    expect(isActiveNavLink('/dashboard/vehicles/v1', '/dashboard/business')).toBe(false)
+    expect(isActiveNavLink('/dashboard/organizations/o1', '/dashboard')).toBe(false)
+  })
+
   it('leaves everything unmarked off the signed-in sections', () => {
     for (const href of ['/dashboard', '/community', '/tickets', '/admin']) {
       expect(isActiveNavLink('/privacy', href)).toBe(false)

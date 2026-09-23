@@ -31,11 +31,14 @@ export default function Nav({
   displayName,
   avatarUrl,
   isAdmin,
+  showBusiness,
 }: {
   userId: string
   displayName: string
   avatarUrl?: string | null
   isAdmin?: boolean
+  /** RL-038 closed beta: only for accounts that can create or belong to an organisation. */
+  showBusiness?: boolean
 }) {
   const t = useTranslations('nav')
   const pathname = usePathname()
@@ -56,6 +59,7 @@ export default function Nav({
 
   const sections = [
     { href: '/dashboard', label: t('garage') },
+    ...(showBusiness ? [{ href: '/dashboard/business', label: t('business') }] : []),
     { href: '/community', label: t('community') },
     { href: '/tickets', label: t('feedback') },
     { href: '/donate', label: t('donate') },

@@ -19,6 +19,25 @@ export function isOrgRole(value: unknown): value is OrgRole {
   return typeof value === 'string' && (ORG_ROLES as readonly string[]).includes(value)
 }
 
+/**
+ * Whether an account may create an organisation during the closed beta:
+ * switched on per account by an admin (`orgBetaAt`), and always for an
+ * admin — the people running the beta need to see what they are running
+ * without granting it to themselves first. Read from the database, not
+ * the token, so switching it on works at once.
+ */
+export function canCreateOrganization(user: { orgBetaAt: Date | null; isAdmin: boolean } | null): boolean {
+  return !!user && (user.orgBetaAt !== null || user.isAdmin)
+}
+
+/**
+ * Whether the header offers "Business": anyone who can create an
+ * organisation or already belongs to one.
+ */
+export function showsBusiness(user: { orgBetaAt: Date | null; isAdmin: boolean } | null, memberships: number): boolean {
+  return canCreateOrganization(user) || memberships > 0
+}
+
 /** Running the organisation itself — details, members, deleting it — is the owners'. */
 export function canManageOrganization(role: OrgRole): boolean {
   return role === 'OWNER'

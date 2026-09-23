@@ -350,7 +350,8 @@
     "menu": "Menu",
     "closeMenu": "Close menu",
     "openMenu": "Open menu",
-    "demo": "Demo"
+    "demo": "Demo",
+    "business": "Business"
   },
   "footer": {
     "tagline": "Build tracker, restoration journal & repair log.",
@@ -2213,7 +2214,17 @@
     "reportedVersion": "Version reported by the reporter's browser",
     "orgBetaOn": "Allow organisations",
     "orgBetaOff": "Stop new organisations",
-    "orgBetaBadge": "Organisations beta"
+    "orgBetaBadge": "Organisations beta",
+    "organizations": "Organisations",
+    "organizationsIntro": "Every organisation in the closed beta: who owns it and how big it is. Read-only — being an admin gives no access to a company’s vehicles or records.",
+    "searchOrganizations": "Search by name or CUI",
+    "noOrganizations": "No organisations yet.",
+    "orgCreated": "created {date}",
+    "memberCount": "{count, plural, one {# member} other {# members}}",
+    "orgBetaAccounts": "Accounts with the organisations beta",
+    "orgBetaAccountsHelp": "They can create an organisation. Switch it on or off on each account’s page. Admins can always create one.",
+    "orgBetaNone": "No account has it switched on yet.",
+    "statOrganizations": "Organisations"
   },
   "verifyEmail": {
     "bannerTitle": "Confirm your email address",

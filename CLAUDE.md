@@ -988,9 +988,16 @@ plus a grep that fails on any `ownerId` comparison with the caller outside
   OWNER there (slug cleared), and an organisation that goes with the
   account takes its vehicles and their files.
 - **Closed beta until the Business tier (#54):** creating one needs
-  `User.orgBetaAt`, set by an admin on `/admin/users/[id]` and read from
-  the database (not the token), rate-limited per user id. Switching it off
-  stops new organisations only.
+  `canCreateOrganization()` — `User.orgBetaAt`, set by an admin on
+  `/admin/users/[id]`, or being an admin — read from the database (not the
+  token), rate-limited per user id. Switching it off stops new
+  organisations only. The header's **Business** entry (`showsBusiness()`:
+  can create, or is a member) goes to `/dashboard/business`, which
+  redirects to the one organisation's fleet board (its org page for a
+  mechanic/driver) or to the list. `/admin/organizations` lists every
+  organisation (owners, member and vehicle counts) and the beta accounts,
+  **read-only** — it links nowhere into an organisation's screens, since
+  `isAdmin` grants no access to anyone's records (a test holds that).
 - **Owners run it** (details, roles, removing people, deleting it); anyone
   can leave. An outsider gets 404. Members' addresses are shown to owners
   only.

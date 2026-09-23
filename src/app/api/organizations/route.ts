@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
 import { consumeRateLimit, rateLimitResponse } from '@/lib/rateLimit'
-import { parseOrganization } from '@/lib/organizations'
+import { canCreateOrganization, parseOrganization } from '@/lib/organizations'
 
 /** RL-038: the organisations the caller belongs to, with their role in each. */
 export async function GET() {
@@ -29,16 +29,17 @@ export async function GET() {
 
 /**
  * Creates an organisation with the caller as its first OWNER. Closed beta:
- * an admin switches it on per account (`orgBetaAt`), read from the database
- * so the switch works at once rather than on the next token refresh.
+ * an admin switches it on per account (`orgBetaAt`), and admins have it
+ * (`canCreateOrganization()`). Read from the database so the switch works
+ * at once rather than on the next token refresh.
  */
 export async function POST(req: NextRequest) {
   const auth = await requireSession()
   if (!auth.ok) return auth.error
   const { session } = auth
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { orgBetaAt: true } })
-  if (!user?.orgBetaAt) return await apiError('orgBetaRequired', 403)
+  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { orgBetaAt: true, isAdmin: true } })
+  if (!canCreateOrganization(user)) return await apiError('orgBetaRequired', 403)
 
   const limit = await consumeRateLimit('orgCreate', `user:${session.user.id}`)
   if (!limit.ok) return await rateLimitResponse(limit)

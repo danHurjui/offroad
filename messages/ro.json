@@ -350,7 +350,8 @@
     "menu": "Meniu",
     "closeMenu": "Închide meniul",
     "openMenu": "Deschide meniul",
-    "demo": "Demo"
+    "demo": "Demo",
+    "business": "Firmă"
   },
   "footer": {
     "tagline": "Jurnal de build, de restaurare și de reparații.",
@@ -2213,7 +2214,17 @@
     "reportedVersion": "Versiunea raportată de browserul celui care a semnalat",
     "orgBetaOn": "Permite organizații",
     "orgBetaOff": "Oprește organizațiile noi",
-    "orgBetaBadge": "Beta organizații"
+    "orgBetaBadge": "Beta organizații",
+    "organizations": "Organizații",
+    "organizationsIntro": "Toate organizațiile din beta închisă: cine le deține și cât de mari sunt. Doar citire — a fi admin nu dă acces la vehiculele sau înregistrările unei firme.",
+    "searchOrganizations": "Caută după nume sau CUI",
+    "noOrganizations": "Nicio organizație încă.",
+    "orgCreated": "creată pe {date}",
+    "memberCount": "{count, plural, one {# membru} few {# membri} other {# de membri}}",
+    "orgBetaAccounts": "Conturi cu beta pentru organizații",
+    "orgBetaAccountsHelp": "Pot crea o organizație. Se activează sau dezactivează din pagina fiecărui cont. Adminii pot crea oricând una.",
+    "orgBetaNone": "Niciun cont nu o are activată încă.",
+    "statOrganizations": "Organizații"
   },
   "verifyEmail": {
     "bannerTitle": "Confirmă-ți adresa de e-mail",

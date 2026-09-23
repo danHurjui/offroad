@@ -27,7 +27,7 @@ function Stat({ label, value, href }: { label: string; value: string | number; h
 export default async function AdminOverviewPage() {
   const t = await getTranslations('admin')
   const tv = await getTranslations('ticketVocab')
-  const [users, activeUsers, proUsers, vehicles, tickets, openTickets, donations, statusCounts] =
+  const [users, activeUsers, proUsers, vehicles, tickets, openTickets, donations, statusCounts, organizations] =
     await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { active: true } }),
@@ -37,6 +37,7 @@ export default async function AdminOverviewPage() {
       prisma.ticket.count({ where: { status: { in: ['OPEN', 'PLANNED', 'IN_PROGRESS'] } } }),
       prisma.donation.aggregate({ where: { status: 'PAID' }, _sum: { amountBani: true }, _count: true }),
       prisma.ticket.groupBy({ by: ['status'], _count: true }),
+      prisma.organization.count(),
     ])
 
   const byStatus = new Map(statusCounts.map((s) => [s.status, s._count]))
@@ -51,6 +52,7 @@ export default async function AdminOverviewPage() {
         <Stat label={t('statDeactivated')} value={users - activeUsers} href="/admin/users?status=inactive" />
         <Stat label={t('statPro')} value={proUsers} />
         <Stat label={t('statVehicles')} value={vehicles} />
+        <Stat label={t('statOrganizations')} value={organizations} href="/admin/organizations" />
         <Stat label={t('statTickets')} value={tickets} href="/admin/tickets" />
         <Stat label={t('statOpenTickets')} value={openTickets} href="/admin/tickets?status=OPEN" />
         <Stat

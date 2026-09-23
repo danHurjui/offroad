@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
+import { showsBusiness } from '@/lib/organizations'
 import SettingsForm from '@/components/SettingsForm'
 import ThemeToggle from '@/components/ThemeToggle'
 import LanguageToggle from '@/components/LanguageToggle'
@@ -40,12 +41,13 @@ export default async function SettingsPage() {
       notifyFollowedEmail: true,
       notifyFollowedPush: true,
       orgBetaAt: true,
+      isAdmin: true,
       _count: { select: { organizationMemberships: true } },
     },
   })
   // RL-038 closed beta: only accounts that can create one, or already
   // belong to one, are shown the way in.
-  const showOrganizations = user.orgBetaAt !== null || user._count.organizationMemberships > 0
+  const showOrganizations = showsBusiness(user, user._count.organizationMemberships)
 
   const verified = isEmailVerified(user)
   const enforced = isVerificationEnforced()
