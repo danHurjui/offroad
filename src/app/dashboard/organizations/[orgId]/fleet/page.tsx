@@ -61,7 +61,10 @@ export default async function FleetPage({ params, searchParams }: Params) {
         {tc('backTo', { screen: org.name })}
       </Link>
       <h1 className="mb-1 text-2xl font-bold text-ink">{t('title')}</h1>
-      <p className="mb-6 text-sm text-ink-muted">{t('intro')}</p>
+      <p className="mb-3 text-sm text-ink-muted">{t('intro')}</p>
+      <Link href={`/dashboard/organizations/${org.id}/fleet/costs`} className="btn-secondary mb-6 inline-block">
+        {t('cost.open')}
+      </Link>
 
       <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className={`card p-4 ${board.totals.offRoad > 0 ? 'note-danger' : ''}`}>
