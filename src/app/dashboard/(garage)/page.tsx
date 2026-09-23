@@ -40,7 +40,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Ga
     prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT, onboardingClosedAt: true } }),
   ])
   const owned = all.filter((v) => v.access === 'owner' && v.organizationId === null)
-  const collaborating = all.filter((v) => v.access === 'collaborator')
+  const collaborating = all.filter((v) => v.access !== 'owner')
 
   const atFreeLimit = !hasPro(user) && owned.length >= 1
   const tp = await getTranslations('vehicleProfile')

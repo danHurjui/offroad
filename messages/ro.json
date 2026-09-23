@@ -479,7 +479,8 @@
     "expenses": "Alte costuri",
     "costs": "Costul deținerii",
     "serviceBook": "Carte de service",
-    "passport": "Pașaport"
+    "passport": "Pașaport",
+    "drivers": "Șoferi"
   },
   "home": {
     "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
@@ -952,7 +953,8 @@
     "statusLabel": "Stadiu",
     "statusFailed": "Nu am putut schimba stadiul.",
     "deleted": "Ai șters „{name}”.",
-    "deleteFailed": "Nu am putut șterge „{name}”."
+    "deleteFailed": "Nu am putut șterge „{name}”.",
+    "costsHiddenHint": "Sumele introduse se salvează; costurile acestui vehicul nu îți sunt afișate."
   },
   "era": {
     "pre1970": "Înainte de 1970",
@@ -2115,7 +2117,10 @@
     "vehicleAlreadyCompany": "Acest vehicul aparține deja unei organizații.",
     "orgMoveNotAllowed": "Poți muta un vehicul doar într-o organizație în care ești proprietar sau manager de flotă.",
     "vehicleNotCompany": "Acest vehicul nu aparține unei organizații.",
-    "orgDeleteConfirm": "Scrie exact numele organizației ca să o ștergi împreună cu {count, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}."
+    "orgDeleteConfirm": "Scrie exact numele organizației ca să o ștergi împreună cu {count, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}.",
+    "assignDriverOnly": "Un vehicul poate fi atribuit doar unui șofer al organizației lui.",
+    "vehicleAlreadyAssigned": "Acest vehicul are deja un șofer. Încheie mai întâi acea atribuire.",
+    "assignmentAlreadyEnded": "Această atribuire s-a încheiat deja."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2899,5 +2904,26 @@
       "noCosts": "Niciun cost înregistrat în această perioadă.",
       "footnote": "Costul de exploatare nu include prețul de achiziție, care nu este un cost lunar. Pe vehicul pe lună împarte costul de exploatare la lunile în care fiecare vehicul a fost deținut în perioadă. Cifrele fiecărui vehicul sunt cele de pe propria lui pagină de costuri."
     }
+  },
+  "drivers": {
+    "title": "Șoferi",
+    "intro": "Cine conduce acum acest vehicul și cine l-a condus înainte. Un șofer vede doar vehiculul atribuit lui — jurnalul, fotografiile și documentele — și niciodată costurile.",
+    "current": "Șoferul actual",
+    "none": "Nimeni nu este atribuit acestui vehicul.",
+    "noDrivers": "Această organizație nu are membri cu rolul de șofer. Invită unul din pagina organizației.",
+    "driver": "Șofer",
+    "note": "Notă (opțional)",
+    "assign": "Atribuie",
+    "assigning": "Se atribuie…",
+    "assigned": "Șoferul a fost atribuit.",
+    "assignFailed": "Șoferul nu a putut fi atribuit.",
+    "since": "din {date}",
+    "end": "Încheie atribuirea",
+    "confirmEnd": "Închei acum atribuirea lui {name}? Pierde imediat accesul la acest vehicul.",
+    "ended": "Atribuirea s-a încheiat.",
+    "endFailed": "Atribuirea nu a putut fi încheiată.",
+    "history": "Istoric",
+    "noHistory": "Nimeni nu a fost atribuit încă acestui vehicul.",
+    "ongoing": "acum"
   }
 }

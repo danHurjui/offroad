@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { toNumberOrNull } from '@/lib/serialize'
 import FoundStateForm from '@/components/FoundStateForm'
@@ -32,7 +32,7 @@ export default async function FoundStatePage({ params }: { params: { id: string 
         vehicleId={vehicle.id}
         initial={
           foundState
-            ? { ...foundState, acquisitionDate: foundState.acquisitionDate.toISOString(), purchasePriceRon: toNumberOrNull(foundState.purchasePriceRon) }
+            ? { ...foundState, acquisitionDate: foundState.acquisitionDate.toISOString(), purchasePriceRon: hidesCosts(vehicle) ? null : toNumberOrNull(foundState.purchasePriceRon) }
             : null
         }
       />

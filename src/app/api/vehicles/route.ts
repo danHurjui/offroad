@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, apiErrorWith } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
-import { listAccessibleVehicles } from '@/lib/access'
+import { listAccessibleVehicles, hidesCosts } from '@/lib/access'
 import { requireSession } from '@/lib/authz'
 import { isProjectType, PROJECT_TYPES } from '@/lib/projectType'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
@@ -25,8 +25,8 @@ export async function GET() {
     return NextResponse.json({
       owned: all.filter((v) => v.access === 'owner').map(({ access: _a, ...v }) => serializeVehicle(v)),
       collaborating: all
-        .filter((v) => v.access === 'collaborator')
-        .map(({ access: _a, ...v }) => serializeVehicle(v, { hideCosts: v.hideCostsFromCollaborators })),
+        .filter((v) => v.access !== 'owner')
+        .map(({ access, ...v }) => serializeVehicle(v, { hideCosts: hidesCosts({ ...v, access }) })),
     })
   } catch {
     return await apiError('internalError', 500)

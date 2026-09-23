@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { labelFor } from '@/lib/projectType'
 import { getVocabulary } from '@/lib/vocabulary'
@@ -37,7 +37,6 @@ export default async function CostAnalyticsPage({
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const isOwner = vehicle.access === 'owner'
   const t = await getTranslations('analytics')
   const tc = await getTranslations('common')
   const config = await getVocabulary(vehicle.projectType)
@@ -46,7 +45,7 @@ export default async function CostAnalyticsPage({
   const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
   const isPro = hasPro(owner)
 
-  if (!isOwner && vehicle.hideCostsFromCollaborators) {
+  if (hidesCosts(vehicle)) {
     return (
       <div>
         <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">

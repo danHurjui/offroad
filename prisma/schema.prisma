@@ -199,6 +199,8 @@ model User {
   accidents            Accident[]            @relation("AccidentBy")
   organizationMemberships OrganizationMember[]
   organizationInvitesSent OrganizationInvite[] @relation("OrgInvitedBy")
+  vehicleAssignments   VehicleAssignment[]   @relation("AssignmentDriver")
+  assignmentsMade      VehicleAssignment[]   @relation("AssignmentBy")
   ticketVotes          TicketVote[]
   ticketComments       TicketComment[]
   donations            Donation[]
@@ -441,6 +443,7 @@ model Vehicle {
   expenses      VehicleExpense[]
   passportLinks PassportLink[]
   accidents     Accident[]
+  assignments   VehicleAssignment[]
 
   @@unique([ownerId, slug])
   @@index([ownerId])
@@ -1169,4 +1172,30 @@ model OrganizationInvite {
 
   @@index([organizationId])
   @@index([invitedByUserId])
+}
+
+/// RL-040: who drives a company vehicle, as a history — "who had the van in
+/// March" is a query, not a guess. An assignment starts when it is made and
+/// ends when it is ended; neither is back-dated, so ranges cannot overlap
+/// and **one active driver per vehicle** is a partial unique index
+/// (`endedAt IS NULL`) in the migration, not a check in the form.
+model VehicleAssignment {
+  id            String    @id @default(cuid())
+  vehicleId     String
+  driverUserId  String
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+  note          String?
+  assignedByUserId String?
+  createdAt     DateTime  @default(now())
+
+  vehicle    Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  /// Cascade: a driver deleting their account takes their assignment
+  /// history with it; the vehicle's own log is untouched.
+  driver     User    @relation("AssignmentDriver", fields: [driverUserId], references: [id], onDelete: Cascade)
+  assignedBy User?   @relation("AssignmentBy", fields: [assignedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([vehicleId, startedAt])
+  @@index([driverUserId])
+  @@index([assignedByUserId])
 }

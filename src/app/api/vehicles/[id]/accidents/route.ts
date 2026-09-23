@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, apiErrorWith } from '@/lib/apiError'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { readJsonBody } from '@/lib/requestBody'
 import { parseAccident } from '@/lib/accidents'
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const created = await prisma.accident.create({
       data: { vehicleId: vehicle.id, date: date!, kind: kind!, description: description!, ...rest, createdByUserId: session.user.id },
     })
-    return NextResponse.json({ ...created, repairCostRon: toNumberOrNull(created.repairCostRon) }, { status: 201 })
+    return NextResponse.json({ ...created, repairCostRon: hidesCosts(vehicle) ? null : toNumberOrNull(created.repairCostRon) }, { status: 201 })
   } catch {
     return await apiError('internalError', 500)
   }

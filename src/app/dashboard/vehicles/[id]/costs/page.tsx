@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { isDateRange, type DateRange } from '@/lib/analytics'
@@ -67,7 +67,7 @@ export default async function OwnershipCostsPage({
 
   // A new aggregate, so RL-031's switch is applied here rather than
   // assumed from the routes: a collaborator it hides costs from sees none.
-  if (!isOwner && vehicle.hideCostsFromCollaborators) {
+  if (hidesCosts(vehicle)) {
     return (
       <div className="mx-auto max-w-2xl">
         {back}

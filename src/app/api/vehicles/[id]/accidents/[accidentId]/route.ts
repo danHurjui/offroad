@@ -7,6 +7,7 @@ import { parseAccident } from '@/lib/accidents'
 import { toNumberOrNull } from '@/lib/serialize'
 import { deleteStoredFiles } from '@/lib/personalData'
 import { loadAccident } from '../load'
+import { hidesCosts } from '@/lib/access'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string; accidentId: string } }) {
   const auth = await requireSession()
@@ -21,7 +22,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   try {
     const updated = await prisma.accident.update({ where: { id: loaded.accident.id }, data: accident.data })
-    return NextResponse.json({ ...updated, repairCostRon: toNumberOrNull(updated.repairCostRon) })
+    return NextResponse.json({ ...updated, repairCostRon: hidesCosts(loaded.vehicle) ? null : toNumberOrNull(updated.repairCostRon) })
   } catch {
     return await apiError('internalError', 500)
   }

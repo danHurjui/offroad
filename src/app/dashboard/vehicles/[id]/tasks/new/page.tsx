@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import TaskForm from '@/components/TaskForm'
@@ -37,6 +37,7 @@ export default async function NewTaskPage({ params }: { params: { id: string } }
           projectType={vehicle.projectType}
           collaboratorLabel={isOwner ? undefined : collaborator?.label ?? ''}
           suggestions={suggestions}
+          costsHidden={hidesCosts(vehicle)}
         />
       </Suspense>
     </div>

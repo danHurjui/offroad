@@ -6,6 +6,7 @@ jest.mock('@/lib/prisma', () => ({
     organization: { create: jest.fn(), update: jest.fn(), delete: jest.fn(), deleteMany: jest.fn() },
     organizationMember: { findUnique: jest.fn(), findMany: jest.fn(), findFirst: jest.fn(), count: jest.fn(), update: jest.fn(), delete: jest.fn() },
     vehicle: { findMany: jest.fn(), update: jest.fn(), deleteMany: jest.fn(), count: jest.fn() },
+    vehicleAssignment: { updateMany: jest.fn() },
     $queryRaw: jest.fn(),
     $transaction: jest.fn(),
   },
@@ -322,6 +323,31 @@ describe('/api/organizations/[orgId]/members/[memberId]', () => {
     member.count.mockResolvedValue(2)
     expect((await deleteMember(req(), memberParams('m-me'))).status).toBe(200)
     expect(member.delete).toHaveBeenCalledWith({ where: { id: 'm-me' } })
+  })
+
+  /** RL-040: an active assignment left behind would block the next driver. */
+  it('a DRIVER removed or given another role stops driving the organisation’s vehicles', async () => {
+    callerIs('OWNER')
+    targets.m2 = { id: 'm2', organizationId: 'o1', userId: 'u2', role: 'DRIVER' }
+    member.count.mockResolvedValue(1)
+    member.update.mockResolvedValue({})
+    await patchMember(req({ role: 'MECHANIC' }), memberParams('m2'))
+    await deleteMember(req(), memberParams('m2'))
+    const assign = prisma.vehicleAssignment.updateMany as jest.Mock
+    expect(assign).toHaveBeenCalledTimes(2)
+    expect(assign.mock.calls[0][0]).toEqual({
+      where: { endedAt: null, driverUserId: 'u2', vehicle: { organizationId: 'o1' } },
+      data: { endedAt: expect.any(Date) },
+    })
+  })
+
+  it('a role change that keeps DRIVER, or a non-driver, ends nothing', async () => {
+    callerIs('OWNER')
+    targets.m2 = { id: 'm2', organizationId: 'o1', userId: 'u2', role: 'MECHANIC' }
+    member.count.mockResolvedValue(1)
+    member.update.mockResolvedValue({})
+    await patchMember(req({ role: 'DRIVER' }), memberParams('m2'))
+    expect(prisma.vehicleAssignment.updateMany).not.toHaveBeenCalled()
   })
 
   it('anyone can leave', async () => {

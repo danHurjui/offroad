@@ -5,6 +5,7 @@ import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
 import { canManageOrganization, isOrgRole, lastOwnerBlocks, lockOrganization, type MemberChange } from '@/lib/organizations'
 import { loadMembership } from '../../../load'
+import { endAssignmentsFor } from '@/lib/assignments'
 
 type Params = { params: { orgId: string; memberId: string } }
 
@@ -21,6 +22,11 @@ async function applyChange(orgId: string, memberId: string, change: MemberChange
     if (!target || target.organizationId !== orgId) return { ok: false, status: 404 }
     const owners = await tx.organizationMember.count({ where: { organizationId: orgId, role: 'OWNER' } })
     if (lastOwnerBlocks({ role: target.role }, change, owners)) return { ok: false, status: 409 }
+    // RL-040: someone who stops being a DRIVER here stops driving its
+    // vehicles, in the same transaction.
+    if (target.role === 'DRIVER' && (change.kind === 'remove' || change.role !== 'DRIVER')) {
+      await endAssignmentsFor(tx, { organizationId: orgId, driverUserId: target.userId })
+    }
     if (change.kind === 'remove') {
       await tx.organizationMember.delete({ where: { id: memberId } })
       return { ok: true }

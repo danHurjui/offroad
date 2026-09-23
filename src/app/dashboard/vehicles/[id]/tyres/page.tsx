@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
@@ -21,6 +21,7 @@ export default async function TyresPage({ params }: { params: { id: string } }) 
   if (!vehicle) notFound()
   const config = await getVocabulary(vehicle.projectType)
   const isOwner = vehicle.access === 'owner'
+  const showCosts = !hidesCosts(vehicle)
 
   const [sets, latest] = await Promise.all([
     prisma.tyreSet.findMany({ where: { vehicleId: vehicle.id }, orderBy: [{ isFitted: 'desc' }, { createdAt: 'desc' }] }),
@@ -63,7 +64,7 @@ export default async function TyresPage({ params }: { params: { id: string } }) 
                       tread !== null && `${tread.toLocaleString('ro-RO')} mm${s.treadMeasuredAt ? ` (${t('measuredOn', { date: fmtDate(s.treadMeasuredAt) })})` : ''}`,
                       s.dotYear && t('madeIn', { year: s.dotYear }),
                       kmOn !== null && t('kmOn', { km: kmOn.toLocaleString('ro-RO') }),
-                      s.costRon !== null &&
+                      showCosts && s.costRon !== null &&
                         t('bought', {
                           amount: (toNumberOrNull(s.costRon) ?? 0).toLocaleString('ro-RO', { maximumFractionDigits: 2 }),
                           date: fmtDate(s.purchasedAt ?? s.createdAt),

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { Suspense } from 'react'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { toNumberOrNull } from '@/lib/serialize'
 import TaskForm from '@/components/TaskForm'
@@ -23,6 +23,7 @@ export default async function EditTaskPage({ params }: { params: { id: string; t
   if (!task || task.vehicleId !== vehicle.id) notFound()
 
   const isOwner = vehicle.access === 'owner'
+  const costsHidden = hidesCosts(vehicle)
   if (!isOwner && task.addedByUserId !== session.user.id) notFound()
 
   const suggestions = await taskFieldSuggestions(vehicle.id)
@@ -38,6 +39,7 @@ export default async function EditTaskPage({ params }: { params: { id: string; t
           vehicleId={vehicle.id}
           projectType={vehicle.projectType}
           suggestions={suggestions}
+          costsHidden={costsHidden}
           initialTask={{
             id: task.id,
             name: task.name,
@@ -45,9 +47,11 @@ export default async function EditTaskPage({ params }: { params: { id: string; t
             category: task.category,
             status: task.status,
             workType: task.workType,
-            costRon: toNumberOrNull(task.costRon),
-            partsCostRon: toNumberOrNull(task.partsCostRon),
-            labourCostRon: toNumberOrNull(task.labourCostRon),
+            // Whoever may not see costs gets blank fields; an untouched
+            // blank is not sent, so the stored amounts are left alone.
+            costRon: costsHidden ? null : toNumberOrNull(task.costRon),
+            partsCostRon: costsHidden ? null : toNumberOrNull(task.partsCostRon),
+            labourCostRon: costsHidden ? null : toNumberOrNull(task.labourCostRon),
             date: task.date.toISOString(),
             notes: task.notes,
             supplierUrl: task.supplierUrl,

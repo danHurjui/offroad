@@ -3,7 +3,7 @@ import { HideWhilePending } from '@/components/Toaster'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { labelFor, statusBadgeClass } from '@/lib/projectType'
 import { getVocabulary } from '@/lib/vocabulary'
@@ -174,6 +174,11 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           <Link href={`/dashboard/vehicles/${vehicle.id}/accidents`} className="btn-secondary">
             {t('accidents')}
           </Link>
+          {isOwner && vehicle.organizationId && (
+            <Link href={`/dashboard/vehicles/${vehicle.id}/drivers`} className="btn-secondary">
+              {t('drivers')}
+            </Link>
+          )}
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/wishlist`} className="btn-secondary">
               {config.wishlistLabel}
@@ -195,12 +200,12 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           <Link href={`/dashboard/vehicles/${vehicle.id}/expenses`} className="btn-secondary">
             {t('expenses')}
           </Link>
-          {(!vehicle.hideCostsFromCollaborators || isOwner) && (
+          {!hidesCosts(vehicle) && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/costs`} className="btn-secondary">
               {t('costs')}
             </Link>
           )}
-          {(!vehicle.hideCostsFromCollaborators || isOwner) && (
+          {!hidesCosts(vehicle) && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/analytics`} className="btn-secondary">
               {t('analytics')}
             </Link>
@@ -331,7 +336,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         <StatCard
           label={t('totalSpent')}
           value={
-            !isOwner && vehicle.hideCostsFromCollaborators
+            hidesCosts(vehicle)
               ? t('hidden')
               : `${totalSpent.toLocaleString('ro-RO')} RON`
           }

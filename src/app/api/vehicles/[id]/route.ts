@@ -3,7 +3,7 @@ import { apiError, apiErrorWith } from '@/lib/apiError'
 import { isBlockedAsUnverified, VERIFICATION_SELECT } from '@/lib/emailVerification'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess, requireVehicleOwner } from '@/lib/access'
+import { requireVehicleAccess, requireVehicleOwner, hidesCosts } from '@/lib/access'
 import { ensureUsername } from '@/lib/username'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
 import { serializeTaskFor, serializeVehicle, toNumberOrNull } from '@/lib/serialize'
@@ -38,7 +38,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     // to reach consumers as numbers, and RL-031's hideCostsFromCollaborators
     // has to be applied here rather than only in the pages that render them.
     const isOwner = vehicle.access === 'owner'
-    const hideCosts = !isOwner && vehicle.hideCostsFromCollaborators
+    const hideCosts = hidesCosts(vehicle)
     return NextResponse.json({
       vehicle: serializeVehicle(vehicle, { hideCosts }),
       tasks: tasks.map((t) => serializeTaskFor(t, { hideCosts })),

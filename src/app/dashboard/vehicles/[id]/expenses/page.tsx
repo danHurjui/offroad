@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
@@ -22,7 +22,7 @@ export default async function ExpensesPage({ params }: { params: { id: string } 
   if (!vehicle) notFound()
   const config = await getVocabulary(vehicle.projectType)
   const isOwner = vehicle.access === 'owner'
-  const hideSpend = !isOwner && vehicle.hideCostsFromCollaborators
+  const hideSpend = hidesCosts(vehicle)
 
   const rows = await prisma.vehicleExpense.findMany({
     where: { vehicleId: vehicle.id },
