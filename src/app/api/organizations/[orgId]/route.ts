@@ -63,10 +63,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 /**
- * Deletes the organisation and every membership in it. Owners only. No
- * vehicle belongs to an organisation yet, so there are no files to gather;
- * the slice that gives organisations vehicles must add
- * `collectStorageKeys()` before this delete (pitfall #14).
+ * Deletes the organisation and every membership in it. Owners only.
+ * Refused while it still has vehicles (the foreign key is Restrict too):
+ * what happens to a company's vehicles and their files is the next
+ * slice's decision, not an accident of this one.
  */
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const auth = await requireSession()
@@ -75,6 +75,9 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   const loaded = await loadMembership(params.orgId, session.user.id)
   if (!loaded.ok) return loaded.error
   if (!canManageOrganization(loaded.role)) return await apiError('orgOwnerOnly', 403)
+
+  const vehicles = await prisma.vehicle.count({ where: { organizationId: params.orgId } })
+  if (vehicles > 0) return await apiErrorWith('orgHasVehicles', { count: vehicles }, 409)
 
   try {
     await prisma.organization.delete({ where: { id: params.orgId } })

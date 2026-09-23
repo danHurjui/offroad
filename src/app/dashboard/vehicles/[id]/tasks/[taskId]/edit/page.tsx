@@ -22,7 +22,7 @@ export default async function EditTaskPage({ params }: { params: { id: string; t
   })
   if (!task || task.vehicleId !== vehicle.id) notFound()
 
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   if (!isOwner && task.addedByUserId !== session.user.id) notFound()
 
   const suggestions = await taskFieldSuggestions(vehicle.id)

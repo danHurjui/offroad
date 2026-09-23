@@ -38,7 +38,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     })
 
     // RL-031: redact costs for a collaborator when the owner hid them.
-    const hideCosts = vehicle.ownerId !== session.user.id && vehicle.hideCostsFromCollaborators
+    const hideCosts = vehicle.access !== 'owner' && vehicle.hideCostsFromCollaborators
     return NextResponse.json(tasks.map((t) => serializeTaskFor(t, { hideCosts })))
   } catch {
     return await apiError('internalError', 500)
@@ -149,7 +149,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     await prisma.vehicle.update({ where: { id: vehicle.id }, data: { updatedAt: new Date() } })
 
     // RL-032: notify the owner when a collaborator (not the owner) logs a task.
-    if (session.user.id !== vehicle.ownerId) {
+    // Not for a company vehicle: its ownerId is only the account of record,
+    // who may have left the organisation since.
+    if (vehicle.access !== 'owner' && !vehicle.organizationId) {
       const [owner, collaboratorUser] = await Promise.all([
         prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { email: true, locale: true } }),
         prisma.user.findUnique({ where: { id: session.user.id }, select: { displayName: true } }),

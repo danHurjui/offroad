@@ -40,7 +40,7 @@ const mockPushSubDelete = prisma.pushSubscription.delete as jest.Mock
 const mockSendEmail = sendEmail as jest.Mock
 const mockSendPush = sendPushNotification as jest.Mock
 
-const VEHICLE = { year: 2001, make: 'Jeep', model: 'Wrangler', slug: 'wrangler', owner: { username: 'dan' } }
+const VEHICLE = { year: 2001, make: 'Jeep', model: 'Wrangler', slug: 'wrangler', isPublic: true, owner: { username: 'dan' } }
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -50,6 +50,20 @@ beforeEach(() => {
 describe('notifyFollowers', () => {
   it('does nothing when the vehicle has no followers', async () => {
     mockFollowFindMany.mockResolvedValue([])
+    await notifyFollowers('v1', { key: 'taskDone', values: { task: 'Something' } })
+    expect(mockSendEmail).not.toHaveBeenCalled()
+    expect(mockSendPush).not.toHaveBeenCalled()
+  })
+
+  /**
+   * A project that has gone private — switched off, or moved into an
+   * organisation — tells its followers nothing more.
+   */
+  it('does nothing once the vehicle is no longer public', async () => {
+    mockVehicleFindUnique.mockResolvedValue({ ...VEHICLE, isPublic: false })
+    mockFollowFindMany.mockResolvedValue([
+      { follower: { email: 'a@x.com', notifyFollowedEmail: true, notifyFollowedPush: true, pushSubscriptions: [{ id: 's1' }] } },
+    ])
     await notifyFollowers('v1', { key: 'taskDone', values: { task: 'Something' } })
     expect(mockSendEmail).not.toHaveBeenCalled()
     expect(mockSendPush).not.toHaveBeenCalled()

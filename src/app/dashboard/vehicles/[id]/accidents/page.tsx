@@ -20,7 +20,7 @@ export default async function AccidentsPage({ params }: { params: { id: string }
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
   const config = await getVocabulary(vehicle.projectType)
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   // RL-031: a collaborator does not see costs when the owner hid them.
   const showCosts = isOwner || !vehicle.hideCostsFromCollaborators
 

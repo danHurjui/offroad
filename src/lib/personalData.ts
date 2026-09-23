@@ -192,7 +192,9 @@ type VehicleWithRelations = Awaited<ReturnType<typeof fetchVehicles>>[number]
 
 function fetchVehicles(userId: string) {
   return prisma.vehicle.findMany({
-    where: { ownerId: userId },
+    // Personal vehicles. A company vehicle this account is the record for
+    // is the organisation's data, not this person's.
+    where: { ownerId: userId, organizationId: null },
     include: {
       tasks: { include: { photos: true }, orderBy: { date: 'asc' } },
       foundState: { include: { photos: true } },

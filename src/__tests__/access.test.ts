@@ -24,7 +24,7 @@ describe('requireVehicleAccess', () => {
     const vehicle = { id: 'v1', ownerId: 'u1' }
     mockVehicleFindUnique.mockResolvedValue(vehicle)
     const result = await requireVehicleAccess('v1', 'u1')
-    expect(result).toBe(vehicle)
+    expect(result).toEqual({ ...vehicle, access: 'owner' })
     expect(mockCollaboratorFindFirst).not.toHaveBeenCalled()
   })
 
@@ -33,9 +33,10 @@ describe('requireVehicleAccess', () => {
     mockVehicleFindUnique.mockResolvedValue(vehicle)
     mockCollaboratorFindFirst.mockResolvedValue({ id: 'c1' })
     const result = await requireVehicleAccess('v1', 'collaborator')
-    expect(result).toBe(vehicle)
+    expect(result).toEqual({ ...vehicle, access: 'collaborator' })
     expect(mockCollaboratorFindFirst).toHaveBeenCalledWith({
       where: { vehicleId: 'v1', collaboratorUserId: 'collaborator', status: 'ACTIVE' },
+      select: { id: true },
     })
   })
 
@@ -58,6 +59,6 @@ describe('requireVehicleOwner', () => {
     const vehicle = { id: 'v1', ownerId: 'owner' }
     mockVehicleFindUnique.mockResolvedValue(vehicle)
     const result = await requireVehicleOwner('v1', 'owner')
-    expect(result).toBe(vehicle)
+    expect(result).toEqual({ ...vehicle, access: 'owner' })
   })
 })

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
+import { managersSelect, vehicleManagers } from '@/lib/access'
 import { translator } from '@/i18n/translator'
 import { decideReminder, daysUntilMessage, getDocumentStatus, REMINDER_FIELDS } from '@/lib/documents'
 import { sendEmail, documentReminderEmail, emailLocale } from '@/lib/email'
@@ -35,7 +36,8 @@ async function handle(req: NextRequest) {
       OR: REMINDER_FIELDS.map((field) => ({ [field]: null })),
     },
     include: {
-      vehicle: { select: { id: true, make: true, model: true, year: true, owner: { select: { email: true, locale: true } } } },
+      // RL-038: a company vehicle's reminders go to the people who manage it.
+      vehicle: { select: { id: true, make: true, model: true, year: true, ...managersSelect({ email: true, locale: true }) } },
     },
   })
 
@@ -57,20 +59,21 @@ async function handle(req: NextRequest) {
     for (const field of decision.fieldsToMarkSent) data[field] = new Date()
     await prisma.document.update({ where: { id: doc.id }, data })
 
-    // The owner's language, not the cron job's: this runs nightly with no
-    // browser and no cookie anywhere near it.
-    const locale = emailLocale(doc.vehicle.owner)
-    const tDoc = await translator(locale, 'documents')
+    // Each recipient's language, not the cron job's: this runs nightly with
+    // no browser and no cookie anywhere near it.
     const days = daysUntilMessage(daysUntil)
-
-    const { subject, html } = await documentReminderEmail(locale, {
-      documentLabel: tDoc(`type.${doc.type}`),
-      vehicleName: `${doc.vehicle.year} ${doc.vehicle.make} ${doc.vehicle.model}`,
-      daysUntilLabel: tDoc(days.key, days.values),
-      vehicleUrl: `${baseUrl}/dashboard/vehicles/${doc.vehicle.id}/documents`,
-    })
-    await sendEmail({ to: doc.vehicle.owner.email, subject, html })
-    sent++
+    for (const recipient of vehicleManagers(doc.vehicle)) {
+      const locale = emailLocale(recipient)
+      const tDoc = await translator(locale, 'documents')
+      const { subject, html } = await documentReminderEmail(locale, {
+        documentLabel: tDoc(`type.${doc.type}`),
+        vehicleName: `${doc.vehicle.year} ${doc.vehicle.make} ${doc.vehicle.model}`,
+        daysUntilLabel: tDoc(days.key, days.values),
+        vehicleUrl: `${baseUrl}/dashboard/vehicles/${doc.vehicle.id}/documents`,
+      })
+      await sendEmail({ to: recipient.email, subject, html })
+      sent++
+    }
   }
 
   // Piggyback the rate-limit sweep on the daily cron rather than adding a

@@ -24,11 +24,19 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
   const org = membership.organization
   const manager = canManageOrganization(membership.role)
 
-  const members = await prisma.organizationMember.findMany({
-    where: { organizationId: org.id },
-    include: { user: { select: { displayName: true, email: true } } },
-    orderBy: { createdAt: 'asc' },
-  })
+  const [members, vehicles] = await Promise.all([
+    prisma.organizationMember.findMany({
+      where: { organizationId: org.id },
+      include: { user: { select: { displayName: true, email: true } } },
+      orderBy: { createdAt: 'asc' },
+    }),
+    // Every member has at least collaborator access to these (access.ts).
+    prisma.vehicle.findMany({
+      where: { organizationId: org.id },
+      select: { id: true, year: true, make: true, model: true, plate: true },
+      orderBy: { updatedAt: 'desc' },
+    }),
+  ])
   // Open invitations only — accepted ones are members above, withdrawn ones are gone.
   const invites = manager
     ? (
@@ -66,6 +74,23 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
             initial={{ name: org.name, cui: org.cui ?? '', billingAddress: org.billingAddress ?? '' }}
           />
         </section>
+      )}
+
+      <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('vehiclesTitle')}</h2>
+      <p className="mb-3 text-xs text-ink-faint">{t('vehiclesHelp')}</p>
+      {vehicles.length === 0 ? (
+        <p className="card mb-6 p-4 text-sm text-ink-faint">{t('noVehicles')}</p>
+      ) : (
+        <ul className="card mb-6 divide-y divide-surface-border">
+          {vehicles.map((v) => (
+            <li key={v.id}>
+              <Link href={`/dashboard/vehicles/${v.id}`} className="flex flex-wrap items-center justify-between gap-2 p-3 hover:bg-surface-muted">
+                <span className="min-w-0 truncate text-sm font-medium text-ink">{v.year} {v.make} {v.model}</span>
+                {v.plate && <span className="font-mono text-xs text-ink-muted">{v.plate}</span>}
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
 
       <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('membersTitle')}</h2>

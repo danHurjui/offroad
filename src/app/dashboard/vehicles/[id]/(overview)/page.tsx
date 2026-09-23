@@ -28,7 +28,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   const config = await getVocabulary(vehicle.projectType)
   const completeStatus = config.completeStatus
 

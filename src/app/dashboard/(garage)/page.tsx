@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
+import { listAccessibleVehicles } from '@/lib/access'
 import { PROJECT_TYPES, isProjectType, type ProjectType } from '@/lib/projectType'
 import { getAllVocabulary, getVocabulary } from '@/lib/vocabulary'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
@@ -30,14 +31,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Ga
   const ta = await getTranslations('analytics')
   const session = await requireSessionOrRedirect()
 
-  const [owned, collaborating, user] = await Promise.all([
-    prisma.vehicle.findMany({ where: { ownerId: session.user.id }, orderBy: { updatedAt: 'desc' } }),
-    prisma.vehicle.findMany({
-      where: { collaborators: { some: { collaboratorUserId: session.user.id, status: 'ACTIVE' } } },
-      orderBy: { updatedAt: 'desc' },
-    }),
+  // RL-038: every vehicle the viewer can see, each with their access —
+  // personal ones they own, company ones by role, and ones they collaborate
+  // on. `owned` stays the personal garage (the free-tier limit and the
+  // first-run checklist are about that).
+  const [all, user] = await Promise.all([
+    listAccessibleVehicles(session.user.id),
     prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT, onboardingClosedAt: true } }),
   ])
+  const owned = all.filter((v) => v.access === 'owner' && v.organizationId === null)
+  const collaborating = all.filter((v) => v.access === 'collaborator')
 
   const atFreeLimit = !hasPro(user) && owned.length >= 1
   const tp = await getTranslations('vehicleProfile')
@@ -48,17 +51,18 @@ export default async function DashboardPage({ searchParams }: { searchParams: Ga
   const checklist = await checklistSteps(session.user.id, user?.onboardingClosedAt ?? null, owned, collaborating.length)
 
   // RL-035: two batched queries for every card on the page, not one per
-  // vehicle. Documents only for owned vehicles — the documents screen is
-  // the owner's, so a collaborator's card never shows an expiry.
-  const all = [...owned, ...collaborating]
+  // vehicle. Documents only where the viewer has owner access — the
+  // documents screen is the owner's, so a collaborator's card never shows
+  // an expiry.
+  const managed = all.filter((v) => v.access === 'owner')
   const [tasks, documents] = all.length
     ? await Promise.all([
         prisma.task.findMany({
           where: { vehicleId: { in: all.map((v) => v.id) } },
           select: { vehicleId: true, status: true, category: true, workType: true, costRon: true, partsCostRon: true, labourCostRon: true, date: true, updatedAt: true },
         }),
-        owned.length
-          ? prisma.document.findMany({ where: { vehicleId: { in: owned.map((v) => v.id) } }, select: { vehicleId: true, type: true, expiryDate: true } })
+        managed.length
+          ? prisma.document.findMany({ where: { vehicleId: { in: managed.map((v) => v.id) } }, select: { vehicleId: true, type: true, expiryDate: true } })
           : Promise.resolve([]),
       ])
     : [[], []]
@@ -68,7 +72,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Ga
     partsCostRon: toNumberOrNull(task.partsCostRon),
     labourCostRon: toNumberOrNull(task.labourCostRon),
   }))
-  const cards = new Map(summarizeGarage(all, taskRows, documents, session.user.id).map((c) => [c.vehicleId, c]))
+  const cards = new Map(summarizeGarage(all, taskRows, documents).map((c) => [c.vehicleId, c]))
   const shown = sortGarage(
     all
       .filter((v) => matchesVehicleSearch(v, query))
@@ -104,7 +108,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Ga
 
       {checklist && <FirstVehicleChecklist steps={checklist} />}
 
-      {owned.length === 0 && collaborating.length === 0 ? (
+      {all.length === 0 ? (
         <EmptyGarage />
       ) : (
         <>

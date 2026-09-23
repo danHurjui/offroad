@@ -4,7 +4,8 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     user: { findUnique: jest.fn(), update: jest.fn(), delete: jest.fn() },
     organization: { create: jest.fn(), update: jest.fn(), delete: jest.fn(), deleteMany: jest.fn() },
-    organizationMember: { findUnique: jest.fn(), findMany: jest.fn(), count: jest.fn(), update: jest.fn(), delete: jest.fn() },
+    organizationMember: { findUnique: jest.fn(), findMany: jest.fn(), findFirst: jest.fn(), count: jest.fn(), update: jest.fn(), delete: jest.fn() },
+    vehicle: { findMany: jest.fn(), update: jest.fn(), deleteMany: jest.fn(), count: jest.fn() },
     $queryRaw: jest.fn(),
     $transaction: jest.fn(),
   },
@@ -38,6 +39,7 @@ const mockSession = getServerSession as jest.Mock
 const user = prisma.user as unknown as Record<string, jest.Mock>
 const org = prisma.organization as unknown as Record<string, jest.Mock>
 const member = prisma.organizationMember as unknown as Record<string, jest.Mock>
+const vehicle = prisma.vehicle as unknown as Record<string, jest.Mock>
 
 const req = (body?: unknown) =>
   ({ json: () => (body === undefined ? Promise.reject(new Error('no body')) : Promise.resolve(body)) }) as never
@@ -63,6 +65,8 @@ beforeEach(() => {
   )
   ;(prisma.$queryRaw as jest.Mock).mockResolvedValue([{ id: 'o1' }])
   member.findMany.mockResolvedValue([])
+  vehicle.findMany.mockResolvedValue([])
+  vehicle.count.mockResolvedValue(0)
 })
 
 describe('normalizeCui', () => {
@@ -212,6 +216,15 @@ describe('/api/organizations/[orgId]', () => {
     expect(org.delete).not.toHaveBeenCalled()
   })
 
+  it('is not deleted while it still has vehicles', async () => {
+    callerIs('OWNER')
+    vehicle.count.mockResolvedValue(2)
+    const res = await deleteOrg(req(), orgParams)
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('orgHasVehicles')
+    expect(org.delete).not.toHaveBeenCalled()
+  })
+
   it('an owner edits and deletes it', async () => {
     callerIs('OWNER')
     org.update.mockResolvedValue(ORG)
@@ -336,6 +349,35 @@ describe('DELETE /api/me/account and organisations', () => {
     expect(org.deleteMany).toHaveBeenCalledWith({ where: { id: { in: ['solo'] } } })
     expect(user.delete).toHaveBeenCalledWith({ where: { id: 'me' } })
   })
+
+  /** RL-038 slice 3: company vehicles are the organisation's, not the account's. */
+  it('hands company vehicles it is the record for to another owner, clearing the slug', async () => {
+    member.findMany.mockResolvedValue([
+      { role: 'OWNER', organization: { id: 'o1', name: 'Other', members: [{ role: 'OWNER' }, { role: 'OWNER' }] } },
+    ])
+    vehicle.findMany.mockResolvedValueOnce([{ id: 'v1', organizationId: 'o1' }])
+    member.findFirst.mockResolvedValue({ userId: 'heir' })
+    expect((await deleteAccount()).status).toBe(200)
+    expect(member.findFirst.mock.calls[0][0].where).toEqual({ organizationId: 'o1', role: 'OWNER', userId: { not: 'me' } })
+    expect(vehicle.update).toHaveBeenCalledWith({ where: { id: 'v1' }, data: { ownerId: 'heir', slug: null } })
+    expect(vehicle.deleteMany).toHaveBeenCalledWith({ where: { organizationId: { in: [] } } })
+  })
+
+  it('an organisation that goes with the account takes its vehicles and their files', async () => {
+    member.findMany.mockResolvedValue([{ role: 'OWNER', organization: { id: 'solo', name: 'Solo', members: [{ role: 'OWNER' }] } }])
+    vehicle.findMany
+      .mockResolvedValueOnce([{ id: 'v1', organizationId: 'solo' }])
+      .mockResolvedValueOnce([{ id: 'v1', ownerId: 'me' }, { id: 'v2', ownerId: 'former-member' }])
+    ;(collectStorageKeys as jest.Mock).mockImplementation((uid: string, vid?: string) =>
+      Promise.resolve(vid ? [`${uid}/${vid}/x.jpg`] : ['me/avatar.jpg'])
+    )
+    const res = await deleteAccount()
+    expect(res.status).toBe(200)
+    expect(vehicle.update).not.toHaveBeenCalled()
+    expect(vehicle.deleteMany).toHaveBeenCalledWith({ where: { organizationId: { in: ['solo'] } } })
+    expect(collectStorageKeys).toHaveBeenCalledWith('former-member', 'v2')
+    expect(deleteStoredFiles).toHaveBeenCalledWith(expect.arrayContaining(['me/avatar.jpg', 'former-member/v2/x.jpg']))
+  })
 })
 
 describe('schema', () => {
@@ -346,10 +388,15 @@ describe('schema', () => {
     expect(model.slice(0, model.indexOf('\n}'))).toContain('@@unique([organizationId, userId])')
   })
 
-  /** Slice 1 gives organisations no vehicles; the access checks must not know about them yet. */
-  it('no vehicle belongs to an organisation yet', () => {
-    const vehicle = schema.slice(schema.indexOf('model Vehicle {'))
-    expect(vehicle.slice(0, vehicle.indexOf('\n}'))).not.toContain('organization')
-    expect(fs.readFileSync(path.join(process.cwd(), 'src/lib/access.ts'), 'utf8')).not.toMatch(/organi[sz]ation/i)
+  /**
+   * A company vehicle is never public, in the database: its public page
+   * would sit under one person's username.
+   */
+  it('a company vehicle cannot be public, as a CHECK constraint', () => {
+    const migration = fs.readFileSync(
+      path.join(process.cwd(), 'prisma/migrations/20260928120000_company_vehicles/migration.sql'),
+      'utf8'
+    )
+    expect(migration).toMatch(/CHECK \("organizationId" IS NULL OR "isPublic" = false\)/)
   })
 })

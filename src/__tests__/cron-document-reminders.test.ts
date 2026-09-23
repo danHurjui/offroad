@@ -78,6 +78,33 @@ it('sends a reminder for a document crossing a threshold and marks it sent', asy
   expect(mockSendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'owner@test.com' }))
 })
 
+/**
+ * RL-038: a company vehicle's ownerId is only its account of record, who
+ * may have left. Its reminders go to the organisation's owners and fleet
+ * managers — the query selects only those roles.
+ */
+it('sends a company vehicle’s reminder to the people who manage it, not its account of record', async () => {
+  const expiryDate = new Date(Date.now() + 25 * 24 * 60 * 60 * 1000)
+  mockFindMany.mockResolvedValue([
+    {
+      id: 'd1', type: 'ITP', expiryDate,
+      reminder30SentAt: null, reminder14SentAt: null, reminder3SentAt: null,
+      vehicle: {
+        id: 'v1', make: 'Dacia', model: 'Logan', year: 2020,
+        organizationId: 'o1',
+        owner: { email: 'left-the-company@test.com' },
+        organization: { members: [{ user: { email: 'boss@firma.ro' } }, { user: { email: 'fleet@firma.ro' } }] },
+      },
+    },
+  ])
+  const data = await (await POST(req({ 'x-cron-secret': 'test-secret' }))).json()
+  expect(data).toMatchObject({ checked: 1, sent: 2 })
+  const to = mockSendEmail.mock.calls.map((c) => c[0].to)
+  expect(to).toEqual(['boss@firma.ro', 'fleet@firma.ro'])
+  const select = mockFindMany.mock.calls[0][0].include.vehicle.select
+  expect(select.organization.select.members.where).toEqual({ role: { in: ['OWNER', 'FLEET_MANAGER'] } })
+})
+
 it('skips a document with no threshold reached', async () => {
   const expiryDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
   mockFindMany.mockResolvedValue([

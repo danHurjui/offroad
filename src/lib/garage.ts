@@ -22,6 +22,7 @@ import { taskTotalCost, type CostTaskLike } from './analytics'
 import { getDocumentStatus, type DocumentStatus } from './documents'
 import { PROJECT_TYPE_CONFIG, type ProjectType } from './projectType'
 import { computeVehicleProgress } from './vehicleProgress'
+import type { VehicleAccess } from './access'
 
 export const GARAGE_SORTS = ['activity', 'attention', 'name'] as const
 export type GarageSort = (typeof GARAGE_SORTS)[number]
@@ -32,7 +33,8 @@ export function isGarageSort(value: unknown): value is GarageSort {
 
 export interface GarageVehicle {
   id: string
-  ownerId: string
+  /** The viewer's access, from src/lib/access.ts. */
+  access: VehicleAccess
   projectType: ProjectType
   year: number
   make: string
@@ -74,7 +76,6 @@ export function summarizeGarage(
   vehicles: GarageVehicle[],
   tasks: GarageTask[],
   documents: GarageDocument[],
-  viewerId: string,
   now: Date = new Date()
 ): GarageCard[] {
   const tasksBy = groupBy(tasks, (t) => t.vehicleId)
@@ -83,7 +84,7 @@ export function summarizeGarage(
   return vehicles.map((vehicle) => {
     const config = PROJECT_TYPE_CONFIG[vehicle.projectType]
     const own = tasksBy.get(vehicle.id) ?? []
-    const isOwner = vehicle.ownerId === viewerId
+    const isOwner = vehicle.access === 'owner'
 
     const figure: GarageFigure = config.tracksCompletion
       ? { kind: 'progress', pct: computeVehicleProgress(own, config.categories.length, config.completeStatus).progressPct }

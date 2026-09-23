@@ -201,11 +201,13 @@ const vehicle = await requireVehicleAccess(vehicle_id, session.user.id) // src/l
 if (!vehicle) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 ```
 
-`requireVehicleAccess()` returns the vehicle if the user owns it OR is an
-`ACTIVE` collaborator on it, else `null`. Mutating routes additionally check
-`vehicle.ownerId === session.user.id` where the ticket requires owner-only
-(delete task, delete photo, change vehicle settings, invite collaborators —
-see RL-031).
+`requireVehicleAccess()` returns the vehicle with the caller's **`access`**
+(`'owner'` or `'collaborator'`), else `null`. Mutating routes additionally
+check `vehicle.access === 'owner'` (or use `requireVehicleOwner()`) where the
+ticket requires owner-only (delete task, delete photo, change vehicle
+settings, invite collaborators — see RL-031). **Never compare `ownerId` with
+the caller** — for a company vehicle it names only the account of record
+(see "Organisations"); `vehicleAccess.test.ts` greps the source for it.
 
 ### Project type configuration (`src/lib/projectType.ts`)
 The single source of truth for category/status-tag/photo-type vocabulary per
@@ -864,13 +866,36 @@ each slice deployable alone): identity → odometer → fuel log → Car Health
 → TCO → service book → passport → accidents; OCR waits on a provider
 choice.
 
-### Organisations (`src/lib/organizations.ts`, RL-038 — fleet slices 1–2 of #49)
+### Organisations (`src/lib/organizations.ts`, RL-038 — fleet slices 1–3 of #49)
 `Organization` (name, CUI, billing address) and `OrganizationMember` (one
 per person per organisation — a DB constraint — with a role: `OWNER`,
-`FLEET_MANAGER`, `MECHANIC`, `DRIVER`). **No vehicle belongs to an
-organisation yet**, so `access.ts` does not know organisations exist and
-nobody's access to a vehicle changed; a test holds that until the slice
-that widens `requireVehicleAccess()` on purpose.
+`FLEET_MANAGER`, `MECHANIC`, `DRIVER`).
+
+**Company vehicles (slice 3) — the permission model, in `access.ts` only.**
+A vehicle with `organizationId` is the company's: OWNER/FLEET_MANAGER get
+`owner` access, MECHANIC/DRIVER get `collaborator`, and an outside
+collaborator invited to it keeps `collaborator`. Its **`ownerId` is only the
+account of record** (storage prefix, whose plan Pro features read) and
+grants nothing — a mover who is later removed or demoted loses access
+like anyone else. `vehicleAccess.test.ts` is the whole table, test-first,
+plus a grep that fails on any `ownerId` comparison with the caller outside
+`access.ts`. Membership is read per request, so removal is immediate.
+- Lists never go by `ownerId` alone: `listAccessibleVehicles()` (garage,
+  `GET /api/vehicles`); personal-only views (garage spend, onboarding, the
+  data export, the free-tier count) add `organizationId: null`.
+- Owner-facing mail (document reminders, price alerts) goes to
+  `vehicleManagers()` — the organisation's OWNERs and FLEET_MANAGERs for a
+  company vehicle; the "collaborator added a job" email is not sent for one.
+- **Never public** — refused on the PATCH and by a CHECK constraint in the
+  migration. Moving in (`POST /api/vehicles/[id]/organization`: the personal
+  owner, into an organisation where they are OWNER/FLEET_MANAGER) unpublishes
+  it. Followers of a vehicle that is no longer public are not notified
+  (`notifyFollowers` checks `isPublic` — it didn't before). Moving back out is
+  not built.
+- An organisation with vehicles is **not deleted** (409, and the FK is
+  Restrict). Deleting an account hands company vehicles it is the record for
+  to another OWNER there (slug cleared), and an organisation that goes with
+  the account takes its vehicles and their files.
 - **Closed beta until the Business tier (#54):** creating one needs
   `User.orgBetaAt`, set by an admin on `/admin/users/[id]` and read from
   the database (not the token), rate-limited per user id. Switching it off
@@ -1228,10 +1253,11 @@ as the rest of this file — see "What this is" above):
    `vehicle.projectType === 'RESTORATION'` first.
 
 4. **Collaborator access is read-mostly** — `requireVehicleAccess()` lets an
-   `ACTIVE` collaborator read the vehicle and its tasks, and create/edit
-   tasks they added (`addedByUserId`), but delete and vehicle-settings
-   routes must separately check `vehicle.ownerId === session.user.id`.
-   Getting this backwards is a real permission bug, not a style nit.
+   `ACTIVE` collaborator (or a company MECHANIC/DRIVER) read the vehicle and
+   its tasks, and create/edit tasks they added (`addedByUserId`), but delete
+   and vehicle-settings routes must separately check
+   `vehicle.access === 'owner'`. Getting this backwards is a real permission
+   bug, not a style nit.
 
 5. **Cost fields are `Decimal` in Postgres, not `Float`** — Prisma returns
    `Decimal` objects for `partsCostRon`/`labourCostRon`/etc. `NextResponse.json`

@@ -82,9 +82,9 @@ describe('loadOnboardingCounts', () => {
     mockDocumentCount.mockResolvedValue(1)
 
     await expect(loadOnboardingCounts('u1', 1)).resolves.toEqual({ vehicle: 1, task: 2, photo: 0, document: 1 })
-    expect(mockTaskCount).toHaveBeenCalledWith({ where: { vehicle: { ownerId: 'u1' } } })
-    expect(mockPhotoCount).toHaveBeenCalledWith({ where: { task: { vehicle: { ownerId: 'u1' } } } })
-    expect(mockDocumentCount).toHaveBeenCalledWith({ where: { vehicle: { ownerId: 'u1' } } })
+    expect(mockTaskCount).toHaveBeenCalledWith({ where: { vehicle: { ownerId: 'u1', organizationId: null } } })
+    expect(mockPhotoCount).toHaveBeenCalledWith({ where: { task: { vehicle: { ownerId: 'u1', organizationId: null } } } })
+    expect(mockDocumentCount).toHaveBeenCalledWith({ where: { vehicle: { ownerId: 'u1', organizationId: null } } })
   })
 })
 

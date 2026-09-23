@@ -37,7 +37,7 @@ export default async function CostAnalyticsPage({
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   const t = await getTranslations('analytics')
   const tc = await getTranslations('common')
   const config = await getVocabulary(vehicle.projectType)

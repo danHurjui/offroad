@@ -17,7 +17,7 @@ export default async function NewTaskPage({ params }: { params: { id: string } }
 
   const config = await getVocabulary(vehicle.projectType)
   const suggestions = await taskFieldSuggestions(vehicle.id)
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   const collaborator = isOwner
     ? null
     : await prisma.projectCollaborator.findFirst({

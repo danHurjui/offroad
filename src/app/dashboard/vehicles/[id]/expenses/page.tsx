@@ -21,7 +21,7 @@ export default async function ExpensesPage({ params }: { params: { id: string } 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
   const config = await getVocabulary(vehicle.projectType)
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   const hideSpend = !isOwner && vehicle.hideCostsFromCollaborators
 
   const rows = await prisma.vehicleExpense.findMany({

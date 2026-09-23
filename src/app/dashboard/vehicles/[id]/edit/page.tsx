@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import VehicleEditForm from '@/components/VehicleEditForm'
+import MoveToOrganization from '@/components/MoveToOrganization'
 
 // RL-009 (vehicle settings): owner-only edit + public/private toggle.
 export default async function EditVehiclePage({ params }: { params: { id: string } }) {
@@ -17,6 +18,20 @@ export default async function EditVehiclePage({ params }: { params: { id: string
   if (!vehicle) notFound()
 
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { username: true } })
+  // RL-038: a company vehicle names its organisation; a personal one can be
+  // moved into one where this account manages vehicles.
+  const [company, destinations] = await Promise.all([
+    vehicle.organizationId
+      ? prisma.organization.findUnique({ where: { id: vehicle.organizationId }, select: { name: true } })
+      : Promise.resolve(null),
+    vehicle.organizationId
+      ? Promise.resolve([])
+      : prisma.organizationMember.findMany({
+          where: { userId: session.user.id, role: { in: ['OWNER', 'FLEET_MANAGER'] } },
+          select: { organization: { select: { id: true, name: true } } },
+          orderBy: { createdAt: 'asc' },
+        }),
+  ])
   const config = await getVocabulary(vehicle.projectType)
 
   // Offered as cover choices. Task photos carry a denormalised vehicleId;
@@ -57,6 +72,7 @@ export default async function EditVehiclePage({ params }: { params: { id: string
           vin: vehicle.vin,
           coverPhotoUrl: vehicle.coverPhotoUrl,
           isPublic: vehicle.isPublic,
+          companyName: company?.name ?? null,
           hideCostsFromCollaborators: vehicle.hideCostsFromCollaborators,
           hidePublicCost: vehicle.hidePublicCost,
           slug: vehicle.slug,
@@ -80,6 +96,9 @@ export default async function EditVehiclePage({ params }: { params: { id: string
         }}
         coverCandidates={coverCandidates}
       />
+      {destinations.length > 0 && (
+        <MoveToOrganization vehicleId={vehicle.id} organizations={destinations.map((d) => d.organization)} isPublic={vehicle.isPublic} />
+      )}
     </div>
   )
 }

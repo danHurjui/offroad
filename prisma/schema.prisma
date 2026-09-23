@@ -349,7 +349,15 @@ model EmailVerificationToken {
 /// expose it as changeable once tasks exist.
 model Vehicle {
   id                         String      @id @default(cuid())
+  /// For a personal vehicle, its owner. For a company vehicle
+  /// (`organizationId` set) only the account of record — whose storage
+  /// prefix and plan it uses — and it grants **nothing** by itself: access
+  /// comes from membership of the organisation (src/lib/access.ts).
   ownerId                    String
+  /// RL-038: set when the vehicle belongs to an organisation. Restrict: an
+  /// organisation with vehicles is not deleted by accident. A company
+  /// vehicle is never public (a CHECK constraint in the migration).
+  organizationId             String?
   projectType                ProjectType
   make                       String
   model                      String
@@ -418,6 +426,7 @@ model Vehicle {
   updatedAt                  DateTime    @updatedAt
 
   owner         User                  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  organization  Organization?         @relation(fields: [organizationId], references: [id], onDelete: Restrict)
   tasks         Task[]
   workshops     Workshop[]
   wishlistItems WishlistItem[]
@@ -435,6 +444,7 @@ model Vehicle {
 
   @@unique([ownerId, slug])
   @@index([ownerId])
+  @@index([organizationId])
   @@index([isPublic])
 }
 
@@ -1114,8 +1124,9 @@ model Organization {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  members OrganizationMember[]
-  invites OrganizationInvite[]
+  members  OrganizationMember[]
+  invites  OrganizationInvite[]
+  vehicles Vehicle[]
 }
 
 /// One account's place in one organisation. Deleting the account removes

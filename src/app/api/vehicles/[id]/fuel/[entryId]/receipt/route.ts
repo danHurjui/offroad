@@ -22,7 +22,7 @@ async function load(vehicleId: string, entryId: string, userId: string) {
   if (!vehicle) return { ok: false as const, error: await apiError('notFound', 404) }
   const entry = await prisma.fuelEntry.findUnique({ where: { id: entryId } })
   if (!entry || entry.vehicleId !== vehicle.id) return { ok: false as const, error: await apiError('notFound', 404) }
-  if (vehicle.ownerId !== userId && entry.createdByUserId !== userId) {
+  if (vehicle.access !== 'owner' && entry.createdByUserId !== userId) {
     return { ok: false as const, error: await apiError('fuelOwnOnly', 403) }
   }
   return { ok: true as const, vehicle, entry }

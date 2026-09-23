@@ -7,7 +7,7 @@ const NOW = new Date('2026-09-23T12:00:00Z')
 const day = (d: string) => new Date(`${d}T00:00:00Z`)
 
 const vehicle = (o: Partial<GarageVehicle> = {}): GarageVehicle => ({
-  id: 'v1', ownerId: 'me', projectType: 'OFFROAD', year: 2012, make: 'Toyota', model: 'Land Cruiser',
+  id: 'v1', access: 'owner', projectType: 'OFFROAD', year: 2012, make: 'Toyota', model: 'Land Cruiser',
   hideCostsFromCollaborators: false, updatedAt: day('2026-01-01'), ...o,
 })
 const task = (o: Partial<GarageTask> = {}): GarageTask => ({
@@ -21,7 +21,6 @@ describe('summarizeGarage', () => {
       [vehicle(), vehicle({ id: 'v2', projectType: 'DAILY_DRIVER' })],
       [task(), task({ vehicleId: 'v2', status: 'DUE', category: 'BRAKES' }), task({ vehicleId: 'v2', status: 'DONE', category: 'BRAKES' })],
       [],
-      'me',
       NOW
     )
     expect(offroad.figure.kind).toBe('progress')
@@ -36,7 +35,6 @@ describe('summarizeGarage', () => {
         { vehicleId: 'v1', type: 'RCA', expiryDate: day('2027-01-01') },
         { vehicleId: 'v1', type: 'ITP', expiryDate: day('2026-10-01') },
       ],
-      'me',
       NOW
     )
     expect(card.soonestDocument).toMatchObject({ type: 'ITP', status: 'expiring' })
@@ -44,34 +42,34 @@ describe('summarizeGarage', () => {
   })
 
   it('an empty vehicle has no document and needs no attention — nothing is invented', () => {
-    const [card] = summarizeGarage([vehicle()], [], [], 'me', NOW)
+    const [card] = summarizeGarage([vehicle()], [], [], NOW)
     expect(card.soonestDocument).toBeNull()
     expect(card.attention).toEqual([])
     expect(card.spend).toBe(0)
   })
 
   it('a job in a warn or danger status needs attention, read from the config', () => {
-    const [broken] = summarizeGarage([vehicle()], [task({ status: 'BROKEN' })], [], 'me', NOW)
+    const [broken] = summarizeGarage([vehicle()], [task({ status: 'BROKEN' })], [], NOW)
     expect(broken.attention).toEqual(['job'])
-    const [planned] = summarizeGarage([vehicle()], [task({ status: 'PLANNED' })], [], 'me', NOW)
+    const [planned] = summarizeGarage([vehicle()], [task({ status: 'PLANNED' })], [], NOW)
     expect(planned.attention).toEqual([])
   })
 
   it('spend counts workshop parts and labour, and is hidden from a collaborator when the owner hid costs', () => {
     const tasks = [task({ workType: 'WORKSHOP', costRon: 999, partsCostRon: 300, labourCostRon: 150.5 }), task()]
-    expect(summarizeGarage([vehicle()], tasks, [], 'me', NOW)[0].spend).toBe(550.5)
-    expect(summarizeGarage([vehicle({ ownerId: 'owner' })], tasks, [], 'mechanic', NOW)[0].spend).toBe(550.5)
-    expect(summarizeGarage([vehicle({ ownerId: 'owner', hideCostsFromCollaborators: true })], tasks, [], 'mechanic', NOW)[0].spend).toBeNull()
+    expect(summarizeGarage([vehicle()], tasks, [], NOW)[0].spend).toBe(550.5)
+    expect(summarizeGarage([vehicle({ access: 'collaborator' })], tasks, [], NOW)[0].spend).toBe(550.5)
+    expect(summarizeGarage([vehicle({ access: 'collaborator', hideCostsFromCollaborators: true })], tasks, [], NOW)[0].spend).toBeNull()
   })
 
   it('a collaborator never sees the owner’s document expiry', () => {
-    const [card] = summarizeGarage([vehicle({ ownerId: 'owner' })], [], [{ vehicleId: 'v1', type: 'ITP', expiryDate: day('2026-01-01') }], 'mechanic', NOW)
+    const [card] = summarizeGarage([vehicle({ access: 'collaborator' })], [], [{ vehicleId: 'v1', type: 'ITP', expiryDate: day('2026-01-01') }], NOW)
     expect(card.isOwner).toBe(false)
     expect(card.soonestDocument).toBeNull()
   })
 
   it('last activity is the newest of the vehicle and its jobs', () => {
-    const [card] = summarizeGarage([vehicle()], [task({ updatedAt: day('2026-09-01') }), task({ updatedAt: day('2026-03-01') })], [], 'me', NOW)
+    const [card] = summarizeGarage([vehicle()], [task({ updatedAt: day('2026-09-01') }), task({ updatedAt: day('2026-03-01') })], [], NOW)
     expect(card.lastActivity).toEqual(day('2026-09-01'))
   })
 })
@@ -89,7 +87,6 @@ describe('sortGarage', () => {
       { vehicleId: 'expired', type: 'RCA', expiryDate: day('2026-09-01') },
       { vehicleId: 'expiring', type: 'ITP', expiryDate: day('2026-10-10') },
     ],
-    'me',
     NOW
   )
   const items = cards.map((card) => ({ card, name: card.vehicleId }))

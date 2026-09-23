@@ -1005,7 +1005,8 @@
     "deleteHelp": "Ștergerea unui vehicul îi elimină toate lucrările, pozele și istoricul. Operațiunea nu poate fi anulată.",
     "deleteVehicle": "Șterge vehiculul",
     "confirmDelete": "Ștergi acest vehicul și toate lucrările și pozele lui? Operațiunea nu poate fi anulată.",
-    "pageTitle": "Setările vehiculului"
+    "pageTitle": "Setările vehiculului",
+    "companyNotPublic": "Acest vehicul aparține organizației {name}. Un vehicul al firmei nu poate fi făcut public."
   },
   "foundState": {
     "acquisitionDate": "Data achiziției",
@@ -2108,7 +2109,11 @@
     "passportFailed": "PDF-ul pașaportului nu a putut fi generat.",
     "orgAlreadyMember": "Această persoană este deja membră a organizației.",
     "orgAlreadyInvited": "Există deja o invitație în așteptare pentru această adresă. Retrimite-o în schimb.",
-    "orgInviteLimit": "Această organizație are {limit} invitații în așteptare. Retrage câteva înainte de a trimite altele."
+    "orgInviteLimit": "Această organizație are {limit} invitații în așteptare. Retrage câteva înainte de a trimite altele.",
+    "orgHasVehicles": "Această organizație mai are {count, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}. Ștergerea unei organizații cu vehicule nu este încă disponibilă.",
+    "companyVehicleNotPublic": "Un vehicul al firmei nu poate fi făcut public.",
+    "vehicleAlreadyCompany": "Acest vehicul aparține deja unei organizații.",
+    "orgMoveNotAllowed": "Poți muta un vehicul doar într-o organizație în care ești proprietar sau manager de flotă."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2755,7 +2760,7 @@
   },
   "organizations": {
     "title": "Organizații",
-    "intro": "Un cont de firmă: membrii lui și ce poate face fiecare. Vehiculele firmei vin într-o versiune viitoare; deocamdată o organizație păstrează datele firmei și oamenii ei.",
+    "intro": "Un cont de firmă: vehiculele lui, membrii lui și ce poate face fiecare.",
     "none": "Nu faci parte din nicio organizație.",
     "createTitle": "Organizație nouă",
     "createHelp": "Devii primul ei proprietar. Codul fiscal este opțional și poate fi adăugat mai târziu.",
@@ -2778,7 +2783,7 @@
     "yourRole": "Rolul tău: {role}",
     "detailsTitle": "Datele firmei",
     "membersTitle": "Membri",
-    "rolesHelp": "Proprietarii conduc organizația: datele ei, membrii și ștergerea ei. Există mereu cel puțin un proprietar.",
+    "rolesHelp": "Proprietarii conduc organizația: datele ei, membrii și ștergerea ei. Proprietarii și managerii de flotă gestionează vehiculele ei ca pe ale lor; mecanicii și șoferii le văd și își înregistrează propria muncă. Există mereu cel puțin un proprietar.",
     "you": "(tu)",
     "roleFor": "Rolul pentru {name}",
     "roleChanged": "Rolul lui {name} a fost schimbat.",
@@ -2791,7 +2796,7 @@
     "removed": "{name} a fost eliminat.",
     "removeFailed": "Membrul nu a putut fi eliminat.",
     "deleteTitle": "Șterge organizația",
-    "deleteHelp": "Șterge organizația și toate calitățile de membru din ea. Conturile și vehiculele personale ale oamenilor nu sunt atinse.",
+    "deleteHelp": "Șterge organizația și toate calitățile de membru din ea. Conturile și vehiculele personale ale oamenilor nu sunt atinse. O organizație care mai are vehicule nu poate fi ștearsă încă.",
     "delete": "Șterge organizația",
     "confirmDelete": "Ștergi {name} și toate calitățile de membru din ea? Acțiunea nu poate fi anulată.",
     "deleted": "{name} a fost ștearsă.",
@@ -2831,6 +2836,20 @@
       "open": "Deschide organizația",
       "goToDashboard": "Mergi la panou",
       "failed": "Invitația nu a putut fi acceptată."
+    },
+    "vehiclesTitle": "Vehicule",
+    "vehiclesHelp": "Mută un vehicul aici din pagina lui de setări. Toți cei de aici le pot vedea.",
+    "noVehicles": "Niciun vehicul încă. Proprietarul unui vehicul personal îl poate muta aici din setările vehiculului.",
+    "move": {
+      "title": "Mută într-o organizație",
+      "help": "Vehiculul devine al firmei: proprietarii și managerii de flotă îl gestionează, mecanicii și șoferii îl văd și își înregistrează munca. Păstrezi accesul prin rolul tău de acolo. Mutarea înapoi nu este încă disponibilă.",
+      "unpublishes": "Acest vehicul este public. Un vehicul al firmei nu poate fi, așa că mutarea îl face privat.",
+      "organization": "Organizație",
+      "submit": "Mută vehiculul",
+      "moving": "Se mută…",
+      "confirm": "Muți acest vehicul în {name}? Cine îl poate vedea va fi decis de rolurile de acolo, iar mutarea înapoi nu este încă posibilă.",
+      "moved": "Vehiculul aparține acum organizației {name}.",
+      "failed": "Vehiculul nu a putut fi mutat."
     }
   }
 }

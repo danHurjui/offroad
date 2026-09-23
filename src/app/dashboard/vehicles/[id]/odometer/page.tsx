@@ -20,7 +20,7 @@ export default async function OdometerPage({ params }: { params: { id: string } 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
   const config = await getVocabulary(vehicle.projectType)
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
 
   const readings = await prisma.odometerReading.findMany({
     where: { vehicleId: vehicle.id },

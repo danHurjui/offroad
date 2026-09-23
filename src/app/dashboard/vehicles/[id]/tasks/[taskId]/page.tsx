@@ -33,7 +33,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
   })
   if (!task || task.vehicleId !== vehicle.id) notFound()
 
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   const canEdit = isOwner || task.addedByUserId === session.user.id
   const config = await getVocabulary(vehicle.projectType)
 

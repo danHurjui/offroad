@@ -31,7 +31,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string;
   if (!task) return await apiError('notFound', 404)
 
   // RL-031: redact costs for a collaborator when the owner hid them.
-  const hideCosts = vehicle.ownerId !== session.user.id && vehicle.hideCostsFromCollaborators
+  const hideCosts = vehicle.access !== 'owner' && vehicle.hideCostsFromCollaborators
   return NextResponse.json(serializeTaskFor(task, { hideCosts }))
 }
 
@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const task = await loadTask(params.id, params.taskId)
   if (!task) return await apiError('notFound', 404)
 
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   if (!isOwner && task.addedByUserId !== session.user.id) {
     return await apiError('editOwnTasksOnly', 403)
   }
@@ -171,7 +171,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
-  if (vehicle.ownerId !== session.user.id) {
+  if (vehicle.access !== 'owner') {
     return await apiError('onlyOwnerDeletesTask', 403)
   }
 

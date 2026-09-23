@@ -13,7 +13,7 @@ async function load(vehicleId: string, setId: string, userId: string) {
   if (!vehicle) return { ok: false as const, error: await apiError('notFound', 404) }
   const set = await prisma.tyreSet.findUnique({ where: { id: setId } })
   if (!set || set.vehicleId !== vehicle.id) return { ok: false as const, error: await apiError('notFound', 404) }
-  if (vehicle.ownerId !== userId && set.createdByUserId !== userId) {
+  if (vehicle.access !== 'owner' && set.createdByUserId !== userId) {
     return { ok: false as const, error: await apiError('tyreOwnOnly', 403) }
   }
   return { ok: true as const, vehicle, set }
