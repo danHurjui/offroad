@@ -705,8 +705,9 @@ A toast never takes focus.
 `LatestWinsWriter`: the screen moves first, one request in flight, only the
 latest wish queued behind it, never an automatic retry (the rate limiter
 counts every attempt). A failure rolls back to the last server-confirmed
-value and toasts the reason from the response's `code`
-(`useFailureReason()`). Used for task status, wishlist status and order,
+value and toasts the server's reason — its `error` sentence, which
+`apiError()` builds from the `code` with any values filled in, then the
+catalogue entry for the `code` (`useFailureReason()`). Used for task status, wishlist status and order,
 follow and ticket vote. **Never for a gated action** — a Pro or
 confirmed-address 403 must not look like it succeeded first. That is why
 `TicketVoteButton` only goes optimistic with `mayVote`, which the ticket

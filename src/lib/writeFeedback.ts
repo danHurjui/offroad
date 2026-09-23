@@ -118,10 +118,12 @@ export interface ReasonTranslator {
 /**
  * The sentence to show for a failed response.
  *
- * Keyed on the response's `code` first (src/lib/apiError.ts sends the
- * catalogue key beside the sentence), so the reason reads in the viewer's
- * current language even if it changed since the page loaded. Then the
- * server's own sentence; then the caller's fallback — never a bare
+ * The server's own `error` first: src/lib/apiError.ts builds it from the
+ * response's `code`, in the request's language, **with its values filled
+ * in** — `{field} must be a non-negative number` only makes sense with the
+ * field named, and the client cannot know which field that was. Then the
+ * client catalogue entry for the `code`, for a response that carried a
+ * code but no sentence. Then the caller's fallback — never a bare
  * "something went wrong" when the server said what.
  */
 export async function reasonFromResponse(
@@ -139,9 +141,9 @@ export async function reasonFromResponse(
   } catch {
     body = null
   }
+  if (typeof body?.error === 'string' && body.error.trim()) return body.error
   const code = typeof body?.code === 'string' ? body.code : null
   if (code && t.has(code)) return t(code)
-  if (typeof body?.error === 'string' && body.error.trim()) return body.error
   return fallback
 }
 
