@@ -32,7 +32,6 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const locale = localeFromRequest()
     const config = translateConfig(vehicle.projectType, await translator(locale, 'vocab'))
     const t = await translator(locale, 'serviceBook')
-    const tPdf = await translator(locale, 'pdf')
     const book = await loadServiceBook(vehicle.id, config.completeStatus)
     const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
     const date = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
@@ -46,7 +45,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
         columns: { date: t('col.date'), km: t('col.km'), work: t('col.work'), cost: t('col.cost') },
         provenance: t('provenance'),
         noEntries: t('empty'),
-        documentedWith: tPdf('documentedWith'),
+        ownerView: t('ownerView'),
+        footer: t('footerPdf'),
         detail: (row: ServiceRow) =>
           [
             labelFor(config.categories, row.category),

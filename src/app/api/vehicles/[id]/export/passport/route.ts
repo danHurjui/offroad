@@ -43,6 +43,9 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const docDefinition = buildPassportDocDefinition(p, {
       title: t('title'),
       what: t('what'),
+      ownerView: t('ownerView'),
+      ownerViewAdvice: t('ownerViewAdvice'),
+      tilesTitle: t('summary'),
       snapshot: t('snapshot', { date: date(now) }),
       identity: [p.plate && t('plateLine', { plate: p.plate }), p.vin && `VIN ${p.vin}`].filter(Boolean).join('  ·  ') || null,
       tiles: [

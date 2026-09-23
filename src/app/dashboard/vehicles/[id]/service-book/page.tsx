@@ -45,7 +45,11 @@ export default async function ServiceBookPage({ params }: { params: { id: string
         {tc('backTo', { screen: config.screenTitle })}
       </Link>
       <h1 className="mb-1 text-2xl font-bold text-ink">{t('title')}</h1>
-      <p className="mb-6 text-sm text-ink-muted">{t('subtitle', { status: labelFor(config.statusTags, config.completeStatus) })}</p>
+      <p className="mb-3 text-sm text-ink-muted">{t('subtitle', { status: labelFor(config.statusTags, config.completeStatus) })}</p>
+      {/* Everyone reading it sees whose account it is — collaborators included. */}
+      <p className="note-warn mb-6 rounded-lg border p-3 text-sm text-ink">
+        <span className="font-semibold">{t('ownerView')}.</span> {t('provenance')}
+      </p>
 
       <div className="mb-6 grid grid-cols-2 gap-3">
         <div className="card p-4">
@@ -66,7 +70,6 @@ export default async function ServiceBookPage({ params }: { params: { id: string
           ) : (
             <p className="text-sm text-ink-muted">{t('exportPro')}</p>
           )}
-          <p className="mt-2 text-xs text-ink-faint">{t('provenance')}</p>
         </div>
       )}
 

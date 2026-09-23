@@ -11,8 +11,11 @@ export interface PdfServiceBookStrings {
   columns: { date: string; km: string; work: string; cost: string }
   /** What the document is — a record kept by the owner, not a certificate. */
   provenance: string
+  /** Heads the provenance line: whose account this is. */
+  ownerView: string
   noEntries: string
-  documentedWith: string
+  /** Every page's footer — says it is the owner's record, so a single page does too. */
+  footer: string
   /** One line under the job's name: category, parts, workshop. */
   detail: (row: ServiceRow) => string
   /** The row's flags and attachments, already worded; empty for none. */
@@ -73,7 +76,7 @@ export function buildServiceBookDocDefinition(input: ServiceBookInput): PdfDocDe
     },
     pdfRule(PDF_COLORS.brand, 4, 14),
     { text: input.vehicleName, style: 'title' },
-    { text: strings.provenance, style: 'provenance' },
+    { text: [{ text: `${strings.ownerView}. `, bold: true }, strings.provenance], style: 'provenance' },
     {
       columns: [
         pdfStatTile(strings.entries, String(input.rows.length), 120),
@@ -98,8 +101,8 @@ export function buildServiceBookDocDefinition(input: ServiceBookInput): PdfDocDe
     content,
     footer: (currentPage: number, pageCount: number) => ({
       columns: [
-        { text: strings.documentedWith, style: 'footer' },
-        { text: `${currentPage} / ${pageCount}`, style: 'footer', alignment: 'right' },
+        { text: strings.footer, style: 'footer', width: '*' },
+        { text: `${currentPage} / ${pageCount}`, style: 'footer', alignment: 'right', width: 40 },
       ],
       margin: [PDF_PAGE.marginX, 0, PDF_PAGE.marginX, 0],
     }),
@@ -107,7 +110,7 @@ export function buildServiceBookDocDefinition(input: ServiceBookInput): PdfDocDe
       brand: { fontSize: 12, bold: true, color: PDF_COLORS.brand, characterSpacing: 0.6 },
       brandSubtitle: { fontSize: 9, color: PDF_COLORS.inkMuted, margin: [0, 3, 0, 0] },
       title: { fontSize: 22, bold: true, color: PDF_COLORS.ink, margin: [0, 0, 0, 4] },
-      provenance: { fontSize: 8.5, color: PDF_COLORS.inkMuted },
+      provenance: { fontSize: 9, color: PDF_COLORS.ink },
       th: { fontSize: 7.5, bold: true, color: PDF_COLORS.inkMuted, characterSpacing: 0.3 },
       cell: { fontSize: 9, color: PDF_COLORS.ink },
       workName: { fontSize: 9.5, bold: true, color: PDF_COLORS.ink },

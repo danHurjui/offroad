@@ -2563,7 +2563,9 @@
       "km": "KM",
       "work": "WORK",
       "cost": "COST"
-    }
+    },
+    "ownerView": "Owner’s view",
+    "footerPdf": "Owner’s view: a record kept by the owner in RigLog, not checked by RigLog · riglog.ro"
   },
   "passport": {
     "title": "Vehicle Passport",
@@ -2639,6 +2641,9 @@
     "linkReplaced": "New link created. The old one no longer opens.",
     "shareFailed": "Couldn't create the link",
     "sharePro": "Sharing the passport and exporting it as a PDF are Pro features. The preview below is free.",
-    "pdfHelp": "The PDF is a dated snapshot with the same choices as the link."
+    "pdfHelp": "The PDF is a dated snapshot with the same choices as the link.",
+    "ownerView": "Owner’s view",
+    "ownerViewAdvice": "Every section below is the owner’s own account, as they entered it. Before relying on it, compare it with receipts, an independent inspection and the official registry.",
+    "metaDescription": "A vehicle’s records as kept by its owner in RigLog. Owner’s view, not checked by RigLog."
   }
 }

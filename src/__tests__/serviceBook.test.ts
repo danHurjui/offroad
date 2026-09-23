@@ -94,7 +94,8 @@ describe('the PDF', () => {
     columns: { date: 'DATE', km: 'KM', work: 'WORK', cost: 'COST' },
     provenance: 'A record kept by the owner in RigLog.',
     noEntries: 'none',
-    documentedWith: 'RigLog',
+    ownerView: 'Owner’s view',
+    footer: 'Owner’s view: a record kept by the owner in RigLog',
     detail: () => 'detail',
     notes: () => '',
   }
@@ -102,6 +103,19 @@ describe('the PDF', () => {
   it('says on its face that the owner kept it', () => {
     const doc = buildServiceBookDocDefinition({ strings, vehicleName: 'Dacia Duster', rows: [], total: 0, generatedAt: day('2026-09-23') })
     expect(JSON.stringify(doc.content)).toContain('A record kept by the owner in RigLog.')
+    expect(JSON.stringify(doc.content)).toContain('Owner’s view')
+  })
+
+  it('says it on every page, so one page on its own still does', () => {
+    const doc = buildServiceBookDocDefinition({ strings, vehicleName: 'Dacia', rows: [], total: 0, generatedAt: day('2026-09-23') })
+    const footer = (doc.footer as (p: number, n: number) => unknown)(2, 3)
+    expect(JSON.stringify(footer)).toContain(strings.footer)
+  })
+
+  it.each(['en', 'ro'])('%s: the footer names whose record it is and that RigLog does not check it', (l) => {
+    const c = JSON.parse(fs.readFileSync(path.join(process.cwd(), `messages/${l}.json`), 'utf8')).serviceBook
+    expect(c.footerPdf.startsWith(c.ownerView)).toBe(true)
+    expect(c.footerPdf).toMatch(/RigLog/)
   })
 
   it('is one table row per entry, with Romanian diacritics intact', () => {

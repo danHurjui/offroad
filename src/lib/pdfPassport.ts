@@ -8,8 +8,13 @@ export interface PdfPassportStrings {
   title: string
   /** What it is — in the heading, not a footnote. */
   what: string
+  /** Tag on every section heading and the page footer: whose account this is. */
+  ownerView: string
+  /** What a reader should check it against before relying on it. */
+  ownerViewAdvice: string
   snapshot: string
   identity: string | null
+  tilesTitle: string
   tiles: Array<{ label: string; value: string }>
   missingTitle: string
   missing: string[]
@@ -35,6 +40,12 @@ const DATE = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
  * and puts "what this is" directly under the title.
  */
 export function buildPassportDocDefinition(passport: Passport, strings: PdfPassportStrings): PdfDocDefinition {
+  // A single page printed or forwarded on its own still says whose account it is.
+  const h2 = (title: string, margin?: [number, number, number, number]): Content => ({
+    text: [title, { text: `   ${strings.ownerView}`, style: 'ownerTag' }],
+    style: 'h2',
+    ...(margin ? { margin } : {}),
+  })
   const content: Content[] = [
     {
       columns: [
@@ -44,14 +55,17 @@ export function buildPassportDocDefinition(passport: Passport, strings: PdfPassp
     },
     pdfRule(PDF_COLORS.brand, 4, 14),
     { text: passport.name, style: 'title' },
+    { text: strings.ownerView, style: 'ownerHead' },
     { text: strings.what, style: 'what' },
+    { text: strings.ownerViewAdvice, style: 'advice' },
     ...(strings.identity ? [{ text: strings.identity, style: 'identity' }] : []),
     { text: strings.snapshot, style: 'snapshot' },
-    { columns: strings.tiles.map((tile, i) => pdfStatTile(tile.label, tile.value, i === strings.tiles.length - 1 ? '*' : 130)), margin: [0, 10, 0, 6] },
+    h2(strings.tilesTitle, [0, 10, 0, 0]),
+    { columns: strings.tiles.map((tile, i) => pdfStatTile(tile.label, tile.value, i === strings.tiles.length - 1 ? '*' : 130)), margin: [0, 4, 0, 6] },
     pdfRule(PDF_COLORS.rule, 8, 10),
-    { text: strings.missingTitle, style: 'h2' },
+    h2(strings.missingTitle),
     { ul: strings.missing, style: 'list' },
-    { text: strings.historyTitle, style: 'h2' },
+    h2(strings.historyTitle),
     { text: strings.datesRule, style: 'note' },
   ]
 
@@ -83,7 +97,7 @@ export function buildPassportDocDefinition(passport: Passport, strings: PdfPassp
     content.push({ table: { headerRows: 1, widths: [58, 58, '*', 70], body, dontBreakRows: true }, layout: PDF_TABLE_LAYOUT, margin: [0, 4, 0, 0] })
   }
 
-  content.push({ text: strings.documentsTitle, style: 'h2' })
+  content.push(h2(strings.documentsTitle))
   content.push({ ul: strings.documents, style: 'list' })
   if (strings.tyresLine) content.push({ text: strings.tyresLine, style: 'list', margin: [0, 6, 0, 0] })
 
@@ -91,7 +105,7 @@ export function buildPassportDocDefinition(passport: Passport, strings: PdfPassp
     content,
     footer: (currentPage: number, pageCount: number) => ({
       columns: [
-        { text: strings.footer, style: 'footer', width: '*' },
+        { text: `${strings.ownerView} · ${strings.footer}`, style: 'footer', width: '*' },
         { text: `${currentPage} / ${pageCount}`, style: 'footer', alignment: 'right', width: 40 },
       ],
       margin: [PDF_PAGE.marginX, 0, PDF_PAGE.marginX, 0],
@@ -100,7 +114,10 @@ export function buildPassportDocDefinition(passport: Passport, strings: PdfPassp
       brand: { fontSize: 12, bold: true, color: PDF_COLORS.brand, characterSpacing: 0.6 },
       brandSubtitle: { fontSize: 9, color: PDF_COLORS.inkMuted, margin: [0, 3, 0, 0] },
       title: { fontSize: 22, bold: true, color: PDF_COLORS.ink, margin: [0, 0, 0, 4] },
-      what: { fontSize: 10, bold: true, color: PDF_COLORS.ink, margin: [0, 2, 0, 4] },
+      ownerHead: { fontSize: 8, bold: true, color: PDF_COLORS.brand, characterSpacing: 0.4, margin: [0, 2, 0, 0] },
+      what: { fontSize: 10, bold: true, color: PDF_COLORS.ink, margin: [0, 2, 0, 2] },
+      advice: { fontSize: 9, color: PDF_COLORS.ink, margin: [0, 0, 0, 4] },
+      ownerTag: { fontSize: 7.5, bold: false, italics: true, color: PDF_COLORS.inkMuted },
       identity: { fontSize: 9, color: PDF_COLORS.ink, margin: [0, 2, 0, 0] },
       snapshot: { fontSize: 8.5, color: PDF_COLORS.inkMuted, margin: [0, 2, 0, 0] },
       h2: { fontSize: 11, bold: true, color: PDF_COLORS.ink, margin: [0, 12, 0, 4] },

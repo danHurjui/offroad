@@ -30,13 +30,20 @@ export default async function PassportDocument({
   const config = await getVocabulary(projectType)
   const { passport: p, photos, publicUrl } = view
   const say = (m: Message) => t(m.key, m.values ?? {})
+  // Every section carries it, so a screenshot of one section still says
+  // whose account it is.
+  const ownerTag = <span className="badge badge-warn ml-2 align-middle normal-case tracking-normal">{t('ownerView')}</span>
 
   return (
     <article className="space-y-6">
       <header className="card p-5">
         <p className="text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">{t('title')}</p>
         <h1 className="mt-1 text-2xl font-bold text-ink">{p.name}</h1>
-        <p className="note-warn mt-3 rounded-lg border p-3 text-sm text-ink">{t('what')}</p>
+        <div className="note-warn mt-3 rounded-lg border p-3 text-sm text-ink">
+          <p className="font-semibold">{t('ownerView')}</p>
+          <p className="mt-1">{t('what')}</p>
+          <p className="mt-1">{t('ownerViewAdvice')}</p>
+        </div>
         {(p.plate || p.vin) && (
           <p className="mt-3 text-sm text-ink-muted">
             {p.plate && <span className="plate mr-2">{p.plate}</span>}
@@ -46,25 +53,34 @@ export default async function PassportDocument({
         <p className="mt-3 text-xs text-ink-faint">{t('asOf', { date: fmtDate(asOf) })}</p>
       </header>
 
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label={t('summary')}>
-        <div className="card p-4">
-          <div className="text-xs text-ink-faint">{t(p.span.fromPurchase ? 'ownedSince' : 'recordsSince')}</div>
-          <div className="text-lg font-semibold text-ink">{fmtDate(p.span.from)}</div>
-        </div>
-        <div className="card p-4">
-          <div className="text-xs text-ink-faint">{t('latestKm')}</div>
-          <div className="text-lg font-semibold text-ink">{p.mileage.latest ? km(p.mileage.latest.km) : t('none')}</div>
-          {p.mileage.latest && <div className="text-xs text-ink-muted">{t('readOn', { date: fmtDate(p.mileage.latest.date) })}</div>}
-        </div>
-        <div className="card p-4">
-          <div className="text-xs text-ink-faint">{t('jobs')}</div>
-          <div className="text-lg font-semibold text-ink">{p.jobs.count}</div>
-          {p.jobs.spend !== null && p.jobs.count > 0 && <div className="text-xs text-ink-muted">{t('spend', { amount: money(p.jobs.spend) })}</div>}
+      <section aria-labelledby="passport-summary">
+        <h2 id="passport-summary" className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">
+          {t('summary')}
+          {ownerTag}
+        </h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="card p-4">
+            <div className="text-xs text-ink-faint">{t(p.span.fromPurchase ? 'ownedSince' : 'recordsSince')}</div>
+            <div className="text-lg font-semibold text-ink">{fmtDate(p.span.from)}</div>
+          </div>
+          <div className="card p-4">
+            <div className="text-xs text-ink-faint">{t('latestKm')}</div>
+            <div className="text-lg font-semibold text-ink">{p.mileage.latest ? km(p.mileage.latest.km) : t('none')}</div>
+            {p.mileage.latest && <div className="text-xs text-ink-muted">{t('readOn', { date: fmtDate(p.mileage.latest.date) })}</div>}
+          </div>
+          <div className="card p-4">
+            <div className="text-xs text-ink-faint">{t('jobs')}</div>
+            <div className="text-lg font-semibold text-ink">{p.jobs.count}</div>
+            {p.jobs.spend !== null && p.jobs.count > 0 && <div className="text-xs text-ink-muted">{t('spend', { amount: money(p.jobs.spend) })}</div>}
+          </div>
         </div>
       </section>
 
       <section className="card note-warn p-4 text-sm" aria-labelledby="passport-missing">
-        <h2 id="passport-missing" className="mb-2 font-semibold text-ink">{t('missingTitle')}</h2>
+        <h2 id="passport-missing" className="mb-2 font-semibold text-ink">
+          {t('missingTitle')}
+          {ownerTag}
+        </h2>
         <ul className="list-disc space-y-1 pl-5 text-ink">
           {p.gaps.map((g) => (
             <li key={g.from.toISOString()}>{t('gap', { from: fmtDate(g.from), to: fmtDate(g.to), days: g.days })}</li>
@@ -77,7 +93,10 @@ export default async function PassportDocument({
       </section>
 
       <section aria-labelledby="passport-jobs">
-        <h2 id="passport-jobs" className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('historyTitle')}</h2>
+        <h2 id="passport-jobs" className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">
+          {t('historyTitle')}
+          {ownerTag}
+        </h2>
         <p className="mb-2 text-xs text-ink-faint">{t('datesRule')}</p>
         {p.jobs.rows.length === 0 ? (
           <p className="card p-6 text-center text-ink-muted">{t('absence.noJobs')}</p>
@@ -111,7 +130,10 @@ export default async function PassportDocument({
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="card p-4" aria-labelledby="passport-docs">
-          <h2 id="passport-docs" className="mb-2 font-semibold text-ink">{t('documentsTitle')}</h2>
+          <h2 id="passport-docs" className="mb-2 font-semibold text-ink">
+            {t('documentsTitle')}
+            {ownerTag}
+          </h2>
           {p.documents.length === 0 ? (
             <p className="text-sm text-ink-muted">{t('absence.noDocuments')}</p>
           ) : (
@@ -128,7 +150,10 @@ export default async function PassportDocument({
         </div>
         {projectType !== 'RESTORATION' && (
           <div className="card p-4" aria-labelledby="passport-tyres">
-            <h2 id="passport-tyres" className="mb-2 font-semibold text-ink">{t('tyresTitle')}</h2>
+            <h2 id="passport-tyres" className="mb-2 font-semibold text-ink">
+              {t('tyresTitle')}
+              {ownerTag}
+            </h2>
             {p.tyres.count === 0 ? (
               <p className="text-sm text-ink-muted">{t('absence.noTyres')}</p>
             ) : (
@@ -148,7 +173,10 @@ export default async function PassportDocument({
 
       {photos.length > 0 && (
         <section aria-labelledby="passport-photos">
-          <h2 id="passport-photos" className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('photosTitle')}</h2>
+          <h2 id="passport-photos" className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">
+            {t('photosTitle')}
+            {ownerTag}
+          </h2>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {photos.map((photo) => (
               // eslint-disable-next-line @next/next/no-img-element
