@@ -171,6 +171,9 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
               {t('tyres')}
             </Link>
           )}
+          <Link href={`/dashboard/vehicles/${vehicle.id}/accidents`} className="btn-secondary">
+            {t('accidents')}
+          </Link>
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/wishlist`} className="btn-secondary">
               {config.wishlistLabel}

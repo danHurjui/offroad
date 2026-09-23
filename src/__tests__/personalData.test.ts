@@ -8,6 +8,7 @@ jest.mock('@/lib/prisma', () => ({
     trailWaypoint: { findMany: jest.fn() },
     document: { findMany: jest.fn() },
     fuelEntry: { findMany: jest.fn() },
+    accidentPhoto: { findMany: jest.fn() },
     ticket: { findMany: jest.fn() },
     ticketVote: { findMany: jest.fn() },
     ticketComment: { findMany: jest.fn() },
@@ -42,6 +43,7 @@ function stubKeyQueries({
   waypointPhotoUrls = [],
   documentFileUrls = [],
   fuelReceiptUrls = [],
+  accidentPhotoUrls = [],
 }: {
   avatarUrl?: string | null
   coverPhotoUrls?: (string | null)[]
@@ -51,6 +53,7 @@ function stubKeyQueries({
   waypointPhotoUrls?: string[]
   documentFileUrls?: string[]
   fuelReceiptUrls?: string[]
+  accidentPhotoUrls?: string[]
 } = {}) {
   ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ avatarUrl })
   ;(prisma.vehicle.findMany as jest.Mock).mockResolvedValue(coverPhotoUrls.map((coverPhotoUrl) => ({ coverPhotoUrl })))
@@ -60,6 +63,7 @@ function stubKeyQueries({
   ;(prisma.trailWaypoint.findMany as jest.Mock).mockResolvedValue(waypointPhotoUrls.map((photoUrl) => ({ photoUrl })))
   ;(prisma.document.findMany as jest.Mock).mockResolvedValue(documentFileUrls.map((fileUrl) => ({ fileUrl })))
   ;(prisma.fuelEntry.findMany as jest.Mock).mockResolvedValue(fuelReceiptUrls.map((receiptUrl) => ({ receiptUrl })))
+  ;(prisma.accidentPhoto.findMany as jest.Mock).mockResolvedValue(accidentPhotoUrls.map((url) => ({ url })))
 }
 
 /**
@@ -78,6 +82,7 @@ describe('collectStorageKeys', () => {
       waypointPhotoUrls: ['u1/v1/waypoint.jpg'],
       documentFileUrls: ['u1/v1/itp.pdf'],
       fuelReceiptUrls: ['u1/v1/omv.jpg'],
+      accidentPhotoUrls: ['u1/v1/dent.jpg'],
     })
 
     const keys = await collectStorageKeys('u1')
@@ -85,6 +90,7 @@ describe('collectStorageKeys', () => {
       [
         'u1/avatar.jpg',
         'u1/v1/cover.jpg',
+        'u1/v1/dent.jpg',
         'u1/v1/found.jpg',
         'u1/v1/itp.pdf',
         'u1/v1/omv.jpg',
@@ -121,7 +127,7 @@ describe('collectStorageKeys', () => {
 
     expect((prisma.user.findUnique as jest.Mock).mock.calls[0][0].where).toEqual({ id: 'owner-1' })
     expect((prisma.vehicle.findMany as jest.Mock).mock.calls[0][0].where).toEqual({ ownerId: 'owner-1' })
-    for (const model of [prisma.task, prisma.taskPhoto, prisma.trailWaypoint, prisma.document, prisma.fuelEntry]) {
+    for (const model of [prisma.task, prisma.taskPhoto, prisma.trailWaypoint, prisma.document, prisma.fuelEntry, prisma.accidentPhoto]) {
       const where = JSON.stringify((model.findMany as jest.Mock).mock.calls[0][0].where)
       expect(where).toContain('owner-1')
     }
@@ -259,6 +265,7 @@ describe('collectUserData', () => {
           tyreSets: [{ id: 't1', treadDepthMm: new Prisma.Decimal('4.5'), costRon: new Prisma.Decimal('1600') }],
           documents: [{ id: 'd1', costRon: new Prisma.Decimal('900.50') }],
           expenses: [{ id: 'e1', amountRon: new Prisma.Decimal('15') }],
+          accidents: [{ id: 'a1', repairCostRon: new Prisma.Decimal('2400.50'), photos: [] }],
           purchasePriceRon: new Prisma.Decimal('40000'),
           currentValueRon: null,
           financeMonthlyRon: new Prisma.Decimal('1200.00'),
@@ -286,10 +293,12 @@ describe('collectUserData', () => {
     expect(vehicle.purchasePriceRon).toBe(40000)
     expect(vehicle.currentValueRon).toBeNull()
     expect(vehicle.financeMonthlyRon).toBe(1200)
+    // RL-050: accidents.
+    expect(vehicle.accidents[0].repairCostRon).toBe(2400.5)
   })
 
   it('handles a vehicle with no found state', async () => {
-    stubExport({ vehicles: [{ id: 'v1', tasks: [], foundState: null, wishlistItems: [], fuelEntries: [], tyreSets: [], documents: [], expenses: [] }] })
+    stubExport({ vehicles: [{ id: 'v1', tasks: [], foundState: null, wishlistItems: [], fuelEntries: [], tyreSets: [], documents: [], expenses: [], accidents: [] }] })
     const data = await collectUserData('u1')
     expect(data.vehicles[0].foundState).toBeNull()
   })

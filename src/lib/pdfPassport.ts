@@ -27,6 +27,12 @@ export interface PdfPassportStrings {
   documentsTitle: string
   documents: string[]
   tyresLine: string | null
+  accidentsTitle: string
+  accidentsNote: string
+  /** One entry per record, already worded. */
+  accidents: Array<{ heading: string; description: string; detail: string }>
+  /** Printed instead when there are none: an absence of records, never a clean history. */
+  noAccidents: string
   footer: string
 }
 
@@ -100,6 +106,21 @@ export function buildPassportDocDefinition(passport: Passport, strings: PdfPassp
   content.push(h2(strings.documentsTitle))
   content.push({ ul: strings.documents, style: 'list' })
   if (strings.tyresLine) content.push({ text: strings.tyresLine, style: 'list', margin: [0, 6, 0, 0] })
+
+  content.push(h2(strings.accidentsTitle))
+  content.push({ text: strings.accidentsNote, style: 'note' })
+  if (strings.accidents.length === 0) content.push({ text: strings.noAccidents, style: 'list' })
+  for (const a of strings.accidents) {
+    content.push({
+      stack: [
+        { text: a.heading, style: 'workName' },
+        { text: a.description, style: 'list' },
+        { text: a.detail, style: 'workNote' },
+      ],
+      margin: [0, 0, 0, 6],
+      unbreakable: true,
+    })
+  }
 
   return {
     content,

@@ -814,9 +814,11 @@ honesty rules are the point and each is tested (`passport.test.ts`):
   page and directly under the PDF title — never only in a footer.
 - **Every absence is an absence of records** — each `absence.*` string
   names RigLog, and no catalogue string may claim a clean history ("no
-  accidents", "verified", "certified"…). Accidents are not tracked yet, so
-  `absence.accidentsNotTracked` is always present; when the accidents slice
-  lands, replace it with real rows, still phrased as records.
+  accidents", "verified", "certified"…). With no accident records the
+  passport says `absence.noAccidentsRecorded` ("none recorded in RigLog…
+  not the same as none having happened"); with some, it lists them with
+  when each was entered, and `accidentsNote` says to check the insurer's
+  claims history.
 - **Gaps of a year or more are listed** (`recordGaps()`), including before
   the first and after the last entry — an empty history is one long gap.
 - **Each job shows when it was entered and last changed** beside when the
@@ -841,6 +843,21 @@ widen `/api/uploads`**. Creating a link and the PDF (a dated snapshot) are
 owner + Pro; **withdrawing needs no Pro**, so a lapsed seller can still take
 it down; existing links keep working if Pro lapses. The data export lists
 links without their tokens.
+
+### Accidents and damage (`src/lib/accidents.ts`, RL-050 — slice 8)
+`Accident` (date, kind, description, km, insurance route, repair date and
+cost) with up to `ACCIDENT_PHOTO_LIMIT` `AccidentPhoto`s — images only, filed
+under the vehicle **owner's** prefix whoever uploads, and listed in
+`collectStorageKeys()`. Deleting a record deletes its files. Owner or active
+collaborator adds; a collaborator changes/removes only their own. Free.
+- The km is **not** an `OdometerReading`: damage found later has a guessed
+  date, which must not bound the mileage history.
+- `repairCostRon` is **excluded** from the cost of ownership (`MONEY_COLUMNS`
+  says why): the repair is logged as a job, which already counts. The form
+  says so.
+- Never on a public surface: the build pages don't read accidents (a test
+  walks `src/app/builds`), and the passport lists records but only **counts**
+  their photos — it never loads the keys.
 
 Phase 5 follows the adapted plan on #49 (one additive migration per slice,
 each slice deployable alone): identity → odometer → fuel log → Car Health
