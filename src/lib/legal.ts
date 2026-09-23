@@ -16,7 +16,7 @@
  * Bump when the substance changes, not for a typo. Shown on both pages so
  * a reader can tell whether they've seen this version.
  */
-export const LEGAL_LAST_UPDATED = '2026-09-16'
+export const LEGAL_LAST_UPDATED = '2026-09-23'
 
 /**
  * Who to contact about a data request. Not hardcoded: whoever deploys this
@@ -97,6 +97,9 @@ export const LOCAL_STORAGE_ENTRIES = [
   { id: 'theme', name: 'riglog-theme' },
   { id: 'cookieNotice', name: 'riglog-cookie-notice' },
   { id: 'trailRecording', name: 'riglog-trail-recording' },
+  // RL-048: Tesseract.js caches the model in IndexedDB (idb-keyval's
+  // default database) under the key it was fetched as.
+  { id: 'ocrModel', name: 'IndexedDB keyval-store: ./ron.traineddata' },
 ]
 
 export interface SubProcessor {

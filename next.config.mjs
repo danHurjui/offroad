@@ -58,6 +58,9 @@ const scriptSrc = [
   "'self'",
   "'unsafe-inline'", // TODO: replace with per-request nonce (tracked as follow-up)
   ...(isDev ? ["'unsafe-eval'"] : []), // Next.js HMR needs unsafe-eval in dev only
+  // RL-048: the receipt reader compiles its WebAssembly engine in the
+  // browser. This allows compiling WebAssembly only — not eval of JS.
+  "'wasm-unsafe-eval'",
   'https://accounts.google.com',
   // Cloudflare Turnstile. The widget's script comes from here and it
   // draws its challenge in an iframe from the same origin, so both
@@ -79,6 +82,9 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self'",
+  // RL-048: the receipt reader's worker is a same-origin file
+  // (public/ocr/worker.min.js), never a blob: URL — see src/lib/ocr.ts.
+  "worker-src 'self'",
   `connect-src ${connectSrc}`,
   "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com",
   "frame-ancestors 'none'",

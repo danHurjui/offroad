@@ -8,6 +8,7 @@ import { getVocabulary } from '@/lib/vocabulary'
 import { consumptionIntervals, fuelSummary, type FuelLike } from '@/lib/fuel'
 import { dayKey } from '@/lib/odometer'
 import { serializeFuelEntry } from '@/lib/serialize'
+import { hasPro, PRO_SELECT } from '@/lib/pro'
 import FuelQuickAdd from '@/components/FuelQuickAdd'
 import { FuelRow, RemoveFuelButton } from '@/components/FuelEntryRemove'
 
@@ -27,14 +28,19 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
   // with hideCostsFromCollaborators set does not see the aggregate spend.
   const hideSpend = hidesCosts(vehicle)
 
-  const [rows, overrides] = await Promise.all([
+  // RL-048: scanning is Pro — the plan of the vehicle's account of record,
+  // like every other Pro feature on a vehicle, so a driver or mechanic on a
+  // Pro vehicle can scan too.
+  const [rows, overrides, planOwner] = await Promise.all([
     prisma.fuelEntry.findMany({
       where: { vehicleId: vehicle.id },
       orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
       include: { odometerReading: { select: { km: true } } },
     }),
     prisma.odometerReading.findMany({ where: { vehicleId: vehicle.id, isOverride: true }, select: { readAt: true } }),
+    prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } }),
   ])
+  const canScan = hasPro(planOwner)
   const entries = rows.map(serializeFuelEntry)
   const fuelLike: FuelLike[] = entries.map((e) => ({
     id: e.id,
@@ -81,7 +87,7 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
       </div>
 
       <div className="card mb-6 p-4">
-        <FuelQuickAdd vehicleId={vehicle.id} />
+        <FuelQuickAdd vehicleId={vehicle.id} canScan={canScan} offerScanUpgrade={isOwner && !vehicle.organizationId} />
       </div>
 
       <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('history')}</h2>

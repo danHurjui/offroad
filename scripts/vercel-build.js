@@ -66,6 +66,9 @@ function main() {
       `[vercel-build] skipping migrations (VERCEL_ENV=${process.env.VERCEL_ENV ?? 'unset'}); only production migrates — see scripts/vercel-build.js`
     )
   }
+  // RL-048: the receipt reader's files, in case node_modules came from
+  // Vercel's build cache without postinstall having run against it.
+  if (run('node', ['scripts/copy-ocr-assets.js']) !== 0) process.exit(1)
   process.exit(run('npx', ['next', 'build']))
 }
 
