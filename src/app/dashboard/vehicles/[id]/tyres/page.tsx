@@ -63,6 +63,11 @@ export default async function TyresPage({ params }: { params: { id: string } }) 
                       tread !== null && `${tread.toLocaleString('ro-RO')} mm${s.treadMeasuredAt ? ` (${t('measuredOn', { date: fmtDate(s.treadMeasuredAt) })})` : ''}`,
                       s.dotYear && t('madeIn', { year: s.dotYear }),
                       kmOn !== null && t('kmOn', { km: kmOn.toLocaleString('ro-RO') }),
+                      s.costRon !== null &&
+                        t('bought', {
+                          amount: (toNumberOrNull(s.costRon) ?? 0).toLocaleString('ro-RO', { maximumFractionDigits: 2 }),
+                          date: fmtDate(s.purchasedAt ?? s.createdAt),
+                        }),
                     ]
                       .filter(Boolean)
                       .join(' · ')}

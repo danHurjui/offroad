@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, apiErrorWith } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
+import { serializeDocument } from '@/lib/serialize'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { saveUpload, deleteUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
     const updated = await prisma.document.update({ where: { id: document.id }, data: { fileUrl: storagePath } })
     if (previousFileUrl) await deleteUpload(previousFileUrl)
 
-    return NextResponse.json(updated)
+    return NextResponse.json(serializeDocument(updated))
   } catch (e) {
     if (e instanceof StorageError) {
       return await apiError('saveFileFailed', 500)

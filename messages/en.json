@@ -448,7 +448,9 @@
     "emptyTitle": "Nothing logged yet",
     "emptyBody": "Each job goes under one of the categories below: what was done, when, what it cost, and photos of it. Pick a category to log the first one.",
     "fuel": "Fuel",
-    "tyres": "Tyres"
+    "tyres": "Tyres",
+    "expenses": "Other costs",
+    "costs": "Cost of ownership"
   },
   "home": {
     "metaTitle": "Car build, restoration and repair log — RigLog",
@@ -1041,7 +1043,11 @@
     "attachFailed": "Could not attach the file",
     "renewFailed": "Could not update the expiry date",
     "deleteFailed": "Could not delete the document",
-    "pageTitle": "Documents"
+    "pageTitle": "Documents",
+    "price": "Price (optional)",
+    "paid": "Paid {amount} RON on {date}",
+    "noPrice": "No price recorded",
+    "renewPrice": "Price paid"
   },
   "wishlist": {
     "markAsFitted": "Mark as fitted",
@@ -2046,6 +2052,10 @@
     "fuelLitresInvalid": "Enter the litres as a number above zero.",
     "fuelOwnOnly": "You can only change fill-ups you recorded.",
     "fuelTotalInvalid": "Enter the total paid, in lei, as a number above zero.",
+    "valuesFieldInvalid": "{field} is not valid",
+    "expenseFieldInvalid": "{field} is not valid",
+    "expenseOwnOnly": "You can only remove costs you recorded.",
+    "costFieldInvalid": "{field} is not valid",
     "tyreFieldInvalid": "{field} is not valid",
     "tyreOwnOnly": "You can only change tyre sets you added."
   },
@@ -2400,6 +2410,122 @@
     "deleted": "Removed the tyre set.",
     "deleteFailed": "Couldn’t remove the tyre set.",
     "empty": "No tyre sets yet. Add the set on the car — with its tread depth or DOT year, Car Health can watch it.",
-    "failed": "Couldn’t update the tyre set."
+    "failed": "Couldn’t update the tyre set.",
+    "price": "Price paid (optional)",
+    "purchasedAt": "Bought on",
+    "bought": "bought for {amount} RON on {date}"
+  },
+  "vehicleValues": {
+    "heading": "Value and finance",
+    "purchaseDate": "Bought on",
+    "purchasePriceRon": "Purchase price (RON)",
+    "currentValueRon": "What you think it's worth now (RON)",
+    "currentValueHelp": "Your own estimate. RigLog never suggests a value, because it has no data to base one on.",
+    "currentValueHelpDated": "Your own estimate, last changed on {date}. RigLog never suggests a value.",
+    "financeType": "Finance",
+    "financeNone": "Bought outright",
+    "finance": {
+      "LEASING": "Leasing",
+      "CREDIT": "Car loan"
+    },
+    "financeMonthlyRon": "Monthly payment (RON)",
+    "financeStartDate": "First payment",
+    "financeEndDate": "Last payment",
+    "creditHelp": "Monthly payments count towards the cost of ownership. If the loan paid for the car, enter only your down payment as the purchase price, or the car gets counted twice.",
+    "leasingHelp": "Monthly payments count towards the cost of ownership."
+  },
+  "expenses": {
+    "pageTitle": "Other costs",
+    "subtitle": "Road tax, tolls, parking and anything else that isn't a job, a fill-up, a document or a set of tyres.",
+    "amount": "Amount (RON)",
+    "kindLabel": "What for",
+    "kind": {
+      "TAX": "Road tax",
+      "TOLL": "Toll",
+      "ROAD_CHARGE": "Road charge",
+      "INSURANCE": "Insurance",
+      "INSPECTION": "Inspection",
+      "PARKING": "Parking",
+      "WASH": "Car wash",
+      "FINE": "Fine",
+      "OTHER": "Other"
+    },
+    "date": "Date paid",
+    "note": "Note (optional)",
+    "notePlaceholder": "e.g. Fetești bridge",
+    "add": "Add cost",
+    "adding": "Adding…",
+    "saved": "Cost added",
+    "saveFailed": "Couldn't add the cost",
+    "history": "History",
+    "total": "{total} RON in total",
+    "empty": "Nothing recorded yet.",
+    "remove": "Remove",
+    "deleted": "Removed {label}",
+    "deleteFailed": "Couldn't remove the cost"
+  },
+  "ownership": {
+    "title": "Cost of ownership",
+    "period": "From {from} to today",
+    "hiddenFromCollaborators": "The owner has hidden cost totals from collaborators.",
+    "range": {
+      "3m": "Last 3 months",
+      "12m": "Last 12 months",
+      "all": "Since you've owned it"
+    },
+    "total": "Total",
+    "runningTotal": "{amount} RON of that is running costs (everything but the purchase)",
+    "perKmTitle": "Running cost per km",
+    "perKmValue": "{value} RON/km",
+    "perKmDetail": "{costs} RON over {km} km, {from} – {to}. Only costs paid between those two odometer readings count.",
+    "perKm": {
+      "fewReadings": "Not enough odometer readings in this period. It takes two to measure a distance.",
+      "noDistance": "The odometer readings in this period show no distance covered."
+    },
+    "upgradePrompt": "Upgrade to Pro for the breakdown by category, every entry behind each figure, cost per km and period filters.",
+    "coverageTitle": "What this total doesn't include",
+    "coverage": {
+      "noPurchase": "No purchase price. Add it under Value and finance.",
+      "kmWindow": "Distance is only known from {from} to {to} ({days} of {periodDays} days), so cost per km only covers that stretch.",
+      "noFuel": "No fuel recorded.",
+      "fuelSince": "Fuel is only recorded from {date}.",
+      "documentsWithoutPrice": "{count, plural, one {# document has} other {# documents have}} no price.",
+      "creditAndPurchase": "Both a purchase price and loan payments are counted. If the loan paid for the car, set the purchase price to your down payment.",
+      "financeIncomplete": "Finance is set, but without a monthly payment or first payment date, so no payments are counted."
+    },
+    "depreciation": "Depreciation isn't counted. The value below is your estimate, not a cost.",
+    "value": {
+      "title": "What you think it's worth",
+      "asOf": "Your estimate, {date}",
+      "yours": "Your estimate",
+      "below": "{amount} RON less than you paid",
+      "above": "{amount} RON more than you paid",
+      "none": "Not entered. RigLog never estimates a value.",
+      "edit": "Edit value and finance"
+    },
+    "breakdown": "Breakdown",
+    "category": {
+      "purchase": "Purchase",
+      "finance": "Finance payments",
+      "fuel": "Fuel",
+      "work": "Jobs and service",
+      "insurance": "Insurance",
+      "inspection": "Inspection (ITP)",
+      "roadCharges": "Tax and road charges",
+      "tyres": "Tyres",
+      "other": "Other"
+    },
+    "entries": "{count, plural, one {# entry} other {# entries}}",
+    "nothingRecorded": "Nothing recorded for:",
+    "empty": "Nothing with a price has been recorded in this period.",
+    "source": {
+      "task": "Job",
+      "fuel": "Fill-up",
+      "purchase": "Purchase"
+    },
+    "finance": {
+      "LEASING": "Leasing payment",
+      "CREDIT": "Loan payment"
+    }
   }
 }

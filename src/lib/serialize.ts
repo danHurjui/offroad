@@ -105,3 +105,47 @@ export function serializeFuelEntry<
     pricePerLitre: litres > 0 ? Math.round((totalRon / litres) * 1000) / 1000 : null,
   }
 }
+
+/**
+ * RL-045: the vehicle's own money columns — purchase, the owner's value
+ * estimate, finance — as numbers (pitfall #5).
+ */
+export const VEHICLE_MONEY_FIELDS = ['purchasePriceRon', 'currentValueRon', 'financeMonthlyRon'] as const
+
+export function vehicleMoney(vehicle: Record<(typeof VEHICLE_MONEY_FIELDS)[number], Decimal | number | null>) {
+  return {
+    purchasePriceRon: toNumberOrNull(vehicle.purchasePriceRon),
+    currentValueRon: toNumberOrNull(vehicle.currentValueRon),
+    financeMonthlyRon: toNumberOrNull(vehicle.financeMonthlyRon),
+  }
+}
+
+/**
+ * A vehicle row as it leaves the server. Purchase, value and finance are
+ * what the vehicle cost the owner, so `hideCostsFromCollaborators` removes
+ * them for a collaborator the same way it removes the totals — they are
+ * private money figures, not a job's line items.
+ */
+export function serializeVehicle<T extends Record<(typeof VEHICLE_MONEY_FIELDS)[number], Decimal | number | null>>(
+  vehicle: T,
+  { hideCosts }: { hideCosts: boolean } = { hideCosts: false }
+) {
+  if (hideCosts) {
+    return {
+      ...vehicle,
+      purchasePriceRon: null,
+      currentValueRon: null,
+      currentValueAt: null,
+      financeType: null,
+      financeMonthlyRon: null,
+      financeStartDate: null,
+      financeEndDate: null,
+    }
+  }
+  return { ...vehicle, ...vehicleMoney(vehicle) }
+}
+
+/** A Document with its RL-045 price as a number (pitfall #5). */
+export function serializeDocument<T extends { costRon: Decimal | number | null }>(document: T) {
+  return { ...document, costRon: toNumberOrNull(document.costRon) }
+}

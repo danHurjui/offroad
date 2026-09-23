@@ -256,7 +256,12 @@ describe('collectUserData', () => {
             },
           ],
           fuelEntries: [{ id: 'f1', litres: new Prisma.Decimal('42.37'), totalRon: new Prisma.Decimal('301.50') }],
-          tyreSets: [{ id: 't1', treadDepthMm: new Prisma.Decimal('4.5') }],
+          tyreSets: [{ id: 't1', treadDepthMm: new Prisma.Decimal('4.5'), costRon: new Prisma.Decimal('1600') }],
+          documents: [{ id: 'd1', costRon: new Prisma.Decimal('900.50') }],
+          expenses: [{ id: 'e1', amountRon: new Prisma.Decimal('15') }],
+          purchasePriceRon: new Prisma.Decimal('40000'),
+          currentValueRon: null,
+          financeMonthlyRon: new Prisma.Decimal('1200.00'),
         },
       ],
     })
@@ -274,10 +279,17 @@ describe('collectUserData', () => {
     expect(vehicle.wishlistItems[0].priceHistory[0].priceRon).toBe(199.99)
     expect(vehicle.fuelEntries[0].litres).toBe(42.37)
     expect(vehicle.fuelEntries[0].totalRon).toBe(301.5)
+    // RL-045: the new money columns, and the expenses themselves.
+    expect(vehicle.tyreSets[0].costRon).toBe(1600)
+    expect(vehicle.documents[0].costRon).toBe(900.5)
+    expect(vehicle.expenses[0].amountRon).toBe(15)
+    expect(vehicle.purchasePriceRon).toBe(40000)
+    expect(vehicle.currentValueRon).toBeNull()
+    expect(vehicle.financeMonthlyRon).toBe(1200)
   })
 
   it('handles a vehicle with no found state', async () => {
-    stubExport({ vehicles: [{ id: 'v1', tasks: [], foundState: null, wishlistItems: [], fuelEntries: [], tyreSets: [] }] })
+    stubExport({ vehicles: [{ id: 'v1', tasks: [], foundState: null, wishlistItems: [], fuelEntries: [], tyreSets: [], documents: [], expenses: [] }] })
     const data = await collectUserData('u1')
     expect(data.vehicles[0].foundState).toBeNull()
   })

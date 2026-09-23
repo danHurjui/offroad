@@ -2,7 +2,8 @@ jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
 jest.mock('@/lib/auth', () => ({ authOptions: {} }))
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    vehicle: { findUnique: jest.fn() },
+    vehicle: { findUnique: jest.fn(), update: jest.fn() },
+    $transaction: jest.fn((fn: (tx: unknown) => unknown) => fn(jest.requireMock('@/lib/prisma').prisma)),
     projectCollaborator: { findFirst: jest.fn() },
     foundState: { findUnique: jest.fn(), upsert: jest.fn() },
     odometerReading: { findFirst: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() },
@@ -68,6 +69,18 @@ describe('PUT /api/vehicles/[id]/found-state', () => {
     const data = await res.json()
     expect(res.status).toBe(200)
     expect(data.purchasePriceRon).toBe(1500)
+  })
+
+  // RL-045: the purchase lives on the vehicle for every mode; the intake's
+  // copy is kept in step until a later release drops it.
+  it('mirrors the acquisition onto the vehicle as its purchase', async () => {
+    mockVehicleFindUnique.mockResolvedValue({ id: 'v1', ownerId: 'u1', projectType: 'RESTORATION' })
+    mockUpsert.mockResolvedValue({ id: 'fs1', vehicleId: 'v1', purchasePriceRon: null, photos: [] })
+    await PUT(makePutReq({ acquisitionDate: '2025-01-01', purchasePriceRon: 1500 }), { params })
+    expect(prisma.vehicle.update).toHaveBeenCalledWith({
+      where: { id: 'v1' },
+      data: { purchaseDate: new Date('2025-01-01'), purchasePriceRon: 1500 },
+    })
   })
 
   // RL-044: the intake odometer is the first reading of one history.

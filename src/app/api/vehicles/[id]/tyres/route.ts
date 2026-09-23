@@ -32,7 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         data: { vehicleId: vehicle.id, season: season!, ...rest, createdByUserId: session.user.id },
       })
     })
-    return NextResponse.json({ ...created, treadDepthMm: toNumberOrNull(created.treadDepthMm) }, { status: 201 })
+    return NextResponse.json({ ...created, treadDepthMm: toNumberOrNull(created.treadDepthMm), costRon: toNumberOrNull(created.costRon) }, { status: 201 })
   } catch {
     return await apiError('internalError', 500)
   }

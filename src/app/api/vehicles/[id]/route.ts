@@ -6,10 +6,11 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess, requireVehicleOwner } from '@/lib/access'
 import { ensureUsername } from '@/lib/username'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
-import { serializeTaskFor } from '@/lib/serialize'
+import { serializeTaskFor, serializeVehicle, toNumberOrNull } from '@/lib/serialize'
 import { readJsonBody } from '@/lib/requestBody'
 import { collectStorageKeys, deleteStoredFiles } from '@/lib/personalData'
 import { parseProfile } from '@/lib/vehicleProfile'
+import { parseValues } from '@/lib/ownershipCosts'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 
@@ -39,7 +40,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const isOwner = vehicle.ownerId === session.user.id
     const hideCosts = !isOwner && vehicle.hideCostsFromCollaborators
     return NextResponse.json({
-      vehicle,
+      vehicle: serializeVehicle(vehicle, { hideCosts }),
       tasks: tasks.map((t) => serializeTaskFor(t, { hideCosts })),
       foundState,
       isOwner,
@@ -88,6 +89,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!profile.ok) return await apiErrorWith('profileFieldInvalid', { field: profile.field }, 400)
     Object.assign(data, profile.data)
 
+    // RL-045/RL-050: values and finance. The value is the owner's own
+    // estimate; nothing here computes one.
+    const values = parseValues(body, {
+      financeStartDate: vehicle.financeStartDate,
+      financeEndDate: vehicle.financeEndDate,
+      currentValueRon: toNumberOrNull(vehicle.currentValueRon),
+    })
+    if (!values.ok) return await apiErrorWith('valuesFieldInvalid', { field: values.field }, 400)
+    Object.assign(data, values.data)
+
     // Publishing is the one field on this route that reaches strangers:
     // it puts the build, its photos and (unless hidden) its costs on the
     // open web under a URL anyone can read. So the confirmed-address rule
@@ -116,8 +127,22 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       await ensureUsername(vehicle.ownerId)
     }
 
-    const updated = await prisma.vehicle.update({ where: { id: vehicle.id }, data })
-    return NextResponse.json(updated)
+    // A restoration's intake still carries its own copy of the purchase
+    // (FoundState, until a later release drops it), so the two are kept
+    // in step. Its acquisition date is required, so a cleared purchase
+    // date leaves it alone.
+    const mirror: Record<string, unknown> = {}
+    if (values.data.purchasePriceRon !== undefined) mirror.purchasePriceRon = values.data.purchasePriceRon
+    if (values.data.purchaseDate) mirror.acquisitionDate = values.data.purchaseDate
+    const updated =
+      vehicle.projectType === 'RESTORATION' && Object.keys(mirror).length > 0
+        ? await prisma.$transaction(async (tx) => {
+            const row = await tx.vehicle.update({ where: { id: vehicle.id }, data })
+            await tx.foundState.updateMany({ where: { vehicleId: vehicle.id }, data: mirror })
+            return row
+          })
+        : await prisma.vehicle.update({ where: { id: vehicle.id }, data })
+    return NextResponse.json(serializeVehicle(updated))
   } catch {
     return await apiError('internalError', 500)
   }
