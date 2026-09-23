@@ -791,6 +791,21 @@ about it there**.
 - Free: the total and its gaps. Pro (the owner's): breakdown, entries, cost
   per km, period filter.
 
+### Service book (`src/lib/serviceBook.ts`, RL-047 — slice 6)
+A **view over completed jobs** (`config.completeStatus`), never a second
+place to record work — to change an entry you edit the job. The page and
+the PDF both read through `loadServiceBook()` so they cannot list
+different jobs; the km is the reading written with the job, and cost is
+`taskTotalCost()`. Rows go by date, then km on the same day; a replaced
+cluster/correction between two rows is **marked on the row** (the km
+restarts), a km below an earlier row is flagged rather than reordered, and
+a job entered more than 30 days after its date says "logged on …". The PDF
+(`pdfServiceBook.ts`, third document on the RL-014 engine, no photos)
+states that it is a record kept by the owner that RigLog does not verify.
+Reading is free (collaborators too, without costs under
+`hideCostsFromCollaborators`); the export is the owner's and Pro. No plate
+or VIN is printed — that choice belongs to the passport (RL-049).
+
 Phase 5 follows the adapted plan on #49 (one additive migration per slice,
 each slice deployable alone): identity → odometer → fuel log → Car Health
 → TCO → service book → passport → accidents; OCR waits on a provider
