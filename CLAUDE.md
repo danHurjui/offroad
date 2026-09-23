@@ -864,7 +864,7 @@ each slice deployable alone): identity → odometer → fuel log → Car Health
 → TCO → service book → passport → accidents; OCR waits on a provider
 choice.
 
-### Organisations (`src/lib/organizations.ts`, RL-038 — fleet slice 1 of #49)
+### Organisations (`src/lib/organizations.ts`, RL-038 — fleet slices 1–2 of #49)
 `Organization` (name, CUI, billing address) and `OrganizationMember` (one
 per person per organisation — a DB constraint — with a role: `OWNER`,
 `FLEET_MANAGER`, `MECHANIC`, `DRIVER`). **No vehicle belongs to an
@@ -888,6 +888,16 @@ that widens `requireVehicleAccess()` on purpose.
   signs out once the server confirms the deletion.
 - The data export lists the account's organisations and role, not the
   other members.
+- **Invitations** (`src/lib/organizationInvites.ts`, slice 2) are the
+  collaborator flow (32-byte token, 7 days, resend = new token and a fresh
+  7 days, withdraw) with one difference: **only the token's SHA-256 is
+  stored**. Owners invite, with a confirmed address (both the invite and
+  the resend are in `emailVerification.test.ts`'s gated list), rate-limited
+  per user id, at most `ORG_PENDING_INVITE_LIMIT` open per organisation.
+  Accepting (`/organizations/accept`) needs a session whose email is the
+  invited one; claiming the invitation is a conditional `updateMany` in
+  the same transaction as the membership, so a double click or a
+  simultaneous withdrawal cannot make a member.
 
 ### Write feedback (`src/lib/writeFeedback.ts`, `src/components/Toaster.tsx`, RL-034)
 One toast layer, mounted in `Providers` above every page. Toasts are for

@@ -198,6 +198,7 @@ model User {
   vehicleExpenses      VehicleExpense[]      @relation("VehicleExpenseBy")
   accidents            Accident[]            @relation("AccidentBy")
   organizationMemberships OrganizationMember[]
+  organizationInvitesSent OrganizationInvite[] @relation("OrgInvitedBy")
   ticketVotes          TicketVote[]
   ticketComments       TicketComment[]
   donations            Donation[]
@@ -1114,6 +1115,7 @@ model Organization {
   updatedAt      DateTime @updatedAt
 
   members OrganizationMember[]
+  invites OrganizationInvite[]
 }
 
 /// One account's place in one organisation. Deleting the account removes
@@ -1131,4 +1133,29 @@ model OrganizationMember {
 
   @@unique([organizationId, userId])
   @@index([userId])
+}
+
+/// RL-038 slice 2: an emailed invitation to join an organisation with a
+/// role. Only a SHA-256 of the token is stored, so a copy of the database
+/// cannot be used to join anything. Accepting needs a session whose email
+/// is the invited one; the link lasts INVITE_EXPIRY_DAYS from `invitedAt`
+/// (a resend issues a new token and restarts it).
+model OrganizationInvite {
+  id              String    @id @default(cuid())
+  organizationId  String
+  email           String
+  role            OrgRole
+  tokenHash       String    @unique
+  invitedByUserId String?
+  invitedAt       DateTime  @default(now())
+  acceptedAt      DateTime?
+  revokedAt       DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// SetNull: an owner deleting their account must not withdraw every
+  /// invitation they sent on the organisation's behalf.
+  invitedBy    User?        @relation("OrgInvitedBy", fields: [invitedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([invitedByUserId])
 }

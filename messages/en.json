@@ -1610,6 +1610,12 @@
       "cta": "Confirm my email address",
       "expiry": "This link works for 24 hours. After that, log in and ask for a new one from Settings.",
       "ignore": "If you did not create a RigLog account, ignore this email. The account stays unconfirmed, so it cannot publish a build, invite anyone, or post in the community."
+    },
+    "organizationInvite": {
+      "subject": "{inviter} invited you to {organization} on RigLog",
+      "body": "{inviter} has invited you to join {organization} on RigLog as {role}.",
+      "cta": "Accept the invitation",
+      "expiry": "This link expires in 7 days. Log in with this email address to accept it."
     }
   },
   "notify": {
@@ -2099,7 +2105,10 @@
     "proServiceBookExport": "Exporting the service book is a Pro feature.",
     "serviceBookFailed": "Could not generate the service book PDF.",
     "proPassport": "Sharing and exporting the passport is a Pro feature.",
-    "passportFailed": "Could not generate the passport PDF."
+    "passportFailed": "Could not generate the passport PDF.",
+    "orgAlreadyMember": "That person is already a member of this organisation.",
+    "orgAlreadyInvited": "There is already a pending invitation for that address. Resend it instead.",
+    "orgInviteLimit": "This organisation has {limit} pending invitations. Withdraw some before sending more."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2770,7 +2779,6 @@
     "detailsTitle": "Company details",
     "membersTitle": "Members",
     "rolesHelp": "Owners run the organisation: its details, its members and deleting it. There is always at least one owner.",
-    "invitesSoon": "Inviting people by email arrives in the next release.",
     "you": "(you)",
     "roleFor": "Role for {name}",
     "roleChanged": "{name}’s role changed.",
@@ -2793,6 +2801,36 @@
       "FLEET_MANAGER": "Fleet manager",
       "MECHANIC": "Mechanic",
       "DRIVER": "Driver"
+    },
+    "inviteTitle": "Invite someone",
+    "inviteEmail": "Email address",
+    "inviteRole": "Role",
+    "inviteHelp": "They get an email with a link that lasts 7 days, and must log in with this address to accept it.",
+    "invite": "Send invitation",
+    "inviting": "Sending…",
+    "inviteFailed": "Could not send the invitation.",
+    "invited": "Invitation sent to {email}.",
+    "invitesTitle": "Open invitations",
+    "invitePending": "invited {date}",
+    "inviteExpired": "expired — resend to renew it",
+    "resend": "Resend",
+    "resent": "Invitation resent to {email}.",
+    "resendFailed": "Could not resend the invitation.",
+    "withdraw": "Withdraw",
+    "withdrawn": "Invitation to {email} withdrawn.",
+    "withdrawFailed": "Could not withdraw the invitation.",
+    "confirmWithdraw": "Withdraw the invitation to {email}? Its link will stop working.",
+    "accept": {
+      "missingToken": "This invitation link is missing its token.",
+      "checkingSession": "Checking your session…",
+      "invited": "You’ve been invited to join an organisation on RigLog. Log in or create an account with the email address the invitation was sent to, then come back to this link.",
+      "logIn": "Log in",
+      "createAccount": "Create account",
+      "accepting": "Accepting the invitation…",
+      "accepted": "You’re in. You are now a member of the organisation.",
+      "open": "Open the organisation",
+      "goToDashboard": "Go to dashboard",
+      "failed": "Could not accept the invitation."
     }
   }
 }

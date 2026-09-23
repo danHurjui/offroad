@@ -262,6 +262,8 @@ describe('the gate is on every write that reaches other people', () => {
     'src/app/api/parts-requests/route.ts',
     'src/app/api/parts-requests/[id]/comments/route.ts',
     'src/app/api/vehicles/[id]/collaborators/route.ts',
+    'src/app/api/organizations/[orgId]/invites/route.ts',
+    'src/app/api/organizations/[orgId]/invites/[inviteId]/resend/route.ts',
   ]
 
   it.each(gated)('%s asks for a confirmed address', (file) => {

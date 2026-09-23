@@ -7,6 +7,8 @@ import { canManageOrganization } from '@/lib/organizations'
 import OrganizationForm from '@/components/OrganizationForm'
 import OrganizationMembers from '@/components/OrganizationMembers'
 import OrganizationDelete from '@/components/OrganizationDelete'
+import OrganizationInvites from '@/components/OrganizationInvites'
+import { inviteStatus } from '@/lib/organizationInvites'
 
 // RL-038: one organisation. Anyone in it sees who else is; owners edit the
 // details, manage roles and can delete it. Outsiders get a 404.
@@ -27,6 +29,22 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
     include: { user: { select: { displayName: true, email: true } } },
     orderBy: { createdAt: 'asc' },
   })
+  // Open invitations only — accepted ones are members above, withdrawn ones are gone.
+  const invites = manager
+    ? (
+        await prisma.organizationInvite.findMany({
+          where: { organizationId: org.id, acceptedAt: null, revokedAt: null },
+          select: { id: true, email: true, role: true, invitedAt: true, acceptedAt: true, revokedAt: true },
+          orderBy: { invitedAt: 'desc' },
+        })
+      ).map((i) => ({
+        id: i.id,
+        email: i.email,
+        role: i.role,
+        status: inviteStatus(i) === 'expired' ? ('expired' as const) : ('pending' as const),
+        invitedAt: i.invitedAt.toISOString(),
+      }))
+    : []
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -63,7 +81,11 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
           isYou: m.userId === session.user.id,
         }))}
       />
-      <p className="mt-3 text-xs text-ink-faint">{t('invitesSoon')}</p>
+      {manager && (
+        <div className="mt-6">
+          <OrganizationInvites organizationId={org.id} invites={invites} />
+        </div>
+      )}
 
       {manager && (
         <section className="card mt-8 p-5">

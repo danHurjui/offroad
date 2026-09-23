@@ -1610,6 +1610,12 @@
       "cta": "Confirmă adresa mea de e-mail",
       "expiry": "Linkul este valabil 24 de ore. După aceea, autentifică-te și cere unul nou din Setări.",
       "ignore": "Dacă nu ți-ai creat tu cont RigLog, ignoră acest e-mail. Contul rămâne neconfirmat, deci nu poate publica un proiect, nu poate invita pe nimeni și nu poate posta în comunitate."
+    },
+    "organizationInvite": {
+      "subject": "{inviter} te-a invitat în {organization} pe RigLog",
+      "body": "{inviter} te-a invitat să te alături organizației {organization} pe RigLog, cu rolul {role}.",
+      "cta": "Acceptă invitația",
+      "expiry": "Linkul expiră în 7 zile. Autentifică-te cu această adresă de email ca să îl accepți."
     }
   },
   "notify": {
@@ -2099,7 +2105,10 @@
     "proServiceBookExport": "Exportul cărții de service este o funcție Pro.",
     "serviceBookFailed": "PDF-ul cărții de service nu a putut fi generat.",
     "proPassport": "Partajarea și exportul pașaportului sunt funcții Pro.",
-    "passportFailed": "PDF-ul pașaportului nu a putut fi generat."
+    "passportFailed": "PDF-ul pașaportului nu a putut fi generat.",
+    "orgAlreadyMember": "Această persoană este deja membră a organizației.",
+    "orgAlreadyInvited": "Există deja o invitație în așteptare pentru această adresă. Retrimite-o în schimb.",
+    "orgInviteLimit": "Această organizație are {limit} invitații în așteptare. Retrage câteva înainte de a trimite altele."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2770,7 +2779,6 @@
     "detailsTitle": "Datele firmei",
     "membersTitle": "Membri",
     "rolesHelp": "Proprietarii conduc organizația: datele ei, membrii și ștergerea ei. Există mereu cel puțin un proprietar.",
-    "invitesSoon": "Invitarea oamenilor prin email vine în versiunea următoare.",
     "you": "(tu)",
     "roleFor": "Rolul pentru {name}",
     "roleChanged": "Rolul lui {name} a fost schimbat.",
@@ -2793,6 +2801,36 @@
       "FLEET_MANAGER": "Manager de flotă",
       "MECHANIC": "Mecanic",
       "DRIVER": "Șofer"
+    },
+    "inviteTitle": "Invită pe cineva",
+    "inviteEmail": "Adresa de email",
+    "inviteRole": "Rol",
+    "inviteHelp": "Primește un email cu un link valabil 7 zile și trebuie să se autentifice cu această adresă ca să îl accepte.",
+    "invite": "Trimite invitația",
+    "inviting": "Se trimite…",
+    "inviteFailed": "Invitația nu a putut fi trimisă.",
+    "invited": "Invitația a fost trimisă către {email}.",
+    "invitesTitle": "Invitații deschise",
+    "invitePending": "invitat pe {date}",
+    "inviteExpired": "expirată — retrimite-o ca să o reînnoiești",
+    "resend": "Retrimite",
+    "resent": "Invitația a fost retrimisă către {email}.",
+    "resendFailed": "Invitația nu a putut fi retrimisă.",
+    "withdraw": "Retrage",
+    "withdrawn": "Invitația către {email} a fost retrasă.",
+    "withdrawFailed": "Invitația nu a putut fi retrasă.",
+    "confirmWithdraw": "Retragi invitația către {email}? Linkul ei nu va mai funcționa.",
+    "accept": {
+      "missingToken": "Acestui link de invitație îi lipsește tokenul.",
+      "checkingSession": "Se verifică sesiunea…",
+      "invited": "Ai fost invitat să te alături unei organizații pe RigLog. Autentifică-te sau creează un cont cu adresa de email la care a fost trimisă invitația, apoi revino la acest link.",
+      "logIn": "Autentificare",
+      "createAccount": "Creează cont",
+      "accepting": "Se acceptă invitația…",
+      "accepted": "Gata. Acum ești membru al organizației.",
+      "open": "Deschide organizația",
+      "goToDashboard": "Mergi la panou",
+      "failed": "Invitația nu a putut fi acceptată."
     }
   }
 }
