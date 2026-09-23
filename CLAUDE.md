@@ -47,7 +47,7 @@ docker-compose up -d          # postgres only
 
 # Tests
 npm test                                          # Jest, Prisma mocked
-npm test -- --testPathPatterns=vehicles.test.ts   # single file
+npm test -- --testPathPatterns=vehicles-api.test.ts   # single file
 
 # Build / typecheck / lint
 npm run build
@@ -268,7 +268,7 @@ alternative if that limit becomes a real problem.
    under a vehicle
 3. Test in `src/__tests__/<feature>.test.ts` — mock `@/lib/prisma` and
    `next-auth`, import the route's `GET`/`POST`/etc. directly (see
-   `src/__tests__/vehicles.test.ts` for the pattern)
+   `src/__tests__/vehicles-api.test.ts` for the pattern)
 
 ### Wishlist / parts hunt (`src/lib/projectType.ts`, `wishlist/` routes)
 One `WishlistItem` model backs both RL-011 (off-road wishlist) and RL-012
@@ -552,9 +552,10 @@ The icons are rasterised from `public/icons/*.svg` by Chromium itself
 (same engine that draws them on a home screen) and the SVG stays as the
 favicon and iOS home-screen icon, declared in the layout's `icons`
 metadata where SVG does work. `installPrompt.test.ts` reads the manifest
-and pins the sizes; the `pwa` live suite additionally fetches every
-declared icon, because a manifest naming a file that 404s passes every
-static check there is.
+and pins the sizes. It cannot catch a manifest naming an icon file that
+404s — that passes every static check there is — so fetch each declared
+icon against a running build when you change them. (There is no live/e2e
+suite checked into this repo; `npm test` is unit-only.)
 
 **There is no browser pop-up, by design.** Deferring the event is what
 suppresses Chromium's own banner, and the app does that so the offer can
@@ -644,6 +645,29 @@ release, in both languages, with nothing generating it, is a page that
 goes stale and then misleads. The version string plus the update prompt
 answers the question people actually have ("am I on the fixed one?")
 without anything to maintain.
+
+### Language (`src/i18n/`, `messages/{ro,en}.json`, `src/lib/vocabulary.ts`)
+next-intl, Romanian default, English second. **The locale is a cookie
+(`riglog-locale`), not a URL segment** — no `[locale]` route, no
+locale-aware `Link`; `src/i18n/config.ts` explains the trade. There is no
+middleware, which is why `request.ts` reads `requestLocale` rather than
+next-intl's deprecated `locale` param (destructuring that one 404s every
+page here).
+
+Two stores on purpose: the cookie drives what the screen renders,
+`User.locale` drives email, because reminders and notifications are sent
+from cron/background paths in the **recipient's** language. Those paths use
+`translator(locale, namespace)` (`src/i18n/translator.ts`), not
+`getTranslations()`, so they need no request context and stay unit-testable.
+
+**Stored values are never translated.** `PROJECT_TYPE_CONFIG` stays the
+vocabulary; `vocabulary.ts` only swaps labels, and every validator reads the
+config, never a catalogue — otherwise a request's language would change
+what a route accepts. `SERVER_ONLY_NAMESPACES` are stripped from the client
+payload (legal prose etc.); a `'use client'` file reading one fails
+`i18n.test.ts`, which also requires both catalogues to have the same keys,
+placeholders and rich-text tags. Any new user-facing string goes into
+**both** `messages/ro.json` and `messages/en.json`.
 
 ### Theme (`src/lib/theme.ts`, `src/app/globals.css`)
 Light/dark/system, `darkMode: 'class'` on `<html>`. Nothing re-themes by
@@ -779,8 +803,9 @@ the failure mode is a comped account with half of Pro working, which is
 easy to ship and hard to notice. `proKind()` is the separate,
 human-facing answer: a comped user must not be shown a billing plan they
 never bought, offered a subscription to manage, or nagged to upgrade.
-There is a live suite (`comppro`) that walks a comped account through
-every Pro-gated endpoint and page; extend it when you add a gate.
+`pro.test.ts` covers the helpers; nothing in this repo walks a comped
+account through every gate end-to-end, so when you add a gate, check it
+with an account that has `isProComped` and not `isPro`.
 
 **The founding-member promotion** (`src/lib/foundingMembers.ts`) grants the
 first `FOUNDING_MEMBER_LIMIT` accounts Pro permanently, as `isProComped` —
