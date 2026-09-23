@@ -186,6 +186,9 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
               )}
             </Link>
           )}
+          <Link href={`/dashboard/vehicles/${vehicle.id}/service-book`} className="btn-secondary">
+            {t('serviceBook')}
+          </Link>
           <Link href={`/dashboard/vehicles/${vehicle.id}/expenses`} className="btn-secondary">
             {t('expenses')}
           </Link>

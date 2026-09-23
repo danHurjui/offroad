@@ -450,7 +450,8 @@
     "fuel": "Fuel",
     "tyres": "Tyres",
     "expenses": "Other costs",
-    "costs": "Cost of ownership"
+    "costs": "Cost of ownership",
+    "serviceBook": "Service book"
   },
   "home": {
     "metaTitle": "Car build, restoration and repair log — RigLog",
@@ -2057,7 +2058,9 @@
     "expenseOwnOnly": "You can only remove costs you recorded.",
     "costFieldInvalid": "{field} is not valid",
     "tyreFieldInvalid": "{field} is not valid",
-    "tyreOwnOnly": "You can only change tyre sets you added."
+    "tyreOwnOnly": "You can only change tyre sets you added.",
+    "proServiceBookExport": "Exporting the service book is a Pro feature.",
+    "serviceBookFailed": "Could not generate the service book PDF."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2526,6 +2529,37 @@
     "finance": {
       "LEASING": "Leasing payment",
       "CREDIT": "Loan payment"
+    }
+  },
+  "serviceBook": {
+    "title": "Service book",
+    "subtitle": "Every job marked \"{status}\", in the order it was done. It is built from your jobs; to change an entry, edit the job.",
+    "entries": "Entries",
+    "withKm": "{count, plural, =0 {none with km} one {# with km} other {# with km}}",
+    "total": "Total",
+    "hidden": "Hidden by the owner",
+    "exportPro": "The PDF export is a Pro feature. The book itself is free to read and keep up to date.",
+    "provenance": "A record kept by the vehicle's owner in RigLog. RigLog stores what it is told and does not verify it.",
+    "empty": "No completed jobs yet. Mark a job as done and it appears here.",
+    "noKm": "no km recorded",
+    "partsValue": "parts: {parts}",
+    "workshop": "Workshop",
+    "diy": "DIY",
+    "receipt": "Receipt",
+    "receiptOnFile": "receipt on file",
+    "photos": "{count, plural, one {# photo} other {# photos}}",
+    "flag": {
+      "loggedLate": "Logged on {date}, after the work was done",
+      "odometerReset": "The odometer was replaced or corrected before this entry, so its km starts again",
+      "kmBelowEarlier": "km lower than an earlier entry ({km} km)"
+    },
+    "pdfTitle": "Service book",
+    "generated": "Generated",
+    "col": {
+      "date": "DATE",
+      "km": "KM",
+      "work": "WORK",
+      "cost": "COST"
     }
   }
 }

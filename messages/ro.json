@@ -450,7 +450,8 @@
     "fuel": "Combustibil",
     "tyres": "Anvelope",
     "expenses": "Alte costuri",
-    "costs": "Costul deținerii"
+    "costs": "Costul deținerii",
+    "serviceBook": "Carte de service"
   },
   "home": {
     "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
@@ -2057,7 +2058,9 @@
     "expenseOwnOnly": "Poți șterge doar costurile înregistrate de tine.",
     "costFieldInvalid": "{field} nu este valid",
     "tyreFieldInvalid": "{field} nu este valid",
-    "tyreOwnOnly": "Poți modifica doar seturile de anvelope adăugate de tine."
+    "tyreOwnOnly": "Poți modifica doar seturile de anvelope adăugate de tine.",
+    "proServiceBookExport": "Exportul cărții de service este o funcție Pro.",
+    "serviceBookFailed": "PDF-ul cărții de service nu a putut fi generat."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2526,6 +2529,37 @@
     "finance": {
       "LEASING": "Rată de leasing",
       "CREDIT": "Rată de credit"
+    }
+  },
+  "serviceBook": {
+    "title": "Carte de service",
+    "subtitle": "Fiecare lucrare marcată „{status}”, în ordinea în care a fost făcută. E construită din lucrările tale; ca să schimbi o intrare, editează lucrarea.",
+    "entries": "Intrări",
+    "withKm": "{count, plural, =0 {niciuna cu km} one {# cu km} few {# cu km} other {# cu km}}",
+    "total": "Total",
+    "hidden": "Ascuns de proprietar",
+    "exportPro": "Exportul PDF este o funcție Pro. Cartea în sine e gratuită de citit și de ținut la zi.",
+    "provenance": "O evidență ținută de proprietarul vehiculului în RigLog. RigLog păstrează ce i se spune și nu verifică.",
+    "empty": "Nicio lucrare finalizată încă. Marchează o lucrare ca terminată și apare aici.",
+    "noKm": "fără km înregistrați",
+    "partsValue": "piese: {parts}",
+    "workshop": "Service",
+    "diy": "Pe cont propriu",
+    "receipt": "Factură",
+    "receiptOnFile": "factură atașată",
+    "photos": "{count, plural, one {# poză} few {# poze} other {# de poze}}",
+    "flag": {
+      "loggedLate": "Înregistrată pe {date}, după ce lucrarea a fost făcută",
+      "odometerReset": "Kilometrajul a fost înlocuit sau corectat înaintea acestei intrări, deci km pornesc din nou",
+      "kmBelowEarlier": "km mai mici decât la o intrare anterioară ({km} km)"
+    },
+    "pdfTitle": "Carte de service",
+    "generated": "Generată",
+    "col": {
+      "date": "DATA",
+      "km": "KM",
+      "work": "LUCRARE",
+      "cost": "COST"
     }
   }
 }
