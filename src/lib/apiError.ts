@@ -145,6 +145,8 @@ export type ApiErrorKey =
   | 'statusMustBeFound'
   | 'tokenRequired'
   | 'trailOffroadOnly'
+  | 'tyreFieldInvalid'
+  | 'tyreOwnOnly'
   | 'transformationRestorationOnly'
   | 'unauthorized'
   | 'unsupportedFileType'

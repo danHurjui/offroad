@@ -256,6 +256,7 @@ describe('collectUserData', () => {
             },
           ],
           fuelEntries: [{ id: 'f1', litres: new Prisma.Decimal('42.37'), totalRon: new Prisma.Decimal('301.50') }],
+          tyreSets: [{ id: 't1', treadDepthMm: new Prisma.Decimal('4.5') }],
         },
       ],
     })
@@ -276,7 +277,7 @@ describe('collectUserData', () => {
   })
 
   it('handles a vehicle with no found state', async () => {
-    stubExport({ vehicles: [{ id: 'v1', tasks: [], foundState: null, wishlistItems: [], fuelEntries: [] }] })
+    stubExport({ vehicles: [{ id: 'v1', tasks: [], foundState: null, wishlistItems: [], fuelEntries: [], tyreSets: [] }] })
     const data = await collectUserData('u1')
     expect(data.vehicles[0].foundState).toBeNull()
   })

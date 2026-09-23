@@ -191,6 +191,7 @@ function fetchVehicles(userId: string) {
       collaborators: true,
       odometerReadings: { orderBy: { readAt: 'asc' } },
       fuelEntries: { orderBy: { date: 'asc' } },
+      tyreSets: true,
     },
     orderBy: { createdAt: 'asc' },
   })
@@ -222,5 +223,6 @@ function serializeVehicle(vehicle: VehicleWithRelations) {
       litres: toNumberOrNull(entry.litres),
       totalRon: toNumberOrNull(entry.totalRon),
     })),
+    tyreSets: vehicle.tyreSets.map((set) => ({ ...set, treadDepthMm: toNumberOrNull(set.treadDepthMm) })),
   }
 }

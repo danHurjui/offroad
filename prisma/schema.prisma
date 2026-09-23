@@ -188,6 +188,7 @@ model User {
   tickets              Ticket[]              @relation("TicketAuthor")
   odometerReadings     OdometerReading[]     @relation("OdometerReadingBy")
   fuelEntries          FuelEntry[]           @relation("FuelEntryBy")
+  tyreSets             TyreSet[]             @relation("TyreSetBy")
   ticketVotes          TicketVote[]
   ticketComments       TicketComment[]
   donations            Donation[]
@@ -391,6 +392,7 @@ model Vehicle {
   followers     Follow[]
   odometerReadings OdometerReading[]
   fuelEntries   FuelEntry[]
+  tyreSets      TyreSet[]
 
   @@unique([ownerId, slug])
   @@index([ownerId])
@@ -925,5 +927,39 @@ model FuelEntry {
   createdBy       User?            @relation("FuelEntryBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@index([vehicleId, date])
+  @@index([createdByUserId])
+}
+
+/// RL-050 tyres, shipped with Car Health (RL-046) as slice 4 of #49 —
+/// src/lib/vehicleHealth.ts reads them. A *set*, not a tyre: that is what
+/// people buy, store and swap in Romania (summer/winter). At most one set
+/// per vehicle is fitted; fitting one unfits the rest.
+model TyreSet {
+  id              String   @id @default(cuid())
+  vehicleId       String
+  /// SUMMER | WINTER | ALL_SEASON — see TYRE_SEASONS.
+  season          String
+  /// Brand and model as the owner writes it, e.g. "Michelin Alpin 6".
+  label           String?
+  /// As on the sidewall, e.g. "205/55 R16".
+  size            String?
+  /// Year from the DOT code — tyres age out even when the tread is fine.
+  dotYear         Int?
+  isFitted        Boolean  @default(false)
+  fittedAt        DateTime?
+  /// The odometer when it went on, for "km on this set". Not an
+  /// OdometerReading: a fitting date is often estimated after the fact.
+  fittedKm        Int?
+  treadDepthMm    Decimal? @db.Decimal(3, 1)
+  treadMeasuredAt DateTime?
+  notes           String?
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation("TyreSetBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([vehicleId])
   @@index([createdByUserId])
 }
