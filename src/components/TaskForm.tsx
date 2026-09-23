@@ -27,6 +27,8 @@ interface InitialTask {
   workshopName: string | null
   workshopContact: string | null
   originalityCondition: string | null
+  /** RL-044: the km of the reading logged with this job, if any. */
+  odometerKm?: number | null
 }
 
 export default function TaskForm({
@@ -50,6 +52,7 @@ export default function TaskForm({
 }) {
   const t = useTranslations('task')
   const tc = useTranslations('common')
+  const to = useTranslations('odometer')
   const router = useRouter()
   const searchParams = useSearchParams()
   const config = useVocabulary(projectType)
@@ -74,6 +77,8 @@ export default function TaskForm({
   const [workshopName, setWorkshopName] = useState(initialTask?.workshopName ?? collaboratorLabel ?? '')
   const [workshopContact, setWorkshopContact] = useState(initialTask?.workshopContact ?? '')
   const [originalityCondition, setOriginalityCondition] = useState(initialTask?.originalityCondition ?? '')
+  const initialKm = initialTask?.odometerKm != null ? String(initialTask.odometerKm) : ''
+  const [odometerKm, setOdometerKm] = useState(initialKm)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -129,6 +134,9 @@ export default function TaskForm({
       workshopName: workType === 'WORKSHOP' ? workshopName : undefined,
       workshopContact: workType === 'WORKSHOP' ? workshopContact || undefined : undefined,
       originalityCondition: originalityCondition || undefined,
+      // RL-044. Only sent when it changed, so an ordinary edit never
+      // touches the mileage history; an emptied field (null) removes it.
+      odometerKm: odometerKm === initialKm ? undefined : odometerKm === '' ? null : Number(odometerKm),
     }
 
     const url = isEdit
@@ -204,6 +212,25 @@ export default function TaskForm({
             <p id="date-hint" className="mt-1 text-sm text-ink-muted">{t('dateScheduledHint')}</p>
           )}
         </div>
+        {/* RL-044: a scheduled job has not happened, so it has no reading. */}
+        {!dateIsFuture && (
+          <div>
+            <label className="label" htmlFor="odometerKm">{to('kmLabel')}</label>
+            <input
+              id="odometerKm"
+              name="odometerKm"
+              type="number"
+              inputMode="numeric"
+              min={0}
+              step={1}
+              className="input"
+              value={odometerKm}
+              onChange={(e) => setOdometerKm(e.target.value)}
+              aria-describedby="odometerKm-help"
+            />
+            <p id="odometerKm-help" className="mt-1 text-xs text-ink-faint">{to('taskKmHelp')}</p>
+          </div>
+        )}
         <div>
           <label className="label" htmlFor="brand">{t('brand')}</label>
           <AutocompleteInput

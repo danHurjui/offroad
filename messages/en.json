@@ -2034,7 +2034,13 @@
     "fieldTooLong": "{field} must be {max} characters or fewer",
     "emailNotVerified": "Confirm your email address first. Check your inbox for the link, or send a new one from Settings.",
     "botCheckFailed": "The anti-bot check did not pass. Reload the page and try again.",
-    "profileFieldInvalid": "{field} is not valid"
+    "profileFieldInvalid": "{field} is not valid",
+    "odometerAboveLater": "{km} km is higher than the {conflictKm} km recorded on {date}.",
+    "odometerBelowEarlier": "{km} km is lower than the {conflictKm} km recorded on {date}.",
+    "odometerDeleteOwnOnly": "You can only remove readings you recorded.",
+    "odometerFuture": "A reading can’t be dated in the future.",
+    "odometerKmInvalid": "Enter the odometer as a whole number of kilometres.",
+    "odometerOverrideInvalid": "That isn’t a recognised reason for an exception."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2205,5 +2211,41 @@
     "searchPlaceholder": "Plate, make or model",
     "searchNone": "No vehicle matches “{q}”.",
     "searchClear": "Clear"
+  },
+  "odometer": {
+    "title": "Odometer",
+    "pageTitle": "Odometer history",
+    "current": "Current reading",
+    "none": "No reading yet.",
+    "readOn": "read {date}",
+    "km": "{km} km",
+    "kmLabel": "Odometer (km)",
+    "dateLabel": "Date read",
+    "noteLabel": "Note (optional)",
+    "add": "Save reading",
+    "adding": "Saving…",
+    "saved": "Recorded {km} km.",
+    "saveFailed": "Couldn’t save the reading.",
+    "history": "History",
+    "seeHistory": "See history",
+    "distance": "{km} km logged since the first reading",
+    "overrideAsk": "If the number is right, say why it breaks the order and it will be kept as an exception:",
+    "override": {
+      "CLUSTER_REPLACED": "The gauge was replaced",
+      "CORRECTION": "An earlier reading was wrong"
+    },
+    "overrideBadge": "Exception",
+    "source": {
+      "MANUAL": "Entered by hand",
+      "TASK": "Logged with a job",
+      "FOUND_STATE": "At acquisition"
+    },
+    "deleted": "Removed the {km} km reading.",
+    "deleteFailed": "Couldn’t remove the reading.",
+    "remove": "Remove",
+    "emptyHistory": "Record what the odometer reads now, and the history starts here. Readings also come in automatically when you enter the km on a job.",
+    "taskKmHelp": "What the odometer read when the job was done. It goes into the vehicle’s mileage history.",
+    "taskKmShown": "Odometer",
+    "why": "Readings stay in date order: each one must sit between the ones before and after it."
   }
 }

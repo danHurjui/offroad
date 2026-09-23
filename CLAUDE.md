@@ -706,6 +706,23 @@ like the raw VIN it is **never rendered on a public surface**;
 that line. When testing that by hand, don't use `B 123 ABC` — it is the
 input placeholder and ships in every page's catalogue payload.
 
+### Odometer history (`src/lib/odometer.ts`, `odometerRecords.ts`, RL-044 — slice 2)
+**Current mileage is derived from the newest `OdometerReading`, never
+stored on `Vehicle`** (a test reads the schema for that). Readings stay in
+**date** order — each must sit between its date neighbours, so back-filling
+old history is fine — and a refusal (409) names the reading it collided
+with. The two real exceptions (`CLUSTER_REPLACED`, `CORRECTION`) are kept as
+`isOverride` with a reason; an override starts a new segment and bounds are
+never checked across one. Same-day readings don't bound each other.
+
+Readings arrive three ways: by hand (owner or active collaborator; a
+collaborator deletes only their own), as `odometerKm` on a job (written in
+the same transaction, so a refused km refuses the job; the job's date moves
+its reading), and from the restoration intake (`FoundState.odometer`, kept
+in step and backfilled by the migration, deliberately not order-checked).
+Future-dated readings are refused. `distanceCovered()` sums per segment —
+it is what cost per km (slice 5) must use.
+
 Phase 5 follows the adapted plan on #49 (one additive migration per slice,
 each slice deployable alone): identity → odometer → fuel log → Car Health
 → TCO → service book → passport → accidents; OCR waits on a provider

@@ -186,6 +186,7 @@ model User {
   partsRequests        PartsRequest[]
   partsRequestComments PartsRequestComment[]
   tickets              Ticket[]              @relation("TicketAuthor")
+  odometerReadings     OdometerReading[]     @relation("OdometerReadingBy")
   ticketVotes          TicketVote[]
   ticketComments       TicketComment[]
   donations            Donation[]
@@ -387,6 +388,7 @@ model Vehicle {
   documents     Document[]
   trailRuns     TrailRun[]
   followers     Follow[]
+  odometerReadings OdometerReading[]
 
   @@unique([ownerId, slug])
   @@index([ownerId])
@@ -432,6 +434,8 @@ model Task {
   addedBy  User?       @relation("TaskAddedBy", fields: [addedByUserId], references: [id], onDelete: SetNull)
   workshop Workshop?   @relation(fields: [workshopId], references: [id])
   photos   TaskPhoto[]
+
+  odometerReading OdometerReading?
 
   @@index([vehicleId])
   @@index([addedByUserId])
@@ -846,4 +850,43 @@ model RateLimit {
   expiresAt DateTime
 
   @@index([expiresAt])
+}
+
+/// RL-044 slice 2 of #49: what the vehicle read, and when (src/lib/odometer.ts).
+///
+/// The vehicle's current mileage is **derived** from its newest reading and
+/// never stored on Vehicle — a cached column drifts from its own history and
+/// then nobody can tell which one lied.
+///
+/// Readings stay in date order: each must sit between the km of its date
+/// neighbours. The genuine exceptions (a replaced instrument cluster, a
+/// correction) are accepted as `isOverride` with an `overrideReason`, so a
+/// history that jumps backwards can be explained rather than merely noticed.
+/// An override starts a new segment; bounds are never checked across one.
+model OdometerReading {
+  id             String   @id @default(cuid())
+  vehicleId      String
+  km             Int
+  /// The day the reading was taken, stored at 00:00 UTC.
+  readAt         DateTime
+  /// MANUAL | TASK | FOUND_STATE — see ODOMETER_SOURCES.
+  source         String
+  note           String?
+  isOverride     Boolean  @default(false)
+  /// CLUSTER_REPLACED | CORRECTION, set exactly when isOverride is.
+  overrideReason String?
+  /// Set when the reading was logged with a job. SetNull, not Cascade:
+  /// deleting the job does not unsay what the odometer read that day.
+  taskId         String?  @unique
+  /// SetNull like Task.addedBy: a collaborator deleting their account must
+  /// not take the owner's mileage history with them.
+  createdByUserId String?
+  createdAt      DateTime @default(now())
+
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  task      Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  createdBy User?   @relation("OdometerReadingBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([vehicleId, readAt])
+  @@index([createdByUserId])
 }

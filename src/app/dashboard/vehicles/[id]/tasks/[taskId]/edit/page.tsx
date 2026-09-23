@@ -16,7 +16,10 @@ export default async function EditTaskPage({ params }: { params: { id: string; t
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
 
-  const task = await prisma.task.findUnique({ where: { id: params.taskId } })
+  const task = await prisma.task.findUnique({
+    where: { id: params.taskId },
+    include: { odometerReading: { select: { km: true } } },
+  })
   if (!task || task.vehicleId !== vehicle.id) notFound()
 
   const isOwner = vehicle.ownerId === session.user.id
@@ -51,6 +54,7 @@ export default async function EditTaskPage({ params }: { params: { id: string; t
             workshopName: task.workshopName,
             workshopContact: task.workshopContact,
             originalityCondition: task.originalityCondition,
+            odometerKm: task.odometerReading?.km ?? null,
           }}
         />
       </Suspense>

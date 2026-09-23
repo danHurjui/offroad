@@ -8,6 +8,8 @@ import { serializeTask, serializeTaskFor } from '@/lib/serialize'
 import { notifyFollowers } from '@/lib/followNotify'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
+import { parseKm } from '@/lib/odometer'
+import { ReadingConflict, conflictResponse, futureResponse, isFutureDay, syncTaskReading } from '@/lib/odometerRecords'
 
 async function loadTask(vehicleId: string, taskId: string) {
   const task = await prisma.task.findUnique({ where: { id: taskId }, include: { photos: true } })
@@ -111,7 +113,41 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       if (body.labourCostRon !== undefined) data.labourCostRon = body.labourCostRon != null ? Number(body.labourCostRon) : null
     }
 
-    const updated = await prisma.task.update({ where: { id: task.id }, data, include: { photos: true } })
+    // RL-044: the job's odometer reading follows the job. Sending
+    // `odometerKm` sets or clears it; moving the job's date moves the
+    // reading too, re-checked against the rest of the history.
+    const kmSent = body.odometerKm !== undefined
+    const km = parseKm(body.odometerKm)
+    if (kmSent && !km.ok) return await apiError('odometerKmInvalid', 400)
+    const dateChanged = data.date !== undefined
+
+    let updated
+    if (!kmSent && !dateChanged) {
+      updated = await prisma.task.update({ where: { id: task.id }, data, include: { photos: true } })
+    } else {
+      try {
+        updated = await prisma.$transaction(async (tx) => {
+          const saved = await tx.task.update({ where: { id: task.id }, data, include: { photos: true } })
+          const linked = await tx.odometerReading.findUnique({ where: { taskId: task.id }, select: { km: true } })
+          const kmValue = kmSent && km.ok ? km.km : linked?.km ?? null
+          if (kmValue === null && !linked) return saved
+          if (kmValue !== null && isFutureDay(saved.date)) throw new FutureReading()
+          const check = await syncTaskReading(tx, {
+            vehicleId: vehicle.id,
+            taskId: task.id,
+            km: kmValue,
+            date: saved.date,
+            userId: session.user.id,
+          })
+          if (!check.ok) throw new ReadingConflict(check, kmValue as number)
+          return saved
+        })
+      } catch (e) {
+        if (e instanceof ReadingConflict) return await conflictResponse(e.check, e.km)
+        if (e instanceof FutureReading) return await futureResponse()
+        throw e
+      }
+    }
 
     // RL-023: notify followers only on the transition into "complete" —
     // not on every edit of an already-complete task.
@@ -148,3 +184,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     return await apiError('internalError', 500)
   }
 }
+
+/** Rolls the PATCH transaction back when a job with a reading is moved into the future. */
+class FutureReading extends Error {}
+

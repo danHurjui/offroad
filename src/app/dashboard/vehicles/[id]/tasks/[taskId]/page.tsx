@@ -17,6 +17,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
   const t = await getTranslations('task')
   const tv = await getTranslations('vehicle')
   const tc = await getTranslations('common')
+  const to = await getTranslations('odometer')
   const originalityConditions = await getOriginalityConditions()
   const session = await requireSessionOrRedirect()
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
@@ -24,7 +25,11 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
 
   const task = await prisma.task.findUnique({
     where: { id: params.taskId },
-    include: { photos: { orderBy: { createdAt: 'asc' } }, addedBy: { select: { displayName: true } } },
+    include: {
+      photos: { orderBy: { createdAt: 'asc' } },
+      addedBy: { select: { displayName: true } },
+      odometerReading: { select: { km: true } },
+    },
   })
   if (!task || task.vehicleId !== vehicle.id) notFound()
 
@@ -102,6 +107,12 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
             <dt className="text-ink-faint">{t('date')}</dt>
             <dd className="text-ink">{new Date(task.date).toLocaleDateString('ro-RO')}</dd>
           </div>
+          {task.odometerReading && (
+            <div>
+              <dt className="text-ink-faint">{to('taskKmShown')}</dt>
+              <dd className="text-ink">{to('km', { km: task.odometerReading.km.toLocaleString('ro-RO') })}</dd>
+            </div>
+          )}
           {addedByCollaborator && (
             <div>
               <dt className="text-ink-faint">{t('addedBy')}</dt>
