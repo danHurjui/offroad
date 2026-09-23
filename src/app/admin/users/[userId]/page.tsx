@@ -9,6 +9,7 @@ import { getAllVocabulary } from '@/lib/vocabulary'
 import { TICKET_TYPES, TICKET_STATUSES, type TicketType, type TicketStatus } from '@/lib/tickets'
 import AdminUserActiveToggle from '@/components/AdminUserActiveToggle'
 import AdminCompProToggle from '@/components/AdminCompProToggle'
+import AdminOrgBetaToggle from '@/components/AdminOrgBetaToggle'
 
 export const metadata: Metadata = { title: 'User — RigLog admin', robots: { index: false } }
 export const dynamic = 'force-dynamic'
@@ -24,7 +25,7 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
     select: {
       id: true, email: true, displayName: true, username: true, location: true,
       isPro: true, proPlan: true, isAdmin: true, active: true, accountType: true, createdAt: true,
-      isProComped: true, foundingNumber: true, proCompedAt: true, proCompedReason: true, proCompedById: true,
+      isProComped: true, foundingNumber: true, proCompedAt: true, proCompedReason: true, proCompedById: true, orgBetaAt: true,
       vehicles: {
         select: { id: true, make: true, model: true, year: true, projectType: true, isPublic: true },
         orderBy: { createdAt: 'desc' },
@@ -67,6 +68,7 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
               </span>
             )}
             {!user.active && <span className="badge badge-danger">{t('deactivatedBadge')}</span>}
+            {user.orgBetaAt && <span className="badge badge-brand">{t('orgBetaBadge')}</span>}
           </div>
           <p className="text-sm text-ink-muted">{user.email}</p>
           <p className="text-xs text-ink-faint">
@@ -79,6 +81,7 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
           <AdminCompProToggle
             userId={user.id} displayName={user.displayName} isProComped={user.isProComped} isPro={user.isPro}
           />
+          <AdminOrgBetaToggle userId={user.id} enabled={user.orgBetaAt !== null} />
           <AdminUserActiveToggle
             userId={user.id} displayName={user.displayName} active={user.active} disabledReason={reason}
           />

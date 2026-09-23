@@ -1,0 +1,77 @@
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
+import { requireSessionOrRedirect } from '@/lib/serverAuth'
+import { prisma } from '@/lib/prisma'
+import { canManageOrganization } from '@/lib/organizations'
+import OrganizationForm from '@/components/OrganizationForm'
+import OrganizationMembers from '@/components/OrganizationMembers'
+import OrganizationDelete from '@/components/OrganizationDelete'
+
+// RL-038: one organisation. Anyone in it sees who else is; owners edit the
+// details, manage roles and can delete it. Outsiders get a 404.
+export default async function OrganizationPage({ params }: { params: { orgId: string } }) {
+  const t = await getTranslations('organizations')
+  const tc = await getTranslations('common')
+  const session = await requireSessionOrRedirect()
+  const membership = await prisma.organizationMember.findUnique({
+    where: { organizationId_userId: { organizationId: params.orgId, userId: session.user.id } },
+    include: { organization: true },
+  })
+  if (!membership) notFound()
+  const org = membership.organization
+  const manager = canManageOrganization(membership.role)
+
+  const members = await prisma.organizationMember.findMany({
+    where: { organizationId: org.id },
+    include: { user: { select: { displayName: true, email: true } } },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  return (
+    <div className="mx-auto max-w-2xl">
+      <Link href="/dashboard/organizations" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
+        {tc('backTo', { screen: t('title') })}
+      </Link>
+      <h1 className="mb-1 break-words text-2xl font-bold text-ink">{org.name}</h1>
+      <p className="mb-6 text-sm text-ink-muted">
+        {org.cui ? t('cuiLine', { cui: org.cui }) : t('noCui')}
+        {' · '}
+        {t('yourRole', { role: t(`role.${membership.role}`) })}
+      </p>
+
+      {manager && (
+        <section className="card mb-6 p-5">
+          <h2 className="mb-3 text-sm font-semibold text-ink">{t('detailsTitle')}</h2>
+          <OrganizationForm
+            organizationId={org.id}
+            initial={{ name: org.name, cui: org.cui ?? '', billingAddress: org.billingAddress ?? '' }}
+          />
+        </section>
+      )}
+
+      <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('membersTitle')}</h2>
+      <p className="mb-3 text-xs text-ink-faint">{t('rolesHelp')}</p>
+      <OrganizationMembers
+        organizationId={org.id}
+        canManage={manager}
+        members={members.map((m) => ({
+          id: m.id,
+          displayName: m.user.displayName,
+          email: manager ? m.user.email : null,
+          role: m.role,
+          isYou: m.userId === session.user.id,
+        }))}
+      />
+      <p className="mt-3 text-xs text-ink-faint">{t('invitesSoon')}</p>
+
+      {manager && (
+        <section className="card mt-8 p-5">
+          <h2 className="mb-1 text-sm font-semibold text-ink">{t('deleteTitle')}</h2>
+          <p className="mb-3 text-xs text-ink-muted">{t('deleteHelp')}</p>
+          <OrganizationDelete organizationId={org.id} name={org.name} />
+        </section>
+      )}
+    </div>
+  )
+}

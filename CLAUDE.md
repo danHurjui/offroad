@@ -864,6 +864,31 @@ each slice deployable alone): identity → odometer → fuel log → Car Health
 → TCO → service book → passport → accidents; OCR waits on a provider
 choice.
 
+### Organisations (`src/lib/organizations.ts`, RL-038 — fleet slice 1 of #49)
+`Organization` (name, CUI, billing address) and `OrganizationMember` (one
+per person per organisation — a DB constraint — with a role: `OWNER`,
+`FLEET_MANAGER`, `MECHANIC`, `DRIVER`). **No vehicle belongs to an
+organisation yet**, so `access.ts` does not know organisations exist and
+nobody's access to a vehicle changed; a test holds that until the slice
+that widens `requireVehicleAccess()` on purpose.
+- **Closed beta until the Business tier (#54):** creating one needs
+  `User.orgBetaAt`, set by an admin on `/admin/users/[id]` and read from
+  the database (not the token), rate-limited per user id. Switching it off
+  stops new organisations only.
+- **Owners run it** (details, roles, removing people, deleting it); anyone
+  can leave. An outsider gets 404. Members' addresses are shown to owners
+  only.
+- **There is always an OWNER.** The last one cannot be demoted, removed or
+  leave (`lastOwnerBlocks()`), counted under `SELECT … FOR UPDATE` on the
+  organisation row (`lockOrganization()`), or two owners demoting each
+  other at once would both succeed.
+- **Deleting an account** removes its memberships and any organisation
+  nobody else is in, and is **refused (409, naming them)** while it is the
+  last owner of an organisation other people are in. `SettingsForm` only
+  signs out once the server confirms the deletion.
+- The data export lists the account's organisations and role, not the
+  other members.
+
 ### Write feedback (`src/lib/writeFeedback.ts`, `src/components/Toaster.tsx`, RL-034)
 One toast layer, mounted in `Providers` above every page. Toasts are for
 **action outcomes** (a button, a status change, a removal); `FormError`
@@ -1010,8 +1035,9 @@ takes effect within about a minute, not a month. Don't "optimise" that
 revalidation away, and don't assume a flag on the session is fresher than
 that window.
 
-`PATCH /api/admin/users/[userId]` accepts exactly two fields — `active`
-and `isProComped` — and copies only those onto the update rather than
+`PATCH /api/admin/users/[userId]` accepts exactly three fields — `active`,
+`isProComped` and `orgBeta` (RL-038's closed beta, below) — and copies only
+those onto the update rather than
 merging the body, so it can't become a mass-assignment hole as `User`
 grows. `isPro` and `isAdmin` stay uneditable here: the Stripe webhook owns
 one and a direct database change owns the other. An admin also cannot

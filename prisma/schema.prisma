@@ -170,6 +170,12 @@ model User {
   /// Accounts that already had a logged job when this shipped were
   /// backfilled by the migration — they are past the point it helps with.
   onboardingClosedAt   DateTime?
+  /// RL-038 closed beta: when an admin let this account create
+  /// organisations. Null means it cannot create one (it can still be a
+  /// member of one it was invited to). Switched on and off only through
+  /// PATCH /api/admin/users/[userId]; turning it off stops new
+  /// organisations and leaves existing ones alone.
+  orgBetaAt            DateTime?
   active               Boolean      @default(true)
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
@@ -191,6 +197,7 @@ model User {
   tyreSets             TyreSet[]             @relation("TyreSetBy")
   vehicleExpenses      VehicleExpense[]      @relation("VehicleExpenseBy")
   accidents            Accident[]            @relation("AccidentBy")
+  organizationMemberships OrganizationMember[]
   ticketVotes          TicketVote[]
   ticketComments       TicketComment[]
   donations            Donation[]
@@ -229,6 +236,16 @@ model PushSubscription {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+/// RL-038: what a member of an organisation may do. OWNER runs the
+/// organisation itself (details, members, deleting it); FLEET_MANAGER will
+/// get the owner-only vehicle operations once company vehicles exist.
+enum OrgRole {
+  OWNER
+  FLEET_MANAGER
+  MECHANIC
+  DRIVER
 }
 
 enum PartsRequestStatus {
@@ -1082,4 +1099,36 @@ model AccidentPhoto {
   accident Accident @relation(fields: [accidentId], references: [id], onDelete: Cascade)
 
   @@index([accidentId])
+}
+
+/// RL-038: a company that owns vehicles (from a later slice) and has
+/// members. `cui` is the Romanian fiscal code, stored normalised (see
+/// src/lib/organizations.ts), optional because a company may be set up
+/// before its papers are to hand.
+model Organization {
+  id             String   @id @default(cuid())
+  name           String
+  cui            String?
+  billingAddress String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  members OrganizationMember[]
+}
+
+/// One account's place in one organisation. Deleting the account removes
+/// the membership and nothing else; the last OWNER cannot leave or be
+/// demoted (checked under a lock on the organisation row).
+model OrganizationMember {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  role           OrgRole
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
 }
