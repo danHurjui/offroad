@@ -2864,5 +2864,24 @@
       "moved": "Vehiculul este acum în garajul tău.",
       "failed": "Vehiculul nu a putut fi mutat."
     }
+  },
+  "fleet": {
+    "title": "Conformitatea flotei",
+    "intro": "Fiecare vehicul față de fiecare document cerut la un control în trafic, cu zilele rămase pentru fiecare. Vehiculele cu ceva expirat apar primele.",
+    "offRoad": "Opriți azi",
+    "offRoadBadge": "Expirat — nu poate circula",
+    "expiring": "Expiră în 30 de zile",
+    "missing": "Fără ITP sau RCA înregistrat",
+    "vehicles": "Vehicule",
+    "filterVehicle": "Vehicul",
+    "allVehicles": "Toate vehiculele",
+    "apply": "Arată",
+    "caption": "Documente pe vehicul, zile până la expirarea fiecăruia",
+    "vehicle": "Vehicul",
+    "none": "neînregistrat",
+    "days": "{days, plural, one {# zi} few {# zile} other {# de zile}}",
+    "historic": "istoric",
+    "footnote": "Zilele vin din datele de expirare introduse la fiecare vehicul, același calcul folosit de emailurile de reamintire. „Neînregistrat” înseamnă că RigLog nu are o înregistrare, nu că vehiculul nu are documentul. Statutul istoric este afișat, dar nu schimbă nimic aici.",
+    "open": "Conformitatea flotei"
   }
 }

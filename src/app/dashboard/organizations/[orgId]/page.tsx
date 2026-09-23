@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
 import { canManageOrganization } from '@/lib/organizations'
+import { accessForRole } from '@/lib/access'
 import OrganizationForm from '@/components/OrganizationForm'
 import OrganizationMembers from '@/components/OrganizationMembers'
 import OrganizationDelete from '@/components/OrganizationDelete'
@@ -15,6 +16,7 @@ import { inviteStatus } from '@/lib/organizationInvites'
 export default async function OrganizationPage({ params }: { params: { orgId: string } }) {
   const t = await getTranslations('organizations')
   const tc = await getTranslations('common')
+  const tf = await getTranslations('fleet')
   const session = await requireSessionOrRedirect()
   const membership = await prisma.organizationMember.findUnique({
     where: { organizationId_userId: { organizationId: params.orgId, userId: session.user.id } },
@@ -23,6 +25,8 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
   if (!membership) notFound()
   const org = membership.organization
   const manager = canManageOrganization(membership.role)
+  // Owners and fleet managers manage the vehicles, so both get the board.
+  const managesVehicles = accessForRole(membership.role) === 'owner'
 
   const [members, vehicles] = await Promise.all([
     prisma.organizationMember.findMany({
@@ -74,6 +78,12 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
             initial={{ name: org.name, cui: org.cui ?? '', billingAddress: org.billingAddress ?? '' }}
           />
         </section>
+      )}
+
+      {managesVehicles && vehicles.length > 0 && (
+        <Link href={`/dashboard/organizations/${org.id}/fleet`} className="btn-primary mb-6 inline-block">
+          {tf('open')}
+        </Link>
       )}
 
       <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('vehiclesTitle')}</h2>

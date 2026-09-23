@@ -105,6 +105,27 @@ it('sends a company vehicle’s reminder to the people who manage it, not its ac
   expect(select.organization.select.members.where).toEqual({ role: { in: ['OWNER', 'FLEET_MANAGER'] } })
 })
 
+it('one manager’s failed send does not cost the next one theirs', async () => {
+  const expiryDate = new Date(Date.now() + 25 * 24 * 60 * 60 * 1000)
+  mockFindMany.mockResolvedValue([
+    {
+      id: 'd1', type: 'ITP', expiryDate,
+      reminder30SentAt: null, reminder14SentAt: null, reminder3SentAt: null,
+      vehicle: {
+        id: 'v1', make: 'Dacia', model: 'Logan', year: 2020, organizationId: 'o1',
+        owner: { email: 'x@test.com' },
+        organization: { members: [{ user: { email: 'bounces@firma.ro' } }, { user: { email: 'fleet@firma.ro' } }] },
+      },
+    },
+  ])
+  mockSendEmail.mockRejectedValueOnce(new Error('rejected'))
+  jest.spyOn(console, 'error').mockImplementation(() => {})
+  const res = await POST(req({ 'x-cron-secret': 'test-secret' }))
+  expect(res.status).toBe(200)
+  expect((await res.json()).sent).toBe(1)
+  expect(mockSendEmail.mock.calls.map((c) => c[0].to)).toEqual(['bounces@firma.ro', 'fleet@firma.ro'])
+})
+
 it('skips a document with no threshold reached', async () => {
   const expiryDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
   mockFindMany.mockResolvedValue([

@@ -931,6 +931,24 @@ plus a grep that fails on any `ownerId` comparison with the caller outside
   the same transaction as the membership, so a double click or a
   simultaneous withdrawal cannot make a member.
 
+### Fleet compliance (`src/lib/fleet.ts`, RL-039 — slice 1 of #51)
+`/dashboard/organizations/[id]/fleet`, for OWNER/FLEET_MANAGER (404 for
+anyone else): every company vehicle × `FLEET_DOCUMENT_TYPES` (ITP, RCA,
+CASCO, rovinietă, first-aid kit, extinguisher — not the travel vignette).
+`complianceBoard()` is pure and every day count is `getDocumentStatus()`,
+the function the documents board and the reminder cron use.
+- **Off the road today** (anything expired) is counted and sorted first,
+  then by soonest expiry; nothing recorded is `none` and sorts last —
+  unknown, never fine.
+- **Every vehicle, never a page of them** (a test forbids `take:`): a
+  partial fleet answer is worse than none. Two queries for the lot.
+- Historic status is a label only and changes no count.
+- Reminders for company vehicles go to each OWNER/FLEET_MANAGER; the
+  thresholds are marked once per document before sending, so nobody gets a
+  duplicate, and one recipient's failed send is caught so the next still
+  gets theirs.
+- No site/depot filter: organisations have no depots yet.
+
 ### Write feedback (`src/lib/writeFeedback.ts`, `src/components/Toaster.tsx`, RL-034)
 One toast layer, mounted in `Providers` above every page. Toasts are for
 **action outcomes** (a button, a status change, a removal); `FormError`

@@ -71,8 +71,15 @@ async function handle(req: NextRequest) {
         daysUntilLabel: tDoc(days.key, days.values),
         vehicleUrl: `${baseUrl}/dashboard/vehicles/${doc.vehicle.id}/documents`,
       })
-      await sendEmail({ to: recipient.email, subject, html })
-      sent++
+      // One recipient's failed send must not cost the others theirs (RL-039:
+      // a company vehicle has several). The thresholds are already marked,
+      // so nobody gets a duplicate; a failed send misses this one reminder.
+      try {
+        await sendEmail({ to: recipient.email, subject, html })
+        sent++
+      } catch (e) {
+        console.error('[cron] document reminder not delivered:', e)
+      }
     }
   }
 

@@ -2864,5 +2864,24 @@
       "moved": "The vehicle is now in your garage.",
       "failed": "Could not move the vehicle."
     }
+  },
+  "fleet": {
+    "title": "Fleet compliance",
+    "intro": "Every vehicle against every document a roadside check asks for, with the days left on each. Vehicles with anything expired come first.",
+    "offRoad": "Off the road today",
+    "offRoadBadge": "Expired — off the road",
+    "expiring": "Expiring within 30 days",
+    "missing": "No ITP or RCA on record",
+    "vehicles": "Vehicles",
+    "filterVehicle": "Vehicle",
+    "allVehicles": "All vehicles",
+    "apply": "Show",
+    "caption": "Documents per vehicle, days until each expires",
+    "vehicle": "Vehicle",
+    "none": "none recorded",
+    "days": "{days, plural, one {# day} other {# days}}",
+    "historic": "historic",
+    "footnote": "Days come from the expiry dates entered on each vehicle, the same count the reminder emails use. “None recorded” means RigLog has no record, not that the vehicle has none. Historic status is shown but changes nothing here.",
+    "open": "Fleet compliance"
   }
 }
