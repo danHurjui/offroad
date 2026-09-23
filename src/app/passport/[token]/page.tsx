@@ -20,6 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('passport')
   return {
     title: t('title'),
+    description: t('metaDescription'),
     robots: { index: false, follow: false, nocache: true },
     referrer: 'no-referrer',
   }

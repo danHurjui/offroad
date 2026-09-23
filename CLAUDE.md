@@ -822,6 +822,13 @@ honesty rules are the point and each is tested (`passport.test.ts`):
 - **Each job shows when it was entered and last changed** beside when the
   work happened (`ServiceRow.recordedAt`/`changedAt`); the rule is printed.
 - Jobs come through `loadServiceBook()`, so passport and service book agree.
+- **Every section is tagged "Owner's view"** (`passport.ownerView`) — each
+  `<h2>` on the page, each PDF heading and every PDF page footer — and the
+  header adds `ownerViewAdvice` (check against receipts, an inspection and
+  the registry). A screenshot of one section or one printed page must
+  still say whose account it is; a test fails on an untagged heading. The
+  service book carries the same label, shown to everyone who reads it
+  (collaborators too), and on every page of its PDF.
 
 Sharing is a `PassportLink` token (32 random bytes) at `/passport/<token>`:
 session-free, `noindex`, `no-referrer`, disallowed in robots. **One live
