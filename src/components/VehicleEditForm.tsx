@@ -25,6 +25,8 @@ interface Vehicle {
   vin: string | null
   coverPhotoUrl: string | null
   isPublic: boolean
+  /** RL-038: the organisation it belongs to; a company vehicle is never public. */
+  companyName: string | null
   hideCostsFromCollaborators: boolean
   hidePublicCost: boolean
   slug: string | null
@@ -235,37 +237,43 @@ export default function VehicleEditForm({
           photos={coverCandidates}
         />
 
-        <div>
-          <label className="flex items-center gap-2 text-sm text-ink">
-            <input
-              type="checkbox"
-              checked={form.isPublic}
-              onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
-            />
-            {t('makePublic')}
-          </label>
-          {form.isPublic && (
-            <p className="mt-1 pl-6 text-xs text-ink-faint">
-              {publicUrl ? (
-                <>
-                  {t('liveAt')} <span className="font-mono">{publicUrl}</span>
-                </>
-              ) : (
-                t('urlOnSave')
+        {vehicle.companyName ? (
+          <p className="text-xs text-ink-muted">{t('companyNotPublic', { name: vehicle.companyName })}</p>
+        ) : (
+          <>
+            <div>
+              <label className="flex items-center gap-2 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={form.isPublic}
+                  onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
+                />
+                {t('makePublic')}
+              </label>
+              {form.isPublic && (
+                <p className="mt-1 pl-6 text-xs text-ink-faint">
+                  {publicUrl ? (
+                    <>
+                      {t('liveAt')} <span className="font-mono">{publicUrl}</span>
+                    </>
+                  ) : (
+                    t('urlOnSave')
+                  )}
+                </p>
               )}
-            </p>
-          )}
-        </div>
+            </div>
 
-        {form.isPublic && (
-          <label className="flex items-center gap-2 pl-6 text-sm text-ink">
-            <input
-              type="checkbox"
-              checked={form.hidePublicCost}
-              onChange={(e) => setForm({ ...form, hidePublicCost: e.target.checked })}
-            />
-            {t('hidePublicCost')}
-          </label>
+            {form.isPublic && (
+              <label className="flex items-center gap-2 pl-6 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={form.hidePublicCost}
+                  onChange={(e) => setForm({ ...form, hidePublicCost: e.target.checked })}
+                />
+                {t('hidePublicCost')}
+              </label>
+            )}
+          </>
         )}
 
         <label className="flex items-center gap-2 text-sm text-ink">

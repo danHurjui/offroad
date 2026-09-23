@@ -24,7 +24,7 @@ export default async function PhotosTimelinePage({
   const tc = await getTranslations('common')
   const config = await getVocabulary(vehicle.projectType)
   const order = searchParams.order === 'oldest' ? 'asc' : 'desc'
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   const noFiltersActive = !searchParams.photoType && !searchParams.category
 
   const [photos, trailRuns] = await Promise.all([

@@ -40,14 +40,15 @@ export default async function GarageAnalyticsPage({ searchParams }: { searchPara
   const cutoff = rangeCutoff(range)
 
   const vehicles = await prisma.vehicle.findMany({
-    where: { ownerId: session.user.id },
+    // Personal vehicles only: company spend belongs to the organisation.
+    where: { ownerId: session.user.id, organizationId: null },
     select: { id: true, make: true, model: true, year: true },
     orderBy: { createdAt: 'asc' },
   })
 
   const tasks = await prisma.task.findMany({
     where: {
-      vehicle: { ownerId: session.user.id },
+      vehicle: { ownerId: session.user.id, organizationId: null },
       ...(cutoff ? { date: { gte: cutoff } } : {}),
     },
     select: {

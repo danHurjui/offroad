@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { managersSelect, vehicleManagers } from '@/lib/access'
 import { translator } from '@/i18n/translator'
 import { sendEmail, priceAlertEmail, emailLocale } from '@/lib/email'
 import { sendPushNotification } from '@/lib/webpush'
@@ -45,13 +46,12 @@ export async function notifyPriceAlert(
       year: true,
       make: true,
       model: true,
-      owner: {
-        select: {
-          email: true,
-          locale: true,
-          pushSubscriptions: { select: { id: true, endpoint: true, p256dh: true, auth: true } },
-        },
-      },
+      // RL-038: for a company vehicle, the people who manage it.
+      ...managersSelect({
+        email: true,
+        locale: true,
+        pushSubscriptions: { select: { id: true, endpoint: true, p256dh: true, auth: true } },
+      }),
     },
   })
   if (!vehicle) return
@@ -64,32 +64,39 @@ export async function notifyPriceAlert(
   if (!baseUrl) return
   const vehicleUrl = `${baseUrl}/dashboard/vehicles/${vehicle.id}/wishlist`
 
-  const locale = emailLocale(vehicle.owner)
-  const { subject, html } = await priceAlertEmail(locale, {
-    itemName,
-    vehicleName,
-    priceRon,
-    targetPriceRon,
-    vehicleUrl,
-  })
-  await sendEmail({ to: vehicle.owner.email, subject, html }).catch(() => {})
+  // Each recipient reads it in their own language: the owner, or for a
+  // company vehicle each of the people who manage it.
+  const recipients = vehicleManagers(vehicle)
+  await Promise.all(recipients.map((recipient) => notifyOne(recipient)))
 
-  // Push goes to the same person, so it reads in the same language.
-  const tPush = await translator(locale, 'notify')
-
-  await Promise.all(
-    vehicle.owner.pushSubscriptions.map(async (sub) => {
-      const result = await sendPushNotification(sub, {
-        title: tPush('priceAlertTitle', { item: itemName }),
-        body: tPush('priceAlertBody', {
-          price: priceRon.toLocaleString('ro-RO'),
-          target: targetPriceRon.toLocaleString('ro-RO'),
-        }),
-        url: vehicleUrl,
-      }).catch(() => 'skipped' as const)
-      if (result === 'gone') {
-        await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {})
-      }
+  async function notifyOne(recipient: (typeof recipients)[number]) {
+    const locale = emailLocale(recipient)
+    const { subject, html } = await priceAlertEmail(locale, {
+      itemName,
+      vehicleName,
+      priceRon,
+      targetPriceRon,
+      vehicleUrl,
     })
-  )
+    await sendEmail({ to: recipient.email, subject, html }).catch(() => {})
+
+    // Push goes to the same person, so it reads in the same language.
+    const tPush = await translator(locale, 'notify')
+
+    await Promise.all(
+      recipient.pushSubscriptions.map(async (sub) => {
+        const result = await sendPushNotification(sub, {
+          title: tPush('priceAlertTitle', { item: itemName }),
+          body: tPush('priceAlertBody', {
+            price: priceRon.toLocaleString('ro-RO'),
+            target: targetPriceRon.toLocaleString('ro-RO'),
+          }),
+          url: vehicleUrl,
+        }).catch(() => 'skipped' as const)
+        if (result === 'gone') {
+          await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {})
+        }
+      })
+    )
+  }
 }

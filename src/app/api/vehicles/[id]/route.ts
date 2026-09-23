@@ -37,7 +37,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     // Costs are Decimal (pitfall #5) so they must go through serializeTask
     // to reach consumers as numbers, and RL-031's hideCostsFromCollaborators
     // has to be applied here rather than only in the pages that render them.
-    const isOwner = vehicle.ownerId === session.user.id
+    const isOwner = vehicle.access === 'owner'
     const hideCosts = !isOwner && vehicle.hideCostsFromCollaborators
     return NextResponse.json({
       vehicle: serializeVehicle(vehicle, { hideCosts }),
@@ -106,6 +106,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     // else here edits a private record, and refusing somebody the ability
     // to correct their own mileage over an unclicked link would be
     // punishing them for nothing.
+    // RL-038: a company vehicle is never public — its page would sit under
+    // one person's username. The database refuses it too (a CHECK).
+    if (data.isPublic === true && vehicle.organizationId) return await apiError('companyVehicleNotPublic', 400)
     if (data.isPublic === true) {
       const owner = await prisma.user.findUnique({
         where: { id: session.user.id },
@@ -160,7 +163,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
     // Gathered before the delete — the rows that name these files are
     // about to cascade away, and the bytes would otherwise be orphaned in
     // Blob storage with no way left to find them.
-    const keys = await collectStorageKeys(session.user.id, vehicle.id)
+    const keys = await collectStorageKeys(vehicle.ownerId, vehicle.id)
     await prisma.vehicle.delete({ where: { id: vehicle.id } })
     await deleteStoredFiles(keys)
     return NextResponse.json({ message: 'Vehicle deleted', filesDeleted: keys.length })

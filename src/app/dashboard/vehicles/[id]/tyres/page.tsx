@@ -20,7 +20,7 @@ export default async function TyresPage({ params }: { params: { id: string } }) 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
   const config = await getVocabulary(vehicle.projectType)
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
 
   const [sets, latest] = await Promise.all([
     prisma.tyreSet.findMany({ where: { vehicleId: vehicle.id }, orderBy: [{ isFitted: 'desc' }, { createdAt: 'desc' }] }),

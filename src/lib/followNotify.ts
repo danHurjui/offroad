@@ -27,7 +27,7 @@ export async function notifyFollowers(vehicleId: string, update: FollowUpdate): 
   const [vehicle, follows] = await Promise.all([
     prisma.vehicle.findUnique({
       where: { id: vehicleId },
-      select: { year: true, make: true, model: true, slug: true, owner: { select: { username: true } } },
+      select: { year: true, make: true, model: true, slug: true, isPublic: true, owner: { select: { username: true } } },
     }),
     prisma.follow.findMany({
       where: { vehicleId },
@@ -44,7 +44,11 @@ export async function notifyFollowers(vehicleId: string, update: FollowUpdate): 
       },
     }),
   ])
-  if (!vehicle || follows.length === 0) return
+  // Following is of a public project. Once it is private — switched off by
+  // its owner, or moved into an organisation (RL-038), which always makes
+  // it private — its followers hear nothing more about it; the rows stay,
+  // so publishing it again resumes them.
+  if (!vehicle || !vehicle.isPublic || follows.length === 0) return
 
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
   const baseUrl = appUrlForNotification('the follower notification')

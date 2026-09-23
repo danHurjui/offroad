@@ -24,7 +24,7 @@ export default async function JobReportPage({
   const t = await getTranslations('jobReport')
   const tc = await getTranslations('common')
   const config = await getVocabulary(vehicle.projectType)
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   const range = searchParams.range === 'all' ? 'all' : '30d'
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
 

@@ -57,7 +57,7 @@ export default async function OwnershipCostsPage({
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
   const config = await getVocabulary(vehicle.projectType)
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
 
   const back = (
     <Link href={`/dashboard/vehicles/${vehicle.id}`} className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">

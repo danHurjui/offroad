@@ -71,7 +71,7 @@ export function shouldShowChecklist({
  * One cheap `count` per step, run only while the checklist is still open.
  */
 export async function loadOnboardingCounts(userId: string, ownedVehicles: number): Promise<OnboardingCounts> {
-  const owned = { ownerId: userId }
+  const owned = { ownerId: userId, organizationId: null }
   const [task, photo, document] = await Promise.all([
     prisma.task.count({ where: { vehicle: owned } }),
     prisma.taskPhoto.count({ where: { task: { vehicle: owned } } }),

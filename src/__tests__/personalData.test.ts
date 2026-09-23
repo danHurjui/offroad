@@ -234,7 +234,8 @@ describe('collectUserData', () => {
     expect((prisma.ticket.findMany as jest.Mock).mock.calls[0][0].where).toEqual({ authorId: 'u1' })
     expect((prisma.ticketVote.findMany as jest.Mock).mock.calls[0][0].where).toEqual({ userId: 'u1' })
     expect((prisma.follow.findMany as jest.Mock).mock.calls[0][0].where).toEqual({ followerUserId: 'u1' })
-    expect((prisma.vehicle.findMany as jest.Mock).mock.calls[0][0].where).toEqual({ ownerId: 'u1' })
+    // Personal vehicles only: a company vehicle is the organisation's data.
+    expect((prisma.vehicle.findMany as jest.Mock).mock.calls[0][0].where).toEqual({ ownerId: 'u1', organizationId: null })
   })
 
   /**

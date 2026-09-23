@@ -25,6 +25,10 @@ import { organizationsOnAccountDeletion } from '@/lib/organizations'
  * organisation other people are still in — it would be left with nobody
  * able to run it — so the answer names those organisations and the person
  * hands the role on (or deletes them) first.
+ *
+ * Company vehicles are the organisation's: the ones this account is the
+ * record for pass to another owner there, and an organisation that goes
+ * with the account takes its vehicles and their files.
  */
 export async function DELETE() {
   const auth = await requireSession()
@@ -43,8 +47,39 @@ export async function DELETE() {
       })
     }
 
-    const keys = await collectStorageKeys(session.user.id)
+    // Company vehicles this account is the record for, in organisations
+    // that outlive it, pass to another OWNER there — otherwise the account's
+    // cascade would take the company's vehicles with it. The slug is
+    // cleared: it is only for a public page, which a company vehicle never
+    // has, and it could collide with the heir's own.
+    const recorded = await prisma.vehicle.findMany({
+      where: { ownerId: session.user.id, organizationId: { not: null } },
+      select: { id: true, organizationId: true },
+    })
+    for (const v of recorded) {
+      if (!v.organizationId || orgs.solo.includes(v.organizationId)) continue
+      const heir = await prisma.organizationMember.findFirst({
+        where: { organizationId: v.organizationId, role: 'OWNER', userId: { not: session.user.id } },
+        orderBy: { createdAt: 'asc' },
+        select: { userId: true },
+      })
+      // Always found: an organisation others are in has an OWNER besides
+      // this account, or it would have been refused above as blocking. An
+      // organisation this account has left always kept one.
+      if (heir) await prisma.vehicle.update({ where: { id: v.id }, data: { ownerId: heir.userId, slug: null } })
+    }
+
+    // An organisation nobody else is in goes with the account, vehicles and
+    // all — including any a former member left on record there.
+    const soloVehicles = orgs.solo.length
+      ? await prisma.vehicle.findMany({ where: { organizationId: { in: orgs.solo } }, select: { id: true, ownerId: true } })
+      : []
+    const keys = [
+      ...(await collectStorageKeys(session.user.id)),
+      ...(await Promise.all(soloVehicles.map((v) => collectStorageKeys(v.ownerId, v.id)))).flat(),
+    ]
     await prisma.$transaction([
+      prisma.vehicle.deleteMany({ where: { organizationId: { in: orgs.solo } } }),
       prisma.organization.deleteMany({ where: { id: { in: orgs.solo } } }),
       prisma.user.delete({ where: { id: session.user.id } }),
     ])

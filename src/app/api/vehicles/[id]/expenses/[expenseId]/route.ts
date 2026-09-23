@@ -14,7 +14,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const expense = await prisma.vehicleExpense.findUnique({ where: { id: params.expenseId } })
   if (!expense || expense.vehicleId !== vehicle.id) return await apiError('notFound', 404)
-  if (vehicle.ownerId !== session.user.id && expense.createdByUserId !== session.user.id) {
+  if (vehicle.access !== 'owner' && expense.createdByUserId !== session.user.id) {
     return await apiError('expenseOwnOnly', 403)
   }
 

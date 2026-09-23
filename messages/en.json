@@ -1005,7 +1005,8 @@
     "deleteHelp": "Deleting a vehicle removes all its tasks, photos, and history. This cannot be undone.",
     "deleteVehicle": "Delete vehicle",
     "confirmDelete": "Delete this vehicle and all its tasks and photos? This cannot be undone.",
-    "pageTitle": "Vehicle settings"
+    "pageTitle": "Vehicle settings",
+    "companyNotPublic": "This vehicle belongs to {name}. A company vehicle can’t be made public."
   },
   "foundState": {
     "acquisitionDate": "Acquisition date",
@@ -2108,7 +2109,11 @@
     "passportFailed": "Could not generate the passport PDF.",
     "orgAlreadyMember": "That person is already a member of this organisation.",
     "orgAlreadyInvited": "There is already a pending invitation for that address. Resend it instead.",
-    "orgInviteLimit": "This organisation has {limit} pending invitations. Withdraw some before sending more."
+    "orgInviteLimit": "This organisation has {limit} pending invitations. Withdraw some before sending more.",
+    "orgHasVehicles": "This organisation still has {count, plural, one {# vehicle} other {# vehicles}}. Deleting an organisation with vehicles isn’t available yet.",
+    "companyVehicleNotPublic": "A company vehicle can’t be made public.",
+    "vehicleAlreadyCompany": "This vehicle already belongs to an organisation.",
+    "orgMoveNotAllowed": "You can only move a vehicle into an organisation where you are an owner or fleet manager."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2755,7 +2760,7 @@
   },
   "organizations": {
     "title": "Organisations",
-    "intro": "A company account: its members and what each of them may do. Company vehicles come in a later release; for now an organisation holds its details and its people.",
+    "intro": "A company account: its vehicles, its members and what each of them may do.",
     "none": "You don’t belong to any organisation.",
     "createTitle": "New organisation",
     "createHelp": "You become its first owner. The fiscal code is optional and can be added later.",
@@ -2778,7 +2783,7 @@
     "yourRole": "Your role: {role}",
     "detailsTitle": "Company details",
     "membersTitle": "Members",
-    "rolesHelp": "Owners run the organisation: its details, its members and deleting it. There is always at least one owner.",
+    "rolesHelp": "Owners run the organisation: its details, its members and deleting it. Owners and fleet managers manage its vehicles like their own; mechanics and drivers see them and log their own work. There is always at least one owner.",
     "you": "(you)",
     "roleFor": "Role for {name}",
     "roleChanged": "{name}’s role changed.",
@@ -2791,7 +2796,7 @@
     "removed": "{name} was removed.",
     "removeFailed": "Could not remove the member.",
     "deleteTitle": "Delete organisation",
-    "deleteHelp": "Deletes the organisation and every membership in it. People’s own accounts and vehicles are not touched.",
+    "deleteHelp": "Deletes the organisation and every membership in it. People’s own accounts and personal vehicles are not touched. An organisation that still has vehicles can’t be deleted yet.",
     "delete": "Delete organisation",
     "confirmDelete": "Delete {name} and every membership in it? This cannot be undone.",
     "deleted": "{name} was deleted.",
@@ -2831,6 +2836,20 @@
       "open": "Open the organisation",
       "goToDashboard": "Go to dashboard",
       "failed": "Could not accept the invitation."
+    },
+    "vehiclesTitle": "Vehicles",
+    "vehiclesHelp": "Move a vehicle in from its settings page. Everyone here can see these.",
+    "noVehicles": "No vehicles yet. The owner of a personal vehicle can move it in from the vehicle’s settings.",
+    "move": {
+      "title": "Move to an organisation",
+      "help": "The vehicle becomes the company’s: its owners and fleet managers manage it, its mechanics and drivers see it and log their work. You keep access through your role there. Moving it back out isn’t available yet.",
+      "unpublishes": "This vehicle is public. A company vehicle can’t be, so moving it makes it private.",
+      "organization": "Organisation",
+      "submit": "Move vehicle",
+      "moving": "Moving…",
+      "confirm": "Move this vehicle to {name}? Who can see it will be decided by your roles there, and it can’t be moved back yet.",
+      "moved": "The vehicle now belongs to {name}.",
+      "failed": "Could not move the vehicle."
     }
   }
 }

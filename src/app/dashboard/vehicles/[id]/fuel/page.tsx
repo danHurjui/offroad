@@ -22,7 +22,7 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
   const config = await getVocabulary(vehicle.projectType)
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   // Same rule as the vehicle page's total: a collaborator on a vehicle
   // with hideCostsFromCollaborators set does not see the aggregate spend.
   const hideSpend = !isOwner && vehicle.hideCostsFromCollaborators

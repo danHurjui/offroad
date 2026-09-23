@@ -27,7 +27,7 @@ export async function DELETE(
   // not any photo on the vehicle (matches the receipt DELETE route's
   // pattern for the same task-scoped resource).
   const task = await prisma.task.findUnique({ where: { id: photo.taskId } })
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   if (!isOwner && task?.addedByUserId !== session.user.id) {
     return await apiError('photoRemoveOwnOnly', 403)
   }

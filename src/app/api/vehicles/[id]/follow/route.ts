@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
+import { vehicleAccessFor } from '@/lib/access'
 
 // RL-023: follow/unfollow a public project. Not gated by
 // requireVehicleAccess — that's for owner/collaborator access, and a
@@ -12,9 +13,9 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
   if (!auth.ok) return auth.error
   const { session } = auth
 
-  const vehicle = await prisma.vehicle.findUnique({ where: { id: params.id }, select: { id: true, isPublic: true, ownerId: true } })
+  const vehicle = await prisma.vehicle.findUnique({ where: { id: params.id }, select: { id: true, isPublic: true, ownerId: true, organizationId: true } })
   if (!vehicle || !vehicle.isPublic) return await apiError('notFound', 404)
-  if (vehicle.ownerId === session.user.id) {
+  if ((await vehicleAccessFor(vehicle, session.user.id, { ownerOnly: true })) === 'owner') {
     return NextResponse.json({ error: "You can't follow your own project" }, { status: 400 })
   }
 

@@ -22,7 +22,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const reading = await prisma.odometerReading.findUnique({ where: { id: params.readingId } })
   if (!reading || reading.vehicleId !== vehicle.id) return await apiError('notFound', 404)
 
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   if (!isOwner && reading.createdByUserId !== session.user.id) {
     return await apiError('odometerDeleteOwnOnly', 403)
   }

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   const task = await loadTask(params.id, params.taskId)
   if (!task) return await apiError('notFound', 404)
 
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   if (!isOwner && task.addedByUserId !== session.user.id) {
     return await apiError('receiptOwnTasksOnly', 403)
   }
@@ -75,7 +75,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const task = await loadTask(params.id, params.taskId)
   if (!task) return await apiError('notFound', 404)
 
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   if (!isOwner && task.addedByUserId !== session.user.id) {
     return await apiError('receiptRemoveOwnOnly', 403)
   }

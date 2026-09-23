@@ -36,14 +36,20 @@ describe('GET /api/vehicles', () => {
 
   it('returns owned and collaborating vehicles', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
-    mockFindMany.mockResolvedValueOnce([{ id: 'v1' }]).mockResolvedValueOnce([{ id: 'v2' }])
+    // listAccessibleVehicles: personal, company, collaborating.
+    const updatedAt = new Date('2026-09-01')
+    mockFindMany
+      .mockResolvedValueOnce([{ id: 'v1', updatedAt }])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 'v2', updatedAt }])
     const res = await GET()
     const data = await res.json()
     expect(res.status).toBe(200)
     // Money columns always arrive as numbers or null (pitfall #5).
     const money = { purchasePriceRon: null, currentValueRon: null, financeMonthlyRon: null }
-    expect(data.owned).toEqual([{ id: 'v1', ...money }])
-    expect(data.collaborating).toEqual([{ id: 'v2', ...money }])
+    // The caller's `access` is not part of the vehicle's JSON.
+    expect(data.owned).toEqual([{ id: 'v1', updatedAt: updatedAt.toISOString(), ...money }])
+    expect(data.collaborating).toEqual([{ id: 'v2', updatedAt: updatedAt.toISOString(), ...money }])
   })
 })
 

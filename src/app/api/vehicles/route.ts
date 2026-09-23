@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, apiErrorWith } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
+import { listAccessibleVehicles } from '@/lib/access'
 import { requireSession } from '@/lib/authz'
 import { isProjectType, PROJECT_TYPES } from '@/lib/projectType'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
@@ -18,17 +19,14 @@ export async function GET() {
   const { session } = auth
 
   try {
-    const owned = await prisma.vehicle.findMany({
-      where: { ownerId: session.user.id },
-      orderBy: { updatedAt: 'desc' },
-    })
-    const collaborating = await prisma.vehicle.findMany({
-      where: { collaborators: { some: { collaboratorUserId: session.user.id, status: 'ACTIVE' } } },
-      orderBy: { updatedAt: 'desc' },
-    })
+    // RL-038: `owned` is every vehicle the caller has owner access to —
+    // their personal ones and company ones they manage.
+    const all = await listAccessibleVehicles(session.user.id)
     return NextResponse.json({
-      owned: owned.map((v) => serializeVehicle(v)),
-      collaborating: collaborating.map((v) => serializeVehicle(v, { hideCosts: v.hideCostsFromCollaborators })),
+      owned: all.filter((v) => v.access === 'owner').map(({ access: _a, ...v }) => serializeVehicle(v)),
+      collaborating: all
+        .filter((v) => v.access === 'collaborator')
+        .map(({ access: _a, ...v }) => serializeVehicle(v, { hideCosts: v.hideCostsFromCollaborators })),
     })
   } catch {
     return await apiError('internalError', 500)
@@ -66,7 +64,7 @@ export async function POST(req: NextRequest) {
       select: { ...PRO_SELECT },
     })
     if (!hasPro(user)) {
-      const existingCount = await prisma.vehicle.count({ where: { ownerId: session.user.id } })
+      const existingCount = await prisma.vehicle.count({ where: { ownerId: session.user.id, organizationId: null } })
       if (existingCount >= FREE_TIER.vehicles) {
         return await apiErrorWith(
           'vehicleLimit',

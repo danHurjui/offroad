@@ -24,7 +24,7 @@ export default async function ServiceBookPage({ params }: { params: { id: string
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) notFound()
   const config = await getVocabulary(vehicle.projectType)
-  const isOwner = vehicle.ownerId === session.user.id
+  const isOwner = vehicle.access === 'owner'
   // Same rule as the other cost views: per-job costs are hidden from a
   // collaborator the owner hides them from, so the column goes too.
   const hideCosts = !isOwner && vehicle.hideCostsFromCollaborators
