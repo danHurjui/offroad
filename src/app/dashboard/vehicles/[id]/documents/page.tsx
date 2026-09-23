@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { isHistoricVehicle } from '@/lib/documents'
 import DocumentsBoard from '@/components/DocumentsBoard'
+import { toNumberOrNull } from '@/lib/serialize'
 
 export default async function DocumentsPage({ params }: { params: { id: string } }) {
   const tc = await getTranslations('common')
@@ -34,7 +35,15 @@ export default async function DocumentsPage({ params }: { params: { id: string }
       </p>
       <DocumentsBoard
         vehicleId={vehicle.id}
-        documents={documents.map((d) => ({ ...d, expiryDate: d.expiryDate.toISOString() }))}
+        documents={documents.map((d) => ({
+          id: d.id,
+          type: d.type,
+          fileUrl: d.fileUrl,
+          expiryDate: d.expiryDate.toISOString(),
+          // Decimal cannot cross into a client component (pitfall #5).
+          costRon: toNumberOrNull(d.costRon),
+          paidAt: d.paidAt?.toISOString() ?? null,
+        }))}
       />
     </div>
   )

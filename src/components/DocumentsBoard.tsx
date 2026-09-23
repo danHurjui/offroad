@@ -5,12 +5,15 @@ import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { DOCUMENT_TYPE_OPTIONS, daysUntilMessage, getDocumentStatus, type DocumentStatus } from '@/lib/documents'
 import { compressImageIfNeeded } from '@/lib/compressImage'
+import MoneyInput from './MoneyInput'
 
 interface DocumentRow {
   id: string
   type: string
   expiryDate: string
   fileUrl: string | null
+  costRon: number | null
+  paidAt: string | null
 }
 
 const STATUS_STYLES: Record<DocumentStatus, string> = {
@@ -32,6 +35,9 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
   const [documents, setDocuments] = useState(initialDocuments)
   const [newType, setNewType] = useState(DOCUMENT_TYPE_OPTIONS[0].value)
   const [newExpiry, setNewExpiry] = useState('')
+  const [newCost, setNewCost] = useState('')
+  // RL-045: the price paid for the new period, entered with the renewal.
+  const [renewCosts, setRenewCosts] = useState<Record<string, string>>({})
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [renewDrafts, setRenewDrafts] = useState<Record<string, string>>({})
@@ -67,7 +73,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
     const res = await fetch(`/api/vehicles/${vehicleId}/documents`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: newType, expiryDate: newExpiry }),
+      body: JSON.stringify({ type: newType, expiryDate: newExpiry, costRon: newCost || undefined }),
     })
     setAdding(false)
     if (!res.ok) {
@@ -78,6 +84,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
     const created = await res.json()
     setDocuments((prev) => [...prev, created].sort((a, b) => a.expiryDate.localeCompare(b.expiryDate)))
     setNewExpiry('')
+    setNewCost('')
     router.refresh()
   }
 
@@ -88,7 +95,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
     const res = await fetch(`/api/vehicles/${vehicleId}/documents/${doc.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ expiryDate: nextExpiry }),
+      body: JSON.stringify({ expiryDate: nextExpiry, costRon: renewCosts[doc.id] || undefined }),
     })
     setBusyId(null)
     if (!res.ok) {
@@ -99,6 +106,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
     const updated = await res.json()
     setDocuments((prev) => prev.map((d) => (d.id === doc.id ? updated : d)).sort((a, b) => a.expiryDate.localeCompare(b.expiryDate)))
     setRenewDrafts((prev) => ({ ...prev, [doc.id]: '' }))
+    setRenewCosts((prev) => ({ ...prev, [doc.id]: '' }))
     router.refresh()
   }
 
@@ -154,6 +162,10 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
           <label className="label" htmlFor="newExpiry">{t('expiryDate')}</label>
           <input id="newExpiry" type="date" className="input" value={newExpiry} onChange={(e) => setNewExpiry(e.target.value)} required />
         </div>
+        <div className="w-40">
+          <label className="label" htmlFor="newCost">{t('price')}</label>
+          <MoneyInput id="newCost" value={newCost} onChange={setNewCost} />
+        </div>
         <button type="submit" className="btn-primary" disabled={adding}>
           {adding ? t('adding') : t('addDocument')}
         </button>
@@ -176,6 +188,14 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                   <div className="text-xs text-ink-faint">
                     {new Date(doc.expiryDate).toLocaleDateString('ro-RO')} ·{' '}
                     {t(daysUntilMessage(daysUntil).key, daysUntilMessage(daysUntil).values)}
+                  </div>
+                  <div className="text-xs text-ink-faint">
+                    {doc.costRon != null
+                      ? t('paid', {
+                          amount: doc.costRon.toLocaleString('ro-RO', { maximumFractionDigits: 2 }),
+                          date: doc.paidAt ? new Date(doc.paidAt).toLocaleDateString('ro-RO', { timeZone: 'UTC' }) : '—',
+                        })
+                      : t('noPrice')}
                   </div>
                   {/* Said either way. A bare "View file" link that is simply
                       absent reads the same as a row that failed to attach,
@@ -207,6 +227,16 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                       onChange={(e) => setRenewDrafts((prev) => ({ ...prev, [doc.id]: e.target.value }))}
                     />
                   </div>
+                  {renewDrafts[doc.id] && (
+                    <div className="w-36">
+                      <label className="label text-xs" htmlFor={`renew-cost-${doc.id}`}>{t('renewPrice')}</label>
+                      <MoneyInput
+                        id={`renew-cost-${doc.id}`}
+                        value={renewCosts[doc.id] ?? ''}
+                        onChange={(v) => setRenewCosts((prev) => ({ ...prev, [doc.id]: v }))}
+                      />
+                    </div>
+                  )}
                   <button type="button" className="btn-secondary" onClick={() => onRenew(doc)} disabled={busyId === doc.id || !renewDrafts[doc.id]}>
                     {t('renew')}
                   </button>

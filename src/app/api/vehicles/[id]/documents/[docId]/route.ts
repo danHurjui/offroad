@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/apiError'
+import { apiError, apiErrorWith } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { deleteUpload } from '@/lib/storage'
 import { readJsonBody } from '@/lib/requestBody'
 import { clearedReminderFields } from '@/lib/documents'
+import { archivedDocumentCost, parseCostPaid } from '@/lib/ownershipCosts'
+import { serializeDocument, toNumberOrNull } from '@/lib/serialize'
 
 async function loadDocument(vehicleId: string, docId: string) {
   const document = await prisma.document.findUnique({ where: { id: docId } })
@@ -24,7 +26,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string;
   const document = await loadDocument(params.id, params.docId)
   if (!document) return await apiError('notFound', 404)
 
-  return NextResponse.json(document)
+  return NextResponse.json(serializeDocument(document))
 }
 
 // RL-013: "dismiss a reminder once renewed — prompts to update the expiry
@@ -59,9 +61,24 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       // documents.ts cannot leave one stuck as already-sent.
       Object.assign(data, clearedReminderFields())
     }
+    // RL-045: price and paid date. A renewal starts a new period, so the
+    // price paid for the old one is kept as an expense (it would otherwise
+    // be overwritten) and the new period starts unpriced unless this
+    // request prices it.
+    const renewing = data.expiryDate !== undefined && (data.expiryDate as Date).getTime() !== document.expiryDate.getTime()
+    const cost = parseCostPaid(body, 'paidAt', renewing ? null : document.paidAt)
+    if (!cost.ok) return await apiErrorWith('costFieldInvalid', { field: cost.field }, 400)
+    const archived = renewing ? archivedDocumentCost({ ...document, costRon: toNumberOrNull(document.costRon) }) : null
+    if (renewing) Object.assign(data, { costRon: null, paidAt: null })
+    Object.assign(data, cost.data)
 
-    const updated = await prisma.document.update({ where: { id: document.id }, data })
-    return NextResponse.json(updated)
+    const updated = archived
+      ? await prisma.$transaction(async (tx) => {
+          await tx.vehicleExpense.create({ data: { vehicleId: vehicle.id, ...archived, createdByUserId: session.user.id } })
+          return tx.document.update({ where: { id: document.id }, data })
+        })
+      : await prisma.document.update({ where: { id: document.id }, data })
+    return NextResponse.json(serializeDocument(updated))
   } catch {
     return await apiError('internalError', 500)
   }

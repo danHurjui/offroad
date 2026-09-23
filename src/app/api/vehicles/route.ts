@@ -7,6 +7,7 @@ import { generateVehicleSlug } from '@/lib/vehicleSlug'
 import { readJsonBody } from '@/lib/requestBody'
 import { hasPro, PRO_SELECT, FREE_TIER } from '@/lib/pro'
 import { parseProfile } from '@/lib/vehicleProfile'
+import { serializeVehicle } from '@/lib/serialize'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 
@@ -25,7 +26,10 @@ export async function GET() {
       where: { collaborators: { some: { collaboratorUserId: session.user.id, status: 'ACTIVE' } } },
       orderBy: { updatedAt: 'desc' },
     })
-    return NextResponse.json({ owned, collaborating })
+    return NextResponse.json({
+      owned: owned.map((v) => serializeVehicle(v)),
+      collaborating: collaborating.map((v) => serializeVehicle(v, { hideCosts: v.hideCostsFromCollaborators })),
+    })
   } catch {
     return await apiError('internalError', 500)
   }
@@ -96,7 +100,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    return NextResponse.json(vehicle, { status: 201 })
+    return NextResponse.json(serializeVehicle(vehicle), { status: 201 })
   } catch {
     return await apiError('internalError', 500)
   }

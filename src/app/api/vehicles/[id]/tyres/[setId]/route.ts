@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
-  const tyre = parseTyreSet(parsed.body, { requireSeason: false })
+  const tyre = parseTyreSet(parsed.body, { requireSeason: false, purchasedAt: loaded.set.purchasedAt })
   if (!tyre.ok) return await apiErrorWith('tyreFieldInvalid', { field: tyre.field }, 400)
 
   try {
@@ -37,7 +37,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       }
       return tx.tyreSet.update({ where: { id: loaded.set.id }, data: tyre.data })
     })
-    return NextResponse.json({ ...updated, treadDepthMm: toNumberOrNull(updated.treadDepthMm) })
+    return NextResponse.json({ ...updated, treadDepthMm: toNumberOrNull(updated.treadDepthMm), costRon: toNumberOrNull(updated.costRon) })
   } catch {
     return await apiError('internalError', 500)
   }

@@ -5,6 +5,7 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
+import { toNumberOrNull } from '@/lib/serialize'
 import VehicleEditForm from '@/components/VehicleEditForm'
 
 // RL-009 (vehicle settings): owner-only edit + public/private toggle.
@@ -68,6 +69,14 @@ export default async function EditVehiclePage({ params }: { params: { id: string
           powerKw: vehicle.powerKw,
           colour: vehicle.colour,
           seats: vehicle.seats,
+          purchaseDate: vehicle.purchaseDate?.toISOString() ?? null,
+          purchasePriceRon: toNumberOrNull(vehicle.purchasePriceRon),
+          currentValueRon: toNumberOrNull(vehicle.currentValueRon),
+          currentValueAt: vehicle.currentValueAt?.toISOString() ?? null,
+          financeType: vehicle.financeType,
+          financeMonthlyRon: toNumberOrNull(vehicle.financeMonthlyRon),
+          financeStartDate: vehicle.financeStartDate?.toISOString() ?? null,
+          financeEndDate: vehicle.financeEndDate?.toISOString() ?? null,
         }}
         coverCandidates={coverCandidates}
       />

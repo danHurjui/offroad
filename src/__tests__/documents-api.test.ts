@@ -5,6 +5,8 @@ jest.mock('@/lib/prisma', () => ({
     vehicle: { findUnique: jest.fn() },
     projectCollaborator: { findFirst: jest.fn() },
     document: { findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() },
+    vehicleExpense: { create: jest.fn() },
+    $transaction: jest.fn(),
   },
 }))
 jest.mock('@/lib/storage', () => ({
@@ -85,8 +87,42 @@ describe('PATCH /api/vehicles/[id]/documents/[docId]', () => {
         reminder7SentAt: null,
         reminder3SentAt: null,
         reminder1SentAt: null,
+        // RL-045: a renewal starts a new, unpriced period.
+        costRon: null,
+        paidAt: null,
       },
     })
+  })
+
+  it('a renewal keeps the old period’s price as an expense, in the same transaction', async () => {
+    ;(prisma.$transaction as jest.Mock).mockImplementation((fn: (tx: typeof prisma) => unknown) => fn(prisma))
+    mockDocFindUnique.mockResolvedValue({
+      id: 'd1',
+      vehicleId: 'v1',
+      type: 'RCA',
+      expiryDate: new Date('2026-01-01'),
+      costRon: 900,
+      paidAt: new Date('2025-01-01T00:00:00Z'),
+      createdAt: new Date('2025-01-01T00:00:00Z'),
+    })
+    mockDocUpdate.mockResolvedValue({ id: 'd1', costRon: 950 })
+    const res = await docPatch(req({ expiryDate: '2027-01-01', costRon: '950' }), { params: docParams })
+    expect(res.status).toBe(200)
+    expect(prisma.vehicleExpense.create).toHaveBeenCalledWith({
+      data: { vehicleId: 'v1', date: new Date('2025-01-01T00:00:00Z'), kind: 'INSURANCE', amountRon: 900, note: 'RCA', createdByUserId: 'u1' },
+    })
+    expect(mockDocUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ costRon: 950, paidAt: expect.any(Date) }) })
+    )
+    expect((await res.json()).costRon).toBe(950)
+  })
+
+  it('changing only the price keeps its paid date and archives nothing', async () => {
+    mockDocFindUnique.mockResolvedValue({ id: 'd1', vehicleId: 'v1', type: 'RCA', expiryDate: new Date('2026-01-01'), costRon: 900, paidAt: new Date('2025-01-01') })
+    mockDocUpdate.mockResolvedValue({ id: 'd1' })
+    await docPatch(req({ costRon: '950' }), { params: docParams })
+    expect(prisma.vehicleExpense.create).not.toHaveBeenCalled()
+    expect(mockDocUpdate).toHaveBeenCalledWith({ where: { id: 'd1' }, data: { costRon: 950 } })
   })
 
   it('leaves reminder fields untouched when expiryDate is not part of the patch', async () => {

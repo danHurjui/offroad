@@ -448,7 +448,9 @@
     "emptyTitle": "Nimic înregistrat încă",
     "emptyBody": "Fiecare lucrare intră la una dintre categoriile de mai jos: ce s-a făcut, când, cât a costat și poze. Alege o categorie ca să o înregistrezi pe prima.",
     "fuel": "Combustibil",
-    "tyres": "Anvelope"
+    "tyres": "Anvelope",
+    "expenses": "Alte costuri",
+    "costs": "Costul deținerii"
   },
   "home": {
     "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
@@ -1041,7 +1043,11 @@
     "attachFailed": "Fișierul nu a putut fi atașat",
     "renewFailed": "Data de expirare nu a putut fi actualizată",
     "deleteFailed": "Documentul nu a putut fi șters",
-    "pageTitle": "Documente"
+    "pageTitle": "Documente",
+    "price": "Preț (opțional)",
+    "paid": "Plătit {amount} RON pe {date}",
+    "noPrice": "Fără preț înregistrat",
+    "renewPrice": "Preț plătit"
   },
   "wishlist": {
     "markAsFitted": "Marchează ca montată",
@@ -2046,6 +2052,10 @@
     "fuelLitresInvalid": "Introdu litrii ca număr mai mare decât zero.",
     "fuelOwnOnly": "Poți modifica doar alimentările înregistrate de tine.",
     "fuelTotalInvalid": "Introdu totalul plătit, în lei, ca număr mai mare decât zero.",
+    "valuesFieldInvalid": "{field} nu este valid",
+    "expenseFieldInvalid": "{field} nu este valid",
+    "expenseOwnOnly": "Poți șterge doar costurile înregistrate de tine.",
+    "costFieldInvalid": "{field} nu este valid",
     "tyreFieldInvalid": "{field} nu este valid",
     "tyreOwnOnly": "Poți modifica doar seturile de anvelope adăugate de tine."
   },
@@ -2400,6 +2410,122 @@
     "deleted": "Am șters setul de anvelope.",
     "deleteFailed": "Nu am putut șterge setul de anvelope.",
     "empty": "Niciun set de anvelope încă. Adaugă setul montat — cu adâncimea profilului sau anul DOT, Starea mașinii îl poate urmări.",
-    "failed": "Nu am putut actualiza setul de anvelope."
+    "failed": "Nu am putut actualiza setul de anvelope.",
+    "price": "Preț plătit (opțional)",
+    "purchasedAt": "Cumpărate pe",
+    "bought": "cumpărate cu {amount} RON pe {date}"
+  },
+  "vehicleValues": {
+    "heading": "Valoare și finanțare",
+    "purchaseDate": "Cumpărat pe",
+    "purchasePriceRon": "Preț de cumpărare (RON)",
+    "currentValueRon": "Cât crezi că valorează acum (RON)",
+    "currentValueHelp": "Estimarea ta. RigLog nu propune niciodată o valoare, pentru că nu are date pe care să se bazeze.",
+    "currentValueHelpDated": "Estimarea ta, modificată ultima dată pe {date}. RigLog nu propune niciodată o valoare.",
+    "financeType": "Finanțare",
+    "financeNone": "Cumpărat integral",
+    "finance": {
+      "LEASING": "Leasing",
+      "CREDIT": "Credit auto"
+    },
+    "financeMonthlyRon": "Rata lunară (RON)",
+    "financeStartDate": "Prima rată",
+    "financeEndDate": "Ultima rată",
+    "creditHelp": "Ratele lunare intră în costul deținerii. Dacă mașina a fost plătită din credit, trece la prețul de cumpărare doar avansul, altfel mașina se numără de două ori.",
+    "leasingHelp": "Ratele lunare intră în costul deținerii."
+  },
+  "expenses": {
+    "pageTitle": "Alte costuri",
+    "subtitle": "Impozit, taxe de drum, parcare și orice altceva ce nu e o lucrare, o alimentare, un document sau un set de anvelope.",
+    "amount": "Sumă (RON)",
+    "kindLabel": "Pentru ce",
+    "kind": {
+      "TAX": "Impozit auto",
+      "TOLL": "Taxă de pod/autostradă",
+      "ROAD_CHARGE": "Taxă de drum",
+      "INSURANCE": "Asigurare",
+      "INSPECTION": "Inspecție",
+      "PARKING": "Parcare",
+      "WASH": "Spălătorie",
+      "FINE": "Amendă",
+      "OTHER": "Altele"
+    },
+    "date": "Data plății",
+    "note": "Notă (opțional)",
+    "notePlaceholder": "ex. podul Fetești",
+    "add": "Adaugă cost",
+    "adding": "Se adaugă…",
+    "saved": "Cost adăugat",
+    "saveFailed": "Costul nu a putut fi adăugat",
+    "history": "Istoric",
+    "total": "{total} RON în total",
+    "empty": "Nimic înregistrat încă.",
+    "remove": "Șterge",
+    "deleted": "Șters: {label}",
+    "deleteFailed": "Costul nu a putut fi șters"
+  },
+  "ownership": {
+    "title": "Costul deținerii",
+    "period": "De pe {from} până azi",
+    "hiddenFromCollaborators": "Proprietarul a ascuns totalurile de costuri față de colaboratori.",
+    "range": {
+      "3m": "Ultimele 3 luni",
+      "12m": "Ultimele 12 luni",
+      "all": "De când o deții"
+    },
+    "total": "Total",
+    "runningTotal": "{amount} RON din total sunt costuri de folosire (tot, fără cumpărare)",
+    "perKmTitle": "Cost de folosire pe km",
+    "perKmValue": "{value} RON/km",
+    "perKmDetail": "{costs} RON pe {km} km, {from} – {to}. Contează doar costurile plătite între aceste două citiri de kilometraj.",
+    "perKm": {
+      "fewReadings": "Nu sunt destule citiri de kilometraj în această perioadă. Pentru o distanță e nevoie de două.",
+      "noDistance": "Citirile de kilometraj din această perioadă nu arată nicio distanță parcursă."
+    },
+    "upgradePrompt": "Treci la Pro pentru defalcarea pe categorii, fiecare înregistrare din spatele cifrelor, costul pe km și filtrele de perioadă.",
+    "coverageTitle": "Ce nu include acest total",
+    "coverage": {
+      "noPurchase": "Lipsește prețul de cumpărare. Adaugă-l la Valoare și finanțare.",
+      "kmWindow": "Distanța e cunoscută doar între {from} și {to} ({days} din {periodDays} zile), deci costul pe km acoperă doar acest interval.",
+      "noFuel": "Nu e înregistrat niciun combustibil.",
+      "fuelSince": "Combustibilul e înregistrat doar de pe {date}.",
+      "documentsWithoutPrice": "{count, plural, one {# document nu are} few {# documente nu au} other {# de documente nu au}} preț.",
+      "creditAndPurchase": "Se numără și prețul de cumpărare, și ratele creditului. Dacă mașina a fost plătită din credit, trece la prețul de cumpărare doar avansul.",
+      "financeIncomplete": "Finanțarea e setată, dar fără rată lunară sau dată a primei rate, așa că nu se numără nicio rată."
+    },
+    "depreciation": "Deprecierea nu e inclusă. Valoarea de mai jos e estimarea ta, nu un cost.",
+    "value": {
+      "title": "Cât crezi că valorează",
+      "asOf": "Estimarea ta, {date}",
+      "yours": "Estimarea ta",
+      "below": "cu {amount} RON mai puțin decât ai plătit",
+      "above": "cu {amount} RON mai mult decât ai plătit",
+      "none": "Nu e completată. RigLog nu estimează niciodată o valoare.",
+      "edit": "Modifică valoarea și finanțarea"
+    },
+    "breakdown": "Defalcare",
+    "category": {
+      "purchase": "Cumpărare",
+      "finance": "Rate",
+      "fuel": "Combustibil",
+      "work": "Lucrări și service",
+      "insurance": "Asigurări",
+      "inspection": "Inspecție (ITP)",
+      "roadCharges": "Impozit și taxe de drum",
+      "tyres": "Anvelope",
+      "other": "Altele"
+    },
+    "entries": "{count, plural, one {# înregistrare} few {# înregistrări} other {# de înregistrări}}",
+    "nothingRecorded": "Nimic înregistrat pentru:",
+    "empty": "Nimic cu preț nu a fost înregistrat în această perioadă.",
+    "source": {
+      "task": "Lucrare",
+      "fuel": "Alimentare",
+      "purchase": "Cumpărare"
+    },
+    "finance": {
+      "LEASING": "Rată de leasing",
+      "CREDIT": "Rată de credit"
+    }
   }
 }

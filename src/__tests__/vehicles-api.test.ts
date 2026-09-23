@@ -40,8 +40,10 @@ describe('GET /api/vehicles', () => {
     const res = await GET()
     const data = await res.json()
     expect(res.status).toBe(200)
-    expect(data.owned).toEqual([{ id: 'v1' }])
-    expect(data.collaborating).toEqual([{ id: 'v2' }])
+    // Money columns always arrive as numbers or null (pitfall #5).
+    const money = { purchasePriceRon: null, currentValueRon: null, financeMonthlyRon: null }
+    expect(data.owned).toEqual([{ id: 'v1', ...money }])
+    expect(data.collaborating).toEqual([{ id: 'v2', ...money }])
   })
 })
 

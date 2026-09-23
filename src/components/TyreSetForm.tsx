@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { TYRE_SEASONS } from '@/lib/tyres'
 import { tryFetch } from '@/lib/writeFeedback'
 import FormError from './FormError'
+import MoneyInput from './MoneyInput'
 import { useToast } from './Toaster'
 import { useFailureReason } from './useOptimisticWrite'
 
@@ -15,7 +16,7 @@ export default function TyreSetForm({ vehicleId, hasFitted }: { vehicleId: strin
   const router = useRouter()
   const toast = useToast()
   const reasonFor = useFailureReason()
-  const empty = { season: 'SUMMER', label: '', size: '', dotYear: '', treadDepthMm: '', fittedAt: '', fittedKm: '' }
+  const empty = { season: 'SUMMER', label: '', size: '', dotYear: '', treadDepthMm: '', fittedAt: '', fittedKm: '', costRon: '', purchasedAt: '' }
   const [form, setForm] = useState(empty)
   // The first set anybody adds is almost always the one on the car.
   const [isFitted, setIsFitted] = useState(!hasFitted)
@@ -30,7 +31,7 @@ export default function TyreSetForm({ vehicleId, hasFitted }: { vehicleId: strin
     const res = await tryFetch(`/api/vehicles/${vehicleId}/tyres`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, isFitted }),
+      body: JSON.stringify({ ...form, purchasedAt: form.purchasedAt || undefined, isFitted }),
     })
     setBusy(false)
     if (!res?.ok) {
@@ -68,6 +69,11 @@ export default function TyreSetForm({ vehicleId, hasFitted }: { vehicleId: strin
           <p id="tyre-dot-help" className="mt-1 text-xs text-ink-faint">{t('dotHelp')}</p>
         </div>
         {field('treadDepthMm', t('tread'), { type: 'number', inputMode: 'decimal', min: 0, max: 20, step: 0.1 })}
+        <div className="min-w-0">
+          <label className="label" htmlFor="tyre-costRon">{t('price')}</label>
+          <MoneyInput id="tyre-costRon" value={form.costRon} onChange={(costRon) => set({ costRon })} />
+        </div>
+        {field('purchasedAt', t('purchasedAt'), { type: 'date', max: new Date().toISOString().slice(0, 10) })}
       </div>
       <label className="flex items-center gap-2 text-sm text-ink">
         <input type="checkbox" checked={isFitted} onChange={(e) => setIsFitted(e.target.checked)} />

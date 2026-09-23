@@ -1,6 +1,6 @@
 import { prisma } from './prisma'
 import { deleteUpload } from './storage'
-import { toNumberOrNull } from './serialize'
+import { toNumberOrNull, vehicleMoney } from './serialize'
 
 /**
  * GDPR plumbing: the two things a user is entitled to do with their own
@@ -192,6 +192,7 @@ function fetchVehicles(userId: string) {
       odometerReadings: { orderBy: { readAt: 'asc' } },
       fuelEntries: { orderBy: { date: 'asc' } },
       tyreSets: true,
+      expenses: { orderBy: { date: 'asc' } },
     },
     orderBy: { createdAt: 'asc' },
   })
@@ -200,6 +201,7 @@ function fetchVehicles(userId: string) {
 function serializeVehicle(vehicle: VehicleWithRelations) {
   return {
     ...vehicle,
+    ...vehicleMoney(vehicle),
     tasks: vehicle.tasks.map((task) => ({
       ...task,
       costRon: toNumberOrNull(task.costRon),
@@ -223,6 +225,12 @@ function serializeVehicle(vehicle: VehicleWithRelations) {
       litres: toNumberOrNull(entry.litres),
       totalRon: toNumberOrNull(entry.totalRon),
     })),
-    tyreSets: vehicle.tyreSets.map((set) => ({ ...set, treadDepthMm: toNumberOrNull(set.treadDepthMm) })),
+    tyreSets: vehicle.tyreSets.map((set) => ({
+      ...set,
+      treadDepthMm: toNumberOrNull(set.treadDepthMm),
+      costRon: toNumberOrNull(set.costRon),
+    })),
+    documents: vehicle.documents.map((doc) => ({ ...doc, costRon: toNumberOrNull(doc.costRon) })),
+    expenses: vehicle.expenses.map((expense) => ({ ...expense, amountRon: toNumberOrNull(expense.amountRon) })),
   }
 }

@@ -186,6 +186,14 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
               )}
             </Link>
           )}
+          <Link href={`/dashboard/vehicles/${vehicle.id}/expenses`} className="btn-secondary">
+            {t('expenses')}
+          </Link>
+          {(!vehicle.hideCostsFromCollaborators || isOwner) && (
+            <Link href={`/dashboard/vehicles/${vehicle.id}/costs`} className="btn-secondary">
+              {t('costs')}
+            </Link>
+          )}
           {(!vehicle.hideCostsFromCollaborators || isOwner) && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/analytics`} className="btn-secondary">
               {t('analytics')}

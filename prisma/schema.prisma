@@ -189,6 +189,7 @@ model User {
   odometerReadings     OdometerReading[]     @relation("OdometerReadingBy")
   fuelEntries          FuelEntry[]           @relation("FuelEntryBy")
   tyreSets             TyreSet[]             @relation("TyreSetBy")
+  vehicleExpenses      VehicleExpense[]      @relation("VehicleExpenseBy")
   ticketVotes          TicketVote[]
   ticketComments       TicketComment[]
   donations            Donation[]
@@ -378,6 +379,22 @@ model Vehicle {
   powerKw                    Int?
   colour                     String?
   seats                      Int?
+  /// RL-050 values and finance, RL-045 slice 5 (src/lib/ownershipCosts.ts).
+  /// The purchase lives here for every mode; a restoration's FoundState
+  /// acquisitionDate/purchasePriceRon are mirrored both ways until a later
+  /// release drops FoundState's copy (never rename and change behaviour in
+  /// the same release).
+  purchaseDate               DateTime?
+  purchasePriceRon           Decimal?    @db.Decimal(10, 2)
+  /// The owner's own estimate, dated. RigLog never computes a value — it
+  /// has no valuation data, and an invented figure would end up in a sale.
+  currentValueRon            Decimal?    @db.Decimal(10, 2)
+  currentValueAt             DateTime?
+  /// A FINANCE_TYPES code (LEASING | CREDIT); null means bought outright.
+  financeType                String?
+  financeMonthlyRon          Decimal?    @db.Decimal(10, 2)
+  financeStartDate           DateTime?
+  financeEndDate             DateTime?
   createdAt                  DateTime    @default(now())
   updatedAt                  DateTime    @updatedAt
 
@@ -393,6 +410,7 @@ model Vehicle {
   odometerReadings OdometerReading[]
   fuelEntries   FuelEntry[]
   tyreSets      TyreSet[]
+  expenses      VehicleExpense[]
 
   @@unique([ownerId, slug])
   @@index([ownerId])
@@ -639,6 +657,10 @@ model Document {
   reminder7SentAt  DateTime?
   reminder3SentAt  DateTime?
   reminder1SentAt  DateTime?
+  /// RL-045: what the policy/vignette cost, and the day it was paid —
+  /// which is when it counts in the cost of ownership.
+  costRon          Decimal?     @db.Decimal(10, 2)
+  paidAt           DateTime?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
@@ -953,6 +975,9 @@ model TyreSet {
   treadDepthMm    Decimal? @db.Decimal(3, 1)
   treadMeasuredAt DateTime?
   notes           String?
+  /// RL-045: what the set cost and when it was bought.
+  costRon         Decimal? @db.Decimal(10, 2)
+  purchasedAt     DateTime?
   createdByUserId String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -961,5 +986,29 @@ model TyreSet {
   createdBy User?   @relation("TyreSetBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
 
   @@index([vehicleId])
+  @@index([createdByUserId])
+}
+
+/// RL-045 (phase 5 slice 5): the long tail of what a vehicle costs that
+/// has no better home — road tax, tolls, parking, washes, fines. Service
+/// work stays on Task, fuel on FuelEntry, policies on Document and tyres on
+/// TyreSet: cost lives on the thing it describes, and the cost of
+/// ownership is a union over them (src/lib/ownershipCosts.ts).
+model VehicleExpense {
+  id              String   @id @default(cuid())
+  vehicleId       String
+  /// The day it was paid, stored at 00:00 UTC.
+  date            DateTime
+  /// An EXPENSE_KINDS code.
+  kind            String
+  amountRon       Decimal  @db.Decimal(10, 2)
+  note            String?
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation("VehicleExpenseBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([vehicleId, date])
   @@index([createdByUserId])
 }

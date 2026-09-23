@@ -759,6 +759,38 @@ re-derived. Rules that are load-bearing, and tested:
 one unfits the rest in the same transaction). Tread depth is stamped with
 the day it was measured.
 
+### Cost of ownership (`src/lib/ownershipCosts.ts`, RL-045 — slice 5) and values/finance (RL-050)
+**Cost stays on the thing it describes and TCO is a union over them** —
+Task (via `taskTotalCost()`, the analytics function), FuelEntry, Document
+(`costRon` + `paidAt`), TyreSet (`costRon` + `purchasedAt`), Vehicle
+(purchase, monthly finance payments) and `VehicleExpense` for the long tail
+(tax, tolls, parking…). `MONEY_COLUMNS` names every `*Ron`/`*Bani` column in
+the schema as counted or excluded-with-a-reason; `ownershipCosts.test.ts`
+reads the schema, so **a new money column fails the build until you decide
+about it there**.
+- **Nothing is estimated.** `currentValueRon` is the owner's own dated
+  estimate, shown beside the total, never a cost line (no depreciation).
+- **Cost per km** counts only the stretch the odometer covers inside the
+  period (`distanceCovered()`), with only the running costs paid inside it
+  (purchase excluded). `coverage` lists every gap instead of hiding it.
+- **The purchase lives on `Vehicle` for every mode.** FoundState's
+  `acquisitionDate`/`purchasePriceRon` are mirrored both ways (vehicle
+  PATCH ↔ found-state PUT) until a later release drops FoundState's copy.
+- **A document is renewed in place**, so a renewal moves the old period's
+  price into a `VehicleExpense` (same category) before the new one is set —
+  otherwise last year's premium would vanish from the total.
+- No finance type means no payments, whatever amounts are left behind.
+- The vehicle's money columns are Decimal: `serializeVehicle()` on every
+  vehicle JSON response (it also nulls them for a collaborator under
+  `hideCostsFromCollaborators`), and map them with `toNumberOrNull()` before
+  handing a vehicle or document to a client component.
+- `costKinds.ts` holds the vocabulary so client components can import it;
+  `ownershipCosts.ts` is reached from a client component via `tyres.ts`, so
+  it must not import `amounts.ts`/`apiError` (a test holds that — the
+  failure otherwise only shows in `next build`).
+- Free: the total and its gaps. Pro (the owner's): breakdown, entries, cost
+  per km, period filter.
+
 Phase 5 follows the adapted plan on #49 (one additive migration per slice,
 each slice deployable alone): identity → odometer → fuel log → Car Health
 → TCO → service book → passport → accidents; OCR waits on a provider

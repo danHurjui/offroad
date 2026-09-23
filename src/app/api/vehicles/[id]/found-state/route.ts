@@ -89,11 +89,20 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       interiorNotes: interiorNotes || null,
     }
 
-    const foundState = await prisma.foundState.upsert({
-      where: { vehicleId: vehicle.id },
-      create: { vehicleId: vehicle.id, ...data },
-      update: data,
-      include: { photos: true },
+    // RL-045: the purchase lives on the vehicle for every mode now; the
+    // intake's copy is kept in step until a later release drops it.
+    const foundState = await prisma.$transaction(async (tx) => {
+      const row = await tx.foundState.upsert({
+        where: { vehicleId: vehicle.id },
+        create: { vehicleId: vehicle.id, ...data },
+        update: data,
+        include: { photos: true },
+      })
+      await tx.vehicle.update({
+        where: { id: vehicle.id },
+        data: { purchaseDate: data.acquisitionDate, purchasePriceRon: data.purchasePriceRon },
+      })
+      return row
     })
     // RL-044: one mileage history, not a snapshot beside it.
     await syncFoundStateReading({

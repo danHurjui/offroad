@@ -1,4 +1,5 @@
 import { parseKm, startOfDayUtc } from './odometer'
+import { parseCostPaid } from './ownershipCosts'
 
 /**
  * RL-050 tyres (slice 4 of #49): parsing a tyre set from a request.
@@ -17,7 +18,7 @@ export function isTyreSeason(value: unknown): value is TyreSeason {
   return typeof value === 'string' && (TYRE_SEASONS as readonly string[]).includes(value)
 }
 
-export type TyreField = 'season' | 'label' | 'size' | 'dotYear' | 'fittedAt' | 'fittedKm' | 'treadDepthMm' | 'notes'
+export type TyreField = 'season' | 'label' | 'size' | 'dotYear' | 'fittedAt' | 'fittedKm' | 'treadDepthMm' | 'notes' | 'costRon' | 'purchasedAt'
 
 export type TyreData = Partial<{
   season: TyreSeason
@@ -30,6 +31,8 @@ export type TyreData = Partial<{
   treadDepthMm: number | null
   treadMeasuredAt: Date | null
   notes: string | null
+  costRon: number | null
+  purchasedAt: Date | null
 }>
 
 export type TyreParse = { ok: true; data: TyreData } | { ok: false; field: TyreField }
@@ -47,8 +50,17 @@ function text(value: unknown, max: number): string | null | false {
  * Recording a tread depth stamps when it was measured — today, unless the
  * request says otherwise — because a depth without a date is a guess.
  */
-export function parseTyreSet(body: Record<string, unknown>, { requireSeason }: { requireSeason: boolean }, now = new Date()): TyreParse {
+export function parseTyreSet(
+  body: Record<string, unknown>,
+  { requireSeason, purchasedAt = null }: { requireSeason: boolean; purchasedAt?: Date | null },
+  now = new Date()
+): TyreParse {
   const data: TyreData = {}
+
+  // RL-045: what the set cost, dated so the cost of ownership can place it.
+  const cost = parseCostPaid(body, 'purchasedAt', purchasedAt, now)
+  if (!cost.ok) return { ok: false, field: cost.field }
+  Object.assign(data, cost.data)
 
   if (body.season !== undefined || requireSeason) {
     if (!isTyreSeason(body.season)) return { ok: false, field: 'season' }

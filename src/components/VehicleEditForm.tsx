@@ -7,6 +7,7 @@ import AutocompleteInput from './AutocompleteInput'
 import CoverPhotoField, { type CoverCandidate } from './CoverPhotoField'
 import FormError from './FormError'
 import RegistrationFields, { registrationValuesFrom, type RegistrationValues } from './RegistrationFields'
+import ValuesFields, { valuesFrom, valuesPayload, type ValuesValues } from './ValuesFields'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
 import type { ProjectType } from '@/lib/projectType'
@@ -36,6 +37,14 @@ interface Vehicle {
   powerKw: number | null
   colour: string | null
   seats: number | null
+  purchaseDate: string | null
+  purchasePriceRon: number | null
+  currentValueRon: number | null
+  currentValueAt: string | null
+  financeType: string | null
+  financeMonthlyRon: number | null
+  financeStartDate: string | null
+  financeEndDate: string | null
 }
 
 export default function VehicleEditForm({
@@ -61,6 +70,7 @@ export default function VehicleEditForm({
     hidePublicCost: vehicle.hidePublicCost,
   })
   const [registration, setRegistration] = useState<RegistrationValues>(() => registrationValuesFrom(vehicle))
+  const [values, setValues] = useState<ValuesValues>(() => valuesFrom(vehicle))
   const publicUrl = vehicle.ownerUsername && vehicle.slug ? `/builds/${vehicle.ownerUsername}/${vehicle.slug}` : null
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -93,7 +103,7 @@ export default function VehicleEditForm({
     const res = await fetch(`/api/vehicles/${vehicle.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, ...registration, year: Number(form.year) }),
+      body: JSON.stringify({ ...form, ...registration, ...valuesPayload(values), year: Number(form.year) }),
     })
     if (!res.ok) {
       setLoading(false)
@@ -212,6 +222,8 @@ export default function VehicleEditForm({
         </div>
 
         <RegistrationFields values={registration} onChange={setRegistration} />
+
+        <ValuesFields values={values} onChange={setValues} currentValueAt={vehicle.currentValueAt} />
 
         <CoverPhotoField
           currentUrl={coverUrl}
