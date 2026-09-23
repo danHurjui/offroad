@@ -61,6 +61,12 @@ interface ProjectTypeConfig {
    * count instead of a progress bar, and never claims to be "complete".
    */
   tracksCompletion: boolean
+  /**
+   * RL-046: the category a routine service is logged under, which Car
+   * Health measures the service interval from. Null where "a service" is
+   * not a thing the mode does — a restoration is rebuilt, not serviced.
+   */
+  serviceCategory: string | null
   categories: Option[]
   photoTypes: Option[]
   wishlistStatuses: Option[]
@@ -89,6 +95,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     ],
     completeStatus: 'DONE',
     tracksCompletion: true,
+    serviceCategory: 'MAINTENANCE',
     categories: [
       { value: 'SUSPENSION', label: 'Suspension' },
       { value: 'PROTECTION', label: 'Protection' },
@@ -137,6 +144,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     ],
     completeStatus: 'COMPLETE',
     tracksCompletion: true,
+    serviceCategory: null,
     categories: [
       { value: 'BODY_PANELS', label: 'Body & Panels' },
       { value: 'PAINT', label: 'Paint' },
@@ -188,6 +196,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     ],
     completeStatus: 'DONE',
     tracksCompletion: false,
+    serviceCategory: 'SERVICING',
     categories: [
       { value: 'SERVICING', label: 'Servicing & Fluids' },
       { value: 'BRAKES', label: 'Brakes' },

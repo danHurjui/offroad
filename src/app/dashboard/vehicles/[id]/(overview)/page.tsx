@@ -14,6 +14,8 @@ import VehicleCoverImg from '@/components/VehicleCoverImg'
 import OriginalityBadge from '@/components/OriginalityBadge'
 import { PlateBadge, RegistrationSummary } from '@/components/VehicleIdentity'
 import OdometerQuickAdd from '@/components/OdometerQuickAdd'
+import VehicleHealthPanel from '@/components/VehicleHealthPanel'
+import { computeHealth } from '@/lib/vehicleHealth'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-003: project dashboard — build overview screen.
@@ -30,7 +32,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
   const config = await getVocabulary(vehicle.projectType)
   const completeStatus = config.completeStatus
 
-  const [tasks, foundState, documents, collaborators, latestReading] = await Promise.all([
+  const [tasks, foundState, documents, collaborators, latestReading, readings, tyreSets] = await Promise.all([
     prisma.task.findMany({
       where: { vehicleId: vehicle.id },
       orderBy: { updatedAt: 'desc' },
@@ -39,7 +41,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
     vehicle.projectType === 'RESTORATION'
       ? prisma.foundState.findUnique({ where: { vehicleId: vehicle.id } })
       : Promise.resolve(null),
-    prisma.document.findMany({ where: { vehicleId: vehicle.id }, select: { expiryDate: true } }),
+    prisma.document.findMany({ where: { vehicleId: vehicle.id }, select: { id: true, type: true, expiryDate: true } }),
     prisma.projectCollaborator.findMany({
       where: { vehicleId: vehicle.id },
       select: { collaboratorUserId: true, status: true },
@@ -51,7 +53,25 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       orderBy: [{ readAt: 'desc' }, { createdAt: 'desc' }],
       select: { km: true, readAt: true },
     }),
+    // RL-046: Car Health reads the whole mileage history and the tyres.
+    prisma.odometerReading.findMany({
+      where: { vehicleId: vehicle.id },
+      select: { id: true, km: true, readAt: true, isOverride: true, createdAt: true },
+    }),
+    prisma.tyreSet.findMany({
+      where: { vehicleId: vehicle.id },
+      select: { id: true, isFitted: true, treadDepthMm: true, dotYear: true, fittedAt: true, fittedKm: true },
+    }),
   ])
+  const health = computeHealth({
+    vehicleId: vehicle.id,
+    projectType: vehicle.projectType,
+    now: new Date(),
+    documents,
+    tasks,
+    readings,
+    tyreSets: tyreSets.map((set) => ({ ...set, treadDepthMm: toNumberOrNull(set.treadDepthMm) })),
+  })
   // RL-019: Pro-gated, restoration only — the vehicle owner's isPro (a
   // collaborator's own tier is irrelevant, same as everywhere else).
   const owner =
@@ -146,6 +166,11 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           <Link href={`/dashboard/vehicles/${vehicle.id}/fuel`} className="btn-secondary">
             {t('fuel')}
           </Link>
+          {vehicle.projectType !== 'RESTORATION' && (
+            <Link href={`/dashboard/vehicles/${vehicle.id}/tyres`} className="btn-secondary">
+              {t('tyres')}
+            </Link>
+          )}
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/wishlist`} className="btn-secondary">
               {config.wishlistLabel}
@@ -222,6 +247,9 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           {t('collaboratorNotice')}
         </div>
       )}
+
+      {/* RL-046: the answer to "is this car alright?", first. */}
+      <VehicleHealthPanel report={health} />
 
       {vehicle.coverPhotoUrl ? (
         <div className="card mb-6 overflow-hidden">

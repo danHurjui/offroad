@@ -737,6 +737,28 @@ Receipts are filed under the vehicle **owner's** prefix whoever uploads them,
 and are listed in `collectStorageKeys()`. No OCR until a provider is chosen
 (RL-048).
 
+### Car Health (`src/lib/vehicleHealth.ts`, RL-046 — slice 4) and tyres (`src/lib/tyres.ts`)
+`computeHealth()` is pure and returns rows (documents per type, service,
+tyres, open jobs) plus **one** next action; `VehicleHealthPanel` renders it
+and is meant to be reused by the garage cards and fleet board rather than
+re-derived. Rules that are load-bearing, and tested:
+- **Never a rating** — no score/grade/percentage (a test greps the module).
+- **Nothing recorded is `none`, never `ok`.** An empty vehicle is unknown,
+  not healthy.
+- **Restoration:** document rows are `info` only, no service or tyre rows.
+  Historic status changes nothing.
+- Document days come from `getDocumentStatus()` — the same function as the
+  documents board and the reminder cron — so the three cannot disagree.
+- Service distance is only measured with a reading **on** the service day
+  and one after it; otherwise it falls back to time. The 15,000 km / 1 year
+  interval is an assumption and every message says so. The service
+  category per mode is `config.serviceCategory` (null for restoration).
+- Every message key the module emits must exist in both catalogues (test).
+
+`TyreSet` is a set, not a tyre; at most one per vehicle is fitted (fitting
+one unfits the rest in the same transaction). Tread depth is stamped with
+the day it was measured.
+
 Phase 5 follows the adapted plan on #49 (one additive migration per slice,
 each slice deployable alone): identity → odometer → fuel log → Car Health
 → TCO → service book → passport → accidents; OCR waits on a provider
