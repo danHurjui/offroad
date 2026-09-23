@@ -481,7 +481,8 @@
     "costs": "Costul deținerii",
     "serviceBook": "Carte de service",
     "passport": "Pașaport",
-    "drivers": "Șoferi"
+    "drivers": "Șoferi",
+    "trips": "Deplasări"
   },
   "home": {
     "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
@@ -2131,7 +2132,12 @@
     "handoverStartRecorded": "Începutul acestei predări este deja înregistrat sau atribuirea s-a încheiat.",
     "reportPeriodInvalid": "Perioada raportului nu e validă. Alege o zi de început și una de sfârșit, începutul primul.",
     "reportPeriodTooLong": "Un raport acoperă cel mult un an. Împarte perioada în două.",
-    "reportFailed": "Raportul nu a putut fi creat. Încearcă din nou."
+    "reportFailed": "Raportul nu a putut fi creat. Încearcă din nou.",
+    "proTrips": "Foaia de deplasări e o funcție Pro pe un vehicul personal.",
+    "tripFieldInvalid": "{field} nu este valid",
+    "tripKmBackwards": "Km la sosire nu pot fi mai mici decât la plecare.",
+    "tripDriverInvalid": "Această persoană nu poate fi trecută ca șofer al vehiculului.",
+    "tripMonthInvalid": "Alege o lună (AAAA-LL)."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2344,7 +2350,8 @@
       "TASK": "Înregistrată cu o lucrare",
       "FOUND_STATE": "La achiziție",
       "FUEL": "La o alimentare",
-      "HANDOVER": "La predarea între șoferi"
+      "HANDOVER": "La predarea între șoferi",
+      "TRIP": "La o deplasare"
     },
     "deleted": "Am șters citirea de {km} km.",
     "deleteFailed": "Nu am putut șterge citirea.",
@@ -2936,7 +2943,8 @@
       "gaps": "{count, plural, one {# gol} few {# goluri} other {# de goluri}}",
       "noCosts": "Niciun cost înregistrat în această perioadă.",
       "footnote": "Costul de exploatare nu include prețul de achiziție, care nu este un cost lunar. Pe vehicul pe lună împarte costul de exploatare la lunile în care fiecare vehicul a fost deținut în perioadă. Cifrele fiecărui vehicul sunt cele de pe propria lui pagină de costuri."
-    }
+    },
+    "tripsOpen": "Deplasări"
   },
   "drivers": {
     "title": "Șoferi",
@@ -3001,7 +3009,8 @@
     "startTitle": "Preluarea vehiculului",
     "startHelp": "Înregistrează kilometrajul și câteva fotografii ale stării la preluare, ca ambele capete ale predării să fie în evidență.",
     "endTitle": "Predă vehiculul",
-    "endHelp": "Kilometrajul și fotografiile stării la predare. Fotografiile se salvează primele; încheierea atribuirii îți retrage accesul."
+    "endHelp": "Kilometrajul și fotografiile stării la predare. Fotografiile se salvează primele; încheierea atribuirii îți retrage accesul.",
+    "trips": "Deplasări"
   },
   "invoiceScan": {
     "scan": "Scanează factura",
@@ -3099,6 +3108,83 @@
       "renewalsNote": "Reînnoirile sunt cunoscute de când RigLog a început să le înregistreze (septembrie 2026); una făcută înainte nu apare. Un document e socotit expirat după ce s-a încheiat ziua expirării.",
       "footnote": "Fiecare cifră este cea înregistrată în RigLog pentru aceste vehicule — nimic nu e estimat, iar un cost pe care nu l-a introdus nimeni nu apare aici. Costul de funcționare nu include prețurile de achiziție. Șoferii sunt cei alocați vehiculului în RigLog.",
       "footer": "RigLog · {organization} · {from} – {to}"
+    }
+  },
+  "trips": {
+    "title": "Deplasări",
+    "intro": "Toate deplasările cu acest vehicul, de serviciu sau personale, cu km la fiecare capăt. Km intră în istoricul de kilometraj al vehiculului, iar ce a parcurs contorul fără să fie într-o deplasare apare mai jos.",
+    "introDriver": "Deplasările tale cu acest vehicul, de serviciu sau personale, cu km la fiecare capăt. Vezi și exporți doar deplasările tale.",
+    "notOfficial": "Acestea sunt deplasările așa cum au fost înregistrate — nu o foaie de parcurs oficială. Nu s-a verificat aici ce cere ANAF pe una, așa că dă tabelul contabilului, nu-l depune ca documentul în sine.",
+    "pro": "Foaia de deplasări e o funcție Pro pe un vehicul personal. Pe un vehicul al firmei vine cu organizația.",
+    "upgrade": "Vezi Pro",
+    "addTitle": "Adaugă o deplasare",
+    "date": "Data",
+    "driver": "Șofer",
+    "from": "De la",
+    "to": "Până la",
+    "startKm": "Km la plecare",
+    "endKm": "Km la sosire",
+    "distance": "{km} km",
+    "purpose": "Scop",
+    "purposePlaceholder": "ex. livrare la un client",
+    "kindLabel": "Tip",
+    "kind": {
+      "BUSINESS": "Serviciu",
+      "PERSONAL": "Personal"
+    },
+    "add": "Adaugă deplasarea",
+    "adding": "Se adaugă…",
+    "saved": "Deplasare adăugată",
+    "saveFailed": "Deplasarea nu a putut fi salvată.",
+    "remove": "Șterge",
+    "deleted": "Ai șters {label}",
+    "deleteFailed": "Deplasarea nu a putut fi ștearsă.",
+    "monthNav": "Luna",
+    "previous": "Luna anterioară",
+    "next": "Luna următoare",
+    "odometerTile": "Contor",
+    "unloggedTile": "În afara deplasărilor",
+    "reconcileTitle": "Comparat cu contorul",
+    "odometerSpan": "Contorul a mers de la {from} km pe {fromDate} la {to} km pe {toDate}.",
+    "noOdometer": "Mai puțin de două citiri de km luna aceasta, deci nu există cu ce compara deplasările.",
+    "gapBetween": "între {after} și {before}",
+    "gapBefore": "înainte de {before}",
+    "gapAfter": "după {after}",
+    "gapKm": "{km} km în afara oricărei deplasări {where}",
+    "gapOverlap": "{km} km numărați de două ori {where} — o deplasare pornește sub km la care s-a încheiat cea dinainte",
+    "gapUnknown": "Necunoscut {where}: contorul a fost înlocuit sau corectat între timp",
+    "withoutDistance": "{count, plural, one {# deplasare nu are} few {# deplasări nu au} other {# de deplasări nu au}} distanță: o citire de km a fost ștearsă între timp.",
+    "fuelSplit": "Carburant luna aceasta: {fuel}, adică {perKm} pe km de contor. Împărțit după distanță: serviciu {business}, personal {personal}, în afara deplasărilor {unlogged}. E o repartizare după km, nu cât a consumat fiecare deplasare.",
+    "empty": "Nicio deplasare luna aceasta.",
+    "kmRange": "{start} → {end} km",
+    "readingGone": "o citire de km a fost ștearsă",
+    "download": "Descarcă luna (CSV)",
+    "footnote": "CSV-ul listează fiecare deplasare, apoi km de serviciu și personali ai lunii, cifra contorului și km pe care nu îi acoperă nicio deplasare.",
+    "footnoteDriver": "CSV-ul listează deplasările tale și totalurile lor.",
+    "fleetTitle": "Deplasări în toată flota",
+    "fleetIntro": "Cine a condus unde luna aceasta, pe șofer. Pagina de deplasări a fiecărui vehicul le compară cu contorul.",
+    "allDrivers": "Toți șoferii",
+    "perDriverCaption": "Km de serviciu și personali pe șofer",
+    "tripsCount": "Deplasări",
+    "fleetFootnote": "Deplasările apar așa cum le-au înregistrat șoferii sau managerii. Sunt incluse doar vehiculele actuale ale organizației.",
+    "csv": {
+      "date": "Data",
+      "vehicle": "Vehicul",
+      "registration": "Nr. înmatriculare",
+      "driver": "Șofer",
+      "from": "De la",
+      "to": "Până la",
+      "purpose": "Scop",
+      "kind": "Tip",
+      "startKm": "Km plecare",
+      "endKm": "Km sosire",
+      "distance": "Distanță (km)",
+      "totalBusiness": "Km serviciu",
+      "totalPersonal": "Km personali",
+      "odometer": "Km contor: {from} ({fromDate}) până la {to} ({toDate})",
+      "unlogged": "Km în afara deplasărilor",
+      "noOdometer": "Mai puțin de două citiri de km luna aceasta: nimic cu care să compari",
+      "withoutDistance": "Deplasări fără distanță (o citire a fost ștearsă)"
     }
   }
 }

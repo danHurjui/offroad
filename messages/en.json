@@ -481,7 +481,8 @@
     "costs": "Cost of ownership",
     "serviceBook": "Service book",
     "passport": "Passport",
-    "drivers": "Drivers"
+    "drivers": "Drivers",
+    "trips": "Trips"
   },
   "home": {
     "metaTitle": "Car build, restoration and repair log — RigLog",
@@ -2131,7 +2132,12 @@
     "handoverStartRecorded": "The start of this handover is already on the record, or the assignment has ended.",
     "reportPeriodInvalid": "The report period isn’t valid. Choose a start and an end day, the start first.",
     "reportPeriodTooLong": "A report covers at most a year. Split the period in two.",
-    "reportFailed": "The report couldn’t be created. Please try again."
+    "reportFailed": "The report couldn’t be created. Please try again.",
+    "proTrips": "The trip sheet is a Pro feature on a personal vehicle.",
+    "tripFieldInvalid": "{field} is not valid",
+    "tripKmBackwards": "The km at the end can’t be lower than at the start.",
+    "tripDriverInvalid": "That person can’t be recorded as the driver of this vehicle.",
+    "tripMonthInvalid": "Choose a month (YYYY-MM)."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2344,7 +2350,8 @@
       "TASK": "Logged with a job",
       "FOUND_STATE": "At acquisition",
       "FUEL": "At a fill-up",
-      "HANDOVER": "At a driver handover"
+      "HANDOVER": "At a driver handover",
+      "TRIP": "At a trip"
     },
     "deleted": "Removed the {km} km reading.",
     "deleteFailed": "Couldn’t remove the reading.",
@@ -2936,7 +2943,8 @@
       "gaps": "{count, plural, one {# gap} other {# gaps}}",
       "noCosts": "No costs recorded in this period.",
       "footnote": "Running cost leaves out the purchase price, which isn’t a monthly cost. Per vehicle per month divides the running cost by the months each vehicle was owned in the period. Each vehicle’s figures are the ones on its own costs page."
-    }
+    },
+    "tripsOpen": "Trips"
   },
   "drivers": {
     "title": "Drivers",
@@ -3001,7 +3009,8 @@
     "startTitle": "Taking the vehicle",
     "startHelp": "Record the odometer and a few photos of its condition as you take it, so both ends of the handover are on the record.",
     "endTitle": "Hand the vehicle back",
-    "endHelp": "The odometer and condition photos as you hand it back. Photos are saved first; ending the assignment removes your access."
+    "endHelp": "The odometer and condition photos as you hand it back. Photos are saved first; ending the assignment removes your access.",
+    "trips": "Trips"
   },
   "invoiceScan": {
     "scan": "Scan an invoice",
@@ -3099,6 +3108,83 @@
       "renewalsNote": "Renewals are known from when RigLog began recording them (September 2026); one made before that is not listed. A document is counted as expired once its expiry day is over.",
       "footnote": "Every figure is what was recorded in RigLog for these vehicles — nothing is estimated, and a cost nobody entered is not here. Running cost leaves out purchase prices. Drivers are those assigned to the vehicle in RigLog.",
       "footer": "RigLog · {organization} · {from} – {to}"
+    }
+  },
+  "trips": {
+    "title": "Trips",
+    "intro": "Every trip on this vehicle, business or personal, with the km at each end. The km go into the vehicle’s mileage history, and whatever the odometer covered that no trip accounts for is shown below.",
+    "introDriver": "Your trips on this vehicle, business or personal, with the km at each end. You see and export only your own.",
+    "notOfficial": "This is the trips as recorded — not an official foaie de parcurs. What ANAF requires on one hasn’t been checked here, so give the spreadsheet to your accountant rather than filing it as the document itself.",
+    "pro": "The trip sheet is a Pro feature on a personal vehicle. On a company vehicle it comes with the organisation.",
+    "upgrade": "See Pro",
+    "addTitle": "Log a trip",
+    "date": "Date",
+    "driver": "Driver",
+    "from": "From",
+    "to": "To",
+    "startKm": "Km at the start",
+    "endKm": "Km at the end",
+    "distance": "{km} km",
+    "purpose": "Purpose",
+    "purposePlaceholder": "e.g. delivery to a client",
+    "kindLabel": "Type",
+    "kind": {
+      "BUSINESS": "Business",
+      "PERSONAL": "Personal"
+    },
+    "add": "Add trip",
+    "adding": "Adding…",
+    "saved": "Trip added",
+    "saveFailed": "The trip couldn’t be saved.",
+    "remove": "Remove",
+    "deleted": "Removed {label}",
+    "deleteFailed": "The trip couldn’t be removed.",
+    "monthNav": "Month",
+    "previous": "Previous",
+    "next": "Next",
+    "odometerTile": "Odometer",
+    "unloggedTile": "Not in a trip",
+    "reconcileTitle": "Against the odometer",
+    "odometerSpan": "The odometer went from {from} km on {fromDate} to {to} km on {toDate}.",
+    "noOdometer": "Fewer than two km readings this month, so there is nothing to check the trips against.",
+    "gapBetween": "between {after} and {before}",
+    "gapBefore": "before {before}",
+    "gapAfter": "after {after}",
+    "gapKm": "{km} km not in any trip {where}",
+    "gapOverlap": "{km} km counted twice {where} — a trip starts below where the previous one ended",
+    "gapUnknown": "Unknown {where}: the odometer was replaced or corrected in between",
+    "withoutDistance": "{count, plural, one {# trip has} other {# trips have}} no distance: a km reading was deleted since.",
+    "fuelSplit": "Fuel this month: {fuel}, {perKm} per km on the odometer. Divided by distance: business {business}, personal {personal}, not in a trip {unlogged}. This is an allocation by km, not what each trip burnt.",
+    "empty": "No trips this month.",
+    "kmRange": "{start} → {end} km",
+    "readingGone": "a km reading was deleted",
+    "download": "Download the month (CSV)",
+    "footnote": "The CSV lists every trip, then the month’s business and personal km, the odometer’s own figure and the km no trip accounts for.",
+    "footnoteDriver": "The CSV lists your trips and their totals.",
+    "fleetTitle": "Trips across the fleet",
+    "fleetIntro": "Who drove where this month, per driver. Each vehicle’s own trips page checks its trips against the odometer.",
+    "allDrivers": "All drivers",
+    "perDriverCaption": "Business and personal km per driver",
+    "tripsCount": "Trips",
+    "fleetFootnote": "Trips are listed as their drivers or managers logged them. Only the organisation’s current vehicles are included.",
+    "csv": {
+      "date": "Date",
+      "vehicle": "Vehicle",
+      "registration": "Registration",
+      "driver": "Driver",
+      "from": "From",
+      "to": "To",
+      "purpose": "Purpose",
+      "kind": "Type",
+      "startKm": "Start km",
+      "endKm": "End km",
+      "distance": "Distance (km)",
+      "totalBusiness": "Business km",
+      "totalPersonal": "Personal km",
+      "odometer": "Odometer km: {from} ({fromDate}) to {to} ({toDate})",
+      "unlogged": "Km not in any trip",
+      "noOdometer": "Fewer than two km readings this month: nothing to check against",
+      "withoutDistance": "Trips without a distance (a reading was deleted)"
     }
   }
 }

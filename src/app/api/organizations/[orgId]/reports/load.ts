@@ -8,6 +8,7 @@ import { parseReportPeriod, type AssignmentSpan, type ReportPeriod } from '@/lib
 import type { CostLine } from '@/lib/ownershipCosts'
 import { translator } from '@/i18n/translator'
 import type { Locale } from '@/i18n/config'
+import { asciiSlug } from '@/lib/downloadName'
 import { loadMembership } from '../../load'
 
 export interface LoadedReport {
@@ -97,8 +98,7 @@ export async function costLineLabeller(locale: Locale): Promise<(line: CostLine)
   }
 }
 
-const slug = (text: string) =>
-  text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+const slug = asciiSlug
 
 /**
  * File names carry what it is, whose, and the period, ASCII only — a

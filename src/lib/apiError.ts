@@ -194,6 +194,11 @@ export type ApiErrorKey =
   | 'reportPeriodInvalid'
   | 'reportPeriodTooLong'
   | 'reportFailed'
+  | 'proTrips'
+  | 'tripFieldInvalid'
+  | 'tripKmBackwards'
+  | 'tripDriverInvalid'
+  | 'tripMonthInvalid'
 
 /**
  * A JSON error response with the message in the request's language.

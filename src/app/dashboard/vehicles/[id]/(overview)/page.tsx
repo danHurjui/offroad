@@ -178,6 +178,11 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           <Link href={`/dashboard/vehicles/${vehicle.id}/accidents`} className="btn-secondary">
             {t('accidents')}
           </Link>
+          {(isOwner || vehicle.access === 'driver') && (
+            <Link href={`/dashboard/vehicles/${vehicle.id}/trips`} className="btn-secondary">
+              {t('trips')}
+            </Link>
+          )}
           {isOwner && vehicle.organizationId && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/drivers`} className="btn-secondary">
               {t('drivers')}

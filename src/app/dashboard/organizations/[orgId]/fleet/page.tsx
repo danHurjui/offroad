@@ -67,6 +67,9 @@ export default async function FleetPage({ params, searchParams }: Params) {
         <Link href={`/dashboard/organizations/${org.id}/fleet/costs`} className="btn-secondary">
           {t('cost.open')}
         </Link>
+        <Link href={`/dashboard/organizations/${org.id}/fleet/trips`} className="btn-secondary">
+          {t('tripsOpen')}
+        </Link>
         <Link href={`/dashboard/organizations/${org.id}/fleet/reports`} className="btn-secondary">
           {tr('open')}
         </Link>

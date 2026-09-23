@@ -136,7 +136,7 @@ export async function collectUserData(userId: string) {
     },
   })
 
-  const [vehicles, tickets, ticketVotes, ticketComments, partsRequests, partsComments, follows, donations, oauthAccounts, organizations] =
+  const [vehicles, tickets, ticketVotes, ticketComments, partsRequests, partsComments, follows, donations, oauthAccounts, organizations, tripsDriven] =
     await Promise.all([
       fetchVehicles(userId),
       prisma.ticket.findMany({ where: { authorId: userId }, orderBy: { createdAt: 'asc' } }),
@@ -159,6 +159,25 @@ export async function collectUserData(userId: string) {
         select: { role: true, createdAt: true, organization: { select: { name: true, cui: true, billingAddress: true } } },
         orderBy: { createdAt: 'asc' },
       }),
+      // RL-051: where this person drove, on any vehicle — on a personal
+      // one it is also under the vehicle; on a company one the trip is
+      // the company's record, but where somebody went is theirs too. The
+      // vehicle is named, the company's other records are not.
+      prisma.trip.findMany({
+        where: { driverUserId: userId },
+        select: {
+          date: true,
+          fromPlace: true,
+          toPlace: true,
+          purpose: true,
+          kind: true,
+          createdAt: true,
+          startReading: { select: { km: true } },
+          endReading: { select: { km: true } },
+          vehicle: { select: { year: true, make: true, model: true, plate: true } },
+        },
+        orderBy: { date: 'asc' },
+      }),
     ])
 
   return {
@@ -179,6 +198,7 @@ export async function collectUserData(userId: string) {
     donations: donations.map((d) => ({ ...d, amountRon: d.amountBani / 100 })),
     linkedLogins: oauthAccounts,
     organizations,
+    tripsDriven,
   }
 }
 
@@ -206,6 +226,7 @@ function fetchVehicles(userId: string) {
       trailRuns: { include: { waypoints: true } },
       collaborators: true,
       odometerReadings: { orderBy: { readAt: 'asc' } },
+      trips: { orderBy: { date: 'asc' } },
       fuelEntries: { orderBy: { date: 'asc' } },
       tyreSets: true,
       expenses: { orderBy: { date: 'asc' } },

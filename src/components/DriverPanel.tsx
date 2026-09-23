@@ -42,6 +42,7 @@ export default async function DriverPanel({
         <Link href={`${base}/fuel`} className="btn-secondary text-center">{t('fuel')}</Link>
         <Link href={`${base}/expenses`} className="btn-secondary text-center">{t('expense')}</Link>
         <Link href={`${base}/odometer`} className="btn-secondary text-center">{t('km')}</Link>
+        <Link href={`${base}/trips`} className="btn-secondary text-center">{t('trips')}</Link>
         <Link href={`${base}/documents`} className="btn-secondary text-center">{t('documents')}</Link>
       </div>
       {assignment.startReadingId === null && (

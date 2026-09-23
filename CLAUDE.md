@@ -1131,6 +1131,37 @@ RL-014 engine, `pdfFleetReport.ts`). All three go through `loadReport()`
 - `fleetReport` is a server-only namespace (the page is a Server
   Component). Filenames are ASCII slugs — they go into a header.
 
+### Trips (`src/lib/trips.ts`, `tripRecords.ts`, `tripSheet.ts`, RL-051 — #64)
+A `Trip` (day, from → to, purpose, `BUSINESS`/`PERSONAL`) whose two ends
+are `OdometerReading`s (source `TRIP`) written in the trip's transaction
+and checked like any other reading — **the distance is never stored**
+(a test reads the schema). Deleting a trip deletes those two readings;
+deleting a reading by hand leaves the trip without a distance, counted
+and shown rather than read as zero.
+- **Who** (`tripGate()`): a company vehicle's managers and its assigned
+  driver; a personal vehicle's owner when the account of record has Pro;
+  never a collaborator. A driver logs, sees, removes and exports only
+  their own; a manager may log one for a member of the organisation.
+  `driverName` is snapshotted so a deleted account leaves a readable sheet.
+- **Gaps are shown, not smoothed** (`reconcileMonth()`): the month's
+  odometer span runs from the last reading before it to its last one;
+  every stretch no trip covers (before the first, between two, after the
+  last) is listed with its km, an overlap as a negative, and a replaced or
+  corrected odometer in between as unknown. A driver's view reconciles
+  nothing — other people's trips fill their gaps.
+- **Fuel by distance** (`fuelSplit()`): the month's fuel over odometer km,
+  times business/personal/unlogged km — labelled as an allocation, never a
+  measurement, and only for someone who sees costs.
+- **Not a foaie de parcurs.** What ANAF requires on one was not
+  established, so per the ticket it ships as a CSV of the trips as
+  recorded, and the pages say so. Per vehicle
+  (`/api/vehicles/[id]/trips/export`, with the reconciliation under the
+  rows for a manager) and per driver across the fleet
+  (`/api/organizations/[orgId]/reports/trips`, managers only, scoped to
+  the organisation's vehicles); both count against `fleetReport`.
+- The data export lists the trips a person drove on any vehicle, without
+  the company's other records.
+
 ### Write feedback (`src/lib/writeFeedback.ts`, `src/components/Toaster.tsx`, RL-034)
 One toast layer, mounted in `Providers` above every page. Toasts are for
 **action outcomes** (a button, a status change, a removal); `FormError`
