@@ -894,6 +894,23 @@ etc.). `u` undoes the newest one (shortcut sheet lists it).
 page nested below it — so `/dashboard` and the vehicle page live in the
 `(garage)` / `(overview)` route groups to scope theirs to one page.
 
+### The garage at a glance (`src/lib/garage.ts`, RL-035)
+`/dashboard` cards come from `summarizeGarage()`, pure and fed by **two
+batched queries** (every task, every owned vehicle's documents), never a query
+per vehicle. The rules, tested in `garage.test.ts`:
+- The headline figure is gated on `config.tracksCompletion` (percent vs open
+  jobs), never on a mode name.
+- Spend is null for a collaborator under `hideCostsFromCollaborators`, and a
+  collaborator's card never shows a document expiry (documents are the
+  owner's screen).
+- "Needs attention" is an expiring/expired document or a job whose status
+  tone is `warn`/`danger`, read from the config.
+Filter, sort and search are one GET form, so they work without script and
+the URL is shareable. Cards vs compact rows is `GarageLayout` setting
+`data-density` from localStorage (guarded reads and writes); the one list
+restyles through `group-data-[density=compact]/garage:` variants, so there
+is no second render and no hidden duplicate list.
+
 ### First run (`src/lib/onboarding.ts`, RL-036)
 A new account's dashboard explains the three modes (from
 `config.description`, via the vocabulary, not hand-written copy) and shows

@@ -414,6 +414,32 @@
         "photo": "Adaugă o poză la o lucrare",
         "document": "Setează data de expirare a unui document"
       }
+    },
+    "garage": {
+      "progress": "{pct}% gata",
+      "openJobs": "{count, plural, =0 {Nicio lucrare deschisă} one {# lucrare deschisă} few {# lucrări deschise} other {# de lucrări deschise}}",
+      "docValid": "{doc} valabil până pe {date}",
+      "docExpiring": "{doc} expiră pe {date}",
+      "docExpired": "{doc} a expirat pe {date}",
+      "noDocuments": "Fără date de expirare",
+      "spent": "{amount} RON cheltuiți",
+      "lastActivity": "Ultima activitate {date}",
+      "attention": "Necesită atenție",
+      "attentionDocument": "Un document expiră sau a expirat",
+      "attentionJob": "O lucrare e scadentă sau ceva e defect",
+      "filterMode": "Mod",
+      "allModes": "Toate modurile",
+      "filterAttention": "Doar cele care necesită atenție",
+      "sort": "Sortează după",
+      "sortActivity": "Ultima activitate",
+      "sortAttention": "Cele mai urgente primele",
+      "sortName": "Nume",
+      "apply": "Aplică",
+      "clear": "Resetează",
+      "noneMatch": "Niciun vehicul nu corespunde acestor filtre.",
+      "density": "Aspect",
+      "densityCards": "Carduri",
+      "densityCompact": "Compact"
     }
   },
   "vehicle": {

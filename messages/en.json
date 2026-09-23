@@ -414,6 +414,32 @@
         "photo": "Add a photo to a job",
         "document": "Set a document’s expiry date"
       }
+    },
+    "garage": {
+      "progress": "{pct}% complete",
+      "openJobs": "{count, plural, =0 {No open jobs} one {# open job} other {# open jobs}}",
+      "docValid": "{doc} valid until {date}",
+      "docExpiring": "{doc} expires {date}",
+      "docExpired": "{doc} expired {date}",
+      "noDocuments": "No document dates",
+      "spent": "{amount} RON spent",
+      "lastActivity": "Last activity {date}",
+      "attention": "Needs attention",
+      "attentionDocument": "A document is expiring or has expired",
+      "attentionJob": "A job is due or something is broken",
+      "filterMode": "Mode",
+      "allModes": "All modes",
+      "filterAttention": "Needs attention only",
+      "sort": "Sort by",
+      "sortActivity": "Last activity",
+      "sortAttention": "Most urgent first",
+      "sortName": "Name",
+      "apply": "Apply",
+      "clear": "Clear",
+      "noneMatch": "No vehicles match these filters.",
+      "density": "Layout",
+      "densityCards": "Cards",
+      "densityCompact": "Compact"
     }
   },
   "vehicle": {
