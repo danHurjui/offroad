@@ -116,6 +116,7 @@ export type ApiErrorKey =
   | 'pdfFailed'
   | 'photoRemoveOwnOnly'
   | 'priceInvalid'
+  | 'profileFieldInvalid'
   | 'proPartsRequest'
   | 'proPdfExport'
   | 'proPriceAlerts'

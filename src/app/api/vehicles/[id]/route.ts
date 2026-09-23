@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError } from '@/lib/apiError'
+import { apiError, apiErrorWith } from '@/lib/apiError'
 import { isBlockedAsUnverified, VERIFICATION_SELECT } from '@/lib/emailVerification'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
@@ -9,6 +9,7 @@ import { generateVehicleSlug } from '@/lib/vehicleSlug'
 import { serializeTaskFor } from '@/lib/serialize'
 import { readJsonBody } from '@/lib/requestBody'
 import { collectStorageKeys, deleteStoredFiles } from '@/lib/personalData'
+import { parseProfile } from '@/lib/vehicleProfile'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 
@@ -81,6 +82,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.isPublic !== undefined) data.isPublic = Boolean(body.isPublic)
     if (body.hideCostsFromCollaborators !== undefined) data.hideCostsFromCollaborators = Boolean(body.hideCostsFromCollaborators)
     if (body.hidePublicCost !== undefined) data.hidePublicCost = Boolean(body.hidePublicCost)
+
+    // RL-050: plate and registration. Only the fields sent are touched.
+    const profile = parseProfile(body)
+    if (!profile.ok) return await apiErrorWith('profileFieldInvalid', { field: profile.field }, 400)
+    Object.assign(data, profile.data)
 
     // Publishing is the one field on this route that reaches strangers:
     // it puts the build, its photos and (unless hidden) its costs on the

@@ -2033,7 +2033,8 @@
     "fieldRequired": "{field} este obligatoriu",
     "fieldTooLong": "{field} trebuie să aibă cel mult {max} caractere",
     "emailNotVerified": "Confirmă-ți mai întâi adresa de e-mail. Caută linkul în inbox sau trimite unul nou din Setări.",
-    "botCheckFailed": "Verificarea anti-robot nu a trecut. Reîncarcă pagina și încearcă din nou."
+    "botCheckFailed": "Verificarea anti-robot nu a trecut. Reîncarcă pagina și încearcă din nou.",
+    "profileFieldInvalid": "{field} nu este valid"
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2169,5 +2170,40 @@
     "followers": "{count, plural, one {# urmăritor} few {# urmăritori} other {# de urmăritori}}",
     "logInToFollow": "Autentifică-te ca să urmărești",
     "failed": "Nu am putut actualiza urmărirea."
+  },
+  "vehicleProfile": {
+    "heading": "Înmatriculare",
+    "plate": "Număr de înmatriculare (opțional)",
+    "platePlaceholder": "B 123 ABC",
+    "plateHelp": "Îl vezi doar tu și colaboratorii tăi. Nu apare niciodată pe pagina publică.",
+    "firstRegistrationDate": "Prima înmatriculare",
+    "fuelType": "Combustibil",
+    "transmission": "Cutie de viteze",
+    "engineCapacityCc": "Capacitate cilindrică (cm³)",
+    "powerKw": "Putere (kW)",
+    "powerCp": "≈ {cp} CP",
+    "colour": "Culoare",
+    "seats": "Locuri",
+    "notSet": "Nesetat",
+    "fuel": {
+      "PETROL": "Benzină",
+      "DIESEL": "Motorină",
+      "LPG": "Benzină + GPL",
+      "HYBRID": "Hibrid",
+      "PLUGIN_HYBRID": "Hibrid plug-in",
+      "ELECTRIC": "Electric",
+      "OTHER": "Altul"
+    },
+    "gearbox": {
+      "MANUAL": "Manuală",
+      "AUTOMATIC": "Automată"
+    },
+    "summaryCc": "{cc} cm³",
+    "summaryKw": "{kw} kW ({cp} CP)",
+    "summarySeats": "{seats, plural, one {# loc} few {# locuri} other {# de locuri}}",
+    "searchLabel": "Caută în vehiculele tale",
+    "searchPlaceholder": "Număr, marcă sau model",
+    "searchNone": "Niciun vehicul nu corespunde cu „{q}”.",
+    "searchClear": "Șterge"
   }
 }

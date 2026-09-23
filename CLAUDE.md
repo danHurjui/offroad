@@ -695,6 +695,22 @@ and runs before first paint so there's no white flash; it's a string
 nothing type-checks, so `theme.test.ts` executes it for real (a throw there
 is a blank page, not a wrong colour).
 
+### Vehicle identity (`src/lib/vehicleProfile.ts`, RL-050 — phase 5 slice 1 of #49)
+Plate and talon fields on `Vehicle`, all optional (a barn find has none).
+Fuel type and gearbox are stored as codes and labelled from the
+`vehicleProfile` catalogue, like the project-type vocabulary. The plate is
+**not** validated against the Romanian format (temporary, foreign and
+historic plates are real), only charset and length. It is identifying, so
+like the raw VIN it is **never rendered on a public surface**;
+`vehicleProfile.test.ts` reads every public page/card/sitemap file to hold
+that line. When testing that by hand, don't use `B 123 ABC` — it is the
+input placeholder and ships in every page's catalogue payload.
+
+Phase 5 follows the adapted plan on #49 (one additive migration per slice,
+each slice deployable alone): identity → odometer → fuel log → Car Health
+→ TCO → service book → passport → accidents; OCR waits on a provider
+choice.
+
 ### Write feedback (`src/lib/writeFeedback.ts`, `src/components/Toaster.tsx`, RL-034)
 One toast layer, mounted in `Providers` above every page. Toasts are for
 **action outcomes** (a button, a status change, a removal); `FormError`

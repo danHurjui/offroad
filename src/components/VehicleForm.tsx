@@ -13,6 +13,7 @@ import { compressImageIfNeeded } from '@/lib/compressImage'
 import AutocompleteInput from './AutocompleteInput'
 import CoverPhotoField from './CoverPhotoField'
 import FormError from './FormError'
+import { PlateField } from './RegistrationFields'
 import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
 
 /** Until a mode is picked there is nothing sensible to suggest. */
@@ -28,6 +29,7 @@ export default function VehicleForm({ initialType = null }: { initialType?: Proj
   const [year, setYear] = useState('')
   const [generation, setGeneration] = useState('')
   const [engine, setEngine] = useState('')
+  const [plate, setPlate] = useState('')
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -44,7 +46,7 @@ export default function VehicleForm({ initialType = null }: { initialType?: Proj
     const res = await fetch('/api/vehicles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectType, make, model, year: Number(year), generation, engine }),
+      body: JSON.stringify({ projectType, make, model, year: Number(year), generation, engine, plate }),
     })
     const data = await res.json()
     if (!res.ok) {
@@ -155,6 +157,11 @@ export default function VehicleForm({ initialType = null }: { initialType?: Proj
             placeholder={t('enginePlaceholder')}
             autoComplete="off"
           />
+        </div>
+        {/* RL-050: optional, and the only registration field asked for up
+            front — the rest lives on the edit screen. */}
+        <div className="sm:col-span-2">
+          <PlateField value={plate} onChange={setPlate} />
         </div>
         <div className="sm:col-span-2">
           <CoverPhotoField file={coverFile} onFile={setCoverFile} disabled={loading} />

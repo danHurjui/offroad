@@ -361,6 +361,20 @@ model Vehicle {
   /// analytics page). Individual task cost fields are unaffected; this
   /// only gates the aggregate views. Owner and Pro-gating always see it.
   hideCostsFromCollaborators Boolean     @default(false)
+  /// RL-050: identity and registration (src/lib/vehicleProfile.ts). All
+  /// optional — a barn find has no plate. The plate is identifying and is
+  /// never rendered on a public surface, like the raw VIN. Stored upper
+  /// case with single spaces; searched with plateSearchKey().
+  plate                      String?
+  firstRegistrationDate      DateTime?
+  /// A FUEL_TYPES code, labelled from the catalogue.
+  fuelType                   String?
+  /// A TRANSMISSIONS code, labelled from the catalogue.
+  transmission               String?
+  engineCapacityCc           Int?
+  powerKw                    Int?
+  colour                     String?
+  seats                      Int?
   createdAt                  DateTime    @default(now())
   updatedAt                  DateTime    @updatedAt
 

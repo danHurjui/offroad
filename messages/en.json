@@ -2033,7 +2033,8 @@
     "fieldRequired": "{field} is required",
     "fieldTooLong": "{field} must be {max} characters or fewer",
     "emailNotVerified": "Confirm your email address first. Check your inbox for the link, or send a new one from Settings.",
-    "botCheckFailed": "The anti-bot check did not pass. Reload the page and try again."
+    "botCheckFailed": "The anti-bot check did not pass. Reload the page and try again.",
+    "profileFieldInvalid": "{field} is not valid"
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2169,5 +2170,40 @@
     "followers": "{count, plural, one {# follower} other {# followers}}",
     "logInToFollow": "Log in to follow",
     "failed": "Couldn’t update following."
+  },
+  "vehicleProfile": {
+    "heading": "Registration",
+    "plate": "Licence plate (optional)",
+    "platePlaceholder": "B 123 ABC",
+    "plateHelp": "Only you and your collaborators see it. It never appears on the public page.",
+    "firstRegistrationDate": "First registration",
+    "fuelType": "Fuel",
+    "transmission": "Gearbox",
+    "engineCapacityCc": "Engine capacity (cm³)",
+    "powerKw": "Power (kW)",
+    "powerCp": "≈ {cp} hp",
+    "colour": "Colour",
+    "seats": "Seats",
+    "notSet": "Not set",
+    "fuel": {
+      "PETROL": "Petrol",
+      "DIESEL": "Diesel",
+      "LPG": "Petrol + LPG",
+      "HYBRID": "Hybrid",
+      "PLUGIN_HYBRID": "Plug-in hybrid",
+      "ELECTRIC": "Electric",
+      "OTHER": "Other"
+    },
+    "gearbox": {
+      "MANUAL": "Manual",
+      "AUTOMATIC": "Automatic"
+    },
+    "summaryCc": "{cc} cm³",
+    "summaryKw": "{kw} kW ({cp} hp)",
+    "summarySeats": "{seats, plural, one {# seat} other {# seats}}",
+    "searchLabel": "Search your vehicles",
+    "searchPlaceholder": "Plate, make or model",
+    "searchNone": "No vehicle matches “{q}”.",
+    "searchClear": "Clear"
   }
 }

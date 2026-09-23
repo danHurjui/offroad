@@ -12,6 +12,7 @@ import { getDocumentStatus, isHistoricVehicle } from '@/lib/documents'
 import { computeOriginalityScore } from '@/lib/originality'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
 import OriginalityBadge from '@/components/OriginalityBadge'
+import { PlateBadge, RegistrationSummary } from '@/components/VehicleIdentity'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
 
 // RL-003: project dashboard — build overview screen.
@@ -121,10 +122,14 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
             </span>
           )}
           <h1 className="mt-2 text-2xl font-bold text-ink">{config.screenTitle}</h1>
-          <p className="text-ink-muted">
-            {vehicle.year} {vehicle.make} {vehicle.model}
-            {vehicle.generation ? ` (${vehicle.generation})` : ''}
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-ink-muted">
+            <span>
+              {vehicle.year} {vehicle.make} {vehicle.model}
+              {vehicle.generation ? ` (${vehicle.generation})` : ''}
+            </span>
+            <PlateBadge plate={vehicle.plate} />
           </p>
+          <RegistrationSummary vehicle={vehicle} />
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={`/dashboard/vehicles/${vehicle.id}/photos`} className="btn-secondary">
