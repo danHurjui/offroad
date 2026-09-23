@@ -47,8 +47,10 @@ automatically — you don't need to copy it anywhere yourself.
 2. Framework preset auto-detects as Next.js. Leave build settings as-is —
    Vercel automatically runs the `vercel-build` script from `package.json`
    instead of `build` (this is a standard Vercel convention, not a Vercel
-   config setting): `prisma migrate deploy && next build`, which applies
-   the schema to your fresh Neon DB on every deploy.
+   config setting): `node scripts/vercel-build.js`. On a **production**
+   build that runs `prisma migrate deploy` (retrying a lock timeout twice)
+   and then `next build`; on a **preview** build it skips the migrations.
+   See the note under step 4 for why.
 
 ## 4. Set environment variables
 
@@ -69,6 +71,24 @@ Project Settings → Environment Variables:
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_ANNUAL`, `STRIPE_PRICE_LIFETIME` | Optional — Pro upgrade (RL-017). Without `STRIPE_SECRET_KEY`, `/dashboard/upgrade` checkout requests fail with a 500; the rest of the app works fine without it. See step 6.5 below. |
 
 `BLOB_READ_WRITE_TOKEN` is already set from step 2.
+
+**Preview deployments and the database.** Vercel ticks Production *and*
+Preview when you add a variable, so by default a preview build of any
+branch gets the production `DATABASE_URL`/`DIRECT_URL`. The build used to
+run `prisma migrate deploy` everywhere, which meant an unmerged PR's
+migrations were applied to the live database, and a merge racing a push
+failed with `P1002 … Timed out trying to acquire a postgres advisory
+lock`. `scripts/vercel-build.js` now migrates on production only. Two
+things are still worth doing:
+
+- **Give previews their own database.** A preview on the production URLs
+  still *reads and writes* production data. Neon's Vercel integration
+  can create a database branch per preview; once it does, add
+  `RUN_MIGRATIONS=1` to the **Preview** environment only so each preview
+  migrates its own branch.
+- **If a production deploy fails with P1002**, it was waiting on another
+  migration that held the lock. Nothing was applied by the failed build;
+  **Redeploy** it once the other build has finished.
 
 **`NEXTAUTH_URL` note:** you won't know your `*.vercel.app` domain until
 after the first deploy. Deploy once, copy the assigned domain, set
