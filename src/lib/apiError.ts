@@ -171,6 +171,8 @@ export type ApiErrorKey =
   | 'companyVehicleNotPublic'
   | 'vehicleAlreadyCompany'
   | 'orgMoveNotAllowed'
+  | 'vehicleNotCompany'
+  | 'orgDeleteConfirm'
   | 'transformationRestorationOnly'
   | 'unauthorized'
   | 'unsupportedFileType'

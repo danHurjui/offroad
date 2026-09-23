@@ -866,7 +866,7 @@ each slice deployable alone): identity → odometer → fuel log → Car Health
 → TCO → service book → passport → accidents; OCR waits on a provider
 choice.
 
-### Organisations (`src/lib/organizations.ts`, RL-038 — fleet slices 1–3 of #49)
+### Organisations (`src/lib/organizations.ts`, RL-038 — fleet slices 1–4 of #49)
 `Organization` (name, CUI, billing address) and `OrganizationMember` (one
 per person per organisation — a DB constraint — with a role: `OWNER`,
 `FLEET_MANAGER`, `MECHANIC`, `DRIVER`).
@@ -890,12 +890,19 @@ plus a grep that fails on any `ownerId` comparison with the caller outside
   migration. Moving in (`POST /api/vehicles/[id]/organization`: the personal
   owner, into an organisation where they are OWNER/FLEET_MANAGER) unpublishes
   it. Followers of a vehicle that is no longer public are not notified
-  (`notifyFollowers` checks `isPublic` — it didn't before). Moving back out is
-  not built.
-- An organisation with vehicles is **not deleted** (409, and the FK is
-  Restrict). Deleting an account hands company vehicles it is the record for
-  to another OWNER there (slug cleared), and an organisation that goes with
-  the account takes its vehicles and their files.
+  (`notifyFollowers` checks `isPublic` — it didn't before).
+- **Moving out** (slice 4, `DELETE` on the same route): an OWNER or
+  FLEET_MANAGER takes it into their own garage — they become `ownerId`,
+  the slug is cleared, and it counts against *their* free-tier limit.
+  Collaborators invited to the vehicle directly keep their access.
+- **Deleting an organisation with vehicles** deletes them, their records
+  and files, and needs `confirmName` equal to its name (the form makes the
+  owner type it; moving a vehicle out first is the way to keep it). Keys are
+  gathered first and the vehicles deleted *by those ids*, so one moved in
+  meanwhile trips the Restrict FK (409) rather than losing its files.
+  Deleting an account hands company vehicles it is the record for to another
+  OWNER there (slug cleared), and an organisation that goes with the
+  account takes its vehicles and their files.
 - **Closed beta until the Business tier (#54):** creating one needs
   `User.orgBetaAt`, set by an admin on `/admin/users/[id]` and read from
   the database (not the token), rate-limited per user id. Switching it off

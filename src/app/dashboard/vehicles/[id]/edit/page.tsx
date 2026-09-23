@@ -8,6 +8,7 @@ import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import VehicleEditForm from '@/components/VehicleEditForm'
 import MoveToOrganization from '@/components/MoveToOrganization'
+import MoveOutOfOrganization from '@/components/MoveOutOfOrganization'
 
 // RL-009 (vehicle settings): owner-only edit + public/private toggle.
 export default async function EditVehiclePage({ params }: { params: { id: string } }) {
@@ -96,6 +97,7 @@ export default async function EditVehiclePage({ params }: { params: { id: string
         }}
         coverCandidates={coverCandidates}
       />
+      {company && <MoveOutOfOrganization vehicleId={vehicle.id} organizationName={company.name} />}
       {destinations.length > 0 && (
         <MoveToOrganization vehicleId={vehicle.id} organizations={destinations.map((d) => d.organization)} isPublic={vehicle.isPublic} />
       )}

@@ -2,7 +2,7 @@ jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
 jest.mock('@/lib/auth', () => ({ authOptions: {} }))
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    vehicle: { findUnique: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
+    vehicle: { findUnique: jest.fn(), update: jest.fn(), updateMany: jest.fn(), count: jest.fn() },
     organizationMember: { findUnique: jest.fn() },
     projectCollaborator: { findFirst: jest.fn() },
     user: { findUnique: jest.fn() },
@@ -13,7 +13,7 @@ import fs from 'fs'
 import path from 'path'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/prisma'
-import { POST as move } from '@/app/api/vehicles/[id]/organization/route'
+import { POST as move, DELETE as moveOut } from '@/app/api/vehicles/[id]/organization/route'
 import { PATCH as vehiclePatch } from '@/app/api/vehicles/[id]/route'
 
 /**
@@ -92,6 +92,51 @@ describe('POST /api/vehicles/[id]/organization', () => {
     roles({ o1: 'OWNER' })
     vehicle.updateMany.mockResolvedValue({ count: 0 })
     expect((await move(req({ organizationId: 'o1' }), params)).status).toBe(400)
+  })
+})
+
+describe('DELETE /api/vehicles/[id]/organization — out to the caller’s garage', () => {
+  beforeEach(() => {
+    vehicle.findUnique.mockResolvedValue(COMPANY)
+    ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ isPro: true, isProComped: false })
+    vehicle.count.mockResolvedValue(0)
+  })
+
+  it.each(['OWNER', 'FLEET_MANAGER'])('a %s takes it: becomes its owner, the slug cleared', async (role) => {
+    roles({ o1: role })
+    expect((await moveOut(req({}), params)).status).toBe(200)
+    expect(vehicle.updateMany).toHaveBeenCalledWith({
+      where: { id: 'v1', organizationId: 'o1' },
+      data: { organizationId: null, ownerId: 'me', slug: null },
+    })
+  })
+
+  it.each(['MECHANIC', 'DRIVER'])('a %s cannot', async (role) => {
+    roles({ o1: role })
+    expect((await moveOut(req({}), params)).status).toBe(404)
+    expect(vehicle.updateMany).not.toHaveBeenCalled()
+  })
+
+  it('a personal vehicle is not a company one', async () => {
+    vehicle.findUnique.mockResolvedValue(PERSONAL)
+    expect((await (await moveOut(req({}), params)).json()).code).toBe('vehicleNotCompany')
+  })
+
+  it('counts against the caller’s own free-tier limit', async () => {
+    roles({ o1: 'OWNER' })
+    ;(prisma.user.findUnique as jest.Mock).mockResolvedValue({ isPro: false, isProComped: false })
+    vehicle.count.mockResolvedValue(1)
+    const res = await moveOut(req({}), params)
+    expect(res.status).toBe(403)
+    expect((await res.json()).code).toBe('UPGRADE_REQUIRED')
+    expect(vehicle.count).toHaveBeenCalledWith({ where: { ownerId: 'me', organizationId: null } })
+    expect(vehicle.updateMany).not.toHaveBeenCalled()
+  })
+
+  it('moved or taken meanwhile: nothing changes', async () => {
+    roles({ o1: 'OWNER' })
+    vehicle.updateMany.mockResolvedValue({ count: 0 })
+    expect((await moveOut(req({}), params)).status).toBe(400)
   })
 })
 
