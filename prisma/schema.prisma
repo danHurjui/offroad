@@ -202,6 +202,8 @@ model User {
   vehicleAssignments   VehicleAssignment[]   @relation("AssignmentDriver")
   assignmentsMade      VehicleAssignment[]   @relation("AssignmentBy")
   documentRenewals     DocumentRenewal[]     @relation("DocumentRenewedBy")
+  tripsDriven          Trip[]                @relation("TripDriver")
+  tripsLogged          Trip[]                @relation("TripBy")
   ticketVotes          TicketVote[]
   ticketComments       TicketComment[]
   donations            Donation[]
@@ -445,6 +447,7 @@ model Vehicle {
   passportLinks PassportLink[]
   accidents     Accident[]
   assignments   VehicleAssignment[]
+  trips         Trip[]
 
   @@unique([ownerId, slug])
   @@index([ownerId])
@@ -951,7 +954,7 @@ model OdometerReading {
   km             Int
   /// The day the reading was taken, stored at 00:00 UTC.
   readAt         DateTime
-  /// MANUAL | TASK | FOUND_STATE | FUEL | HANDOVER — see ODOMETER_SOURCES.
+  /// MANUAL | TASK | FOUND_STATE | FUEL | HANDOVER | TRIP — see ODOMETER_SOURCES.
   source         String
   note           String?
   isOverride     Boolean  @default(false)
@@ -971,6 +974,8 @@ model OdometerReading {
   fuelEntry FuelEntry?
   assignmentStart VehicleAssignment? @relation("AssignmentStart")
   assignmentEnd   VehicleAssignment? @relation("AssignmentEnd")
+  tripStart       Trip?              @relation("TripStart")
+  tripEnd         Trip?              @relation("TripEnd")
 
   @@index([vehicleId, readAt])
   @@index([createdByUserId])
@@ -1247,4 +1252,39 @@ model AssignmentPhoto {
   assignment VehicleAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
 
   @@index([assignmentId])
+}
+
+/// RL-051: a trip for the trip sheet (foaie de parcurs). The distance is
+/// never stored: the two ends are OdometerReadings (source TRIP) in the
+/// vehicle's one mileage history, written with the trip. SetNull on them,
+/// like a fill-up's: deleting a reading by hand leaves the trip without a
+/// distance rather than deleting it.
+model Trip {
+  id              String   @id @default(cuid())
+  vehicleId       String
+  /// SetNull: a driver deleting their account does not take the company's
+  /// trip sheets with them; `driverName` keeps the sheet readable.
+  driverUserId    String?
+  driverName      String
+  /// The day of the trip, stored at 00:00 UTC.
+  date            DateTime
+  fromPlace       String
+  toPlace         String
+  purpose         String?
+  /// BUSINESS | PERSONAL — see TRIP_KINDS. The split is the fiscal point.
+  kind            String
+  startReadingId  String?  @unique
+  endReadingId    String?  @unique
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+
+  vehicle      Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driver       User?            @relation("TripDriver", fields: [driverUserId], references: [id], onDelete: SetNull)
+  createdBy    User?            @relation("TripBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  startReading OdometerReading? @relation("TripStart", fields: [startReadingId], references: [id], onDelete: SetNull)
+  endReading   OdometerReading? @relation("TripEnd", fields: [endReadingId], references: [id], onDelete: SetNull)
+
+  @@index([vehicleId, date])
+  @@index([driverUserId, date])
+  @@index([createdByUserId])
 }

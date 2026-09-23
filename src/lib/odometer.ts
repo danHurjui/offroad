@@ -22,7 +22,7 @@
  * from a date.
  */
 
-export const ODOMETER_SOURCES = ['MANUAL', 'TASK', 'FOUND_STATE', 'FUEL', 'HANDOVER'] as const
+export const ODOMETER_SOURCES = ['MANUAL', 'TASK', 'FOUND_STATE', 'FUEL', 'HANDOVER', 'TRIP'] as const
 export type OdometerSource = (typeof ODOMETER_SOURCES)[number]
 
 export const OVERRIDE_REASONS = ['CLUSTER_REPLACED', 'CORRECTION'] as const

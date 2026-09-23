@@ -19,6 +19,7 @@ jest.mock('@/lib/prisma', () => ({
     donation: { findMany: jest.fn() },
     oAuthAccount: { findMany: jest.fn() },
     organizationMember: { findMany: jest.fn() },
+    trip: { findMany: jest.fn() },
   },
 }))
 jest.mock('@/lib/storage', () => ({ deleteUpload: jest.fn() }))
@@ -199,6 +200,7 @@ describe('collectUserData', () => {
     ;(prisma.donation.findMany as jest.Mock).mockResolvedValue(overrides.donations ?? [])
     ;(prisma.oAuthAccount.findMany as jest.Mock).mockResolvedValue([])
     ;(prisma.organizationMember.findMany as jest.Mock).mockResolvedValue([])
+    ;(prisma.trip.findMany as jest.Mock).mockResolvedValue([])
   }
 
   it('includes the account and every section', async () => {
@@ -212,7 +214,19 @@ describe('collectUserData', () => {
     expect(data).toHaveProperty('donations')
     expect(data).toHaveProperty('linkedLogins')
     expect(data).toHaveProperty('organizations')
+    expect(data).toHaveProperty('tripsDriven')
     expect(data.exportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+  })
+
+  // RL-051: where this person drove, on any vehicle, by their own id — not
+  // who else is in the company.
+  it('lists the trips this person drove', async () => {
+    stubExport()
+    await collectUserData('u1')
+    const query = (prisma.trip.findMany as jest.Mock).mock.calls[0][0]
+    expect(query.where).toEqual({ driverUserId: 'u1' })
+    expect(query.select.driver).toBeUndefined()
+    expect(query.select.createdBy).toBeUndefined()
   })
 
   /**
@@ -331,3 +345,4 @@ describe('collectUserData', () => {
     expect(data.donations[0]).toMatchObject({ amountBani: 5000, amountRon: 50 })
   })
 })
+
