@@ -92,7 +92,18 @@ export default async function PhotosTimelinePage({
       </div>
 
       {photos.length === 0 ? (
-        <div className="card p-10 text-center text-ink-muted">{t('empty')}</div>
+        noFiltersActive ? (
+          /* Photos are uploaded on a job, never here, so the useful answer
+             to an empty timeline is the way to a job. */
+          <div className="card flex flex-col items-center gap-3 p-10 text-center">
+            <p className="max-w-prose text-ink-muted">{t('empty')}</p>
+            <Link href={`/dashboard/vehicles/${vehicle.id}/tasks/new`} className="btn-primary">
+              {config.addTaskCta}
+            </Link>
+          </div>
+        ) : (
+          <div className="card p-10 text-center text-ink-muted">{t('emptyFiltered')}</div>
+        )
       ) : (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {photos.map((photo) => (

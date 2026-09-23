@@ -18,11 +18,11 @@ import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
 /** Until a mode is picked there is nothing sensible to suggest. */
 const NO_SUGGESTIONS: readonly string[] = []
 
-export default function VehicleForm() {
+export default function VehicleForm({ initialType = null }: { initialType?: ProjectType | null }) {
   const t = useTranslations('vehicleNew')
   const vocabulary = useAllVocabulary()
   const router = useRouter()
-  const [projectType, setProjectType] = useState<ProjectType | null>(null)
+  const [projectType, setProjectType] = useState<ProjectType | null>(initialType)
   const [make, setMake] = useState('')
   const [model, setModel] = useState('')
   const [year, setYear] = useState('')
@@ -75,15 +75,16 @@ export default function VehicleForm() {
               type="button"
               onClick={() => setProjectType(type)}
               aria-pressed={projectType === type}
-              className={`rounded-xl border-2 p-4 text-left transition-colors ${
+              className={`flex flex-col justify-start rounded-xl border-2 p-4 text-left transition-colors ${
                 projectType === type ? 'border-brand-500 bg-brand-50 dark:bg-brand-400/10' : 'border-surface-border'
               }`}
             >
               <div className="font-semibold text-ink">{vocabulary[type].label}</div>
-              <div className="text-sm text-ink-muted">{t(`blurb.${type}`)}</div>
+              <div className="text-sm text-ink-muted">{vocabulary[type].description}</div>
             </button>
           ))}
         </div>
+        <p className="mt-2 text-sm text-ink-muted">{t('modeFixed')}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

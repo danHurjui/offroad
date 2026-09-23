@@ -167,8 +167,11 @@ export default function WishlistBoard({
       </div>
 
       {items.length === 0 ? (
-        <div className="card p-10 text-center text-ink-muted">
-          {t('emptyList', { list: config.wishlistLabel.toLowerCase() })}
+        <div className="card flex flex-col items-center gap-3 p-10 text-center">
+          <p className="max-w-prose text-ink-muted">{t('emptyList')}</p>
+          <Link href={`/dashboard/vehicles/${vehicleId}/wishlist/new`} className="btn-primary">
+            {t('addItem')}
+          </Link>
         </div>
       ) : (
         <div className="card divide-y divide-surface-border">

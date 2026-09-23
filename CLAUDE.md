@@ -695,6 +695,18 @@ and runs before first paint so there's no white flash; it's a string
 nothing type-checks, so `theme.test.ts` executes it for real (a throw there
 is a blank page, not a wrong colour).
 
+### First run (`src/lib/onboarding.ts`, RL-036)
+A new account's dashboard explains the three modes (from
+`config.description`, via the vocabulary, not hand-written copy) and shows
+a four-step checklist: vehicle → job → photo → document. Steps are
+**derived from the account's own rows**, never recorded as events.
+`User.onboardingClosedAt` ends it for good — set by Hide or the first time
+the dashboard sees every step done, and never cleared, so deleting a
+vehicle doesn't bring it back. It is per account, not localStorage. The
+migration closed it for every account that already owned a vehicle with a
+job, and it never shows to someone who only collaborates on other people's
+vehicles.
+
 ### Forms (`src/components/{AutocompleteInput,MoneyInput,PasswordInput,FormError}.tsx`)
 Every RON amount goes through `MoneyInput` (decimal keypad, `min=0`,
 `step=0.01`) and every error through `FormError` (`role="alert"`, with the

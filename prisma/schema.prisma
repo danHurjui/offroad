@@ -163,6 +163,13 @@ model User {
   /// knows that verification cannot be enforced on a deployment with no
   /// mail provider configured.
   emailVerifiedAt      DateTime?
+  /// When the dashboard's getting-started checklist (RL-036) went away
+  /// for good: dismissed by hand, or stamped the first time the dashboard
+  /// saw every step done. Per account rather than per device, so somebody
+  /// who has finished is not walked through it again on a second browser.
+  /// Accounts that already had a logged job when this shipped were
+  /// backfilled by the migration — they are past the point it helps with.
+  onboardingClosedAt   DateTime?
   active               Boolean      @default(true)
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt

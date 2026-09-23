@@ -35,6 +35,13 @@ interface ProjectTypeConfig {
    * word itself means something different in each one.
    */
   namePlaceholder: string
+  /**
+   * One sentence on what the mode is for, shown wherever somebody chooses
+   * one — the create form and the empty garage. That choice is permanent
+   * (pitfall #2 in CLAUDE.md), so it is the one place in the app where a
+   * sentence of explanation earns its space.
+   */
+  description: string
   wishlistLabel: string
   communityTabLabel: string
   statusTags: StatusOption[]
@@ -66,6 +73,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     progressLabel: 'Build progress',
     addTaskCta: '+ Add modification',
     namePlaceholder: 'e.g. 2" lift kit + shocks',
+    description: 'For a rig you are modifying: every part you fit, what it cost, and how far the build has come.',
     wishlistLabel: 'Wishlist',
     communityTabLabel: 'Builds',
     statusTags: [
@@ -112,6 +120,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     progressLabel: 'Restoration progress',
     addTaskCta: '+ Add task / stage',
     namePlaceholder: 'e.g. Strip and re-chrome front bumper',
+    description: 'For a classic you are bringing back: the state you found it in, each stage of the work, and how original it still is.',
     wishlistLabel: 'Parts hunt',
     communityTabLabel: 'Restorations',
     // Six ordered stages against four usable tones, so colour groups them
@@ -165,6 +174,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     progressLabel: 'Jobs logged',
     addTaskCta: '+ Log a repair',
     namePlaceholder: 'e.g. Front brake pads and discs',
+    description: 'For the car you drive every day: repairs and servicing, what they cost, and when the ITP and RCA run out.',
     wishlistLabel: 'Planned work',
     communityTabLabel: 'Daily drivers',
     statusTags: [

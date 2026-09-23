@@ -282,6 +282,16 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         />
       </div>
 
+      {tasks.length === 0 && (
+        /* RL-036: the categories below already carry an add link each, but
+           a first-time owner sees a column of identical links with nothing
+           saying what a "job" holds. One card says it, once. */
+        <div className="card mb-6 p-4">
+          <h2 className="mb-1 font-semibold text-ink">{t('emptyTitle')}</h2>
+          <p className="text-sm text-ink-muted">{t('emptyBody')}</p>
+        </div>
+      )}
+
       <div className="space-y-6">
         {sortedGroups.map(([categoryValue, categoryTasks]) => (
           <div key={categoryValue}>
