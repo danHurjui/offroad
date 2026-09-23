@@ -931,7 +931,7 @@ plus a grep that fails on any `ownerId` comparison with the caller outside
   the same transaction as the membership, so a double click or a
   simultaneous withdrawal cannot make a member.
 
-### Drivers (`src/lib/assignments.ts`, RL-040 — slice 1 of #52)
+### Drivers (`src/lib/assignments.ts`, RL-040 — #52)
 `VehicleAssignment` is a history (driver, from, to, note), not a column.
 Assignments start when made and end when ended — never back-dated — so
 **one active driver per vehicle** is a partial unique index (`endedAt IS
@@ -954,6 +954,28 @@ or the driver ends one.
   moved out of the organisation have their active assignments ended in the
   same transaction — a stale "active" row would grant nothing yet block the
   next driver.
+
+**The driver's side** (slice 2). `DriverPanel` sits at the top of the
+vehicle page for `driver` access only: report a defect, fuel, a toll/cost,
+km, documents, and the handover.
+- **A defect is an ordinary job** through the normal create route, never a
+  second kind of record: `config.defect` (per mode, like `serviceCategory`)
+  gives its category, a status whose tone is warn/danger — so it reads as
+  needing attention on the manager's garage (a test holds the tone) — and
+  the photo type. Null for restoration: nothing to report. Read from
+  `PROJECT_TYPE_CONFIG`, not the translated vocabulary: they are stored
+  values.
+- **Documents** are the owner's screen and, read-only and without costs,
+  the assigned driver's; nobody else's.
+- **Handover**: the km at each end is an `OdometerReading` (source
+  `HANDOVER`) written in the transaction that starts or ends the
+  assignment (`writeHandoverReading()`), so a km that breaks the history
+  refuses the handover (409 naming the reading). Ending is conditional, and
+  a second end rolls its reading back. A start without a km (assigned from
+  the office) is completed once by `/start`. Condition photos
+  (`AssignmentPhoto`, START/END, six each, images only) are uploaded
+  **before** ending, while the driver still has access; they are evidence,
+  so there is no delete. They are in `collectStorageKeys()`.
 
 ### Fleet compliance and cost (`src/lib/fleet.ts`, RL-039 — #51)
 `/dashboard/organizations/[id]/fleet`, for OWNER/FLEET_MANAGER (404 for

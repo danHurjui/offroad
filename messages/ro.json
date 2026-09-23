@@ -1079,7 +1079,8 @@
     "price": "Preț (opțional)",
     "paid": "Plătit {amount} RON pe {date}",
     "noPrice": "Fără preț înregistrat",
-    "renewPrice": "Preț plătit"
+    "renewPrice": "Preț plătit",
+    "driverNone": "Niciun document înregistrat încă pentru acest vehicul."
   },
   "wishlist": {
     "markAsFitted": "Marchează ca montată",
@@ -2120,7 +2121,10 @@
     "orgDeleteConfirm": "Scrie exact numele organizației ca să o ștergi împreună cu {count, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}.",
     "assignDriverOnly": "Un vehicul poate fi atribuit doar unui șofer al organizației lui.",
     "vehicleAlreadyAssigned": "Acest vehicul are deja un șofer. Încheie mai întâi acea atribuire.",
-    "assignmentAlreadyEnded": "Această atribuire s-a încheiat deja."
+    "assignmentAlreadyEnded": "Această atribuire s-a încheiat deja.",
+    "handoverStageInvalid": "Spune dacă fotografia este de la preluarea vehiculului sau de la predarea lui.",
+    "handoverPhotoLimit": "Fiecare capăt al unei predări poate avea cel mult {limit} fotografii.",
+    "handoverStartRecorded": "Începutul acestei predări este deja înregistrat sau atribuirea s-a încheiat."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2322,7 +2326,8 @@
       "MANUAL": "Introdusă manual",
       "TASK": "Înregistrată cu o lucrare",
       "FOUND_STATE": "La achiziție",
-      "FUEL": "La o alimentare"
+      "FUEL": "La o alimentare",
+      "HANDOVER": "La predarea între șoferi"
     },
     "deleted": "Am șters citirea de {km} km.",
     "deleteFailed": "Nu am putut șterge citirea.",
@@ -2924,6 +2929,50 @@
     "endFailed": "Atribuirea nu a putut fi încheiată.",
     "history": "Istoric",
     "noHistory": "Nimeni nu a fost atribuit încă acestui vehicul.",
-    "ongoing": "acum"
+    "ongoing": "acum",
+    "startKm": "Kilometraj acum (opțional)",
+    "startKmHelp": "Dacă îl știi. Altfel îl înregistrează șoferul la preluare.",
+    "kmRange": "{start} → {end}",
+    "photoStart": "Starea la preluare",
+    "photoEnd": "Starea la predare"
+  },
+  "defect": {
+    "title": "Raportează un defect",
+    "intro": "Ceva nu e în regulă cu vehiculul? Spune ce, adaugă o fotografie și intră în jurnalul lui ca o lucrare care necesită atenție — managerul de flotă o vede în garajul lui.",
+    "what": "Ce nu funcționează",
+    "whatPlaceholder": "ex. Martorul de frână aprins",
+    "details": "Detalii (opțional)",
+    "photo": "Fotografie (opțional)",
+    "submit": "Trimite raportul",
+    "sending": "Se trimite…",
+    "reported": "Defectul a fost raportat.",
+    "failed": "Raportul nu a putut fi trimis.",
+    "photoFailed": "Raportul a fost salvat, dar fotografia nu a putut fi adăugată."
+  },
+  "handover": {
+    "km": "Kilometraj (km)",
+    "photos": "Fotografii ale stării (cel mult {limit})",
+    "photosChosen": "{count, plural, one {# fotografie aleasă} few {# fotografii alese} other {# de fotografii alese}}",
+    "submitStart": "Înregistrează preluarea",
+    "submitEnd": "Predă vehiculul",
+    "saving": "Se salvează…",
+    "started": "Preluarea a fost înregistrată.",
+    "ended": "Vehiculul a fost predat.",
+    "failed": "Predarea nu a putut fi înregistrată.",
+    "photoFailed": "O fotografie nu a putut fi încărcată; nu s-a salvat nimic altceva.",
+    "confirmEnd": "Predai acum vehiculul? Pierzi imediat accesul la el."
+  },
+  "driverPanel": {
+    "title": "Conduci acest vehicul",
+    "since": "Atribuit ție din {date}",
+    "report": "Raportează un defect",
+    "fuel": "Alimentare",
+    "expense": "Adaugă o taxă sau un cost",
+    "km": "Înregistrează km",
+    "documents": "Documente",
+    "startTitle": "Preluarea vehiculului",
+    "startHelp": "Înregistrează kilometrajul și câteva fotografii ale stării la preluare, ca ambele capete ale predării să fie în evidență.",
+    "endTitle": "Predă vehiculul",
+    "endHelp": "Kilometrajul și fotografiile stării la predare. Fotografiile se salvează primele; încheierea atribuirii îți retrage accesul."
   }
 }

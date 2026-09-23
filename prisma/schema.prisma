@@ -929,7 +929,7 @@ model OdometerReading {
   km             Int
   /// The day the reading was taken, stored at 00:00 UTC.
   readAt         DateTime
-  /// MANUAL | TASK | FOUND_STATE | FUEL — see ODOMETER_SOURCES.
+  /// MANUAL | TASK | FOUND_STATE | FUEL | HANDOVER — see ODOMETER_SOURCES.
   source         String
   note           String?
   isOverride     Boolean  @default(false)
@@ -947,6 +947,8 @@ model OdometerReading {
   task      Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
   createdBy User?   @relation("OdometerReadingBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   fuelEntry FuelEntry?
+  assignmentStart VehicleAssignment? @relation("AssignmentStart")
+  assignmentEnd   VehicleAssignment? @relation("AssignmentEnd")
 
   @@index([vehicleId, readAt])
   @@index([createdByUserId])
@@ -1187,9 +1189,17 @@ model VehicleAssignment {
   endedAt       DateTime?
   note          String?
   assignedByUserId String?
+  /// Handover (slice 2): the km at each end, as OdometerReadings (source
+  /// HANDOVER) in the vehicle's one mileage history. SetNull: deleting a
+  /// reading by hand does not unmake the assignment.
+  startReadingId String?  @unique
+  endReadingId   String?  @unique
   createdAt     DateTime  @default(now())
 
   vehicle    Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  startReading OdometerReading? @relation("AssignmentStart", fields: [startReadingId], references: [id], onDelete: SetNull)
+  endReading   OdometerReading? @relation("AssignmentEnd", fields: [endReadingId], references: [id], onDelete: SetNull)
+  photos     AssignmentPhoto[]
   /// Cascade: a driver deleting their account takes their assignment
   /// history with it; the vehicle's own log is untouched.
   driver     User    @relation("AssignmentDriver", fields: [driverUserId], references: [id], onDelete: Cascade)
@@ -1198,4 +1208,21 @@ model VehicleAssignment {
   @@index([vehicleId, startedAt])
   @@index([driverUserId])
   @@index([assignedByUserId])
+}
+
+/// RL-040 handover: condition photos taken at either end of an assignment.
+/// Evidence, so neither the driver nor a manager deletes one; they go with
+/// the assignment (and the vehicle). Filed under the vehicle owner's prefix
+/// like every other upload, and listed in collectStorageKeys().
+model AssignmentPhoto {
+  id           String   @id @default(cuid())
+  assignmentId String
+  /// START | END
+  stage        String
+  url          String
+  createdAt    DateTime @default(now())
+
+  assignment VehicleAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+
+  @@index([assignmentId])
 }

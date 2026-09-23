@@ -112,3 +112,17 @@ describe('hidesCosts', () => {
     expect(offenders).toEqual([])
   })
 })
+
+describe('a driver’s documents', () => {
+  const page = fs.readFileSync(path.join(process.cwd(), 'src/app/dashboard/vehicles/[id]/documents/page.tsx'), 'utf8')
+
+  it('the page lets in the owner and the driver, nobody else', () => {
+    expect(page).toContain("vehicle.access !== 'owner' && vehicle.access !== 'driver'")
+  })
+
+  it('the driver’s view is read-only and names no cost', () => {
+    const driverView = page.slice(page.indexOf("vehicle.access === 'driver' ?"), page.indexOf('<DocumentsBoard'))
+    expect(driverView.length).toBeGreaterThan(0)
+    expect(driverView).not.toMatch(/costRon|paidAt|RON/)
+  })
+})

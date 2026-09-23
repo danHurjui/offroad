@@ -6,6 +6,9 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { readJsonBody } from '@/lib/requestBody'
 import { ASSIGNMENT_NOTE_MAX } from '@/lib/assignments'
+import { writeHandoverReading } from '@/lib/assignmentRecords'
+import { parseKm } from '@/lib/odometer'
+import { ReadingConflict, conflictResponse } from '@/lib/odometerRecords'
 
 type Params = { params: { id: string } }
 
@@ -17,7 +20,12 @@ export async function GET(_req: NextRequest, { params }: Params) {
   if (!vehicle) return await apiError('notFound', 404)
   const assignments = await prisma.vehicleAssignment.findMany({
     where: { vehicleId: vehicle.id },
-    include: { driver: { select: { displayName: true } } },
+    include: {
+      driver: { select: { displayName: true } },
+      startReading: { select: { km: true } },
+      endReading: { select: { km: true } },
+      photos: { select: { id: true, stage: true, url: true }, orderBy: { createdAt: 'asc' } },
+    },
     orderBy: { startedAt: 'desc' },
   })
   return NextResponse.json(assignments)
@@ -50,12 +58,22 @@ export async function POST(req: NextRequest, { params }: Params) {
     : null
   if (member?.role !== 'DRIVER') return await apiError('assignDriverOnly', 400)
 
+  // Handover: the km as the driver takes it, optional here (a manager may
+  // assign from the office), into the one mileage history.
+  const km = parseKm(parsed.body.km)
+  if (!km.ok) return await apiError('odometerKmInvalid', 400)
+
   try {
-    const assignment = await prisma.vehicleAssignment.create({
-      data: { vehicleId: vehicle.id, driverUserId, note, assignedByUserId: session.user.id },
+    const assignment = await prisma.$transaction(async (tx) => {
+      const startReadingId =
+        km.km !== null ? await writeHandoverReading(tx, { vehicleId: vehicle.id, km: km.km, userId: session.user.id }) : null
+      return tx.vehicleAssignment.create({
+        data: { vehicleId: vehicle.id, driverUserId, note, assignedByUserId: session.user.id, startReadingId },
+      })
     })
     return NextResponse.json(assignment, { status: 201 })
   } catch (e) {
+    if (e instanceof ReadingConflict) return await conflictResponse(e.check, e.km)
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
       return await apiError('vehicleAlreadyAssigned', 409)
     }

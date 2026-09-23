@@ -19,7 +19,12 @@ export default async function VehicleDriversPage({ params }: { params: { id: str
   const [assignments, drivers] = await Promise.all([
     prisma.vehicleAssignment.findMany({
       where: { vehicleId: vehicle.id },
-      include: { driver: { select: { displayName: true } } },
+      include: {
+        driver: { select: { displayName: true } },
+        startReading: { select: { km: true } },
+        endReading: { select: { km: true } },
+        photos: { select: { id: true, stage: true, url: true }, orderBy: { createdAt: 'asc' } },
+      },
       orderBy: { startedAt: 'desc' },
     }),
     prisma.organizationMember.findMany({
@@ -45,6 +50,9 @@ export default async function VehicleDriversPage({ params }: { params: { id: str
           startedAt: a.startedAt.toISOString(),
           endedAt: a.endedAt?.toISOString() ?? null,
           note: a.note,
+          startKm: a.startReading?.km ?? null,
+          endKm: a.endReading?.km ?? null,
+          photos: a.photos.map((p) => ({ id: p.id, stage: p.stage === 'END' ? ('END' as const) : ('START' as const), url: p.url })),
         }))}
       />
     </div>

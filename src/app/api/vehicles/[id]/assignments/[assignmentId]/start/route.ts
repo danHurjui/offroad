@@ -8,16 +8,13 @@ import { parseKm } from '@/lib/odometer'
 import { ReadingConflict, conflictResponse } from '@/lib/odometerRecords'
 import { writeHandoverReading } from '@/lib/assignmentRecords'
 
-class AlreadyEnded extends Error {}
+class NotOpen extends Error {}
 
 /**
- * RL-040: ends an assignment, now — a manager of the vehicle, or the driver
- * handing it back. The handover's km (the driver's form asks for it; a
- * manager ending one from the office may not know it) goes into the
- * mileage history in the same transaction, and the end is conditional on
- * the assignment still being active: ending twice records nothing twice.
- * Condition photos are uploaded before ending, while the driver still has
- * access to the vehicle.
+ * RL-040 handover, the taking end: the km when the driver takes the
+ * vehicle, for an assignment made without one (a manager assigning from
+ * the office). Once only — the start is on the record after that — and
+ * only while the assignment is active. The driver or a manager.
  */
 export async function POST(req: NextRequest, { params }: { params: { id: string; assignmentId: string } }) {
   const auth = await requireSession()
@@ -30,25 +27,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   if (!assignment || assignment.vehicleId !== vehicle.id) return await apiError('notFound', 404)
   if (vehicle.access !== 'owner' && assignment.driverUserId !== session.user.id) return await apiError('notFound', 404)
 
-  // A body is optional: ending without a km is allowed.
   const parsed = await readJsonBody(req)
-  const km = parseKm(parsed.ok ? parsed.body.km : undefined)
-  if (!km.ok) return await apiError('odometerKmInvalid', 400)
+  if (!parsed.ok) return parsed.error
+  const km = parseKm(parsed.body.km)
+  if (!km.ok || km.km === null) return await apiError('odometerKmInvalid', 400)
+  const value = km.km
 
   try {
     await prisma.$transaction(async (tx) => {
-      const endReadingId =
-        km.km !== null ? await writeHandoverReading(tx, { vehicleId: vehicle.id, km: km.km, userId: session.user.id }) : null
-      const ended = await tx.vehicleAssignment.updateMany({
-        where: { id: assignment.id, endedAt: null },
-        data: { endedAt: new Date(), endReadingId },
+      const startReadingId = await writeHandoverReading(tx, { vehicleId: vehicle.id, km: value, userId: session.user.id })
+      const set = await tx.vehicleAssignment.updateMany({
+        where: { id: assignment.id, endedAt: null, startReadingId: null },
+        data: { startReadingId },
       })
-      // Rolls the reading back with it.
-      if (ended.count === 0) throw new AlreadyEnded()
+      if (set.count === 0) throw new NotOpen()
     })
     return NextResponse.json({ ok: true })
   } catch (e) {
-    if (e instanceof AlreadyEnded) return await apiError('assignmentAlreadyEnded', 400)
+    if (e instanceof NotOpen) return await apiError('handoverStartRecorded', 400)
     if (e instanceof ReadingConflict) return await conflictResponse(e.check, e.km)
     return await apiError('internalError', 500)
   }

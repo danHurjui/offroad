@@ -67,6 +67,14 @@ interface ProjectTypeConfig {
    * not a thing the mode does — a restoration is rebuilt, not serviced.
    */
   serviceCategory: string | null
+  /**
+   * RL-040: what a defect reported from the road is logged as — an ordinary
+   * job with this category, status and photo type. The status must be one
+   * whose tone is warn or danger, so the job reads as needing attention on
+   * the manager's garage (a test holds that). Null where the mode has no
+   * such status: a restoration is not driven, and has nothing to report.
+   */
+  defect: { category: string; status: string; photoType: string } | null
   categories: Option[]
   photoTypes: Option[]
   wishlistStatuses: Option[]
@@ -96,6 +104,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     completeStatus: 'DONE',
     tracksCompletion: true,
     serviceCategory: 'MAINTENANCE',
+    defect: { category: 'MAINTENANCE', status: 'BROKEN', photoType: 'DAMAGE' },
     categories: [
       { value: 'SUSPENSION', label: 'Suspension' },
       { value: 'PROTECTION', label: 'Protection' },
@@ -145,6 +154,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     completeStatus: 'COMPLETE',
     tracksCompletion: true,
     serviceCategory: null,
+    defect: null,
     categories: [
       { value: 'BODY_PANELS', label: 'Body & Panels' },
       { value: 'PAINT', label: 'Paint' },
@@ -197,6 +207,7 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
     completeStatus: 'DONE',
     tracksCompletion: false,
     serviceCategory: 'SERVICING',
+    defect: { category: 'OTHER', status: 'DUE', photoType: 'FAULT' },
     categories: [
       { value: 'SERVICING', label: 'Servicing & Fluids' },
       { value: 'BRAKES', label: 'Brakes' },
