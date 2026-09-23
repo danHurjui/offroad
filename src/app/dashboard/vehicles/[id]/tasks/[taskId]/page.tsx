@@ -10,6 +10,7 @@ import { toNumberOrNull } from '@/lib/serialize'
 import TaskPhotos from '@/components/TaskPhotos'
 import TaskReceipt from '@/components/TaskReceipt'
 import DeleteTaskButton from '@/components/DeleteTaskButton'
+import TaskStatusControl from '@/components/TaskStatusControl'
 
 // RL-005: task detail view.
 export default async function TaskDetailPage({ params }: { params: { id: string; taskId: string } }) {
@@ -70,9 +71,18 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
               <span className="badge bg-surface-subtle text-ink-muted">{labelFor(config.categories, task.category)}</span>
               {/* Was always badge-brand, which said "status" but never which
                   one — the colour carried no information at all. */}
-              <span className={statusBadgeClass(config.statusTags, task.status)}>
-                {labelFor(config.statusTags, task.status)}
-              </span>
+              {canEdit ? (
+                <TaskStatusControl
+                  vehicleId={vehicle.id}
+                  taskId={task.id}
+                  projectType={vehicle.projectType}
+                  status={task.status}
+                />
+              ) : (
+                <span className={statusBadgeClass(config.statusTags, task.status)}>
+                  {labelFor(config.statusTags, task.status)}
+                </span>
+              )}
             </div>
             <h1 className="text-xl font-bold text-ink">{task.name}</h1>
             {task.brand && <p className="text-sm text-ink-muted">{task.brand}</p>}
@@ -82,7 +92,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
               <Link href={`/dashboard/vehicles/${vehicle.id}/tasks/${task.id}/edit`} className="btn-secondary">
                 {tc('edit')}
               </Link>
-              {isOwner && <DeleteTaskButton vehicleId={vehicle.id} taskId={task.id} />}
+              {isOwner && <DeleteTaskButton vehicleId={vehicle.id} taskId={task.id} taskName={task.name} />}
             </div>
           )}
         </div>

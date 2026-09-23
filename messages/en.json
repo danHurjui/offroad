@@ -915,7 +915,11 @@
     "photos": "Photos",
     "partsLabour": "Parts / Labour",
     "totalCostLabel": "Total cost",
-    "editTitle": "Edit task"
+    "editTitle": "Edit task",
+    "statusLabel": "Status",
+    "statusFailed": "Couldn’t change the status.",
+    "deleted": "Deleted “{name}”.",
+    "deleteFailed": "Couldn’t delete “{name}”."
   },
   "era": {
     "pre1970": "Pre-1970",
@@ -1057,9 +1061,13 @@
     "totalBudget": "Total {list} budget",
     "confirmConvert": "{action}? This creates a task from this item.",
     "convertFailed": "Could not convert item",
-    "confirmDelete": "Delete “{name}”?",
     "emptyList": "Parts and jobs you are planning go here, with an estimated cost and a link to where you saw them. Mark one done and it moves into the log as a job.",
-    "addItem": "+ Add item"
+    "addItem": "+ Add item",
+    "statusLabel": "Status of {name}",
+    "statusFailed": "Couldn’t change the status.",
+    "reorderFailed": "Couldn’t save the new order.",
+    "deleted": "Removed “{name}”.",
+    "deleteFailed": "Couldn’t remove “{name}”."
   },
   "vehicleNew": {
     "projectType": "Project type",
@@ -1100,8 +1108,10 @@
     "inviteFailed": "Could not send invite",
     "resendFailed": "Could not resend invite",
     "revokeFailed": "Could not revoke access",
-    "confirmRevoke": "Revoke this collaborator’s access? They will lose access immediately.",
-    "pageTitle": "Collaborators"
+    "pageTitle": "Collaborators",
+    "revoked": "Access removed for {name}.",
+    "invited": "Invite sent to {email}.",
+    "resent": "Invite sent again."
   },
   "wishlistForm": {
     "name": "Name",
@@ -1272,7 +1282,11 @@
       "IMPROVEMENT": "What works today but could work better, and what makes it awkward right now?"
     },
     "newMetaTitle": "Open a ticket — RigLog",
-    "backToRoadmap": "← Back to the roadmap"
+    "backToRoadmap": "← Back to the roadmap",
+    "vote": "Vote for this",
+    "unvote": "Remove your vote",
+    "logInToVote": "Log in to vote",
+    "voteFailed": "Couldn’t record your vote."
   },
   "upgrade": {
     "backToSettings": "← Back to settings",
@@ -1430,7 +1444,8 @@
     "next": "Next ›",
     "empty": "No photos yet.",
     "uploadFailed": "Upload failed",
-    "confirmDelete": "Delete this photo?"
+    "deleted": "Photo deleted.",
+    "deleteFailed": "Couldn’t delete the photo."
   },
   "card": {
     "beforePhoto": "Before photo",
@@ -1471,7 +1486,8 @@
       "new": "New — task on a vehicle, otherwise a new vehicle",
       "search": "Jump to the search box on this page",
       "showList": "Show this list",
-      "close": "Close this dialog"
+      "close": "Close this dialog",
+      "undo": "Undo the last removal, while its notice is showing"
     },
     "then": "then",
     "typingNote": "Shortcuts are ignored while you’re typing in a field. Press <key></key> any time to bring this back."
@@ -2141,5 +2157,17 @@
     "body": "Reload to use it. Anything you are part-way through typing will be lost, so finish first if you are in the middle of something.",
     "reload": "Reload now",
     "later": "Later"
+  },
+  "toast": {
+    "regionLabel": "Notifications",
+    "undo": "Undo",
+    "dismiss": "Dismiss"
+  },
+  "follow": {
+    "follow": "Follow",
+    "following": "Following",
+    "followers": "{count, plural, one {# follower} other {# followers}}",
+    "logInToFollow": "Log in to follow",
+    "failed": "Couldn’t update following."
   }
 }

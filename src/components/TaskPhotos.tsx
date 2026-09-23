@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation'
 import { labelFor, type ProjectType } from '@/lib/projectType'
 import { useVocabulary } from '@/lib/vocabulary'
 import { compressImageIfNeeded } from '@/lib/compressImage'
+import { HideWhilePending, useToast } from './Toaster'
+import { useFailureReason } from './useOptimisticWrite'
+import { tryFetch } from '@/lib/writeFeedback'
 
 interface Photo {
   id: string
@@ -35,13 +38,13 @@ export default function TaskPhotos({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [photoType, setPhotoType] = useState(config.photoTypes[0].value)
   const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const toast = useToast()
+  const reasonFor = useFailureReason()
 
   async function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setError(null)
     setUploading(true)
 
     const compressed = await compressImageIfNeeded(file)
@@ -49,26 +52,30 @@ export default function TaskPhotos({
     formData.append('file', compressed)
     formData.append('photoType', photoType)
 
-    const res = await fetch(`/api/vehicles/${vehicleId}/tasks/${taskId}/photos`, {
+    const res = await tryFetch(`/api/vehicles/${vehicleId}/tasks/${taskId}/photos`, {
       method: 'POST',
       body: formData,
     })
     setUploading(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
 
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error ?? t('uploadFailed'))
+    if (!res?.ok) {
+      toast.error(await reasonFor(res, t('uploadFailed')))
       return
     }
     router.refresh()
   }
 
-  async function onDelete(photoId: string) {
-    if (!confirm(t('confirmDelete'))) return
-    await fetch(`/api/vehicles/${vehicleId}/tasks/${taskId}/photos/${photoId}`, { method: 'DELETE' })
+  // RL-034: gone at once, deleted when the undo window closes.
+  function onDelete(photoId: string) {
     setLightboxIndex(null)
-    router.refresh()
+    toast.undoable({
+      key: `photo:${photoId}`,
+      message: t('deleted'),
+      request: { url: `/api/vehicles/${vehicleId}/tasks/${taskId}/photos/${photoId}`, method: 'DELETE' },
+      onCommitted: () => router.refresh(),
+      onFailed: async (res) => toast.error(await reasonFor(res, t('deleteFailed'))),
+    })
   }
 
   return (
@@ -91,25 +98,25 @@ export default function TaskPhotos({
           />
         </label>
       </div>
-      {error && <p className="mb-3 text-sm text-red-600 dark:text-red-400">{error}</p>}
 
       {photos.length === 0 ? (
         <p className="text-sm text-ink-faint">{t('empty')}</p>
       ) : (
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
           {photos.map((photo, i) => (
-            <button
-              key={photo.id}
-              type="button"
-              onClick={() => setLightboxIndex(i)}
-              className="group relative aspect-square overflow-hidden rounded-lg bg-surface-subtle"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/api/uploads/${photo.url}`} alt={photo.caption ?? ''} className="h-full w-full object-cover" />
-              <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
-                {labelFor(config.photoTypes, photo.photoType)}
-              </span>
-            </button>
+            <HideWhilePending key={photo.id} pendingKey={`photo:${photo.id}`}>
+              <button
+                type="button"
+                onClick={() => setLightboxIndex(i)}
+                className="group relative aspect-square overflow-hidden rounded-lg bg-surface-subtle"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/api/uploads/${photo.url}`} alt={photo.caption ?? ''} className="h-full w-full object-cover" />
+                <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
+                  {labelFor(config.photoTypes, photo.photoType)}
+                </span>
+              </button>
+            </HideWhilePending>
           ))}
         </div>
       )}

@@ -2,7 +2,7 @@
  * RL-022: shared "is this public vehicle in progress or complete"
  * computation for the community feed's status filter/badge — same
  * category-completion logic used inline on the vehicle dashboard
- * (src/app/dashboard/vehicles/[id]/page.tsx), factored out here since the
+ * (src/app/dashboard/vehicles/[id]/(overview)/page.tsx), factored out here since the
  * feed needs it per-card across a list rather than for a single vehicle.
  */
 export interface ProgressTaskLike {

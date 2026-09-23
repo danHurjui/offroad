@@ -915,7 +915,11 @@
     "photos": "Poze",
     "partsLabour": "Piese / manoperă",
     "totalCostLabel": "Cost total",
-    "editTitle": "Editează lucrarea"
+    "editTitle": "Editează lucrarea",
+    "statusLabel": "Stadiu",
+    "statusFailed": "Nu am putut schimba stadiul.",
+    "deleted": "Ai șters „{name}”.",
+    "deleteFailed": "Nu am putut șterge „{name}”."
   },
   "era": {
     "pre1970": "Înainte de 1970",
@@ -1057,9 +1061,13 @@
     "totalBudget": "Buget total — {list}",
     "confirmConvert": "{action}? Se creează o lucrare din acest articol.",
     "convertFailed": "Nu am putut converti articolul",
-    "confirmDelete": "Ștergi „{name}”?",
     "emptyList": "Aici intră piesele și lucrările pe care le plănuiești, cu costul estimat și un link unde le-ai văzut. Marchează una ca făcută și trece în jurnal ca lucrare.",
-    "addItem": "+ Adaugă"
+    "addItem": "+ Adaugă",
+    "statusLabel": "Stadiul pentru {name}",
+    "statusFailed": "Nu am putut schimba stadiul.",
+    "reorderFailed": "Nu am putut salva noua ordine.",
+    "deleted": "Ai eliminat „{name}”.",
+    "deleteFailed": "Nu am putut elimina „{name}”."
   },
   "vehicleNew": {
     "projectType": "Tip de proiect",
@@ -1100,8 +1108,10 @@
     "inviteFailed": "Nu am putut trimite invitația",
     "resendFailed": "Nu am putut retrimite invitația",
     "revokeFailed": "Nu am putut revoca accesul",
-    "confirmRevoke": "Revoci accesul acestui colaborator? Îl pierde imediat.",
-    "pageTitle": "Colaboratori"
+    "pageTitle": "Colaboratori",
+    "revoked": "Accesul a fost retras pentru {name}.",
+    "invited": "Invitație trimisă la {email}.",
+    "resent": "Invitația a fost retrimisă."
   },
   "wishlistForm": {
     "name": "Denumire",
@@ -1272,7 +1282,11 @@
       "IMPROVEMENT": "Ce funcționează azi, dar ar putea funcționa mai bine, și ce îl face incomod acum?"
     },
     "newMetaTitle": "Deschide o solicitare — RigLog",
-    "backToRoadmap": "← Înapoi la planul de dezvoltare"
+    "backToRoadmap": "← Înapoi la planul de dezvoltare",
+    "vote": "Votează",
+    "unvote": "Retrage votul",
+    "logInToVote": "Autentifică-te ca să votezi",
+    "voteFailed": "Nu am putut înregistra votul."
   },
   "upgrade": {
     "backToSettings": "← Înapoi la setări",
@@ -1430,7 +1444,8 @@
     "next": "Următoarea ›",
     "empty": "Nicio poză încă.",
     "uploadFailed": "Încărcarea a eșuat",
-    "confirmDelete": "Ștergi această poză?"
+    "deleted": "Poză ștearsă.",
+    "deleteFailed": "Nu am putut șterge poza."
   },
   "card": {
     "beforePhoto": "Poză „înainte”",
@@ -1471,7 +1486,8 @@
       "new": "Nou — o lucrare pe vehiculul curent, altfel un vehicul nou",
       "search": "Sari la caseta de căutare din pagină",
       "showList": "Arată această listă",
-      "close": "Închide fereastra"
+      "close": "Închide fereastra",
+      "undo": "Anulează ultima ștergere, cât timp notificarea e afișată"
     },
     "then": "apoi",
     "typingNote": "Scurtăturile sunt ignorate cât timp scrii într-un câmp. Apasă <key></key> oricând ca să revii la această listă."
@@ -2141,5 +2157,17 @@
     "body": "Reîncarcă pentru a o folosi. Ce ai scris pe jumătate se pierde, așa că termină întâi dacă ești în mijlocul a ceva.",
     "reload": "Reîncarcă acum",
     "later": "Mai târziu"
+  },
+  "toast": {
+    "regionLabel": "Notificări",
+    "undo": "Anulează",
+    "dismiss": "Închide"
+  },
+  "follow": {
+    "follow": "Urmărește",
+    "following": "Urmărești",
+    "followers": "{count, plural, one {# urmăritor} few {# urmăritori} other {# de urmăritori}}",
+    "logInToFollow": "Autentifică-te ca să urmărești",
+    "failed": "Nu am putut actualiza urmărirea."
   }
 }

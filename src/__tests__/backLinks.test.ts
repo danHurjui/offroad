@@ -20,7 +20,9 @@ describe('dashboard navigation', () => {
     })
 
   // The garage itself is the top of this tree; the header covers the rest.
-  const isRoot = (file: string) => file === path.join(ROOT, 'page.tsx')
+  // It sits in the `(garage)` route group so its loading skeleton covers
+  // only that page — same URL, /dashboard.
+  const isRoot = (file: string) => file === path.join(ROOT, '(garage)', 'page.tsx')
 
   it.each(pages(ROOT).filter((f) => !isRoot(f)).map((f) => [path.relative(ROOT, f), f]))(
     '%s links back',

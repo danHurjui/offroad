@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { HideWhilePending } from '@/components/Toaster'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
@@ -314,36 +315,39 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
                  chosen. */
               <div className="card divide-y divide-surface-border">
                 {categoryTasks.map((task) => (
-                  <Link
-                    key={task.id}
-                    href={`/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`}
-                    className="flex items-center justify-between gap-3 p-4 hover:bg-surface-muted"
-                  >
-                    <div className="flex items-center gap-2">
-                      {task.workType === 'WORKSHOP' && <span title={t('workshopTask')}>🔧</span>}
-                      {/* addedByUserId is null once the account that added
-                          the task is deleted — the work stays in the log,
-                          the attribution doesn't. */}
-                      {task.addedByUserId !== vehicle.ownerId && (
-                        <AddedByBadge
-                          name={task.addedBy?.displayName ?? null}
-                          removed={
-                            task.addedByUserId === null ||
-                            removedCollaboratorUserIds.has(task.addedByUserId)
-                          }
-                        />
-                      )}
-                      <div>
-                        <div className="font-medium text-ink">{task.name}</div>
-                        <div className="text-xs text-ink-faint">
-                          {new Date(task.date).toLocaleDateString('ro-RO')}
+                  // Hidden while its deletion waits out the undo window
+                  // (RL-034) — the task page sent the owner back here.
+                  <HideWhilePending key={task.id} pendingKey={`task:${task.id}`}>
+                    <Link
+                      href={`/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`}
+                      className="flex items-center justify-between gap-3 p-4 hover:bg-surface-muted"
+                    >
+                      <div className="flex items-center gap-2">
+                        {task.workType === 'WORKSHOP' && <span title={t('workshopTask')}>🔧</span>}
+                        {/* addedByUserId is null once the account that added
+                            the task is deleted — the work stays in the log,
+                            the attribution doesn't. */}
+                        {task.addedByUserId !== vehicle.ownerId && (
+                          <AddedByBadge
+                            name={task.addedBy?.displayName ?? null}
+                            removed={
+                              task.addedByUserId === null ||
+                              removedCollaboratorUserIds.has(task.addedByUserId)
+                            }
+                          />
+                        )}
+                        <div>
+                          <div className="font-medium text-ink">{task.name}</div>
+                          <div className="text-xs text-ink-faint">
+                            {new Date(task.date).toLocaleDateString('ro-RO')}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <span className={statusBadgeClass(config.statusTags, task.status)}>
-                      {labelFor(config.statusTags, task.status)}
-                    </span>
-                  </Link>
+                      <span className={statusBadgeClass(config.statusTags, task.status)}>
+                        {labelFor(config.statusTags, task.status)}
+                      </span>
+                    </Link>
+                  </HideWhilePending>
                 ))}
                 <Link
                   href={`/dashboard/vehicles/${vehicle.id}/tasks/new?category=${categoryValue}`}

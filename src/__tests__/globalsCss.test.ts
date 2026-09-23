@@ -50,6 +50,22 @@ describe('globals.css', () => {
     expect(layer).toMatch(/@apply[^;]*dark:/)
   })
 
+  /**
+   * A layer nested in a media query is still valid CSS, so nothing fails
+   * — every component class just stops applying whenever the query does
+   * not match. That is how "reduce motion" once meant "no buttons".
+   */
+  it('keeps the layer at the top level, not inside another block', () => {
+    const withoutComments = CSS.replace(/\/\*[\s\S]*?\*\//g, '')
+    const at = withoutComments.indexOf('@layer components {')
+    let depth = 0
+    for (const ch of withoutComments.slice(0, at)) {
+      if (ch === '{') depth++
+      else if (ch === '}') depth--
+    }
+    expect(depth).toBe(0)
+  })
+
   it('defines the theme variables outside the layer, where they belong', () => {
     const layerStart = CSS.indexOf('@layer components {')
     const before = CSS.slice(0, layerStart)

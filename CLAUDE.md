@@ -695,6 +695,35 @@ and runs before first paint so there's no white flash; it's a string
 nothing type-checks, so `theme.test.ts` executes it for real (a throw there
 is a blank page, not a wrong colour).
 
+### Write feedback (`src/lib/writeFeedback.ts`, `src/components/Toaster.tsx`, RL-034)
+One toast layer, mounted in `Providers` above every page. Toasts are for
+**action outcomes** (a button, a status change, a removal); `FormError`
+stays for form validation, next to the field `aria-describedby` points at.
+A toast never takes focus.
+
+**Optimistic writes** go through `useOptimisticWrite()` →
+`LatestWinsWriter`: the screen moves first, one request in flight, only the
+latest wish queued behind it, never an automatic retry (the rate limiter
+counts every attempt). A failure rolls back to the last server-confirmed
+value and toasts the reason from the response's `code`
+(`useFailureReason()`). Used for task status, wishlist status and order,
+follow and ticket vote. **Never for a gated action** — a Pro or
+confirmed-address 403 must not look like it succeeded first. That is why
+`TicketVoteButton` only goes optimistic with `mayVote`, which the ticket
+pages compute from `isBlockedAsUnverified()`.
+
+**Destructive actions offer Undo instead of a confirm dialog** (task,
+photo, collaborator, wishlist item): `toast.undoable()` hides the thing at
+once and only sends the request when the window closes, so undo needs no
+restore endpoint. A page closed inside the window still commits
+(`pagehide` + `keepalive`). Anything listing a row another page may be
+deleting wraps it in `HideWhilePending` with the same key (`task:<id>`
+etc.). `u` undoes the newest one (shortcut sheet lists it).
+
+**Skeletons** are `loading.tsx` files, and a `loading.tsx` covers every
+page nested below it — so `/dashboard` and the vehicle page live in the
+`(garage)` / `(overview)` route groups to scope theirs to one page.
+
 ### First run (`src/lib/onboarding.ts`, RL-036)
 A new account's dashboard explains the three modes (from
 `config.description`, via the vocabulary, not hand-written copy) and shows

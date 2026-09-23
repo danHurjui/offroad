@@ -8,6 +8,7 @@ import {
   CHORD_PREFIXES,
   CHORD_TIMEOUT_MS,
   OPEN_SHORTCUTS_EVENT,
+  UNDO_EVENT,
   hasSystemModifier,
   isTypingTarget,
   matchShortcut,
@@ -104,6 +105,11 @@ export default function KeyboardShortcuts() {
       }
       if (key === '/') {
         if (focusSearch()) event.preventDefault()
+        return
+      }
+      if (key === 'u') {
+        event.preventDefault()
+        window.dispatchEvent(new Event(UNDO_EVENT))
         return
       }
       if (key === 'n') {

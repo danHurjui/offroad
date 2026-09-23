@@ -27,6 +27,9 @@ const STATUS_STYLES: Record<CollaboratorRow['status'], string> = {
 // (PENDING or ACTIVE) actions. REMOVED rows stay visible read-only — past
 // collaborators, not deleted.
 import FormError from './FormError'
+import { useToast, usePendingRemoval } from './Toaster'
+import { useFailureReason } from './useOptimisticWrite'
+import { tryFetch } from '@/lib/writeFeedback'
 
 export default function CollaboratorsBoard({
   vehicleId,
@@ -45,6 +48,8 @@ export default function CollaboratorsBoard({
   const t = useTranslations('collaborators')
   const tc = useTranslations('common')
   const [busyId, setBusyId] = useState<string | null>(null)
+  const toast = useToast()
+  const reasonFor = useFailureReason()
 
   async function onInvite(e: React.FormEvent) {
     e.preventDefault()
@@ -63,38 +68,39 @@ export default function CollaboratorsBoard({
     }
     const created = await res.json()
     setCollaborators((prev) => [{ ...created, collaboratorDisplayName: null }, ...prev])
+    toast.success(t('invited', { email }))
     setEmail('')
     setLabel('')
     router.refresh()
   }
 
+  // Outcomes of a button, not of the invite form, so they go to a toast
+  // rather than into the form's own error slot above.
   async function onResend(id: string) {
     setBusyId(id)
-    setError(null)
-    const res = await fetch(`/api/vehicles/${vehicleId}/collaborators/${id}/resend`, { method: 'POST' })
+    const res = await tryFetch(`/api/vehicles/${vehicleId}/collaborators/${id}/resend`, { method: 'POST' })
     setBusyId(null)
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error ?? t('resendFailed'))
+    if (!res?.ok) {
+      toast.error(await reasonFor(res, t('resendFailed')))
       return
     }
     const updated = await res.json()
     setCollaborators((prev) => prev.map((c) => (c.id === id ? { ...c, ...updated } : c)))
+    toast.success(t('resent'))
   }
 
-  async function onRevoke(id: string) {
-    if (!confirm(t('confirmRevoke'))) return
-    setBusyId(id)
-    setError(null)
-    const res = await fetch(`/api/vehicles/${vehicleId}/collaborators/${id}`, { method: 'DELETE' })
-    setBusyId(null)
-    if (!res.ok) {
-      const data = await res.json()
-      setError(data.error ?? t('revokeFailed'))
-      return
-    }
-    setCollaborators((prev) => prev.map((c) => (c.id === id ? { ...c, status: 'REMOVED' } : c)))
-    router.refresh()
+  // RL-034: shown as removed at once, revoked when the undo window closes.
+  function onRevoke(c: CollaboratorRow) {
+    toast.undoable({
+      key: `collaborator:${c.id}`,
+      message: t('revoked', { name: c.collaboratorDisplayName ?? c.label ?? c.email }),
+      request: { url: `/api/vehicles/${vehicleId}/collaborators/${c.id}`, method: 'DELETE' },
+      onCommitted: () => {
+        setCollaborators((prev) => prev.map((row) => (row.id === c.id ? { ...row, status: 'REMOVED' } : row)))
+        router.refresh()
+      },
+      onFailed: async (res) => toast.error(await reasonFor(res, t('revokeFailed'))),
+    })
   }
 
   return (
@@ -149,50 +155,79 @@ export default function CollaboratorsBoard({
       <div className="space-y-3">
         {collaborators.length === 0 && <p className="text-sm text-ink-faint">{t('empty')}</p>}
         {collaborators.map((c) => (
-          <div key={c.id} className="card flex flex-wrap items-center justify-between gap-3 p-4">
-            <div>
-              <p className="font-medium text-ink">
-                {c.collaboratorDisplayName ?? c.label ?? c.email}
-                <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[c.status]}`}>
-                  {t(`status.${c.status}`)}
-                </span>
-              </p>
-              <p className="text-sm text-ink-muted">
-                {c.email} · {c.role === 'SPECIALIST' ? t('specialist') : t('mechanic')}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              {c.collaboratorUserId && (
-                <Link
-                  href={`/dashboard/vehicles/${vehicleId}/job-report?collaboratorId=${c.collaboratorUserId}`}
-                  className="btn-secondary"
-                >
-                  {t('jobReport')}
-                </Link>
-              )}
-              {c.status !== 'REMOVED' && (
-                <>
-                  {c.status === 'PENDING' && (
-                    <button
-                      className="btn-secondary"
-                      disabled={busyId === c.id}
-                      onClick={() => onResend(c.id)}
-                    >
-                      {t('resend')}
-                    </button>
-                  )}
-                  <button
-                    className="btn-secondary text-red-600 dark:text-red-400"
-                    disabled={busyId === c.id}
-                    onClick={() => onRevoke(c.id)}
-                  >
-                    {t('revoke')}
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+          <CollaboratorCard
+            key={c.id}
+            vehicleId={vehicleId}
+            collaborator={c}
+            busy={busyId === c.id}
+            onResend={() => onResend(c.id)}
+            onRevoke={() => onRevoke(c)}
+          />
         ))}
+      </div>
+    </div>
+  )
+}
+
+/** While a revoke waits out its undo window it already reads as removed. */
+function CollaboratorCard({
+  vehicleId,
+  collaborator,
+  busy,
+  onResend,
+  onRevoke,
+}: {
+  vehicleId: string
+  collaborator: CollaboratorRow
+  busy: boolean
+  onResend: () => void
+  onRevoke: () => void
+}) {
+  const t = useTranslations('collaborators')
+  const revoking = usePendingRemoval(`collaborator:${collaborator.id}`)
+  const c: CollaboratorRow = revoking ? { ...collaborator, status: 'REMOVED' } : collaborator
+  return (
+    <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
+      <div>
+        <p className="font-medium text-ink">
+          {c.collaboratorDisplayName ?? c.label ?? c.email}
+          <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[c.status]}`}>
+            {t(`status.${c.status}`)}
+          </span>
+        </p>
+        <p className="text-sm text-ink-muted">
+          {c.email} · {c.role === 'SPECIALIST' ? t('specialist') : t('mechanic')}
+        </p>
+      </div>
+      <div className="flex gap-2">
+        {c.collaboratorUserId && (
+          <Link
+            href={`/dashboard/vehicles/${vehicleId}/job-report?collaboratorId=${c.collaboratorUserId}`}
+            className="btn-secondary"
+          >
+            {t('jobReport')}
+          </Link>
+        )}
+        {c.status !== 'REMOVED' && (
+          <>
+            {c.status === 'PENDING' && (
+              <button
+                className="btn-secondary"
+                disabled={busy}
+                onClick={onResend}
+              >
+                {t('resend')}
+              </button>
+            )}
+            <button
+              className="btn-secondary text-red-600 dark:text-red-400"
+              disabled={busy}
+              onClick={onRevoke}
+            >
+              {t('revoke')}
+            </button>
+          </>
+        )}
       </div>
     </div>
   )

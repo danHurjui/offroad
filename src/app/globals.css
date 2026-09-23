@@ -54,18 +54,23 @@ body {
   body,
   .card,
   .input,
-  /*
+  .btn {
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
+}
+
+/*
  * These must live inside `@layer components`. Outside a layer, Tailwind
  * silently drops any variant used inside `@apply` — the `dark:` halves of
  * every badge and note below compiled to nothing, so they kept their light
  * palette on a dark surface and no error was raised anywhere.
+ *
+ * And the layer must sit at the top level of this file. A merge once
+ * spliced this comment into the middle of the reduced-motion rule above,
+ * which left every button, card, input and badge inside that media query
+ * — so anyone with "reduce motion" switched on got none of them.
  */
 @layer components {
-  .btn {
-      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
-    }
-  }
-
   .btn {
     @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
     /* Every interactive control gets a visible keyboard focus ring — the
@@ -151,5 +156,30 @@ body {
 
   kbd {
     @apply rounded border border-surface-border bg-surface-subtle px-1.5 py-0.5 font-mono text-xs text-ink-muted;
+  }
+
+  /* RL-034 toasts (src/components/Toaster.tsx). The plain toast is an
+     inverted surface so it reads as "the app speaking" over any page; the
+     error and success variants are tints named by meaning, like badges. */
+  .toast {
+    @apply flex w-full max-w-sm items-center gap-3 rounded-xl border border-ink/10 bg-ink px-4 py-3 text-surface shadow-panel dark:border-surface-border dark:bg-surface-subtle dark:text-ink;
+  }
+  .toast-error {
+    @apply border-red-200 bg-red-50 text-red-800 dark:border-red-400/30 dark:bg-red-950 dark:text-red-200;
+  }
+  .toast-success {
+    @apply border-green-200 bg-green-50 text-green-800 dark:border-green-400/30 dark:bg-green-950 dark:text-green-200;
+  }
+  .toast-action {
+    @apply shrink-0 rounded-md px-2 py-1 text-sm font-semibold underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400;
+  }
+  .toast-close {
+    @apply shrink-0 rounded-md px-1.5 text-lg leading-none opacity-70 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400;
+  }
+
+  /* RL-034 skeletons: the shape of what is coming, while a Server
+     Component streams. Pulses only when motion is welcome. */
+  .skeleton {
+    @apply rounded-md bg-surface-subtle motion-safe:animate-pulse dark:bg-surface-border;
   }
 }
