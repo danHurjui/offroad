@@ -190,6 +190,7 @@ model User {
   fuelEntries          FuelEntry[]           @relation("FuelEntryBy")
   tyreSets             TyreSet[]             @relation("TyreSetBy")
   vehicleExpenses      VehicleExpense[]      @relation("VehicleExpenseBy")
+  accidents            Accident[]            @relation("AccidentBy")
   ticketVotes          TicketVote[]
   ticketComments       TicketComment[]
   donations            Donation[]
@@ -412,6 +413,7 @@ model Vehicle {
   tyreSets      TyreSet[]
   expenses      VehicleExpense[]
   passportLinks PassportLink[]
+  accidents     Accident[]
 
   @@unique([ownerId, slug])
   @@index([ownerId])
@@ -1033,4 +1035,51 @@ model PassportLink {
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
   @@index([vehicleId])
+}
+
+/// RL-050 accidents and damage (slice 8 of #49, src/lib/accidents.ts). What
+/// happened, as the owner records it: a collision, a parking scrape, hail.
+/// The passport lists these as records, and with none it says "none
+/// recorded in RigLog", never that the vehicle has had none.
+model Accident {
+  id              String    @id @default(cuid())
+  vehicleId       String
+  /// The day it happened, stored at 00:00 UTC.
+  date            DateTime
+  /// An ACCIDENT_KINDS code.
+  kind            String
+  description     String
+  /// The odometer at the time, if known. Not an OdometerReading: damage
+  /// found later has a guessed date, which must not bound the history.
+  km              Int?
+  /// An INSURANCE_ROUTES code (NONE | RCA | CASCO); null means not recorded.
+  insurance       String?
+  /// What the repair cost, as the owner knows it. Not in the cost of
+  /// ownership: the repair is a job, and jobs already count (MONEY_COLUMNS).
+  repairCostRon   Decimal?  @db.Decimal(10, 2)
+  /// When it was repaired; null means not repaired, or not recorded.
+  repairedAt      DateTime?
+  createdByUserId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  vehicle   Vehicle         @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdBy User?           @relation("AccidentBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  photos    AccidentPhoto[]
+
+  @@index([vehicleId, date])
+  @@index([createdByUserId])
+}
+
+/// A photo of the damage or the repair. `url` is a storage key under the
+/// vehicle owner's prefix, listed in collectStorageKeys() (pitfall #14).
+model AccidentPhoto {
+  id         String   @id @default(cuid())
+  accidentId String
+  url        String
+  createdAt  DateTime @default(now())
+
+  accident Accident @relation(fields: [accidentId], references: [id], onDelete: Cascade)
+
+  @@index([accidentId])
 }

@@ -9,9 +9,10 @@
  *   own records and says so in its heading (the catalogue's `passport.what`),
  *   not in a footnote.
  * - **Every absence is an absence of records.** Nothing here can say "no
- *   accidents" or "no problems": only "no … recorded in RigLog". Accidents
- *   are not tracked at all yet, and the passport says exactly that rather
- *   than implying a clean record (`absences` always carries it).
+ *   accidents" or "no problems": only "no … recorded in RigLog". With no
+ *   accident records, `absences` says exactly that; with some, they are
+ *   listed as the owner's own account of what happened, never as the whole
+ *   story.
  * - **Gaps are shown as gaps.** A stretch of a year or more with no job,
  *   reading or fill-up is listed, so a history that looks complete because
  *   nothing was logged cannot pass as complete.
@@ -63,6 +64,35 @@ export interface PassportInput {
   fuelDates: Date[]
   documents: Array<{ type: string; expiryDate: Date }>
   tyreSets: Array<{ season: string; label: string | null; isFitted: boolean; dotYear: number | null }>
+  accidents: AccidentInput[]
+}
+
+export interface AccidentInput {
+  date: Date
+  kind: string
+  description: string
+  km: number | null
+  insurance: string | null
+  repairedAt: Date | null
+  repairCostRon: number | null
+  photoCount: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface AccidentRow {
+  date: Date
+  kind: string
+  description: string
+  km: number | null
+  insurance: string | null
+  repairedAt: Date | null
+  /** Null unless the owner chose to show costs on this link. */
+  repairCost: number | null
+  photoCount: number
+  /** When the record was typed in, and last changed if a day or more later. */
+  recordedAt: Date
+  changedAt: Date | null
 }
 
 export interface Passport {
@@ -81,6 +111,8 @@ export interface Passport {
   documents: Array<{ type: string; expiryDate: Date; status: DocumentStatus }>
   tyres: { count: number; fitted: { season: string; label: string | null; dotYear: number | null } | null }
   gaps: Array<{ from: Date; to: Date; days: number }>
+  /** Accidents and damage as the owner recorded them, oldest first. */
+  accidents: AccidentRow[]
   /** What is not in the records, each phrased as an absence of records. */
   absences: Message[]
 }
@@ -117,9 +149,8 @@ export function buildPassport(input: PassportInput): Passport {
   if (readings.length === 0) absences.push({ key: 'absence.noMileage' })
   if (input.documents.length === 0) absences.push({ key: 'absence.noDocuments' })
   if (input.projectType !== 'RESTORATION' && input.tyreSets.length === 0) absences.push({ key: 'absence.noTyres' })
-  // Always: RigLog has nowhere to record an accident yet, so the passport
-  // can say nothing about one either way — and must say that it cannot.
-  absences.push({ key: 'absence.accidentsNotTracked' })
+  // None recorded is not the same as none happened, and it says so.
+  if (input.accidents.length === 0) absences.push({ key: 'absence.noAccidentsRecorded' })
 
   const fitted = input.tyreSets.find((s) => s.isFitted) ?? null
 
@@ -147,6 +178,20 @@ export function buildPassport(input: PassportInput): Passport {
       fitted: fitted ? { season: fitted.season, label: fitted.label, dotYear: fitted.dotYear } : null,
     },
     gaps: recordGaps(activity, from, now),
+    accidents: [...input.accidents]
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
+      .map((a) => ({
+        date: a.date,
+        kind: a.kind,
+        description: a.description,
+        km: a.km,
+        insurance: a.insurance,
+        repairedAt: a.repairedAt,
+        repairCost: options.showCosts ? a.repairCostRon : null,
+        photoCount: a.photoCount,
+        recordedAt: a.createdAt,
+        changedAt: a.updatedAt.getTime() - a.createdAt.getTime() > DAY_MS ? a.updatedAt : null,
+      })),
     absences,
   }
 }

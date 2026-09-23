@@ -60,6 +60,7 @@ export const MONEY_COLUMNS: Record<string, CostSource | { excluded: string }> = 
   'WishlistItem.estimatedCostRon': { excluded: 'planned, not spent — it counts once it becomes a job' },
   'WishlistItem.targetPriceRon': { excluded: 'a price the owner hopes to pay' },
   'WishlistPriceEntry.priceRon': { excluded: 'a price seen on a listing, not paid' },
+  'Accident.repairCostRon': { excluded: 'the repair is logged as a job, which is already counted; this is what the owner noted on the accident' },
   'Donation.amountBani': { excluded: 'given to RigLog, not spent on a vehicle' },
 }
 
@@ -422,6 +423,10 @@ function pastDay(value: unknown, now: Date): Date | null | false {
   if (startOfDayUtc(date) > startOfDayUtc(now)) return false
   return startOfDayUtc(date)
 }
+
+// Shared with the other money forms (accidents.ts) so a RON amount and a
+// past day mean the same thing everywhere.
+export { amount as parseAmountRon, pastDay as parsePastDay }
 
 function anyDay(value: unknown): Date | null | false {
   if (blank(value)) return null

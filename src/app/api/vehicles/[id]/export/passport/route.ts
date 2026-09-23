@@ -33,6 +33,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const t = await translator(locale, 'passport')
     const th = await translator(locale, 'health')
     const tt = await translator(locale, 'tyres')
+    const ta = await translator(locale, 'accidents')
     const config = translateConfig(vehicle.projectType, await translator(locale, 'vocab'))
     const active = await prisma.passportLink.findFirst({ where: { vehicleId: vehicle.id, revokedAt: null }, orderBy: { createdAt: 'desc' } })
     const now = new Date()
@@ -86,6 +87,23 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
           : p.tyres.count === 0
             ? t('absence.noTyres')
             : `${t('tyresTitle')}: ${t('tyreSets', { count: p.tyres.count })}${p.tyres.fitted ? ` · ${t('fitted', { season: tt(`season.${p.tyres.fitted.season}`), label: p.tyres.fitted.label ?? '', dot: p.tyres.fitted.dotYear ?? '' })}` : ''}`,
+      accidentsTitle: t('accidentsTitle'),
+      accidentsNote: t('accidentsNote'),
+      accidents: p.accidents.map((a) => ({
+        heading: [date(a.date), a.km !== null ? km(a.km) : null, ta(`kind.${a.kind}`)].filter(Boolean).join('  ·  '),
+        description: a.description,
+        detail: [
+          a.insurance && t(`accidentInsurance.${a.insurance}`),
+          a.repairedAt ? t('accidentRepaired', { date: date(a.repairedAt) }) : t('accidentNotRepaired'),
+          a.repairCost !== null && t('accidentCost', { amount: `${a.repairCost.toLocaleString('ro-RO', { maximumFractionDigits: 2 })} RON` }),
+          a.photoCount > 0 && t('accidentPhotos', { count: a.photoCount }),
+          t('recordedOn', { date: date(a.recordedAt) }),
+          a.changedAt && t('changedOn', { date: date(a.changedAt) }),
+        ]
+          .filter(Boolean)
+          .join('  ·  '),
+      })),
+      noAccidents: t('absence.noAccidentsRecorded'),
       footer: t('footerPdf', { date: date(now) }),
     })
 

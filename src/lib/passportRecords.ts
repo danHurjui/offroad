@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto'
 import type { Vehicle } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
+import { toNumberOrNull } from '@/lib/serialize'
 import { loadServiceBook } from '@/lib/serviceBookRecords'
 import { buildPassport, type Passport, type PassportOptions } from '@/lib/passport'
 
@@ -27,7 +28,7 @@ export interface PassportView {
  */
 export async function loadPassport(vehicle: Vehicle, options: PassportOptions, now: Date = new Date()): Promise<PassportView> {
   const completeStatus = PROJECT_TYPE_CONFIG[vehicle.projectType].completeStatus
-  const [book, readings, fuel, documents, tyreSets, owner, photos] = await Promise.all([
+  const [book, readings, fuel, documents, tyreSets, accidents, owner, photos] = await Promise.all([
     loadServiceBook(vehicle.id, completeStatus),
     prisma.odometerReading.findMany({
       where: { vehicleId: vehicle.id },
@@ -36,6 +37,8 @@ export async function loadPassport(vehicle: Vehicle, options: PassportOptions, n
     prisma.fuelEntry.findMany({ where: { vehicleId: vehicle.id }, select: { date: true } }),
     prisma.document.findMany({ where: { vehicleId: vehicle.id }, select: { type: true, expiryDate: true } }),
     prisma.tyreSet.findMany({ where: { vehicleId: vehicle.id }, select: { season: true, label: true, isFitted: true, dotYear: true } }),
+    // Photos are counted, never shown: they stay behind the owner's session.
+    prisma.accident.findMany({ where: { vehicleId: vehicle.id }, include: { _count: { select: { photos: true } } } }),
     vehicle.isPublic ? prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { username: true } }) : Promise.resolve(null),
     vehicle.isPublic
       ? prisma.taskPhoto.findMany({
@@ -57,6 +60,18 @@ export async function loadPassport(vehicle: Vehicle, options: PassportOptions, n
     fuelDates: fuel.map((f) => f.date),
     documents,
     tyreSets,
+    accidents: accidents.map((a) => ({
+      date: a.date,
+      kind: a.kind,
+      description: a.description,
+      km: a.km,
+      insurance: a.insurance,
+      repairedAt: a.repairedAt,
+      repairCostRon: toNumberOrNull(a.repairCostRon),
+      photoCount: a._count.photos,
+      createdAt: a.createdAt,
+      updatedAt: a.updatedAt,
+    })),
   })
 
   return {

@@ -27,6 +27,7 @@ export default async function PassportDocument({
   const t = await getTranslations('passport')
   const th = await getTranslations('health')
   const tt = await getTranslations('tyres')
+  const ta = await getTranslations('accidents')
   const config = await getVocabulary(projectType)
   const { passport: p, photos, publicUrl } = view
   const say = (m: Message) => t(m.key, m.values ?? {})
@@ -168,6 +169,44 @@ export default async function PassportDocument({
               </p>
             )}
           </div>
+        )}
+      </section>
+
+      <section aria-labelledby="passport-accidents">
+        <h2 id="passport-accidents" className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">
+          {t('accidentsTitle')}
+          {ownerTag}
+        </h2>
+        <p className="mb-2 text-xs text-ink-faint">{t('accidentsNote')}</p>
+        {p.accidents.length === 0 ? (
+          <p className="card p-6 text-center text-ink-muted">{t('absence.noAccidentsRecorded')}</p>
+        ) : (
+          <ol className="card divide-y divide-surface-border">
+            {p.accidents.map((a, i) => (
+              <li key={`${a.date.toISOString()}-${i}`} className="space-y-1 p-4">
+                <div className="text-sm text-ink-muted">
+                  {fmtDate(a.date)}
+                  {a.km !== null && ` · ${km(a.km)}`}
+                </div>
+                <div className="font-semibold text-ink">{ta(`kind.${a.kind}`)}</div>
+                <p className="whitespace-pre-line text-sm text-ink">{a.description}</p>
+                <div className="text-sm text-ink-muted">
+                  {[
+                    a.insurance && t(`accidentInsurance.${a.insurance}`),
+                    a.repairedAt ? t('accidentRepaired', { date: fmtDate(a.repairedAt) }) : t('accidentNotRepaired'),
+                    a.repairCost !== null && t('accidentCost', { amount: money(a.repairCost) }),
+                    a.photoCount > 0 && t('accidentPhotos', { count: a.photoCount }),
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </div>
+                <div className="text-xs text-ink-faint">
+                  {t('recordedOn', { date: fmtDate(a.recordedAt) })}
+                  {a.changedAt && ` · ${t('changedOn', { date: fmtDate(a.changedAt) })}`}
+                </div>
+              </li>
+            ))}
+          </ol>
         )}
       </section>
 
