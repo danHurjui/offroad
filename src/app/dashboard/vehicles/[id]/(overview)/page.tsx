@@ -17,6 +17,7 @@ import OdometerQuickAdd from '@/components/OdometerQuickAdd'
 import VehicleHealthPanel from '@/components/VehicleHealthPanel'
 import { computeHealth } from '@/lib/vehicleHealth'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
+import DriverPanel from '@/components/DriverPanel'
 
 // RL-003: project dashboard — build overview screen.
 export default async function VehicleDashboardPage({ params }: { params: { id: string } }) {
@@ -141,6 +142,9 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       <Link href="/dashboard" className="mb-4 inline-block text-sm text-brand-600 dark:text-brand-300 hover:underline">
         {tc('backTo', { screen: td('title') })}
       </Link>
+      {vehicle.access === 'driver' && (
+        <DriverPanel vehicleId={vehicle.id} projectType={vehicle.projectType} driverUserId={session.user.id} />
+      )}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <span className="badge badge-brand">{config.label}</span>

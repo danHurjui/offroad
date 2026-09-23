@@ -31,7 +31,7 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     ? { vehicleId, vehicle: { ownerId: userId } }
     : { vehicle: { ownerId: userId } }
 
-  const [user, vehicles, tasks, taskPhotos, foundStatePhotos, waypoints, documents, fuelEntries, accidentPhotos] = await Promise.all([
+  const [user, vehicles, tasks, taskPhotos, foundStatePhotos, waypoints, documents, fuelEntries, accidentPhotos, handoverPhotos] = await Promise.all([
     // A user's avatar isn't tied to a vehicle, so it's skipped when the
     // caller only wants one vehicle's files.
     vehicleId ? null : prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } }),
@@ -51,6 +51,8 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     prisma.fuelEntry.findMany({ where: { ...underVehicle, receiptUrl: { not: null } }, select: { receiptUrl: true } }),
     // RL-050: photos of accidents and damage.
     prisma.accidentPhoto.findMany({ where: { accident: underVehicle }, select: { url: true } }),
+    // RL-040: condition photos at a driver handover.
+    prisma.assignmentPhoto.findMany({ where: { assignment: underVehicle }, select: { url: true } }),
   ])
 
   const keys = [
@@ -63,6 +65,7 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     ...documents.map((d) => d.fileUrl),
     ...fuelEntries.map((f) => f.receiptUrl),
     ...accidentPhotos.map((p) => p.url),
+    ...handoverPhotos.map((p) => p.url),
   ]
 
   // De-duplicated: the same key can legitimately appear twice (a cover

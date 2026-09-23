@@ -1079,7 +1079,8 @@
     "price": "Price (optional)",
     "paid": "Paid {amount} RON on {date}",
     "noPrice": "No price recorded",
-    "renewPrice": "Price paid"
+    "renewPrice": "Price paid",
+    "driverNone": "No documents recorded for this vehicle yet."
   },
   "wishlist": {
     "markAsFitted": "Mark as fitted",
@@ -2120,7 +2121,10 @@
     "orgDeleteConfirm": "Type the organisation’s name exactly to delete it with its {count, plural, one {# vehicle} other {# vehicles}}.",
     "assignDriverOnly": "A vehicle can only be assigned to a driver of its organisation.",
     "vehicleAlreadyAssigned": "This vehicle already has a driver. End that assignment first.",
-    "assignmentAlreadyEnded": "This assignment has already ended."
+    "assignmentAlreadyEnded": "This assignment has already ended.",
+    "handoverStageInvalid": "Say whether the photo is from taking the vehicle or handing it back.",
+    "handoverPhotoLimit": "Each end of a handover can hold up to {limit} photos.",
+    "handoverStartRecorded": "The start of this handover is already on the record, or the assignment has ended."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2322,7 +2326,8 @@
       "MANUAL": "Entered by hand",
       "TASK": "Logged with a job",
       "FOUND_STATE": "At acquisition",
-      "FUEL": "At a fill-up"
+      "FUEL": "At a fill-up",
+      "HANDOVER": "At a driver handover"
     },
     "deleted": "Removed the {km} km reading.",
     "deleteFailed": "Couldn’t remove the reading.",
@@ -2924,6 +2929,50 @@
     "endFailed": "Could not end the assignment.",
     "history": "History",
     "noHistory": "Nobody has been assigned to this vehicle yet.",
-    "ongoing": "now"
+    "ongoing": "now",
+    "startKm": "Odometer now (optional)",
+    "startKmHelp": "If you know it. Otherwise the driver records it when they take the vehicle.",
+    "kmRange": "{start} → {end}",
+    "photoStart": "Condition when taken",
+    "photoEnd": "Condition when handed back"
+  },
+  "defect": {
+    "title": "Report a defect",
+    "intro": "Something wrong with the vehicle? Say what, add a photo, and it goes on its log as a job that needs attention — the fleet manager sees it on their garage.",
+    "what": "What’s wrong",
+    "whatPlaceholder": "e.g. Brake warning light on",
+    "details": "Details (optional)",
+    "photo": "Photo (optional)",
+    "submit": "Send report",
+    "sending": "Sending…",
+    "reported": "Defect reported.",
+    "failed": "Could not send the report.",
+    "photoFailed": "The report was saved, but the photo could not be added."
+  },
+  "handover": {
+    "km": "Odometer (km)",
+    "photos": "Condition photos (up to {limit})",
+    "photosChosen": "{count, plural, one {# photo chosen} other {# photos chosen}}",
+    "submitStart": "Record the start",
+    "submitEnd": "Hand the vehicle back",
+    "saving": "Saving…",
+    "started": "Start of the handover recorded.",
+    "ended": "Vehicle handed back.",
+    "failed": "Could not record the handover.",
+    "photoFailed": "A photo could not be uploaded; nothing else was saved.",
+    "confirmEnd": "Hand the vehicle back now? You lose access to it straight away."
+  },
+  "driverPanel": {
+    "title": "You’re driving this vehicle",
+    "since": "Assigned to you since {date}",
+    "report": "Report a defect",
+    "fuel": "Log fuel",
+    "expense": "Add a toll or cost",
+    "km": "Record km",
+    "documents": "Documents",
+    "startTitle": "Taking the vehicle",
+    "startHelp": "Record the odometer and a few photos of its condition as you take it, so both ends of the handover are on the record.",
+    "endTitle": "Hand the vehicle back",
+    "endHelp": "The odometer and condition photos as you hand it back. Photos are saved first; ending the assignment removes your access."
   }
 }
