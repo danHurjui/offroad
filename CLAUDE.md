@@ -738,8 +738,9 @@ Deleting a fill-up (or a job) deletes the reading it created and its files.
 Receipts are filed under the vehicle **owner's** prefix whoever uploads them,
 and are listed in `collectStorageKeys()`.
 
-### Scanning a receipt (`src/lib/ocr.ts`, `src/lib/receiptParse.ts`, RL-048 — slice 1)
-Tesseract.js (Apache-2.0), **run in the browser**, on the fuel form. The
+### Scanning receipts and invoices (`src/lib/ocr.ts`, `ocrText.ts`, `receiptParse.ts`, `invoiceParse.ts`, RL-048)
+Tesseract.js (Apache-2.0), **run in the browser**, on the fuel form (a fuel
+receipt) and the new-job form (a service invoice). The
 photo is read on the device and never sent anywhere to be read, so there is
 no OCR sub-processor and no per-scan cost; the model is cached in IndexedDB
 (listed in `LOCAL_STORAGE_ENTRIES`). It is Pro — the account of record's
@@ -758,17 +759,22 @@ is nothing on the server to meter.
   missing figure is never derived from the others. A scan that reads
   nothing says so and leaves the photo attached.
 - **The photo is cleaned first** (`receiptImage.ts`, pure): the lighting is
-  flattened — each pixel divided by the local paper brightness (per-cell
-  90th percentile, 3×3 median, light blur) — then contrast-stretched. A
-  global stretch alone fails a hand's shadow, a dark counter and faded
-  print; a neighbourhood *maximum* bleeds the lit side into the shadow.
-  Never thresholded (Tesseract binarises per region). Small text is
-  upscaled up to 2× towards 2000px.
-- **Two looks, merged conservatively** (`scanFuelReceipt()`): sparse text
-  first; only if date, litres or total isn't confirmed, single-block on the
-  same loaded engine. `mergeProposals()` takes litres/price/total as a
-  group from the reading that verified more, and a field the two read
-  differently is unsure.
+  flattened — each pixel divided by its cell's 90th-percentile brightness
+  (cells 1/60 of the page, bilinear between them) — then contrast-stretched.
+  A global stretch alone fails a hand's shadow, a dark counter and faded
+  print. **Don't smooth the estimate across cells** (max, median or mean):
+  each carries the paper's brightness out over its surroundings, leaving a
+  dark band along the receipt's edge that Tesseract drops the first letters
+  of each line with ("SERVICE" → "VICE"). Also tried and measured worse:
+  whitening above an Otsu cut (erases faded print) and erasing table rules
+  (anti-aliased remnants lower the digits' confidence). Never thresholded.
+  Small text is upscaled up to 2× towards 2000px.
+- **Two looks, merged conservatively** (`scan()` in `ocr.ts`): sparse text
+  first; only if what the form needs isn't confirmed, single-block on the
+  same loaded engine. The merge takes the money fields as a group from the
+  reading that verified more, and a field the two read differently is
+  unsure. Shared reading helpers (confidence per value, numbers, dates,
+  row rebuilding) live in `ocrText.ts`.
 - **Rows are rebuilt from geometry** (`mergeSplitRows()`): Tesseract returns
   "TOTAL LEI" and its right-aligned "233,32" as separate lines; fragments
   side by side whose baselines meet (along their slope, so tilted photos
@@ -783,9 +789,39 @@ is nothing on the server to meter.
   and the chains ("OMV PETROM MARKETING" is printed by both OMV and Petrom,
   so it names neither). On a bench of 5 chain layouts × 7 damage kinds
   (shadow, dim, noise, tilt, faded, far) rendered in Chromium it reads
-  170/175 fields right and none wrong; real crumpled receipts are still the
+  171/175 fields right and none wrong; real crumpled receipts are still the
   open question — add a failing one's OCR lines as a test case.
-- Service invoices (slice 2) are not built.
+
+**Service invoices** (slice 2, `invoiceParse.ts`) propose a workshop job:
+workshop, date, km, invoice number, parts and labour. The invoice is
+attached to the job as its receipt once the job is saved.
+- **Money only when the lines add up** to the amount to pay ("de plată"):
+  each row is read as gross (last figure) or net + VAT (last two), and the
+  reading that reaches the total is used; one doubtful figure, or neither
+  reading adding up, proposes no parts/labour at all (the total is shown
+  in the flag). An invoice that prints VAT only in its footer gets no
+  split — spreading it by a rate would be a figure the app made up. A
+  footer that prints its own "total piese / total manoperă" is used when
+  those add up.
+- Parts vs labour is per line, from its wording or an hours unit; every
+  line goes into the notes with its amount and kind, so the split is
+  checked against the paper before saving.
+- Rows: a cell that wrapped comes back as two fragments; neighbours each
+  short of the table's usual number of figures, together exactly that many,
+  are joined (columns back in page order; a wrapped receipt line keeps
+  reading order), and a description-only line joins the nearer row. A line
+  before the first row counts only if numbered — otherwise it is the
+  header's second line ("serviciu" would read as labour). The sum check
+  still has to pass, so a wrong join can only fail, not propose.
+- The workshop is the supplier ("Furnizor"), never the customer — on a
+  company car that is the reader's own company. The due date
+  ("Scadență") is skipped even on the issue date's line; a km figure that
+  runs into more digits is not taken.
+- Bench: 4 layouts (VAT table, a wrapped brake table, a workshop receipt, a
+  footer summary) × 6 damage kinds: 83/114 fields right, none wrong. Table
+  invoices read fully when clean; under damage the grid lines touch the
+  figures and the split falls back to unsure — safe, but that is the next
+  thing to improve with real photos.
 
 ### Car Health (`src/lib/vehicleHealth.ts`, RL-046 — slice 4) and tyres (`src/lib/tyres.ts`)
 `computeHealth()` is pure and returns rows (documents per type, service,

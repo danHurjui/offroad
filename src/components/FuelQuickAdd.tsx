@@ -9,6 +9,7 @@ import { readAnything, type FieldState } from '@/lib/receiptParse'
 import type { ScanProgress } from '@/lib/ocr'
 import { tryFetch } from '@/lib/writeFeedback'
 import FormError from './FormError'
+import { ScanButton, ScanFlag } from './ScanButton'
 import MoneyInput from './MoneyInput'
 import { useToast } from './Toaster'
 import { useFailureReason } from './useOptimisticWrite'
@@ -102,11 +103,7 @@ export default function FuelQuickAdd({
   /** The flag under a field the scan could not read with confidence. */
   function unsureNote(field: ScanField, value: string) {
     if (scanStates[field] !== 'unsure' || value !== '') return null
-    return (
-      <p id={`fuel-${field}-unsure`} className="note-warn mt-1 rounded border px-2 py-1 text-xs text-ink">
-        {t('scanUnsure')}
-      </p>
-    )
+    return <ScanFlag id={`fuel-${field}-unsure`}>{t('scanUnsure')}</ScanFlag>
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -147,25 +144,15 @@ export default function FuelQuickAdd({
     <form onSubmit={onSubmit} className="space-y-3">
       {canScan && (
         <div>
-          <label className="btn-secondary inline-flex cursor-pointer items-center focus-within:ring-2 focus-within:ring-brand-500">
-            {scanProgress === null
-              ? t('scan')
-              : t(scanProgress.pass === 1 ? 'scanning' : 'scanningAgain', { percent: Math.round(scanProgress.fraction * 100) })}
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="sr-only"
-              aria-describedby="fuel-scan-help"
-              disabled={scanProgress !== null}
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                e.target.value = ''
-                if (file) void onScan(file)
-              }}
-            />
-          </label>
-          <p id="fuel-scan-help" className="mt-1 text-xs text-ink-faint">{t('scanHelp')}</p>
+          <ScanButton
+            idle={t('scan')}
+            reading={(percent) => t('scanning', { percent })}
+            readingAgain={(percent) => t('scanningAgain', { percent })}
+            help={t('scanHelp')}
+            helpId="fuel-scan-help"
+            progress={scanProgress}
+            onFile={(file) => void onScan(file)}
+          />
           <div aria-live="polite">
             {scanOutcome === 'read' && <p className="note-warn mt-2 rounded-lg border p-3 text-sm">{t('scanRead')}</p>}
             {scanOutcome === 'failed' && <p className="note-warn mt-2 rounded-lg border p-3 text-sm">{t('scanFailed')}</p>}
@@ -234,7 +221,7 @@ export default function FuelQuickAdd({
           <div className="min-w-0">
             <label className="label" htmlFor="fuel-date">{t('date')}</label>
             <input id="fuel-date" type="date" required max={todayLocal()} className="input" value={date} onChange={(e) => setDate(e.target.value)} />
-            {scanStates.date === 'unsure' && <p className="note-warn mt-1 rounded border px-2 py-1 text-xs text-ink">{t('scanUnsureDate')}</p>}
+            {scanStates.date === 'unsure' && <ScanFlag id="fuel-date-unsure">{t('scanUnsureDate')}</ScanFlag>}
           </div>
           <div className="min-w-0">
             <label className="label" htmlFor="fuel-station">{t('station')}</label>

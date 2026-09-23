@@ -47,11 +47,17 @@ describe('flattenLighting', () => {
     expect(at(raw, 40 + PAPER.x, PAPER.y)).toBeLessThan(at(raw, 296 + INK.x, INK.y))
   })
 
-  it('an all-ink cell (a bold logo) does not wash out: it borrows its neighbours’ paper', () => {
-    const img = receipt(() => 220)
-    for (let y = 40; y < 60; y++) for (let x = 200; x < 220; x++) img[y * W + x] = 30
+  it('leaves no dark band where the receipt meets a brighter surround', () => {
+    // A shadowed receipt (paper 70) on a lit counter (150): smoothing the
+    // estimate across cells used to carry the counter's brightness over the
+    // paper's edge and leave a grey band the engine dropped the first
+    // letters of each line with. Two cells in, the paper must be paper.
+    const img = receipt((x) => (x < 100 ? 150 : 70))
+    for (let y = 0; y < H; y++) for (let x = 0; x < 100; x++) img[y * W + x] = 150
     const out = flattenLighting(img, W, H, 20)
-    expect(at(out, 210, 50)).toBeLessThan(60)
+    expect(at(out, 144 + PAPER.x, PAPER.y)).toBeGreaterThan(230)
+    expect(at(out, 144 + INK.x, INK.y)).toBeLessThan(110)
+    expect(at(out, 40, 10)).toBeGreaterThan(230)
   })
 })
 

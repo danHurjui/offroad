@@ -79,9 +79,20 @@ describe('the engine is served from this site', () => {
 })
 
 describe('the scan proposes, it never saves', () => {
-  it('reading a receipt sends nothing', () => {
-    const form = read('src/components/FuelQuickAdd.tsx')
-    const onScan = form.slice(form.indexOf('async function onScan'), form.indexOf('function unsureNote'))
-    expect(onScan).not.toMatch(/fetch|onSubmit|requestSubmit/)
+  it.each([
+    ['src/components/FuelQuickAdd.tsx', 'async function onScan(', 'function unsureNote'],
+    ['src/components/TaskForm.tsx', 'async function onScanInvoice(', 'The date field used to carry'],
+  ])('%s: reading sends nothing', (file, from, to) => {
+    const form = read(file)
+    expect(form.indexOf(from)).toBeGreaterThan(-1)
+    const body = form.slice(form.indexOf(from), form.indexOf(to))
+    expect(body.length).toBeGreaterThan(100)
+    expect(body).not.toMatch(/fetch|onSubmit|requestSubmit/)
+  })
+
+  it('the invoice is attached only after the job is saved', () => {
+    const form = read('src/components/TaskForm.tsx')
+    const submit = form.slice(form.indexOf('async function onSubmit'))
+    expect(submit.indexOf('/receipt`')).toBeGreaterThan(submit.indexOf('if (!res.ok)'))
   })
 })

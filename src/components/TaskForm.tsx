@@ -7,9 +7,18 @@ import { labelFor, type ProjectType } from '@/lib/projectType'
 import { allowsFutureDate, isFutureDate, localIsoDate } from '@/lib/taskDate'
 import { useVocabulary, useOriginalityConditions } from '@/lib/vocabulary'
 import type { TaskFieldSuggestions } from '@/lib/taskSuggestions'
+import Link from 'next/link'
+import { compressImageIfNeeded } from '@/lib/compressImage'
+import { invoiceReadAnything, type InvoiceProposal } from '@/lib/invoiceParse'
+import type { FieldState } from '@/lib/ocrText'
+import type { ScanProgress } from '@/lib/ocr'
+import { tryFetch } from '@/lib/writeFeedback'
 import AutocompleteInput from './AutocompleteInput'
 import FormError from './FormError'
 import MoneyInput from './MoneyInput'
+import { ScanButton, ScanFlag } from './ScanButton'
+import { useToast } from './Toaster'
+import { useFailureReason } from './useOptimisticWrite'
 
 interface InitialTask {
   id: string
@@ -38,6 +47,8 @@ export default function TaskForm({
   collaboratorLabel,
   suggestions,
   costsHidden = false,
+  canScan = false,
+  offerScanUpgrade = false,
 }: {
   vehicleId: string
   projectType: ProjectType
@@ -54,6 +65,10 @@ export default function TaskForm({
    * fields stay (a driver may record what they paid) but start blank and
    * no running total is shown. */
   costsHidden?: boolean
+  /** RL-048: scan a service invoice into a new job — Pro (the account of record). */
+  canScan?: boolean
+  /** Point an owner without Pro at the upgrade page instead. */
+  offerScanUpgrade?: boolean
 }) {
   const t = useTranslations('task')
   const tc = useTranslations('common')
@@ -86,6 +101,69 @@ export default function TaskForm({
   const [odometerKm, setOdometerKm] = useState(initialKm)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const ts = useTranslations('invoiceScan')
+  const toast = useToast()
+  const reasonFor = useFailureReason()
+  // RL-048: the scanned invoice is attached to the job once it is saved.
+  const [invoice, setInvoice] = useState<File | null>(null)
+  const [scanProgress, setScanProgress] = useState<ScanProgress | null>(null)
+  const [scanOutcome, setScanOutcome] = useState<'read' | 'failed' | null>(null)
+  const [scanTotal, setScanTotal] = useState<number | null>(null)
+  const [scanStates, setScanStates] = useState<Partial<Record<'workshop' | 'money' | 'date' | 'km', FieldState>>>({})
+
+  /**
+   * Fills the form from the invoice — never saves it. What was read is
+   * written in; what was read badly is cleared and flagged; the lines are
+   * listed in the notes with how each was counted, so the parts/labour
+   * split can be checked against the paper before adding.
+   */
+  async function onScanInvoice(file: File) {
+    setInvoice(file)
+    setScanOutcome(null)
+    setScanStates({})
+    setScanTotal(null)
+    setScanProgress({ pass: 1, fraction: 0 })
+    try {
+      const { scanInvoice } = await import('@/lib/ocr')
+      const p: InvoiceProposal = await scanInvoice(file, setScanProgress)
+      if (!invoiceReadAnything(p)) throw new Error('nothing read')
+      setWorkType('WORKSHOP')
+      if (p.workshop.value !== null) setWorkshopName(p.workshop.value)
+      else if (p.workshop.state === 'unsure') setWorkshopName('')
+      const split = p.partsRon.state === 'read' || p.labourRon.state === 'read'
+      if (split) {
+        setPartsCostRon(p.partsRon.value !== null ? String(p.partsRon.value) : '')
+        setLabourCostRon(p.labourRon.value !== null ? String(p.labourRon.value) : '')
+      } else if (p.partsRon.state === 'unsure') {
+        setPartsCostRon('')
+        setLabourCostRon('')
+      }
+      if (p.date.value !== null) setDate(p.date.value)
+      if (p.km.value !== null) setOdometerKm(String(p.km.value))
+      const firstLabour = p.items.find((it) => it.kind === 'labour') ?? p.items[0]
+      if (!name && firstLabour) setName(firstLabour.description)
+      if (p.items.length > 0 || p.invoiceNumber.value) {
+        const money = (n: number) => n.toLocaleString('ro-RO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        const lines = [
+          p.invoiceNumber.value ? ts('notesHeading', { number: p.invoiceNumber.value }) : ts('notesHeadingNoNumber'),
+          ...p.items.map((it) => `- ${it.description}: ${money(it.amountRon)} lei (${ts(it.kind === 'labour' ? 'labour' : 'part')})`),
+        ]
+        setNotes((current) => (current.trim() ? `${current.trim()}\n\n` : '') + lines.join('\n'))
+      }
+      setScanTotal(!split && p.totalRon.value !== null ? p.totalRon.value : null)
+      setScanStates({
+        workshop: p.workshop.state,
+        money: split ? 'read' : p.partsRon.state,
+        date: p.date.state,
+        km: p.km.state,
+      })
+      setScanOutcome('read')
+    } catch {
+      setScanOutcome('failed')
+    } finally {
+      setScanProgress(null)
+    }
+  }
 
   /**
    * The date field used to carry `max={today}` for every status, which made
@@ -153,11 +231,21 @@ export default function TaskForm({
       body: JSON.stringify(body),
     })
     const data = await res.json()
-    setLoading(false)
     if (!res.ok) {
+      setLoading(false)
       setError(data.error ?? t('saveFailed'))
       return
     }
+    // The invoice goes on the job as its receipt, so a disputed figure can
+    // be settled by looking at it. A refused file (over 4MB, say) says so
+    // without losing the job, which is already saved.
+    if (!isEdit && invoice) {
+      const form = new FormData()
+      form.append('file', await compressImageIfNeeded(invoice))
+      const up = await tryFetch(`/api/vehicles/${vehicleId}/tasks/${data.id}/receipt`, { method: 'POST', body: form })
+      if (!up?.ok) toast.error(await reasonFor(up, ts('attachFailed')))
+    }
+    setLoading(false)
 
     router.push(`/dashboard/vehicles/${vehicleId}/tasks/${data.id}`)
     router.refresh()
@@ -165,6 +253,31 @@ export default function TaskForm({
 
   return (
     <form onSubmit={onSubmit} className="card space-y-4 p-6">
+      {!isEdit && canScan && (
+        <div>
+          <ScanButton
+            idle={ts('scan')}
+            reading={(percent) => ts('scanning', { percent })}
+            readingAgain={(percent) => ts('scanningAgain', { percent })}
+            help={ts('help')}
+            helpId="invoice-scan-help"
+            progress={scanProgress}
+            onFile={(file) => void onScanInvoice(file)}
+          />
+          <div aria-live="polite">
+            {scanOutcome === 'read' && <p className="note-warn mt-2 rounded-lg border p-3 text-sm">{ts('read')}</p>}
+            {scanOutcome === 'failed' && <p className="note-warn mt-2 rounded-lg border p-3 text-sm">{ts('failed')}</p>}
+          </div>
+          {invoice && <p className="mt-1 break-all text-xs text-ink-muted">{ts('attached', { name: invoice.name })}</p>}
+        </div>
+      )}
+      {!isEdit && !canScan && offerScanUpgrade && (
+        <p className="text-xs text-ink-faint">
+          <Link href="/dashboard/upgrade" className="text-brand-600 hover:underline dark:text-brand-300">
+            {ts('pro')}
+          </Link>
+        </p>
+      )}
       <div>
         <label className="label" htmlFor="name">{t('name')}</label>
         <input
@@ -211,6 +324,7 @@ export default function TaskForm({
             aria-describedby={canSchedule && dateIsFuture ? 'date-hint' : undefined}
             required
           />
+          {scanStates.date === 'unsure' && <ScanFlag id="date-unsure">{ts('unsureDate')}</ScanFlag>}
           {canSchedule && dateIsFuture && (
             // Not an error: a future date is the point of scheduling. It is
             // said out loud so a mistyped year reads as wrong immediately.
@@ -234,6 +348,7 @@ export default function TaskForm({
               aria-describedby="odometerKm-help"
             />
             <p id="odometerKm-help" className="mt-1 text-xs text-ink-faint">{to('taskKmHelp')}</p>
+            {scanStates.km === 'unsure' && odometerKm === '' && <ScanFlag id="odometerKm-unsure">{ts('unsure')}</ScanFlag>}
           </div>
         )}
         <div>
@@ -286,6 +401,7 @@ export default function TaskForm({
                 autoCapitalize="words"
                 required={workType === 'WORKSHOP'}
               />
+              {scanStates.workshop === 'unsure' && workshopName === '' && <ScanFlag id="workshopName-unsure">{ts('unsure')}</ScanFlag>}
             </div>
             <div>
               <label className="label" htmlFor="workshopContact">{t('workshopContact')}</label>
@@ -310,6 +426,13 @@ export default function TaskForm({
               <MoneyInput id="labourCostRon" value={labourCostRon} onChange={setLabourCostRon} />
             </div>
           </div>
+          {scanStates.money === 'unsure' && partsCostRon === '' && labourCostRon === '' && (
+            <ScanFlag id="costs-unsure">
+              {scanTotal !== null
+                ? ts('noSplitWithTotal', { total: scanTotal.toLocaleString('ro-RO', { minimumFractionDigits: 2 }) })
+                : ts('noSplit')}
+            </ScanFlag>
+          )}
         </div>
       )}
 
