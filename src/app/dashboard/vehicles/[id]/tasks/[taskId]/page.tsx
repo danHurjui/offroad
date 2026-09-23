@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { labelFor, statusBadgeClass } from '@/lib/projectType'
 import { getVocabulary, getOriginalityConditions } from '@/lib/vocabulary'
@@ -34,6 +34,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
   if (!task || task.vehicleId !== vehicle.id) notFound()
 
   const isOwner = vehicle.access === 'owner'
+  const showCosts = !hidesCosts(vehicle)
   const canEdit = isOwner || task.addedByUserId === session.user.id
   const config = await getVocabulary(vehicle.projectType)
 
@@ -128,20 +129,25 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
               </dd>
             </div>
           )}
-          <div>
-            <dt className="text-ink-faint">{t('totalCostLabel')}</dt>
-            <dd className="font-semibold text-ink">{totalCost.toLocaleString('ro-RO')} RON</dd>
-          </div>
+          {/* RL-031/RL-040: costs only for whoever may see them. */}
+          {showCosts && (
+            <div>
+              <dt className="text-ink-faint">{t('totalCostLabel')}</dt>
+              <dd className="font-semibold text-ink">{totalCost.toLocaleString('ro-RO')} RON</dd>
+            </div>
+          )}
           {task.workType === 'WORKSHOP' && (
             <>
               <div>
                 <dt className="text-ink-faint">{t('workshop')}</dt>
                 <dd className="text-ink">{task.workshopName}</dd>
               </div>
-              <div>
-                <dt className="text-ink-faint">{t('partsLabour')}</dt>
-                <dd className="text-ink">{(partsCostRon ?? 0).toLocaleString('ro-RO')} / {(labourCostRon ?? 0).toLocaleString('ro-RO')} RON</dd>
-              </div>
+              {showCosts && (
+                <div>
+                  <dt className="text-ink-faint">{t('partsLabour')}</dt>
+                  <dd className="text-ink">{(partsCostRon ?? 0).toLocaleString('ro-RO')} / {(labourCostRon ?? 0).toLocaleString('ro-RO')} RON</dd>
+                </div>
+              )}
             </>
           )}
           {task.supplierUrl && (

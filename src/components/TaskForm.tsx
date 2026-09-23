@@ -37,6 +37,7 @@ export default function TaskForm({
   initialTask,
   collaboratorLabel,
   suggestions,
+  costsHidden = false,
 }: {
   vehicleId: string
   projectType: ProjectType
@@ -49,6 +50,10 @@ export default function TaskForm({
   /** Brands and workshops already used on this vehicle — typing shortcuts
    * only, never a constraint (src/lib/taskSuggestions.ts). */
   suggestions?: TaskFieldSuggestions
+  /** RL-031/RL-040: the viewer may not see this vehicle's costs. The amount
+   * fields stay (a driver may record what they paid) but start blank and
+   * no running total is shown. */
+  costsHidden?: boolean
 }) {
   const t = useTranslations('task')
   const tc = useTranslations('common')
@@ -308,7 +313,11 @@ export default function TaskForm({
         </div>
       )}
 
-      <p className="text-sm text-ink-muted">{t('totalCost')} <span className="font-semibold text-ink">{totalCost.toLocaleString('ro-RO')} RON</span></p>
+      {costsHidden ? (
+        <p className="text-xs text-ink-faint">{t('costsHiddenHint')}</p>
+      ) : (
+        <p className="text-sm text-ink-muted">{t('totalCost')} <span className="font-semibold text-ink">{totalCost.toLocaleString('ro-RO')} RON</span></p>
+      )}
 
       <div>
         <label className="label" htmlFor="supplierUrl">{t('supplierUrl')}</label>

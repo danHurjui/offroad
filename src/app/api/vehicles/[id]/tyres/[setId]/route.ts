@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, apiErrorWith } from '@/lib/apiError'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { readJsonBody } from '@/lib/requestBody'
 import { parseTyreSet } from '@/lib/tyres'
@@ -37,7 +37,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       }
       return tx.tyreSet.update({ where: { id: loaded.set.id }, data: tyre.data })
     })
-    return NextResponse.json({ ...updated, treadDepthMm: toNumberOrNull(updated.treadDepthMm), costRon: toNumberOrNull(updated.costRon) })
+    return NextResponse.json({ ...updated, treadDepthMm: toNumberOrNull(updated.treadDepthMm), costRon: hidesCosts(loaded.vehicle) ? null : toNumberOrNull(updated.costRon) })
   } catch {
     return await apiError('internalError', 500)
   }

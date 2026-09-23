@@ -3,9 +3,9 @@ import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { translator } from '@/i18n/translator'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { isValidTaskVocabulary } from '@/lib/projectType'
-import { serializeTask, serializeTaskFor } from '@/lib/serialize'
+import { serializeTaskFor } from '@/lib/serialize'
 import { sendEmail, collaboratorTaskAddedEmail, emailLocale } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     })
 
     // RL-031: redact costs for a collaborator when the owner hid them.
-    const hideCosts = vehicle.access !== 'owner' && vehicle.hideCostsFromCollaborators
+    const hideCosts = hidesCosts(vehicle)
     return NextResponse.json(tasks.map((t) => serializeTaskFor(t, { hideCosts })))
   } catch {
     return await apiError('internalError', 500)
@@ -174,7 +174,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       }
     }
 
-    return NextResponse.json(serializeTask(task), { status: 201 })
+    return NextResponse.json(serializeTaskFor(task, { hideCosts: hidesCosts(vehicle) }), { status: 201 })
   } catch {
     return await apiError('internalError', 500)
   }

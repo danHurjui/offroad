@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { toNumberOrNull } from '@/lib/serialize'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
@@ -26,7 +26,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   })
   if (!foundState) return NextResponse.json(null)
 
-  return NextResponse.json({ ...foundState, purchasePriceRon: toNumberOrNull(foundState.purchasePriceRon) })
+  // RL-031/RL-040: the price paid is a cost like any other.
+  return NextResponse.json({ ...foundState, purchasePriceRon: hidesCosts(vehicle) ? null : toNumberOrNull(foundState.purchasePriceRon) })
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -73,9 +74,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       }
     }
 
+    // Someone who cannot see costs was shown no price, so what their form
+    // sends back for it means nothing: the stored price is kept.
+    const hidden = hidesCosts(vehicle)
+    const keptPrice = hidden
+      ? (await prisma.vehicle.findUnique({ where: { id: vehicle.id }, select: { purchasePriceRon: true } }))?.purchasePriceRon ?? null
+      : null
     const data = {
       acquisitionDate: new Date(acquisitionDate),
-      purchasePriceRon: purchasePriceRon != null ? Number(purchasePriceRon) : null,
+      purchasePriceRon: hidden ? keptPrice : purchasePriceRon != null ? Number(purchasePriceRon) : null,
       odometer: odometer != null ? Number(odometer) : null,
       knownHistory: knownHistory || null,
       conditionRating: conditionRating != null ? Number(conditionRating) : null,
@@ -112,7 +119,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       userId: session.user.id,
     })
 
-    return NextResponse.json({ ...foundState, purchasePriceRon: toNumberOrNull(foundState.purchasePriceRon) })
+    return NextResponse.json({ ...foundState, purchasePriceRon: hidden ? null : toNumberOrNull(foundState.purchasePriceRon) })
   } catch {
     return await apiError('internalError', 500)
   }

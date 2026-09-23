@@ -22,7 +22,7 @@ import { taskTotalCost, type CostTaskLike } from './analytics'
 import { getDocumentStatus, type DocumentStatus } from './documents'
 import { PROJECT_TYPE_CONFIG, type ProjectType } from './projectType'
 import { computeVehicleProgress } from './vehicleProgress'
-import type { VehicleAccess } from './access'
+import { hidesCosts, type VehicleAccess } from './access'
 
 export const GARAGE_SORTS = ['activity', 'attention', 'name'] as const
 export type GarageSort = (typeof GARAGE_SORTS)[number]
@@ -101,7 +101,7 @@ export function summarizeGarage(
     if (own.some((t) => alarming.has(t.status))) attention.push('job')
 
     const spend =
-      isOwner || !vehicle.hideCostsFromCollaborators ? Math.round(own.reduce((s, t) => s + taskTotalCost(t), 0) * 100) / 100 : null
+      !hidesCosts(vehicle) ? Math.round(own.reduce((s, t) => s + taskTotalCost(t), 0) * 100) / 100 : null
 
     const lastActivity = own.reduce((latest, t) => (t.updatedAt > latest ? t.updatedAt : latest), vehicle.updatedAt)
 

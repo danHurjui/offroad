@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { consumptionIntervals, fuelSummary, type FuelLike } from '@/lib/fuel'
@@ -25,7 +25,7 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
   const isOwner = vehicle.access === 'owner'
   // Same rule as the vehicle page's total: a collaborator on a vehicle
   // with hideCostsFromCollaborators set does not see the aggregate spend.
-  const hideSpend = !isOwner && vehicle.hideCostsFromCollaborators
+  const hideSpend = hidesCosts(vehicle)
 
   const [rows, overrides] = await Promise.all([
     prisma.fuelEntry.findMany({

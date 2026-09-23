@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
@@ -22,7 +22,7 @@ export default async function AccidentsPage({ params }: { params: { id: string }
   const config = await getVocabulary(vehicle.projectType)
   const isOwner = vehicle.access === 'owner'
   // RL-031: a collaborator does not see costs when the owner hid them.
-  const showCosts = isOwner || !vehicle.hideCostsFromCollaborators
+  const showCosts = !hidesCosts(vehicle)
 
   const accidents = await prisma.accident.findMany({
     where: { vehicleId: vehicle.id },

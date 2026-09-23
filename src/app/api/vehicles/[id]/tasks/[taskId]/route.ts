@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { isValidTaskVocabulary, PROJECT_TYPE_CONFIG } from '@/lib/projectType'
-import { serializeTask, serializeTaskFor } from '@/lib/serialize'
+import { serializeTaskFor } from '@/lib/serialize'
 import { notifyFollowers } from '@/lib/followNotify'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
@@ -31,7 +31,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string;
   if (!task) return await apiError('notFound', 404)
 
   // RL-031: redact costs for a collaborator when the owner hid them.
-  const hideCosts = vehicle.access !== 'owner' && vehicle.hideCostsFromCollaborators
+  const hideCosts = hidesCosts(vehicle)
   return NextResponse.json(serializeTaskFor(task, { hideCosts }))
 }
 
@@ -157,7 +157,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       await notifyFollowers(vehicle.id, { key: 'taskDone', values: { task: updated.name } })
     }
 
-    return NextResponse.json(serializeTask(updated))
+    return NextResponse.json(serializeTaskFor(updated, { hideCosts: hidesCosts(vehicle) }))
   } catch {
     return await apiError('internalError', 500)
   }

@@ -3,6 +3,7 @@ jest.mock('@/lib/prisma', () => ({
     vehicle: { findUnique: jest.fn() },
     projectCollaborator: { findFirst: jest.fn() },
     organizationMember: { findUnique: jest.fn() },
+    vehicleAssignment: { findFirst: jest.fn() },
   },
 }))
 
@@ -23,6 +24,7 @@ import { requireVehicleAccess, requireVehicleOwner } from '@/lib/access'
 const vehicleFind = prisma.vehicle.findUnique as jest.Mock
 const collaboratorFind = prisma.projectCollaborator.findFirst as jest.Mock
 const memberFind = prisma.organizationMember.findUnique as jest.Mock
+const assignmentFind = prisma.vehicleAssignment.findFirst as jest.Mock
 
 const PERSONAL = { id: 'v1', ownerId: 'alice', organizationId: null }
 /** A company vehicle whose account of record is `alice`. */
@@ -34,7 +36,9 @@ type Case = {
   user: string
   membership?: string | null
   collaborator?: boolean
-  expected: 'owner' | 'collaborator' | null
+  /** An active assignment of this user to this vehicle (RL-040). */
+  assigned?: boolean
+  expected: 'owner' | 'collaborator' | 'driver' | null
 }
 
 const cases: Case[] = [
@@ -47,12 +51,16 @@ const cases: Case[] = [
   { name: 'company: an OWNER', vehicle: COMPANY, user: 'carol', membership: 'OWNER', expected: 'owner' },
   { name: 'company: a FLEET_MANAGER', vehicle: COMPANY, user: 'carol', membership: 'FLEET_MANAGER', expected: 'owner' },
   { name: 'company: a MECHANIC', vehicle: COMPANY, user: 'dan', membership: 'MECHANIC', expected: 'collaborator' },
-  { name: 'company: a DRIVER', vehicle: COMPANY, user: 'dan', membership: 'DRIVER', expected: 'collaborator' },
+  // RL-040: a driver reaches only the vehicle they are assigned to now.
+  { name: 'company: a DRIVER assigned to it', vehicle: COMPANY, user: 'dan', membership: 'DRIVER', assigned: true, expected: 'driver' },
+  { name: 'company: a DRIVER not assigned to it', vehicle: COMPANY, user: 'dan', membership: 'DRIVER', expected: null },
+  { name: 'company: a DRIVER not assigned but invited to it directly', vehicle: COMPANY, user: 'dan', membership: 'DRIVER', collaborator: true, expected: 'collaborator' },
+  { name: 'personal: an assignment means nothing without membership', vehicle: PERSONAL, user: 'dan', assigned: true, expected: null },
   { name: 'company: an outside collaborator invited to it', vehicle: COMPANY, user: 'bob', collaborator: true, expected: 'collaborator' },
   { name: 'company: a stranger', vehicle: COMPANY, user: 'eve', expected: null },
   // The account of record is not an owner by being named on the row.
   { name: 'company: the account of record, no longer a member', vehicle: COMPANY, user: 'alice', expected: null },
-  { name: 'company: the account of record, now a DRIVER', vehicle: COMPANY, user: 'alice', membership: 'DRIVER', expected: 'collaborator' },
+  { name: 'company: the account of record, now an unassigned DRIVER', vehicle: COMPANY, user: 'alice', membership: 'DRIVER', expected: null },
   { name: 'company: the account of record, still a FLEET_MANAGER', vehicle: COMPANY, user: 'alice', membership: 'FLEET_MANAGER', expected: 'owner' },
 ]
 
@@ -60,7 +68,7 @@ beforeEach(() => {
   jest.clearAllMocks()
 })
 
-describe.each(cases)('$name', ({ vehicle, user, membership, collaborator, expected }) => {
+describe.each(cases)('$name', ({ vehicle, user, membership, collaborator, assigned, expected }) => {
   beforeEach(() => {
     vehicleFind.mockResolvedValue(vehicle)
     memberFind.mockImplementation(({ where }: { where: { organizationId_userId: { organizationId: string; userId: string } } }) =>
@@ -71,6 +79,9 @@ describe.each(cases)('$name', ({ vehicle, user, membership, collaborator, expect
       )
     )
     collaboratorFind.mockResolvedValue(collaborator ? { id: 'c1' } : null)
+    assignmentFind.mockImplementation(({ where }: { where: { vehicleId: string; driverUserId: string; endedAt: null } }) =>
+      Promise.resolve(assigned && where.vehicleId === vehicle.id && where.driverUserId === user && where.endedAt === null ? { id: 'a1' } : null)
+    )
   })
 
   it(`requireVehicleAccess → ${expected ?? 'refused'}`, async () => {

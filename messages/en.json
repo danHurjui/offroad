@@ -479,7 +479,8 @@
     "expenses": "Other costs",
     "costs": "Cost of ownership",
     "serviceBook": "Service book",
-    "passport": "Passport"
+    "passport": "Passport",
+    "drivers": "Drivers"
   },
   "home": {
     "metaTitle": "Car build, restoration and repair log — RigLog",
@@ -952,7 +953,8 @@
     "statusLabel": "Status",
     "statusFailed": "Couldn’t change the status.",
     "deleted": "Deleted “{name}”.",
-    "deleteFailed": "Couldn’t delete “{name}”."
+    "deleteFailed": "Couldn’t delete “{name}”.",
+    "costsHiddenHint": "Amounts you enter are saved; this vehicle’s costs aren’t shown to you."
   },
   "era": {
     "pre1970": "Pre-1970",
@@ -2115,7 +2117,10 @@
     "vehicleAlreadyCompany": "This vehicle already belongs to an organisation.",
     "orgMoveNotAllowed": "You can only move a vehicle into an organisation where you are an owner or fleet manager.",
     "vehicleNotCompany": "This vehicle doesn’t belong to an organisation.",
-    "orgDeleteConfirm": "Type the organisation’s name exactly to delete it with its {count, plural, one {# vehicle} other {# vehicles}}."
+    "orgDeleteConfirm": "Type the organisation’s name exactly to delete it with its {count, plural, one {# vehicle} other {# vehicles}}.",
+    "assignDriverOnly": "A vehicle can only be assigned to a driver of its organisation.",
+    "vehicleAlreadyAssigned": "This vehicle already has a driver. End that assignment first.",
+    "assignmentAlreadyEnded": "This assignment has already ended."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2899,5 +2904,26 @@
       "noCosts": "No costs recorded in this period.",
       "footnote": "Running cost leaves out the purchase price, which isn’t a monthly cost. Per vehicle per month divides the running cost by the months each vehicle was owned in the period. Each vehicle’s figures are the ones on its own costs page."
     }
+  },
+  "drivers": {
+    "title": "Drivers",
+    "intro": "Who drives this vehicle now, and who has before. A driver sees only the vehicle assigned to them — its log, photos and documents — and never its costs.",
+    "current": "Current driver",
+    "none": "No one is assigned to this vehicle.",
+    "noDrivers": "This organisation has no members with the driver role. Invite one from the organisation page.",
+    "driver": "Driver",
+    "note": "Note (optional)",
+    "assign": "Assign",
+    "assigning": "Assigning…",
+    "assigned": "Driver assigned.",
+    "assignFailed": "Could not assign the driver.",
+    "since": "since {date}",
+    "end": "End assignment",
+    "confirmEnd": "End {name}’s assignment now? They lose access to this vehicle straight away.",
+    "ended": "Assignment ended.",
+    "endFailed": "Could not end the assignment.",
+    "history": "History",
+    "noHistory": "Nobody has been assigned to this vehicle yet.",
+    "ongoing": "now"
   }
 }

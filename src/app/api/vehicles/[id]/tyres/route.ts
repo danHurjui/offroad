@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError, apiErrorWith } from '@/lib/apiError'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { readJsonBody } from '@/lib/requestBody'
 import { parseTyreSet } from '@/lib/tyres'
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         data: { vehicleId: vehicle.id, season: season!, ...rest, createdByUserId: session.user.id },
       })
     })
-    return NextResponse.json({ ...created, treadDepthMm: toNumberOrNull(created.treadDepthMm), costRon: toNumberOrNull(created.costRon) }, { status: 201 })
+    return NextResponse.json({ ...created, treadDepthMm: toNumberOrNull(created.treadDepthMm), costRon: hidesCosts(vehicle) ? null : toNumberOrNull(created.costRon) }, { status: 201 })
   } catch {
     return await apiError('internalError', 500)
   }

@@ -141,7 +141,7 @@ describe('wiring', () => {
     expect(read('src/app/api/vehicles/[id]/export/service-book/route.ts')).toMatch(/loadServiceBook\(/)
   })
 
-  it('hides costs from a collaborator the owner hides them from', () => {
-    expect(read('src/app/dashboard/vehicles/[id]/service-book/page.tsx')).toMatch(/!isOwner && vehicle\.hideCostsFromCollaborators/)
+  it('hides costs from whoever may not see them (hidesCosts: hidden collaborators, drivers)', () => {
+    expect(read('src/app/dashboard/vehicles/[id]/service-book/page.tsx')).toMatch(/hidesCosts\(vehicle\)/)
   })
 })

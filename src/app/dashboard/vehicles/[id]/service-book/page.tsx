@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { labelFor } from '@/lib/projectType'
 import { getVocabulary } from '@/lib/vocabulary'
@@ -27,7 +27,7 @@ export default async function ServiceBookPage({ params }: { params: { id: string
   const isOwner = vehicle.access === 'owner'
   // Same rule as the other cost views: per-job costs are hidden from a
   // collaborator the owner hides them from, so the column goes too.
-  const hideCosts = !isOwner && vehicle.hideCostsFromCollaborators
+  const hideCosts = hidesCosts(vehicle)
   const owner = isOwner ? await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } }) : null
 
   const book = await loadServiceBook(vehicle.id, config.completeStatus)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { requireSession } from '@/lib/authz'
-import { requireVehicleAccess } from '@/lib/access'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { readJsonBody } from '@/lib/requestBody'
 import { LITRES_MAX, STATION_MAX_LENGTH, TOTAL_RON_MAX, parsePositiveAmount } from '@/lib/fuel'
@@ -71,7 +71,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         include: { odometerReading: { select: { km: true } } },
       })
     })
-    return NextResponse.json(serializeFuelEntry(entry), { status: 201 })
+    // What was paid is recorded; whether it is shown back follows the cost rule.
+    const shown = serializeFuelEntry(entry)
+    return NextResponse.json(hidesCosts(vehicle) ? { ...shown, totalRon: null, pricePerLitre: null } : shown, { status: 201 })
   } catch (e) {
     if (e instanceof ReadingConflict) return await conflictResponse(e.check, e.km)
     return await apiError('internalError', 500)

@@ -120,8 +120,8 @@ describe('the vehicle’s own money', () => {
 describe('the cost of ownership screen', () => {
   const page = fs.readFileSync(path.join(process.cwd(), 'src/app/dashboard/vehicles/[id]/costs/page.tsx'), 'utf8')
 
-  it('applies hideCostsFromCollaborators itself — it is a new aggregate', () => {
-    expect(page).toMatch(/!isOwner && vehicle\.hideCostsFromCollaborators/)
+  it('applies the cost rule itself — it is a new aggregate', () => {
+    expect(page).toMatch(/if \(hidesCosts\(vehicle\)\)/)
   })
 
   it('gates the breakdown on the owner’s Pro, not the viewer’s', () => {

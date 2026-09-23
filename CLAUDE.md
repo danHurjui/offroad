@@ -931,6 +931,30 @@ plus a grep that fails on any `ownerId` comparison with the caller outside
   the same transaction as the membership, so a double click or a
   simultaneous withdrawal cannot make a member.
 
+### Drivers (`src/lib/assignments.ts`, RL-040 — slice 1 of #52)
+`VehicleAssignment` is a history (driver, from, to, note), not a column.
+Assignments start when made and end when ended — never back-dated — so
+**one active driver per vehicle** is a partial unique index (`endedAt IS
+NULL`) in the migration, and a second is a 409 from the database, not a
+form check. Managers assign (`/dashboard/vehicles/[id]/drivers`); a manager
+or the driver ends one.
+- **Access:** a DRIVER member gets `driver` access (`access.ts`) only while
+  assigned to that vehicle — no assignment, no vehicle; the garage lists
+  only theirs. `driver` is not `owner`, so every owner-only check already
+  refuses it.
+- **Costs: one rule, `hidesCosts(vehicle)`** — never from the owner, always
+  from a driver, from a collaborator under `hideCostsFromCollaborators`.
+  Every page and route showing money asks it (a test forbids re-deriving it
+  from the flag), and responses that echo an amount back (a job, a fill-up,
+  a tyre set, an expense, an accident, the found state) null it. Tested on
+  the API responses themselves (`driverCosts.test.ts`). A hidden viewer's
+  edit form starts blank, and blanks are not sent, so saving never wipes a
+  stored amount; the found-state PUT keeps the stored price outright.
+- Someone who stops being a DRIVER (removed, or another role) and a vehicle
+  moved out of the organisation have their active assignments ended in the
+  same transaction — a stale "active" row would grant nothing yet block the
+  next driver.
+
 ### Fleet compliance and cost (`src/lib/fleet.ts`, RL-039 — #51)
 `/dashboard/organizations/[id]/fleet`, for OWNER/FLEET_MANAGER (404 for
 anyone else): every company vehicle × `FLEET_DOCUMENT_TYPES` (ITP, RCA,

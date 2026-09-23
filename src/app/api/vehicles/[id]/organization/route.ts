@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { accessForRole, requireVehicleOwner } from '@/lib/access'
 import { readJsonBody } from '@/lib/requestBody'
+import { endAssignmentsFor } from '@/lib/assignments'
 import { FREE_TIER, hasPro, PRO_SELECT } from '@/lib/pro'
 
 /**
@@ -81,10 +82,15 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   }
 
   try {
-    // Conditional on still being in the same organisation.
-    const moved = await prisma.vehicle.updateMany({
-      where: { id: vehicle.id, organizationId: vehicle.organizationId },
-      data: { organizationId: null, ownerId: session.user.id, slug: null },
+    // Conditional on still being in the same organisation. Its driver, if
+    // any, stops driving it in the same transaction (RL-040).
+    const organizationId = vehicle.organizationId
+    const moved = await prisma.$transaction(async (tx) => {
+      await endAssignmentsFor(tx, { organizationId, vehicleId: vehicle.id })
+      return tx.vehicle.updateMany({
+        where: { id: vehicle.id, organizationId },
+        data: { organizationId: null, ownerId: session.user.id, slug: null },
+      })
     })
     if (moved.count === 0) return await apiError('vehicleNotCompany', 400)
     return NextResponse.json({ ok: true })

@@ -6,6 +6,8 @@ jest.mock('@/lib/prisma', () => ({
     organizationMember: { findUnique: jest.fn() },
     projectCollaborator: { findFirst: jest.fn() },
     user: { findUnique: jest.fn() },
+    vehicleAssignment: { updateMany: jest.fn() },
+    $transaction: jest.fn(),
   },
 }))
 
@@ -44,6 +46,7 @@ beforeEach(() => {
   ;(prisma.projectCollaborator.findFirst as jest.Mock).mockResolvedValue(null)
   vehicle.findUnique.mockResolvedValue(PERSONAL)
   vehicle.updateMany.mockResolvedValue({ count: 1 })
+  ;(prisma.$transaction as jest.Mock).mockImplementation((fn: (tx: typeof prisma) => unknown) => fn(prisma))
   roles({})
 })
 
@@ -108,6 +111,15 @@ describe('DELETE /api/vehicles/[id]/organization — out to the caller’s garag
     expect(vehicle.updateMany).toHaveBeenCalledWith({
       where: { id: 'v1', organizationId: 'o1' },
       data: { organizationId: null, ownerId: 'me', slug: null },
+    })
+  })
+
+  it('its driver stops driving it, in the same transaction', async () => {
+    roles({ o1: 'OWNER' })
+    await moveOut(req({}), params)
+    expect(prisma.vehicleAssignment.updateMany).toHaveBeenCalledWith({
+      where: { endedAt: null, vehicleId: 'v1', vehicle: { organizationId: 'o1' } },
+      data: { endedAt: expect.any(Date) },
     })
   })
 
