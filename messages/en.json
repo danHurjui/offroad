@@ -2988,5 +2988,24 @@
     "startHelp": "Record the odometer and a few photos of its condition as you take it, so both ends of the handover are on the record.",
     "endTitle": "Hand the vehicle back",
     "endHelp": "The odometer and condition photos as you hand it back. Photos are saved first; ending the assignment removes your access."
+  },
+  "invoiceScan": {
+    "scan": "Scan an invoice",
+    "scanning": "Reading the invoice… {percent}%",
+    "scanningAgain": "Taking a second look… {percent}%",
+    "help": "Take a photo of the workshop's invoice. It is read on your phone; the workshop, date, km, parts and labour are filled in for you to check, and the invoice is attached to the job when you add it.",
+    "read": "Filled in from the invoice. Check each figure — and how the lines were split into parts and labour, listed in the notes — before adding.",
+    "failed": "Couldn't read this invoice. Type the job in — the photo will still be attached.",
+    "attached": "Invoice to attach: {name}",
+    "attachFailed": "The job was saved, but the invoice couldn't be attached.",
+    "pro": "Scan workshop invoices instead of typing them — with Pro",
+    "unsure": "Couldn't read this clearly — type it from the invoice.",
+    "unsureDate": "Couldn't read the date clearly — check it against the invoice.",
+    "noSplit": "The invoice lines didn't add up to its total, so parts and labour weren't filled in — type them from the invoice.",
+    "noSplitWithTotal": "The invoice lines didn't add up to its total ({total} lei), so parts and labour weren't filled in — type them from the invoice.",
+    "notesHeading": "Invoice {number}:",
+    "notesHeadingNoNumber": "From the invoice:",
+    "labour": "labour",
+    "part": "part"
   }
 }

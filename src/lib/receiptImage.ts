@@ -30,7 +30,7 @@ export function toGrey(rgba: Uint8ClampedArray): Uint8Array {
  * brightness is sampled over — a couple of text lines tall, so every cell
  * holds some paper.
  */
-export function flattenLighting(grey: Uint8Array, width: number, height: number, cell = Math.max(8, Math.round(Math.max(width, height) / 40))): Uint8Array {
+export function flattenLighting(grey: Uint8Array, width: number, height: number, cell = Math.max(8, Math.round(Math.max(width, height) / 60))): Uint8Array {
   const gw = Math.ceil(width / cell)
   const gh = Math.ceil(height / cell)
 
@@ -55,11 +55,12 @@ export function flattenLighting(grey: Uint8Array, width: number, height: number,
     while (v < 255 && seen + histograms[c * 256 + v] < target) seen += histograms[c * 256 + v++]
     paper[c] = v
   }
-  // A 3×3 median drops a cell that is all ink (a bold logo) without
-  // blurring a shadow's edge into the lit paper beside it — a neighbourhood
-  // maximum does exactly that, and leaves the shadowed side dark. A light
-  // mean then keeps cell edges from printing onto the result.
-  const background = neighbourhood(neighbourhood(paper, gw, gh, 'median'), gw, gh, 'mean')
+  // No smoothing across cells beyond the interpolation below. A median or
+  // maximum over neighbours carries the bright paper out over whatever
+  // surrounds it, and leaves a dark band hugging the receipt's edge — which
+  // both skews the ink/paper split (faded print is lost) and touches the
+  // first letters of each line (the engine drops them with it).
+  const background = paper
 
   const out = new Uint8Array(grey.length)
   for (let y = 0; y < height; y++) {
@@ -78,31 +79,6 @@ export function flattenLighting(grey: Uint8Array, width: number, height: number,
         background[y1 * gw + x0] * (1 - fx) * fy +
         background[y1 * gw + x1] * fx * fy
       out[y * width + x] = Math.min(255, Math.round((grey[y * width + x] * 255) / Math.max(bg, 1)))
-    }
-  }
-  return out
-}
-
-/** A 3×3 median or mean over the grid (edges use the cells they have). */
-function neighbourhood(grid: Float32Array, gw: number, gh: number, kind: 'median' | 'mean'): Float32Array {
-  const out = new Float32Array(grid.length)
-  const values: number[] = []
-  for (let y = 0; y < gh; y++) {
-    for (let x = 0; x < gw; x++) {
-      values.length = 0
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dx = -1; dx <= 1; dx++) {
-          const nx = x + dx
-          const ny = y + dy
-          if (nx >= 0 && ny >= 0 && nx < gw && ny < gh) values.push(grid[ny * gw + nx])
-        }
-      }
-      if (kind === 'mean') {
-        out[y * gw + x] = values.reduce((a, b) => a + b, 0) / values.length
-      } else {
-        values.sort((a, b) => a - b)
-        out[y * gw + x] = values[Math.floor(values.length / 2)]
-      }
     }
   }
   return out

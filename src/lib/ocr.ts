@@ -1,6 +1,7 @@
 'use client'
 
 import { isComplete, mergeProposals, parseFuelReceipt, type OcrLine, type ReceiptProposal } from './receiptParse'
+import { isInvoiceComplete, mergeInvoiceProposals, parseInvoice, type InvoiceProposal } from './invoiceParse'
 import { prepareReceiptPixels, toGrey } from './receiptImage'
 import type { PSM as PageSegMode } from 'tesseract.js'
 
@@ -60,19 +61,25 @@ async function prepare(file: File): Promise<HTMLCanvasElement> {
 
 export type ScanProgress = { pass: 1 | 2; fraction: number }
 
+interface DocumentReader<P> {
+  parse: (lines: OcrLine[]) => P
+  complete: (proposal: P) => boolean
+  merge: (first: P, second: P) => P
+}
+
 /**
- * Reads a fuel receipt into a proposal. Throws when the image cannot be
+ * Reads a document into a proposal. Throws when the image cannot be
  * decoded or the engine cannot load; the caller falls back to the manual
  * form with the photo still attached.
  *
  * Two page-segmentation modes, because each loses different things on
  * different photos: *sparse text* finds right-aligned amounts that a
  * column layout drops, *single block* keeps rows a sparse read scatters.
- * The second look runs only when the first left the date, litres or total
+ * The second look runs only when the first left something the form needs
  * unconfirmed, on the engine already loaded, and the two are combined by
- * `mergeProposals()`, which never pairs figures no check has seen together.
+ * the reader's `merge`, which never pairs figures no check saw together.
  */
-export async function scanFuelReceipt(file: File, onProgress?: (progress: ScanProgress) => void): Promise<ReceiptProposal> {
+async function scan<P>(file: File, reader: DocumentReader<P>, onProgress?: (progress: ScanProgress) => void): Promise<P> {
   const canvas = await prepare(file)
   // Loaded only when somebody scans: it is not small.
   const { createWorker, OEM, PSM } = await import('tesseract.js')
@@ -84,7 +91,7 @@ export async function scanFuelReceipt(file: File, onProgress?: (progress: ScanPr
       if (m.status === 'recognizing text') onProgress?.({ pass, fraction: m.progress })
     },
   })
-  const read = async (mode: PageSegMode): Promise<ReceiptProposal> => {
+  const read = async (mode: PageSegMode): Promise<P> => {
     await worker.setParameters({ tessedit_pageseg_mode: mode })
     const { data } = await worker.recognize(canvas, {}, { blocks: true, text: false })
     const lines: OcrLine[] = (data.blocks ?? []).flatMap((block) =>
@@ -95,14 +102,24 @@ export async function scanFuelReceipt(file: File, onProgress?: (progress: ScanPr
         }))
       )
     )
-    return parseFuelReceipt(lines)
+    return reader.parse(lines)
   }
   try {
     const first = await read(PSM.SPARSE_TEXT)
-    if (isComplete(first)) return first
+    if (reader.complete(first)) return first
     pass = 2
-    return mergeProposals(first, await read(PSM.SINGLE_BLOCK))
+    return reader.merge(first, await read(PSM.SINGLE_BLOCK))
   } finally {
     await worker.terminate()
   }
+}
+
+/** A fuel receipt → the fuel form (RL-048 slice 1). */
+export function scanFuelReceipt(file: File, onProgress?: (progress: ScanProgress) => void): Promise<ReceiptProposal> {
+  return scan(file, { parse: (lines) => parseFuelReceipt(lines), complete: isComplete, merge: mergeProposals }, onProgress)
+}
+
+/** A service invoice → a workshop job (RL-048 slice 2). */
+export function scanInvoice(file: File, onProgress?: (progress: ScanProgress) => void): Promise<InvoiceProposal> {
+  return scan(file, { parse: (lines) => parseInvoice(lines), complete: isInvoiceComplete, merge: mergeInvoiceProposals }, onProgress)
 }

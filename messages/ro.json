@@ -2988,5 +2988,24 @@
     "startHelp": "Înregistrează kilometrajul și câteva fotografii ale stării la preluare, ca ambele capete ale predării să fie în evidență.",
     "endTitle": "Predă vehiculul",
     "endHelp": "Kilometrajul și fotografiile stării la predare. Fotografiile se salvează primele; încheierea atribuirii îți retrage accesul."
+  },
+  "invoiceScan": {
+    "scan": "Scanează factura",
+    "scanning": "Se citește factura… {percent}%",
+    "scanningAgain": "Încă o citire, pentru verificare… {percent}%",
+    "help": "Fotografiază factura service-ului. Este citită pe telefon; service-ul, data, km, piesele și manopera sunt completate ca să le verifici, iar factura se atașează lucrării când o adaugi.",
+    "read": "Completat din factură. Verifică fiecare cifră — și cum au fost împărțite liniile în piese și manoperă, listate la note — înainte să adaugi.",
+    "failed": "Factura nu a putut fi citită. Scrie lucrarea — fotografia va fi atașată oricum.",
+    "attached": "Factura de atașat: {name}",
+    "attachFailed": "Lucrarea a fost salvată, dar factura nu a putut fi atașată.",
+    "pro": "Scanează facturile service-ului în loc să le scrii — cu Pro",
+    "unsure": "Nu s-a putut citi clar — scrie valoarea de pe factură.",
+    "unsureDate": "Data nu s-a putut citi clar — verific-o pe factură.",
+    "noSplit": "Liniile facturii nu s-au adunat la totalul ei, așa că piesele și manopera nu au fost completate — scrie-le de pe factură.",
+    "noSplitWithTotal": "Liniile facturii nu s-au adunat la totalul ei ({total} lei), așa că piesele și manopera nu au fost completate — scrie-le de pe factură.",
+    "notesHeading": "Factura {number}:",
+    "notesHeadingNoNumber": "Din factură:",
+    "labour": "manoperă",
+    "part": "piesă"
   }
 }
