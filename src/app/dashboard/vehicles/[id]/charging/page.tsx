@@ -5,13 +5,13 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
-import { chargeIntervals, chargeSummary, type ChargeMeasurable } from '@/lib/charging'
+import { chargeIntervals, chargeSummary, isChargeLocation, type ChargeMeasurable } from '@/lib/charging'
 import { summarize } from '@/lib/consumption'
 import { dayKey } from '@/lib/odometer'
 import { serializeChargeEntry, toNumberOrNull } from '@/lib/serialize'
 import ChargeQuickAdd from '@/components/ChargeQuickAdd'
 import HomeTariffForm from '@/components/HomeTariffForm'
-import { ChargeRow, RemoveChargeButton } from '@/components/ChargeEntryRemove'
+import { ChargeItem, ChargeRow } from '@/components/ChargeEntryRemove'
 import { formatRon } from '@/lib/money'
 import { powertrainOf, takesCharge } from '@/lib/powertrain'
 
@@ -131,8 +131,26 @@ export default async function ChargingPage({ params }: { params: { id: string } 
         <ul className="card divide-y divide-surface-border">
           {entries.map((e) => (
             <ChargeRow key={e.id} entryId={e.id}>
-              <li className="flex flex-wrap items-start justify-between gap-3 p-4">
-                <div className="min-w-0">
+              <ChargeItem
+                vehicleId={vehicle.id}
+                entry={{
+                  id: e.id,
+                  totalRon: hideSpend ? null : e.totalRon,
+                  totalFromTariff: e.totalFromTariff,
+                  kwh: e.kwh,
+                  km: e.km,
+                  location: isChargeLocation(e.location) ? e.location : 'OTHER',
+                  date: e.date.toISOString().slice(0, 10),
+                  network: e.network,
+                  socFrom: e.socFrom,
+                  socTo: e.socTo,
+                }}
+                dateLabel={fmtDate(e.date)}
+                receiptUrl={e.receiptUrl}
+                canChange={isOwner || e.createdByUserId === session.user.id}
+                hasHomeTariff={tariff !== null}
+                hideCosts={hideSpend}
+              >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-semibold text-ink">{e.kwh !== null ? `${num(e.kwh)} kWh` : t('noKwh')}</span>
                     {!hideSpend && (
@@ -157,18 +175,7 @@ export default async function ChargingPage({ params }: { params: { id: string } 
                       {t('consumptionSince', { value: num(byEnd.get(e.id)!.per100Km), level: e.socTo ?? 0 })}
                     </div>
                   )}
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  {e.receiptUrl && (
-                    <a href={`/api/uploads/${e.receiptUrl}`} target="_blank" rel="noreferrer" className="text-sm text-brand-600 hover:underline dark:text-brand-300">
-                      {t('viewReceipt')}
-                    </a>
-                  )}
-                  {(isOwner || e.createdByUserId === session.user.id) && (
-                    <RemoveChargeButton vehicleId={vehicle.id} entryId={e.id} dateLabel={fmtDate(e.date)} />
-                  )}
-                </div>
-              </li>
+              </ChargeItem>
             </ChargeRow>
           ))}
         </ul>
