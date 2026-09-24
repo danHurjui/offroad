@@ -60,7 +60,7 @@ describe('POST /api/vehicles/[id]/organization', () => {
     expect(res.status).toBe(200)
     expect(vehicle.updateMany).toHaveBeenCalledWith({
       where: { id: 'v1', organizationId: null },
-      data: { organizationId: 'o1', isPublic: false },
+      data: { organizationId: 'o1', isPublic: false, keptEditableAt: null },
     })
   })
 
@@ -113,7 +113,7 @@ describe('DELETE /api/vehicles/[id]/organization — out to the caller’s garag
     expect((await moveOut(req({}), params)).status).toBe(200)
     expect(vehicle.updateMany).toHaveBeenCalledWith({
       where: { id: 'v1', organizationId: 'o1' },
-      data: { organizationId: null, ownerId: 'me', slug: null },
+      data: { organizationId: null, ownerId: 'me', slug: null, keptEditableAt: null },
     })
   })
 

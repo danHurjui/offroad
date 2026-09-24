@@ -377,6 +377,11 @@ model Vehicle {
   /// organisation with vehicles is not deleted by accident. A company
   /// vehicle is never public (a CHECK constraint in the migration).
   organizationId             String?
+  /// RL-042 (#54): chosen by the owner (or, for a company vehicle, a
+  /// manager) to stay editable when there are more vehicles than the plan
+  /// covers — ranked ahead of the rest by `overLimitIds()`. Cleared when
+  /// the vehicle moves into or out of an organisation.
+  keptEditableAt             DateTime?
   projectType                ProjectType
   make                       String
   model                      String

@@ -9,6 +9,7 @@ import { subscribeToPush, unsubscribeFromPush } from '@/lib/pushClient'
 import { proKind, FREE_TIER } from '@/lib/pro'
 import { vehicleLimit, type StoredPlanId } from '@/lib/plans'
 import AvatarField from './AvatarField'
+import EditableVehiclesPicker from './EditableVehiclesPicker'
 
 interface Profile {
   id: string
@@ -46,11 +47,14 @@ interface Allowance {
   /** The ones that would be read-only if the paid plan ended. */
   ifPlanEnds: string[]
   freeVehicles: number
+  /** Every personal vehicle, for choosing which stay editable. */
+  vehicles: Array<{ id: string; label: string; editableNow: boolean; editableIfPlanEnds: boolean }>
 }
 
 export default function SettingsForm({ profile, allowance }: { profile: Profile; allowance: Allowance }) {
   const t = useTranslations('settings')
   const tc = useTranslations('common')
+  const te = useTranslations('editableChoice')
   const router = useRouter()
   const [displayName, setDisplayName] = useState(profile.displayName)
   const [location, setLocation] = useState(profile.location ?? '')
@@ -221,6 +225,27 @@ export default function SettingsForm({ profile, allowance }: { profile: Profile;
           <p className="mt-3 text-xs text-ink-muted">
             {t('ifPlanEnds', { free: allowance.freeVehicles, vehicles: allowance.ifPlanEnds.join(', ') })}
           </p>
+        )}
+        {/* RL-042: choose which stay editable — now, when over the plan;
+            otherwise, for a plan that can end, ahead of time. */}
+        {allowance.readOnlyNow.length > 0 && vehicleCap !== null ? (
+          <EditableVehiclesPicker
+            endpoint="/api/me/editable-vehicles"
+            max={vehicleCap}
+            help={te('helpNow', { limit: vehicleCap })}
+            vehicles={allowance.vehicles.map((v) => ({ id: v.id, label: v.label, chosen: v.editableNow }))}
+          />
+        ) : (
+          kind === 'paid' &&
+          !isLifetime &&
+          allowance.ifPlanEnds.length > 0 && (
+            <EditableVehiclesPicker
+              endpoint="/api/me/editable-vehicles"
+              max={allowance.freeVehicles}
+              help={te('helpIfEnds', { limit: allowance.freeVehicles })}
+              vehicles={allowance.vehicles.map((v) => ({ id: v.id, label: v.label, chosen: v.editableIfPlanEnds }))}
+            />
+          )
         )}
         {kind !== 'none' ? (
           kind === 'paid' && profile.stripeCustomerId && (

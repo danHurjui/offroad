@@ -112,6 +112,13 @@ export const RATE_LIMITS = {
    * fit comfortably; a script looping over years does not.
    */
   fleetReport: { limit: 30, windowSeconds: 60 * 60 },
+  /**
+   * RL-042: choosing which vehicles stay editable over the plan's
+   * allowance. Keyed on the user (or organisation), and tight on purpose:
+   * swapping the choice back and forth would edit every vehicle a few at
+   * a time, which is the plan the account is not paying for.
+   */
+  editableChoice: { limit: 5, windowSeconds: 24 * 60 * 60 },
 } as const satisfies Record<string, RateLimitRule>
 
 export type RateLimitName = keyof typeof RATE_LIMITS

@@ -3,21 +3,25 @@ import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { requireAdminOrNotFound } from '@/lib/serverAuth'
+import { isOrgPlanId, ORG_PLANS } from '@/lib/plans'
+import AdminOrgCompToggle from '@/components/AdminOrgCompToggle'
 
 export const metadata: Metadata = { title: 'Organisations — RigLog admin', robots: { index: false } }
 export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 25
 
-// RL-038: every organisation, for the people running the closed beta — who
-// owns it, how many members and vehicles it has, and which accounts have
-// the beta switched on. Read-only on purpose: `isAdmin` moderates and
-// grants no access to anybody's vehicles or records, so nothing here links
-// into an organisation's own screens. Counts only, never vehicle details.
+// RL-038: every organisation — who owns it, how many members and vehicles
+// it has, what it pays — and which accounts have the beta switched on.
+// `isAdmin` moderates and grants no access to anybody's vehicles or
+// records, so nothing here links into an organisation's own screens.
+// Counts only, never vehicle details. The one change it makes is the comp
+// (RL-042), through PATCH /api/admin/organizations/[orgId].
 export default async function AdminOrganizationsPage({ searchParams }: { searchParams: { q?: string; page?: string } }) {
   const t = await getTranslations('admin')
   const tr = await getTranslations('organizations')
   const tc = await getTranslations('common')
+  const tb = await getTranslations('orgBilling')
   await requireAdminOrNotFound()
   const q = searchParams.q?.trim() ?? ''
   const page = Math.max(1, Number(searchParams.page) || 1)
@@ -36,6 +40,8 @@ export default async function AdminOrganizationsPage({ searchParams }: { searchP
         name: true,
         cui: true,
         createdAt: true,
+        plan: true,
+        compedAt: true,
         _count: { select: { members: true, vehicles: true } },
         members: {
           where: { role: 'OWNER' },
@@ -81,27 +87,39 @@ export default async function AdminOrganizationsPage({ searchParams }: { searchP
       ) : (
         <div className="card mb-4 divide-y divide-surface-border">
           {organizations.map((org) => (
-            <div key={org.id} className="p-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-medium text-ink">{org.name}</span>
-                {org.cui && <span className="badge bg-surface-subtle text-ink-muted">{org.cui}</span>}
+            <div key={org.id} className="flex flex-wrap items-start justify-between gap-3 p-4">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium text-ink">{org.name}</span>
+                  {org.cui && <span className="badge bg-surface-subtle text-ink-muted">{org.cui}</span>}
+                  {org.compedAt ? (
+                    <span className="badge badge-success">{t('orgComped')}</span>
+                  ) : isOrgPlanId(org.plan) ? (
+                    <span className="badge badge-info">
+                      {t('orgPlanBadge', { plan: tb(`tier.${ORG_PLANS[org.plan].tier}`), limit: ORG_PLANS[org.plan].vehicles })}
+                    </span>
+                  ) : (
+                    <span className="badge badge-warn">{t('orgNoPlan')}</span>
+                  )}
+                </div>
+                <div className="text-xs text-ink-faint">
+                  {t('orgCreated', { date: date(org.createdAt) })} · {t('memberCount', { count: org._count.members })} ·{' '}
+                  {t('vehicleCount', { count: org._count.vehicles })}
+                </div>
+                <div className="mt-1 text-sm text-ink-muted">
+                  {tr('role.OWNER')}:{' '}
+                  {org.members.map((m, i) => (
+                    <span key={m.user.id}>
+                      {i > 0 && ', '}
+                      <Link href={`/admin/users/${m.user.id}`} className="text-ink hover:text-brand-600 dark:hover:text-brand-300">
+                        {m.user.displayName}
+                      </Link>{' '}
+                      <span className="text-ink-faint">({m.user.email})</span>
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="text-xs text-ink-faint">
-                {t('orgCreated', { date: date(org.createdAt) })} · {t('memberCount', { count: org._count.members })} ·{' '}
-                {t('vehicleCount', { count: org._count.vehicles })}
-              </div>
-              <div className="mt-1 text-sm text-ink-muted">
-                {tr('role.OWNER')}:{' '}
-                {org.members.map((m, i) => (
-                  <span key={m.user.id}>
-                    {i > 0 && ', '}
-                    <Link href={`/admin/users/${m.user.id}`} className="text-ink hover:text-brand-600 dark:hover:text-brand-300">
-                      {m.user.displayName}
-                    </Link>{' '}
-                    <span className="text-ink-faint">({m.user.email})</span>
-                  </span>
-                ))}
-              </div>
+              <AdminOrgCompToggle orgId={org.id} name={org.name} comped={org.compedAt !== null} />
             </div>
           ))}
         </div>

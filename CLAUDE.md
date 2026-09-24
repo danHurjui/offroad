@@ -1430,8 +1430,15 @@ in `stripe.ts` takes its prices from `LADDER`; tests hold that).
   Personal (or grandfathered) sees what it has and the company plans.
 - **Over the allowance is read-only, never deleted** (slice 2). When an
   account holds more personal vehicles than its plan covers — a plan
-  lapsed, or a comp ended — `overLimitIds()` keeps the **oldest** `limit`
-  editable and the rest read-only. Nothing is stored: it is worked out
+  lapsed, or a comp ended — `overLimitIds()` keeps `limit` editable and
+  the rest read-only: the ones the owner **chose** (`keptEditableAt`, the
+  picker in settings; a manager's on the organisation page), then the
+  oldest. The choice is the whole list each time (`PUT
+  /api/me/editable-vehicles`, `/api/organizations/[id]/editable-vehicles`),
+  capped at the allowance, cleared when a vehicle moves between garage and
+  organisation, and rate-limited (`editableChoice`, 5 a day per account or
+  organisation) — swapping it back and forth would edit everything a few
+  vehicles at a time. Nothing is stored: it is worked out
   from the plan and the vehicles on every write, so choosing a plan,
   deleting a vehicle or moving one into an organisation undoes it at once.
   `refuseIfReadOnly()` (`vehicleAllowance.ts`) runs after the access check
@@ -1472,12 +1479,16 @@ invoices are the company's. `plan` is written only by the webhook, like
   (`refuseOverOrgVehicleLimit()`), and a **lapsed payment degrades to
   read-only, never hidden**: every company vehicle stays readable
   (documents, dates, history) and `refuseIfReadOnly()` refuses writes
-  (`ORG_PLAN_REQUIRED`) until a plan covers them. The oldest stay editable
-  when the plan covers only some. Company vehicles never follow the
+  (`ORG_PLAN_REQUIRED`) until a plan covers them. When the plan covers only
+  some, the ones a manager chose stay editable, then the oldest. Company vehicles never follow the
   account of record's plan for this.
 - **Comped** (`compedAt`): the migration stamped every organisation from the
   closed beta, so none turned read-only the day billing shipped; and one a
-  beta account creates while billing is not configured.
+  beta account creates while billing is not configured. An admin comps one
+  or ends the comp on `/admin/organizations` (`PATCH
+  /api/admin/organizations/[orgId]`, `comped` only). Comping one that pays
+  is refused (`orgCompWhilePaying`) — Stripe would keep charging a company
+  told it is free.
 - **An organisation that pays cannot be deleted** (409 `orgHasSubscription`),
   nor an account that would take one with it (`orgPayingAccount`) — cancel
   in its portal first, or Stripe keeps charging a company nobody can reach.

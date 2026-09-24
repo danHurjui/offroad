@@ -43,6 +43,7 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
       orderBy: { updatedAt: 'desc' },
     }),
   ])
+  const readOnly = managesVehicles ? await orgReadOnlyVehicleIds(org.id) : new Set<string>()
   // Open invitations only — accepted ones are members above, withdrawn ones are gone.
   const invites = manager
     ? (
@@ -76,8 +77,9 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
         <OrgPlanSummary
           org={org}
           vehicleCount={vehicles.length}
-          readOnlyCount={(await orgReadOnlyVehicleIds(org.id)).size}
+          readOnlyCount={readOnly.size}
           isOwner={manager}
+          choice={vehicles.map((v) => ({ id: v.id, label: `${v.year} ${v.make} ${v.model}${v.plate ? ` · ${v.plate}` : ''}`, chosen: !readOnly.has(v.id) }))}
         />
       )}
 

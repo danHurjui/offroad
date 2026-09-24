@@ -57,7 +57,7 @@
     "planUncapped": "no vehicle cap and unlimited photos — kept from before the current plans.",
     "planPersonalLimits": "up to {vehicles, plural, one {# vehicle} other {# vehicles}}, unlimited photos.",
     "readOnlyNow": "Read-only now, because your plan covers fewer vehicles than you have: {vehicles}. Nothing was deleted.",
-    "ifPlanEnds": "If this plan ends, nothing is deleted. The free plan covers {free, plural, one {# vehicle} other {# vehicles}}: the oldest stay editable, and these would become read-only until you choose a plan again or remove others: {vehicles}."
+    "ifPlanEnds": "If this plan ends, nothing is deleted. The free plan covers {free, plural, one {# vehicle} other {# vehicles}}: the ones you choose below stay editable (the oldest, if you choose none), and these would become read-only until you choose a plan again or remove others: {vehicles}."
   },
   "common": {
     "save": "Save",
@@ -1898,7 +1898,7 @@
       "paying2": "Monthly and annual plans renew automatically until you cancel. Cancel any time from <settings>Profile & settings</settings>, which opens Stripe’s billing portal. Cancelling stops the next charge; you keep your plan until the period you have already paid for runs out. Lifetime is a single payment with nothing to cancel.",
       "withdrawal": "<b>You can cancel for a full refund within {days} days of buying, for any reason or none.</b> EU and Romanian law give you that right on anything bought at a distance. It can be waived for digital content delivered immediately, but only if you are asked to waive it first — and we don’t ask, so it stands. Email us, or open a ticket, and say you are withdrawing.",
       "afterWithdrawal": "After {days} days we don’t give refunds for a change of mind. We do refund when we have charged you in error or the service has been unusable for a meaningful stretch — ask.",
-      "losingPro": "Losing a paid plan never deletes anything. Your vehicles, photos and history stay exactly where they are; the paid-only screens stop opening, and your export keeps working so you can take everything with you. If you then have more vehicles than your plan covers, the oldest stay editable and the rest become read-only — you can still open, export, unpublish or delete them — until you choose a plan again or remove others.",
+      "losingPro": "Losing a paid plan never deletes anything. Your vehicles, photos and history stay exactly where they are; the paid-only screens stop opening, and your export keeps working so you can take everything with you. If you then have more vehicles than your plan covers, the ones you choose in settings stay editable (the oldest, if you choose none) and the rest become read-only — you can still open, export, unpublish or delete them — until you choose a plan again or remove others.",
       "foundingHeading": "Founding members",
       "founding1": "The first {limit} accounts ever created get Personal at no charge. If you are one of them, your settings page says so and gives your number.",
       "founding2": "It is a gift rather than a purchase: nothing was paid, so there is nothing to refund and no subscription to cancel. It is tied to your account and cannot be transferred or sold.",
@@ -2160,7 +2160,12 @@
     "orgComped": "This organisation is free with no vehicle cap; there is nothing to buy.",
     "orgHasSubscription": "Cancel the organisation’s plan in the billing portal first — deleting it would leave the card being charged.",
     "orgPayingAccount": "Deleting your account would also delete {names}, which still pays for a plan. Cancel it in that organisation’s billing portal first.",
-    "subscriptionCancelFailed": "Your Personal subscription could not be cancelled just now, so your account was not deleted and nothing was changed. Try again in a moment, or cancel the plan from Manage billing first."
+    "subscriptionCancelFailed": "Your Personal subscription could not be cancelled just now, so your account was not deleted and nothing was changed. Try again in a moment, or cancel the plan from Manage billing first.",
+    "adminOrgFieldsLimited": "Only `comped` can be changed here",
+    "orgCompWhilePaying": "This organisation pays for a plan. Cancel it in the organisation’s billing portal before comping it, or the card keeps being charged.",
+    "orgManagersOnly": "Only an owner or a fleet manager of the organisation can do that.",
+    "invalidEditableChoice": "Choose from the vehicles listed.",
+    "tooManyEditable": "The plan keeps at most {limit} editable — untick some first."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2245,7 +2250,7 @@
     "orgBetaOff": "Stop new organisations",
     "orgBetaBadge": "Organisations beta",
     "organizations": "Organisations",
-    "organizationsIntro": "Every organisation in the closed beta: who owns it and how big it is. Read-only — being an admin gives no access to a company’s vehicles or records.",
+    "organizationsIntro": "Every organisation: who owns it, how big it is and what it pays. You can make one free (no charge, no vehicle cap) or end that; nothing else here changes an organisation, and being an admin gives no access to a company’s vehicles or records.",
     "searchOrganizations": "Search by name or CUI",
     "noOrganizations": "No organisations yet.",
     "orgCreated": "created {date}",
@@ -2254,7 +2259,13 @@
     "orgBetaAccountsHelp": "They can create an organisation. Switch it on or off on each account’s page. Admins can always create one.",
     "orgBetaNone": "No account has it switched on yet.",
     "statOrganizations": "Organisations",
-    "grandfatheredBadge": "Kept Pro · no vehicle cap"
+    "grandfatheredBadge": "Kept Pro · no vehicle cap",
+    "orgComped": "Free · no vehicle cap",
+    "orgPlanBadge": "{plan} · up to {limit} vehicles",
+    "orgNoPlan": "No plan",
+    "orgCompOn": "Make free",
+    "orgCompOff": "End free",
+    "orgCompOffConfirm": "End free use for {name}? It keeps any plan it pays for. With none, all its vehicles become read-only (nothing is deleted) until it buys one."
   },
   "verifyEmail": {
     "bannerTitle": "Confirm your email address",
@@ -3232,7 +3243,7 @@
   },
   "readOnly": {
     "title": "This vehicle is read-only",
-    "ownerBody": "Your plan covers {limit, plural, one {# personal vehicle} other {# personal vehicles}}, and you have more. Nothing was deleted: you can open and export everything here, make it private or delete it. The oldest vehicles stay editable; to edit this one again, choose a plan that covers it, delete another vehicle, or move one into an organisation.",
+    "ownerBody": "Your plan covers {limit, plural, one {# personal vehicle} other {# personal vehicles}}, and you have more. Nothing was deleted: you can open and export everything here, make it private or delete it. The ones chosen in settings stay editable (the oldest, if none are chosen); to edit this one again, choose it there, choose a plan that covers it, delete another vehicle, or move one into an organisation.",
     "collaboratorBody": "Its owner’s plan no longer covers this many vehicles, so nothing can be added or changed here for now. Everything recorded is still here.",
     "seePlans": "See the plans",
     "companyManagerBody": "The organisation’s plan does not cover this vehicle — it lapsed, or the organisation holds more vehicles than the plan allows. Nothing was hidden or deleted: documents, dates and history are all here. An owner can choose a plan on the organisation’s page.",
@@ -3244,7 +3255,7 @@
     "intro": "The organisation pays for its own plan, with its own card and invoices. Only owners see this page.",
     "planTitle": "Plan",
     "billingLink": "Plan and billing",
-    "comped": "Free, with no vehicle cap — kept from the closed beta.",
+    "comped": "Free, with no vehicle cap.",
     "onPlan": "{plan}, billed {period}.",
     "noPlan": "No plan yet. The organisation can invite people, but holds vehicles only on a plan.",
     "vehiclesUncapped": "{count, plural, one {# vehicle} other {# vehicles}}, no cap.",
@@ -3277,9 +3288,21 @@
     "manage": "Manage billing",
     "manageHelp": "Change the plan, update the card, download invoices or cancel — in Stripe’s billing portal. Cancelling keeps every vehicle, read-only.",
     "chooseTitle": "Choose a plan",
-    "chooseHelp": "Billed to the organisation. If it ever holds more vehicles than its plan covers, the newest ones become read-only until the plan covers them — never hidden or deleted.",
+    "chooseHelp": "Billed to the organisation. If it ever holds more vehicles than its plan covers, the ones a manager has not chosen to keep editable (the newest, by default) become read-only until the plan covers them — never hidden or deleted.",
     "notConfigured": "Company plans are not on sale yet.",
     "subscribed": "Thank you. The plan shows here as soon as Stripe confirms the payment, usually within a minute.",
     "invoicesHelp": "Past invoices and the card on file are in Stripe’s billing portal."
+  },
+  "editableChoice": {
+    "title": "Which vehicles stay editable",
+    "helpNow": "Your plan covers {limit, plural, one {# vehicle} other {# vehicles}}. Tick the ones to keep editable; the rest stay readable, and nothing is deleted.",
+    "helpIfEnds": "If your plan ends, only {limit, plural, one {# vehicle stays} other {# vehicles stay}} editable. Choose which here; otherwise the oldest.",
+    "helpOrg": "The plan covers {limit, plural, one {# vehicle} other {# vehicles}}. Tick the ones to keep editable; the rest stay readable, and nothing is deleted.",
+    "chosen": "{count} of {limit} chosen",
+    "save": "Save choice",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "failed": "Could not save the choice",
+    "rateNote": "You can change this a few times a day."
   }
 }

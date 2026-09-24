@@ -34,7 +34,7 @@ export async function readOnlyVehicleIds(ownerId: string): Promise<Set<string>> 
   if (limit === null) return new Set()
   const vehicles = await prisma.vehicle.findMany({
     where: { ownerId, organizationId: null },
-    select: { id: true, createdAt: true },
+    select: { id: true, createdAt: true, keptEditableAt: true },
   })
   return new Set(overLimitIds(vehicles, limit))
 }
@@ -50,7 +50,10 @@ export async function orgReadOnlyVehicleIds(organizationId: string): Promise<Set
   const org = await prisma.organization.findUnique({ where: { id: organizationId }, select: ORG_PLAN_SELECT })
   const limit = orgVehicleLimit(org)
   if (limit === null) return new Set()
-  const vehicles = await prisma.vehicle.findMany({ where: { organizationId }, select: { id: true, createdAt: true } })
+  const vehicles = await prisma.vehicle.findMany({
+    where: { organizationId },
+    select: { id: true, createdAt: true, keptEditableAt: true },
+  })
   return new Set(overLimitIds(vehicles, limit))
 }
 
@@ -89,4 +92,35 @@ export async function refuseOverOrgVehicleLimit(organizationId: string): Promise
   const held = await prisma.vehicle.count({ where: { organizationId } })
   if (held < limit) return null
   return apiErrorWith('orgVehicleLimit', { limit }, 403, { code: 'ORG_PLAN_REQUIRED' })
+}
+
+/**
+ * RL-042: records which vehicles stay editable when there are more than
+ * the plan covers — a personal garage (`{ ownerId, organizationId: null }`)
+ * or an organisation's fleet (`{ organizationId }`). The rest of the scope
+ * loses its mark in the same transaction, so the choice is always exactly
+ * the list sent. The caller has checked the ids and the count.
+ */
+export async function chooseEditableVehicles(
+  scope: { ownerId: string; organizationId: null } | { organizationId: string },
+  ids: string[]
+): Promise<void> {
+  const now = new Date()
+  await prisma.$transaction([
+    prisma.vehicle.updateMany({ where: { ...scope, id: { notIn: ids } }, data: { keptEditableAt: null } }),
+    prisma.vehicle.updateMany({ where: { ...scope, id: { in: ids }, keptEditableAt: null }, data: { keptEditableAt: now } }),
+  ])
+}
+
+/**
+ * The `vehicleIds` of a choice: distinct strings, each one of `allowed`,
+ * at most `max` of them (null is no cap). Null when the body is not that.
+ */
+export function parseEditableChoice(body: Record<string, unknown>, allowed: Set<string>, max: number | null): string[] | 'tooMany' | null {
+  const raw = body.vehicleIds
+  if (!Array.isArray(raw) || !raw.every((x) => typeof x === 'string')) return null
+  const ids = Array.from(new Set(raw as string[]))
+  if (!ids.every((id) => allowed.has(id))) return null
+  if (max !== null && ids.length > max) return 'tooMany'
+  return ids
 }
