@@ -1445,6 +1445,15 @@ in `stripe.ts` takes its prices from `LADDER`; tests hold that).
   `PRO_SELECT`, wherever the allowance is read.
 - The upgrade page never sells somebody what they hold: an account with
   Personal (or grandfathered) sees what it has and the company plans.
+- **Payments are held off until there is a legal entity** (#96/#97), so
+  "not configured" is a normal state, not a fault. `isCheckoutReady()`
+  (`stripe.ts`: a secret key *and* `STRIPE_WEBHOOK_SECRET` — without the
+  webhook a card is charged and nothing granted) gates every screen that
+  sells: the upgrade page shows prices marked "not on sale yet" per
+  `isPersonalPlanOnSale()`, `/donate` shows a note instead of its form,
+  and `isOrgBillingConfigured()` builds on it. The API routes still refuse
+  with 503 on their own; the screens just stop offering a button that can
+  only fail.
 - **Over the allowance is read-only, never deleted** (slice 2). When an
   account holds more personal vehicles than its plan covers — a plan
   lapsed, or a comp ended — `overLimitIds()` keeps `limit` editable and

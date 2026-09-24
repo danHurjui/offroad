@@ -182,6 +182,7 @@ describe('POST /api/organizations', () => {
   it('opens to everyone once organisation billing is configured, starting with no plan', async () => {
     const env = { ...process.env }
     process.env.STRIPE_SECRET_KEY = 'sk_test_51abc'
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test'
     for (const plan of ORG_PLAN_IDS) process.env[ORG_PLANS[plan].envVar] = `price_${plan.toLowerCase()}`
     try {
       user.findUnique.mockResolvedValue({ orgBetaAt: null, isAdmin: false })

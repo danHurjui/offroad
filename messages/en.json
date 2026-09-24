@@ -1415,6 +1415,7 @@
     "title": "Support RigLog",
     "intro": "RigLog is built and paid for by one person. Hosting, the database and the domain cost money every month, and the free tier exists because a few people chip in. If the app has been useful, this helps keep it that way.",
     "canceled": "Checkout was cancelled — nothing was charged. No hard feelings.",
+    "notOpenYet": "Donations aren’t open yet. Thank you for wanting to help — check back soon.",
     "noAccountNeeded": "You don’t need an account to donate. <login>Log in</login> first if you’d like it credited to your name.",
     "whereItGoes": "Where it goes",
     "goesHosting": "Hosting and the Postgres database",
@@ -1547,6 +1548,8 @@
     "checkoutFailed": "Could not start checkout",
     "holdsPersonal": "You have Personal: up to {vehicles} vehicles and every paid feature for them. Manage it from settings.",
     "holdsComped": "You have Personal at no charge: up to {vehicles} vehicles and every paid feature for them.",
+    "comingSoon": "Not on sale yet",
+    "notOnSale": "Paid plans aren’t on sale yet. Everything free keeps working in the meantime.",
     "holdsGrandfathered": "You kept your plan from before these existed: every Personal feature, with no vehicle cap, at the price you were paying. Nothing here would be an upgrade on it."
   },
   "analytics": {

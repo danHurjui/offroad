@@ -9,6 +9,7 @@ import { formatRon, supporterName } from '@/lib/donations'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 import DonateForm from '@/components/DonateForm'
+import { isCheckoutReady } from '@/lib/stripe'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('donate')
@@ -53,6 +54,9 @@ export default async function DonatePage({
   ])
 
   const totalBani = totals._sum.amountBani ?? 0
+  // Held off with the paid plans until there is a legal entity to receive
+  // them (#96/#97): say so rather than a form that answers "unavailable".
+  const open = isCheckoutReady()
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,8 +78,12 @@ export default async function DonatePage({
 
         <div className="grid gap-8 lg:grid-cols-2">
           <div>
-            <DonateForm signedIn={Boolean(session)} />
-            {!session && (
+            {open ? (
+              <DonateForm signedIn={Boolean(session)} />
+            ) : (
+              <div className="card p-5 text-sm text-ink-muted">{t('notOpenYet')}</div>
+            )}
+            {open && !session && (
               <p className="mt-4 text-center text-sm text-ink-muted">
                 {t.rich('noAccountNeeded', {
                   login: (chunks) => (

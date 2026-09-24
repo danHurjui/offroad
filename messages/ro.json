@@ -1415,6 +1415,7 @@
     "title": "Susține RigLog",
     "intro": "RigLog e construit și plătit de o singură persoană. Găzduirea, baza de date și domeniul costă lunar, iar planul gratuit există pentru că vin câțiva care contribuie. Dacă aplicația ți-a fost de folos, asta ajută să rămână așa.",
     "canceled": "Plata a fost anulată — nu s-a reținut nimic. Fără supărare.",
+    "notOpenYet": "Donațiile nu sunt încă deschise. Mulțumim că vrei să ajuți — revino în curând.",
     "noAccountNeeded": "Nu ai nevoie de cont ca să donezi. <login>Autentifică-te</login> întâi dacă vrei să apară pe numele tău.",
     "whereItGoes": "Unde ajung banii",
     "goesHosting": "Găzduire și baza de date Postgres",
@@ -1547,6 +1548,8 @@
     "checkoutFailed": "Nu am putut începe plata",
     "holdsPersonal": "Ai Personal: până la {vehicles} vehicule și toate funcțiile plătite pentru ele. Îl gestionezi din setări.",
     "holdsComped": "Ai Personal fără plată: până la {vehicles} vehicule și toate funcțiile plătite pentru ele.",
+    "comingSoon": "Nu este încă de vânzare",
+    "notOnSale": "Planurile plătite nu sunt încă de vânzare. Tot ce e gratuit funcționează în continuare.",
     "holdsGrandfathered": "Ți-ai păstrat planul de dinainte ca acestea să existe: toate funcțiile Personal, fără limită de vehicule, la prețul pe care îl plăteai. Nimic de aici nu l-ar îmbunătăți."
   },
   "analytics": {

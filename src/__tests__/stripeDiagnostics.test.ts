@@ -4,7 +4,9 @@ import {
   describeStripeFailure,
   stripeConfigProblems,
   StripeConfigError,
+  isCheckoutReady,
   isOrgBillingConfigured,
+  isPersonalPlanOnSale,
   orgPlanForPriceId,
 } from '@/lib/stripe'
 import { ORG_PLAN_IDS, ORG_PLANS } from '@/lib/plans'
@@ -180,6 +182,30 @@ describe('stripeConfigProblems reports every fault at once', () => {
 
   it('opens organisation billing only with every company price set', () => {
     expect(isOrgBillingConfigured()).toBe(true)
+  })
+
+  // Payments are held off until there is a legal entity to sell as, so
+  // "not configured" is a normal state the screens must show as "not on
+  // sale yet" rather than a button that fails.
+  it('is ready to sell only with a secret key and the webhook secret', () => {
+    expect(isCheckoutReady()).toBe(true)
+    expect(isPersonalPlanOnSale('PERSONAL_MONTHLY')).toBe(true)
+
+    delete process.env.STRIPE_WEBHOOK_SECRET
+    expect(isCheckoutReady()).toBe(false)
+    expect(isPersonalPlanOnSale('PERSONAL_MONTHLY')).toBe(false)
+    expect(isOrgBillingConfigured()).toBe(false)
+
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_abc'
+    delete process.env.STRIPE_SECRET_KEY
+    expect(isCheckoutReady()).toBe(false)
+    expect(isOrgBillingConfigured()).toBe(false)
+  })
+
+  it('takes a Personal plan off sale when its own price is missing', () => {
+    delete process.env.STRIPE_PRICE_PERSONAL_LIFETIME
+    expect(isPersonalPlanOnSale('PERSONAL_LIFETIME')).toBe(false)
+    expect(isPersonalPlanOnSale('PERSONAL_ANNUAL')).toBe(true)
   })
 
   it('maps a configured company price back to its plan, and nothing else', () => {
