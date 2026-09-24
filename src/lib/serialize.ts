@@ -107,16 +107,37 @@ export function serializeFuelEntry<
 }
 
 /**
+ * RL-053: a charge with its amounts as numbers and the km at the plug.
+ * Price per kWh is derived, like price per litre, and there is none
+ * without kWh.
+ */
+export function serializeChargeEntry<
+  T extends { kwh: Decimal | number | null; totalRon: Decimal | number; odometerReading?: { km: number } | null },
+>(entry: T) {
+  const { odometerReading, ...rest } = entry
+  const kwh = toNumberOrNull(entry.kwh)
+  const totalRon = toNumberOrNull(entry.totalRon) ?? 0
+  return {
+    ...rest,
+    kwh,
+    totalRon,
+    km: odometerReading?.km ?? null,
+    pricePerKwh: kwh !== null && kwh > 0 ? Math.round((totalRon / kwh) * 1000) / 1000 : null,
+  }
+}
+
+/**
  * RL-045: the vehicle's own money columns — purchase, the owner's value
  * estimate, finance — as numbers (pitfall #5).
  */
-export const VEHICLE_MONEY_FIELDS = ['purchasePriceRon', 'currentValueRon', 'financeMonthlyRon'] as const
+export const VEHICLE_MONEY_FIELDS = ['purchasePriceRon', 'currentValueRon', 'financeMonthlyRon', 'homeTariffRonPerKwh'] as const
 
 export function vehicleMoney(vehicle: Record<(typeof VEHICLE_MONEY_FIELDS)[number], Decimal | number | null>) {
   return {
     purchasePriceRon: toNumberOrNull(vehicle.purchasePriceRon),
     currentValueRon: toNumberOrNull(vehicle.currentValueRon),
     financeMonthlyRon: toNumberOrNull(vehicle.financeMonthlyRon),
+    homeTariffRonPerKwh: toNumberOrNull(vehicle.homeTariffRonPerKwh),
   }
 }
 
@@ -140,6 +161,8 @@ export function serializeVehicle<T extends Record<(typeof VEHICLE_MONEY_FIELDS)[
       financeMonthlyRon: null,
       financeStartDate: null,
       financeEndDate: null,
+      // RL-053: the tariff prices every home charge, so it is a cost too.
+      homeTariffRonPerKwh: null,
     }
   }
   return { ...vehicle, ...vehicleMoney(vehicle) }

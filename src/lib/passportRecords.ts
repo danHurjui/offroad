@@ -28,13 +28,16 @@ export interface PassportView {
  */
 export async function loadPassport(vehicle: Vehicle, options: PassportOptions, now: Date = new Date()): Promise<PassportView> {
   const completeStatus = PROJECT_TYPE_CONFIG[vehicle.projectType].completeStatus
-  const [book, readings, fuel, documents, tyreSets, accidents, owner, photos] = await Promise.all([
+  const [book, readings, fuel, charges, documents, tyreSets, accidents, owner, photos] = await Promise.all([
     loadServiceBook(vehicle.id, completeStatus),
     prisma.odometerReading.findMany({
       where: { vehicleId: vehicle.id },
       select: { id: true, km: true, readAt: true, isOverride: true, overrideReason: true, createdAt: true },
     }),
     prisma.fuelEntry.findMany({ where: { vehicleId: vehicle.id }, select: { date: true } }),
+    // RL-053: a charge is record activity too, or an EV's passport would
+    // list a year of charging as a gap in its records.
+    prisma.chargeEntry.findMany({ where: { vehicleId: vehicle.id }, select: { date: true } }),
     prisma.document.findMany({ where: { vehicleId: vehicle.id }, select: { type: true, expiryDate: true } }),
     prisma.tyreSet.findMany({ where: { vehicleId: vehicle.id }, select: { season: true, label: true, isFitted: true, dotYear: true } }),
     // Photos are counted, never shown: they stay behind the owner's session.
@@ -57,7 +60,7 @@ export async function loadPassport(vehicle: Vehicle, options: PassportOptions, n
     vehicle,
     rows: book.rows,
     readings,
-    fuelDates: fuel.map((f) => f.date),
+    fuelDates: [...fuel, ...charges].map((f) => f.date),
     documents,
     tyreSets,
     accidents: accidents.map((a) => ({

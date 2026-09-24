@@ -760,6 +760,27 @@ connectors and max AC/DC power are profile fields shown only when
 `takesCharge()`; like engine capacity for an EV they are **hidden, never
 cleared**, so a wrong fuel type picked and corrected loses nothing.
 
+### Charging log (`src/lib/charging.ts`, RL-053 — #121)
+`ChargeEntry` is the fuel log's twin for a vehicle that plugs in, and
+copies its rules: the km is an `OdometerReading` (source `CHARGE`) in the
+same transaction, deleting a charge takes its reading and receipt, the
+receipt is filed under the owner's prefix and in `collectStorageKeys()`,
+anyone else removes only their own, `hidesCosts()` nulls every echoed
+amount. Three differences, each deliberate:
+- **The total may be 0** (`parseNonNegativeAmount()`): free charging is
+  common, and refusing it makes the log lie by omission.
+- **kWh may be missing** (a home socket with no meter): such a charge
+  counts towards cost, never towards energy. kWh is **never** derived from
+  battery % × capacity — that is the car's estimate.
+- **A home charge with kWh and no total is priced from
+  `Vehicle.homeTariffRonPerKwh`** (owner-only, set on the charging page)
+  and stored with `totalFromTariff`, labelled "from home tariff" — never
+  shown as a price paid. The total is stored, so a later tariff rewrites
+  nothing. The tariff is hidden with the vehicle's other costs.
+The vehicle page and `DriverPanel` link Fuel on `takesFuel()` and Charging
+on `takesCharge()`. `ChargeEntry.totalRon` is not yet in the cost of
+ownership — RL-055 (#123) adds it, and `MONEY_COLUMNS` says so.
+
 ### Odometer history (`src/lib/odometer.ts`, `odometerRecords.ts`, RL-044 — slice 2)
 **Current mileage is derived from the newest `OdometerReading`, never
 stored on `Vehicle`** (a test reads the schema for that). Readings stay in

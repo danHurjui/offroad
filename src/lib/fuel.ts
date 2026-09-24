@@ -136,3 +136,14 @@ export function parsePositiveAmount(value: unknown, max: number): AmountParse {
   if (!Number.isFinite(n) || n <= 0 || n > max) return { ok: false }
   return { ok: true, value: Math.round(n * 100) / 100 }
 }
+
+/**
+ * Zero or a positive decimal up to `max` — for a charge, where free
+ * charging (a supermarket car park, the office) is common and real.
+ */
+export function parseNonNegativeAmount(value: unknown, max: number): AmountParse {
+  if (value === undefined || value === null || (typeof value === 'string' && value.trim() === '')) return { ok: false }
+  const n = typeof value === 'number' ? value : Number(String(value).trim().replace(',', '.'))
+  if (!Number.isFinite(n) || n < 0 || n > max) return { ok: false }
+  return { ok: true, value: Math.round(n * 100) / 100 }
+}
