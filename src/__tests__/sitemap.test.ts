@@ -93,3 +93,37 @@ describe('sitemap.xml', () => {
     }
   })
 })
+
+describe('sitemap.xml — feature pages and honest dates', () => {
+  beforeEach(() => {
+    process.env.NEXTAUTH_URL = 'https://riglog.example'
+    mockVehicles.mockResolvedValue([
+      { slug: 'a', updatedAt: new Date('2026-01-02'), owner: { username: 'dan' } },
+      { slug: 'b', updatedAt: new Date('2026-05-06'), owner: { username: 'dan' } },
+    ])
+    mockTickets.mockResolvedValue([{ id: 'tkt1', updatedAt: new Date('2026-02-03') }])
+    mockPartsRequests.mockResolvedValue([])
+  })
+  afterEach(() => {
+    delete process.env.NEXTAUTH_URL
+    jest.clearAllMocks()
+  })
+
+  it('lists every feature of the tour on its own page', async () => {
+    const { DEMO_CHAPTERS } = await import('@/lib/demoTour')
+    const listed = (await sitemap()).map((e) => e.url)
+    for (const chapter of DEMO_CHAPTERS) expect(listed).toContain(`https://riglog.example/demo/${chapter.id}`)
+  })
+
+  it('dates a list by its newest entry, the legal pages by their revision, and invents nothing', async () => {
+    const { LEGAL_LAST_UPDATED } = await import('@/lib/legal')
+    const byUrl = new Map((await sitemap()).map((e) => [e.url, e.lastModified]))
+    expect(byUrl.get('https://riglog.example/community')).toEqual(new Date('2026-05-06'))
+    expect(byUrl.get('https://riglog.example/tickets')).toEqual(new Date('2026-02-03'))
+    expect(byUrl.get('https://riglog.example/community/parts-wanted')).toBeUndefined()
+    expect(byUrl.get('https://riglog.example/terms')).toEqual(new Date(`${LEGAL_LAST_UPDATED}T00:00:00Z`))
+    // Nothing records when the homepage or the tour changed: no date, never "now".
+    expect(byUrl.get('https://riglog.example')).toBeUndefined()
+    expect(byUrl.get('https://riglog.example/demo/fuel')).toBeUndefined()
+  })
+})

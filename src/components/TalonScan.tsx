@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import type { ScanProgress } from '@/lib/ocr'
 import { TALON_FIELDS, readAnythingFromTalon, type TalonField, type TalonProposal } from '@/lib/talonParse'
@@ -14,14 +13,15 @@ import { ScanButton } from './ScanButton'
  * number, and it is **never uploaded** — nothing here sends it anywhere,
  * and a test holds that. It proposes: the form is filled in, the person
  * checks it against the card, and nothing is saved until they save.
+ *
+ * **Free, on every plan** (the owner's decision), unlike the receipt and
+ * invoice scanners: it is done once per car, at the moment somebody is
+ * deciding whether the app is worth filling in. It runs on the device, so
+ * it costs nothing to offer.
  */
 export default function TalonScan({
-  canScan,
-  offerUpgrade,
   onProposal,
 }: {
-  canScan: boolean
-  offerUpgrade: boolean
   /** Receives what was read; the form decides what to write where. */
   onProposal: (proposal: TalonProposal) => void
 }) {
@@ -48,16 +48,6 @@ export default function TalonScan({
     } finally {
       setProgress(null)
     }
-  }
-
-  if (!canScan) {
-    return offerUpgrade ? (
-      <p className="text-xs text-ink-faint">
-        <Link href="/dashboard/upgrade" className="text-brand-600 hover:underline dark:text-brand-300">
-          {t('upgrade')}
-        </Link>
-      </p>
-    ) : null
   }
 
   const names = (fields: TalonField[]) => fields.map((f) => t(`field.${f}`)).join(', ')

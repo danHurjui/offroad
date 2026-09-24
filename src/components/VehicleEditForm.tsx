@@ -64,16 +64,11 @@ export default function VehicleEditForm({
   vehicle,
   coverCandidates = [],
   sites = [],
-  canScan = false,
-  offerScanUpgrade = false,
 }: {
   vehicle: Vehicle
   coverCandidates?: CoverCandidate[]
   /** #103: the organisation's sites, for a company vehicle; empty otherwise. */
   sites?: SiteOption[]
-  /** Scanning the talon is a paid feature on the vehicle's plan, like the receipt scanner. */
-  canScan?: boolean
-  offerScanUpgrade?: boolean
 }) {
   const t = useTranslations('vehicleEdit')
   const tc = useTranslations('common')
@@ -198,7 +193,7 @@ export default function VehicleEditForm({
 
   return (
     <div className="space-y-6">
-      <TalonScan canScan={canScan} offerUpgrade={offerScanUpgrade} onProposal={applyTalon} />
+      <TalonScan onProposal={applyTalon} />
       <form onSubmit={onSubmit} className="card space-y-4 p-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>

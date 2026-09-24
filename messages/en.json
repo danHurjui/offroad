@@ -402,7 +402,8 @@
     "privacy": "Privacy",
     "cookies": "Cookies",
     "xmlNote": "Search engines want <link>sitemap.xml</link> instead.",
-    "demo": "Demo — all the features"
+    "demo": "Demo — all the features",
+    "features": "Features"
   },
   "dashboard": {
     "title": "Your vehicles",
@@ -512,7 +513,7 @@
     "battery": "Battery"
   },
   "home": {
-    "metaTitle": "Car build, restoration and repair log — RigLog",
+    "metaTitle": "Car log app: service history, reminders and fuel — RigLog",
     "heroTitle": "Every bolt, every lei, every photo — in one place.",
     "heroBody": "RigLog is a build tracker for off-road rigs, a restoration journal for classics, a repair log for the car you drive every day — and a fleet log for the vans your company runs. Keep the history your vehicle deserves.",
     "ctaStart": "Start logging — free",
@@ -607,7 +608,7 @@
         "body": "Share the service book, documents and recorded damage as a link or PDF when you sell — honest about being the owner’s own record."
       }
     },
-    "metaDescription": "Log every modification, restoration stage and repair on your vehicle: costs, photos, receipts and reminders for insurance and inspection, all in one place. Free to start.",
+    "metaDescription": "A free app for your car: service and repair history, inspection and insurance reminders, real fuel consumption, running costs and a history to hand a buyer.",
     "ctaDemo": "See the features",
     "personal": "Personal",
     "personalFrom": "{price} RON",
@@ -626,10 +627,11 @@
       "trips": "Business and personal trips, checked against the odometer",
       "reports": "Jobs and costs as spreadsheets, and a PDF summary for the accountant"
     },
-    "businessCta": "See the fleet features"
+    "businessCta": "See the fleet features",
+    "ogTitle": "The complete log of your car"
   },
   "demo": {
-    "metaTitle": "Every feature, with sample screens — RigLog",
+    "metaTitle": "Features: service history, reminders, fuel, fleets — RigLog",
     "metaDescription": "See what RigLog does before signing up: jobs with costs, photos, receipts read from a photo, fuel and real consumption, document reminders, a vehicle passport for selling, and fleet tools for companies. Sample screens, no account needed.",
     "heroTitle": "Everything RigLog does, before you sign up",
     "heroBody": "A walk through every feature — {count} of them — with sample screens from the app itself. Pick a category, filter by plan, and open whichever one you came for.",
@@ -789,7 +791,7 @@
       },
       "identity": {
         "title": "Plate and registration",
-        "body": "The plate and what the talon says — fuel, gearbox, engine, power, first registration — kept with the vehicle. The plate is searchable in your garage and never shown on a public page."
+        "body": "Photograph the talon and the plate, VIN, make, model, fuel, engine, power and first registration are filled in for you to check — read on your phone, never uploaded. The plate is searchable in your garage and never shown on a public page."
       },
       "odometer": {
         "title": "Odometer history",
@@ -1143,7 +1145,11 @@
       }
     },
     "breadcrumb": "Features",
-    "tierBusiness": "Company plan"
+    "tierBusiness": "Company plan",
+    "breadcrumbLabel": "Breadcrumb",
+    "moreIn": "More in {section}",
+    "wholeTour": "See every feature in the tour →",
+    "featurePage": "Open this feature’s page"
   },
   "task": {
     "name": "Name",
@@ -1682,7 +1688,8 @@
     "totalSpent": "Total spent",
     "documentedWith": "Documented with <b>RigLog</b>",
     "noCompletedWork": "No completed work logged yet.",
-    "byOwner": "by {name}"
+    "byOwner": "by {name}",
+    "metaDescription": "{year} {make} {model} — {mode}, documented by {owner} on RigLog: the work and the photos, step by step."
   },
   "vin": {
     "field": {
@@ -3768,7 +3775,6 @@
     "hybrid": "The talon names both fuel and electricity. Choose Hybrid or Plug-in hybrid yourself — the talon doesn’t say which, and only a plug-in gets the charging log.",
     "check": "Check each field against the talon before saving.",
     "failed": "Couldn’t read this talon. Try a sharper photo in good light, or type the fields in.",
-    "upgrade": "Scan the talon instead of typing it — with Personal",
     "field": {
       "plate": "plate",
       "firstRegistrationDate": "first registration",

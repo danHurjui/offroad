@@ -152,7 +152,9 @@ describe('the talon scan on the page', () => {
     expect(source).not.toMatch(/fetch\(|FormData/)
   })
 
-  it('follows the vehicle’s plan, like the receipt scanner', () => {
-    expect(read('src/app/dashboard/vehicles/[id]/edit/page.tsx')).toMatch(/vehicleHasPro\(/)
+  // The owner's decision: the talon scan is free on every plan.
+  it('is free: no plan gate on the page or the component', () => {
+    expect(read('src/app/dashboard/vehicles/[id]/edit/page.tsx')).not.toMatch(/vehicleHasPro|canScan/)
+    expect(read('src/components/TalonScan.tsx')).not.toMatch(/canScan|upgrade/)
   })
 })

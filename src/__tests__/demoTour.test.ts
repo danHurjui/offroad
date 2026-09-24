@@ -80,7 +80,8 @@ describe('the tour catalogue', () => {
 })
 
 describe('the tour page', () => {
-  const page = fs.readFileSync(path.join(process.cwd(), 'src', 'app', 'demo', 'page.tsx'), 'utf8')
+  // The screens live in one module shared with the feature pages.
+  const page = fs.readFileSync(path.join(process.cwd(), 'src', 'components', 'demo', 'demoPreviews.tsx'), 'utf8')
 
   /**
    * A chapter without a sample screen renders as a heading and a
@@ -186,7 +187,7 @@ describe('the tour covers electric cars', () => {
   it('has a free charging chapter among the car records, with its own preview', () => {
     const records = DEMO_SECTIONS.find((s) => s.id === 'records')!
     expect(records.chapters).toContainEqual({ id: 'charging', tier: 'free' })
-    expect(read('src/app/demo/page.tsx')).toContain("charging: screen('charging', <ChargingPreview />)")
+    expect(read('src/components/demo/demoPreviews.tsx')).toContain("charging: screen('charging', <ChargingPreview />)")
   })
 
   it('the preview runs the charging functions over samples that show the rules', () => {
@@ -204,5 +205,48 @@ describe('the tour covers electric cars', () => {
     expect(typeof lookup(catalogue.demo, 'faq.electric.q')).toBe('string')
     expect(String(lookup(catalogue.demo, 'faq.electric.a'))).toMatch(/kWh/)
     expect(String(lookup(catalogue.home, 'feature.fuel.body'))).toMatch(/electric/i)
+  })
+})
+
+// Every feature on a page of its own, so a search can land on it.
+describe('the feature pages', () => {
+  const read = (f: string) => fs.readFileSync(path.join(process.cwd(), f), 'utf8')
+
+  it('the tour and its feature pages draw from one preview list', () => {
+    expect(read('src/app/demo/page.tsx')).toContain('await demoPreviews()')
+    expect(read('src/app/demo/[feature]/page.tsx')).toContain('demoPreviews()')
+  })
+
+  it('an unknown feature is a 404, and each page has its own canonical and picture', () => {
+    const source = read('src/app/demo/[feature]/page.tsx')
+    expect(source).toContain('notFound()')
+    expect(source).toContain('path: `/demo/${chapter.id}`')
+    expect(source).toContain('image: `/og?feature=${chapter.id}`')
+  })
+
+  it('the tour index and the homepage cards link to them', async () => {
+    expect(read('src/app/demo/page.tsx')).toContain('href={`/demo/${chapter.id}`}')
+    const { FEATURE_KEYS, HOME_FEATURE_CHAPTER } = await import('@/lib/demoTour')
+    const ids = DEMO_CHAPTERS.map((c) => c.id)
+    for (const key of FEATURE_KEYS) expect(ids).toContain(HOME_FEATURE_CHAPTER[key])
+  })
+
+  it('a meta description is cut at a word, within what search shows', async () => {
+    const { metaDescriptionFrom } = await import('@/lib/demoTour')
+    const long = 'cuvânt '.repeat(60)
+    const cut = metaDescriptionFrom(long)
+    expect(cut.length).toBeLessThanOrEqual(155)
+    expect(cut.endsWith('cuvânt…')).toBe(true)
+    expect(metaDescriptionFrom('Scurt.')).toBe('Scurt.')
+    // A whole sentence that fills half the room or more is where it stops.
+    const sentences = `${'a'.repeat(100)}. ${'b '.repeat(60)}`
+    expect(metaDescriptionFrom(sentences)).toBe(`${'a'.repeat(100)}.`)
+    expect(metaDescriptionFrom(sentences)).not.toMatch(/\.…$/)
+  })
+
+  it('the preview picture never draws text from the query', () => {
+    const source = read('src/app/og/route.tsx')
+    expect(source).toContain('DEMO_CHAPTERS.find((c) => c.id === feature)')
+    expect(source).not.toMatch(/searchParams\.get\('(title|text|body)'\)/)
   })
 })
