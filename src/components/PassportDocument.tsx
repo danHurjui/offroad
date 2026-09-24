@@ -29,6 +29,7 @@ export default async function PassportDocument({
   const th = await getTranslations('health')
   const tt = await getTranslations('tyres')
   const ta = await getTranslations('accidents')
+  const tb = await getTranslations('battery')
   const config = await getVocabulary(projectType)
   const { passport: p, photos, publicUrl } = view
   const say = (m: Message) => t(m.key, m.values ?? {})
@@ -210,6 +211,35 @@ export default async function PassportDocument({
           </ol>
         )}
       </section>
+
+      {p.battery.shown && (
+        <section aria-labelledby="passport-battery">
+          <h2 id="passport-battery" className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">
+            {t('batteryTitle')}
+            {ownerTag}
+          </h2>
+          <p className="mb-2 text-xs text-ink-faint">{t('batteryNote')}</p>
+          {p.battery.readings.length === 0 ? (
+            <p className="card p-6 text-center text-ink-muted">{t('absence.noBatteryReadingsRecorded')}</p>
+          ) : (
+            <ol className="card divide-y divide-surface-border">
+              {p.battery.readings.map((r, i) => (
+                <li key={`${r.date.toISOString()}-${i}`} className="space-y-1 p-4">
+                  <div className="text-sm text-ink-muted">
+                    {fmtDate(r.date)}
+                    {r.km !== null && ` · ${km(r.km)}`}
+                  </div>
+                  <div className="font-semibold text-ink">
+                    {t('batteryReading', { soh: r.sohPercent, source: tb(`source.${r.source}`) })}
+                  </div>
+                  {r.note && <p className="whitespace-pre-line text-sm text-ink">{r.note}</p>}
+                  <div className="text-xs text-ink-faint">{t('recordedOn', { date: fmtDate(r.recordedAt) })}</div>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+      )}
 
       {photos.length > 0 && (
         <section aria-labelledby="passport-photos">

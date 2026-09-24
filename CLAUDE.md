@@ -812,6 +812,31 @@ no amount** — a charge with no kWh makes the energy unknown.
   strict on #122), plus fuel and charging RON per km. A regular `HYBRID`
   keeps l/100 km: it never plugs in.
 
+### Battery health and warranty (`src/lib/batteryHealth.ts`, RL-056 — #124)
+For a vehicle that `takesCharge()`: `BatteryHealthReading` (day, state of
+health 1–100, optional km, source `WORKSHOP_TEST`/`CAR_DISPLAY`/`OWNER_TOOL`,
+note, report file) and `Vehicle.batteryWarrantyUntil`/`batteryWarrantyKm`
+(owner-only, on `/battery`, never defaulted — the terms vary by car).
+- **Recorded, never rated.** Car Health's battery row is `info` whatever
+  the figure (none with no readings): the latest reading with its source,
+  beside the first. There is no agreed "bad" state of health, so no
+  threshold turns one into a warning; no string calls a battery healthy.
+- **The km is not an `OdometerReading`** (accidents' reason: a report can
+  be entered later than the test). The report file is filed under the
+  owner's prefix, in `collectStorageKeys()`, and never loaded by the
+  passport, which lists the readings with when each was entered and says
+  `absence.noBatteryReadingsRecorded` when there are none.
+- **The warranty row is whichever comes first**: the date half is
+  `getDocumentStatus()`'s day count, the km half the newest reading
+  (unknown after a replaced gauge, never guessed); `warn` inside 90 days
+  or 5,000 km, `info` once ended. On screen only — no reminder emails yet.
+- **No default service interval for `ELECTRIC`** (the owner's decision on
+  #124): `DEFAULT_SERVICE_INTERVAL` is a `Record<Powertrain, …>` and an EV
+  without its own interval gets a `none` row linking to the edit form's
+  `#service-interval`. Every other powertrain keeps 15,000 km / a year.
+- `DAILY_DRIVER` has an `HV_BATTERY` job category; the 12V battery stays
+  under `ELECTRICAL`.
+
 ### Odometer history (`src/lib/odometer.ts`, `odometerRecords.ts`, RL-044 — slice 2)
 **Current mileage is derived from the newest `OdometerReading`, never
 stored on `Vehicle`** (a test reads the schema for that). Readings stay in
@@ -941,7 +966,8 @@ re-derived. Rules that are load-bearing, and tested:
   documents board and the reminder cron — so the three cannot disagree.
 - Service distance is only measured with a reading **on** the service day
   and one after it; otherwise it falls back to time. The 15,000 km / 1 year
-  interval is an assumption and every message says so. The service
+  interval is an assumption and every message says so; an electric car
+  has no default (RL-056, above). The service
   category per mode is `config.serviceCategory` (null for restoration).
 - **The owner can set their own interval** (#104,
   `Vehicle.serviceIntervalKm`/`serviceIntervalMonths`, on the edit form).

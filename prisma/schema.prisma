@@ -209,6 +209,7 @@ model User {
   odometerReadings     OdometerReading[]     @relation("OdometerReadingBy")
   fuelEntries          FuelEntry[]           @relation("FuelEntryBy")
   chargeEntries        ChargeEntry[]         @relation("ChargeEntryBy")
+  batteryHealthReadings BatteryHealthReading[] @relation("BatteryHealthReadingBy")
   tyreSets             TyreSet[]             @relation("TyreSetBy")
   vehicleExpenses      VehicleExpense[]      @relation("VehicleExpenseBy")
   accidents            Accident[]            @relation("AccidentBy")
@@ -449,6 +450,10 @@ model Vehicle {
   /// entered as kWh alone. A price, so Decimal (pitfall #5); hidden with the
   /// other costs (serializeVehicle).
   homeTariffRonPerKwh        Decimal?    @db.Decimal(6, 4)
+  /// RL-056 (#124): the traction-battery warranty, whichever comes first.
+  /// Entered by the owner, never defaulted: the terms vary by car and market.
+  batteryWarrantyUntil       DateTime?
+  batteryWarrantyKm          Int?
   /// RL-050 values and finance, RL-045 slice 5 (src/lib/ownershipCosts.ts).
   /// The purchase lives here for every mode, a restoration's acquisition
   /// included — its intake form reads and writes these (#105).
@@ -484,6 +489,7 @@ model Vehicle {
   odometerReadings OdometerReading[]
   fuelEntries   FuelEntry[]
   chargeEntries ChargeEntry[]
+  batteryHealthReadings BatteryHealthReading[]
   tyreSets      TyreSet[]
   expenses      VehicleExpense[]
   passportLinks PassportLink[]
@@ -1411,4 +1417,28 @@ model Trip {
   @@index([vehicleId, date])
   @@index([driverUserId, date])
   @@index([createdByUserId])
+}
+
+/// RL-056 (#124): a high-voltage battery state-of-health reading, as it was
+/// recorded — never rated. The km is not an OdometerReading, for the reason
+/// an accident's is not: a report can be entered later than the test.
+model BatteryHealthReading {
+  id              String   @id @default(cuid())
+  vehicleId       String
+  /// The day of the test, stored at 00:00 UTC.
+  date            DateTime
+  sohPercent      Int
+  km              Int?
+  /// WORKSHOP_TEST | CAR_DISPLAY | OWNER_TOOL — see BATTERY_SOURCES.
+  source          String
+  note            String?
+  /// Storage key, never a URL; in collectStorageKeys() (pitfall #14).
+  reportUrl       String?
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdBy User?   @relation("BatteryHealthReadingBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([vehicleId, date])
 }

@@ -277,7 +277,7 @@ describe('every message it can produce is translated', () => {
   // picked by a ternary was invisible to that, which is how the tyre row
   // shipped `next.tyres`, a key neither catalogue has.
   const keys = Array.from(
-    source.matchAll(/'((?:area|doc|documents|service|tyres|jobs|next|nextAction)\.[a-zA-Z.]+)'/g),
+    source.matchAll(/'((?:area|doc|documents|service|tyres|jobs|next|nextAction|battery|warranty)\.[a-zA-Z.]+)'/g),
     (m) => m[1]
   )
   const lookup = (obj: unknown, dotted: string) =>

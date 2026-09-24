@@ -279,6 +279,7 @@
         "ENGINE": "Engine",
         "TRANSMISSION": "Transmission & Clutch",
         "ELECTRICAL": "Electrical",
+        "HV_BATTERY": "High-voltage battery & charging",
         "COOLING": "Cooling & Heating",
         "EXHAUST": "Exhaust & Emissions",
         "BODYWORK": "Bodywork & Glass",
@@ -507,7 +508,8 @@
     "needsAttentionCount": "{count, plural, one {# needs attention} other {# need attention}}",
     "otherCategories": "Other categories",
     "startInCategory": "Start in a category",
-    "otherCategoriesHint": "Nothing logged in these yet. Pick one to start logging there."
+    "otherCategoriesHint": "Nothing logged in these yet. Pick one to start logging there.",
+    "battery": "Battery"
   },
   "home": {
     "metaTitle": "Car build, restoration and repair log — RigLog",
@@ -2401,7 +2403,12 @@
     "orgCompWhilePaying": "This organisation pays for a plan. Cancel it in the organisation’s billing portal before comping it, or the card keeps being charged.",
     "orgManagersOnly": "Only an owner or a fleet manager of the organisation can do that.",
     "invalidEditableChoice": "Choose from the vehicles listed.",
-    "tooManyEditable": "The plan keeps at most {limit} editable — untick some first."
+    "tooManyEditable": "The plan keeps at most {limit} editable — untick some first.",
+    "batterySohInvalid": "Enter the state of health as a whole number from 1 to 100.",
+    "batteryKmInvalid": "Enter the km as a whole number, or leave it blank.",
+    "batterySourceInvalid": "Choose where the reading came from.",
+    "batteryOwnOnly": "You can only change battery readings you recorded.",
+    "batteryWarrantyInvalid": "Enter the warranty end as a date and the km as a whole number above zero, or leave them blank."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2786,7 +2793,9 @@
       "documents": "Documents",
       "service": "Service",
       "tyres": "Tyres",
-      "jobs": "Open jobs"
+      "jobs": "Open jobs",
+      "battery": "High-voltage battery",
+      "warranty": "Battery warranty"
     },
     "doc": {
       "ITP": "ITP",
@@ -2820,7 +2829,8 @@
       "ownDueTime": "Next within {days, plural, one {# day} other {# days}} (your interval: every {months, plural, one {month} other {# months}}).",
       "ownOverdueTime": "Overdue by {days, plural, one {# day} other {# days}} (your interval: every {months, plural, one {month} other {# months}}).",
       "ownDueTimeKmUnknown": "Next within {days, plural, one {# day} other {# days}} (your interval: every {intervalKm, number} km or {months, plural, one {month} other {# months}}). Record the odometer with the service to track distance too.",
-      "ownNoDistance": "Your interval is every {intervalKm, number} km. Record the odometer on the service day and again since, to know how far there is to go."
+      "ownNoDistance": "Your interval is every {intervalKm, number} km. Record the odometer on the service day and again since, to know how far there is to go.",
+      "noDefault": "No service interval set. RigLog assumes none for an electric car — schedules vary too much by maker. Set yours to have the next service watched."
     },
     "tyres": {
       "none": "Nothing recorded — add the tyres on the car to have tread and age watched.",
@@ -2850,7 +2860,26 @@
       "measureTread": "Record the tread depth",
       "tyres": "Check the tyres",
       "fix": "Fix “{name}”",
-      "do": "Do “{name}”"
+      "do": "Do “{name}”",
+      "setServiceInterval": "Set your service interval",
+      "recordBattery": "Record a battery state-of-health reading",
+      "setWarranty": "Add the battery warranty",
+      "batteryBeforeWarranty": "Have the battery tested before the warranty ends"
+    },
+    "battery": {
+      "none": "No state-of-health reading recorded. A workshop test is the figure a buyer will ask for.",
+      "recorded": "{soh}% state of health recorded on {date} ({source}).",
+      "recordedSince": "{soh}% state of health recorded on {date} ({source}). The first reading, on {firstDate}, recorded {firstSoh}%."
+    },
+    "warranty": {
+      "none": "No warranty recorded. Add the date and km from the car’s paperwork to have it watched.",
+      "both": "Until {date} or {limitKm} km, whichever comes first — {days, plural, one {# day} other {# days}} or {km} km to go.",
+      "dateOnly": "Until {date} — {days, plural, one {# day} other {# days}} to go.",
+      "kmOnly": "Until {limitKm} km — {km} km to go.",
+      "dateKmUnknown": "Until {date} or {limitKm} km, whichever comes first — {days, plural, one {# day} other {# days}} to go; the current km isn’t known.",
+      "kmUnknown": "Until {limitKm} km. The current km isn’t known — record the odometer to know how far there is to go.",
+      "endedDate": "Ended on {date}.",
+      "endedKm": "Ended at {limitKm} km."
     }
   },
   "tyres": {
@@ -3113,7 +3142,8 @@
       "noMileage": "No odometer readings recorded in RigLog.",
       "noDocuments": "No documents recorded in RigLog.",
       "noTyres": "No tyres recorded in RigLog.",
-      "noAccidentsRecorded": "Accidents and damage: none recorded in RigLog. That is not the same as none having happened."
+      "noAccidentsRecorded": "Accidents and damage: none recorded in RigLog. That is not the same as none having happened.",
+      "noBatteryReadingsRecorded": "High-voltage battery: no state-of-health reading recorded in RigLog. This says nothing about the battery itself."
     },
     "historyTitle": "Work history",
     "datesRule": "Each entry shows the day of the work and the day it was entered in RigLog, and when it was last changed if that was later. Entries written after the fact are normal, but they are not the same as entries written at the time.",
@@ -3179,7 +3209,10 @@
     "pdfHelp": "The PDF is a dated snapshot with the same choices as the link.",
     "ownerView": "Owner’s view",
     "ownerViewAdvice": "Every section below is the owner’s own account, as they entered it. Before relying on it, compare it with receipts, an independent inspection and the official registry.",
-    "metaDescription": "A vehicle’s records as kept by its owner in RigLog. Owner’s view, not checked by RigLog."
+    "metaDescription": "A vehicle’s records as kept by its owner in RigLog. Owner’s view, not checked by RigLog.",
+    "batteryTitle": "High-voltage battery",
+    "batteryNote": "State of health as it was recorded, with where each figure came from. A workshop test and the car’s own display are different measurements, and none of them is an inspection.",
+    "batteryReading": "{soh}% state of health — {source}"
   },
   "organizations": {
     "title": "Organisations",
@@ -3669,5 +3702,48 @@
     "saved": "Saved.",
     "failed": "Could not save the choice",
     "rateNote": "You can change this a few times a day."
+  },
+  "battery": {
+    "pageTitle": "High-voltage battery",
+    "intro": "State-of-health readings as they were given to you, and the warranty. RigLog records them; it never rates the battery.",
+    "notPlugIn": "This vehicle’s fuel type doesn’t plug in. Readings already recorded stay here; change the fuel type in the vehicle’s settings if it is wrong.",
+    "addTitle": "Record a reading",
+    "sourceLabel": "Where the figure came from",
+    "source": {
+      "WORKSHOP_TEST": "Workshop test",
+      "CAR_DISPLAY": "Car’s display",
+      "OWNER_TOOL": "Own diagnostic tool"
+    },
+    "soh": "State of health (%)",
+    "sohHelp": "The figure exactly as the test or screen gave it. Different sources measure differently, so each reading keeps its source.",
+    "date": "Day of the test",
+    "km": "km at the test",
+    "moreFields": "Note and report",
+    "note": "Note",
+    "report": "Report (photo or PDF)",
+    "reportAttached": "Attached: {name}",
+    "reportRemove": "Remove",
+    "add": "Record reading",
+    "adding": "Recording…",
+    "saved": "Reading recorded.",
+    "saveFailed": "Couldn’t record the reading.",
+    "reportFailed": "The reading was recorded, but the report couldn’t be attached.",
+    "history": "Readings",
+    "empty": "No readings recorded yet.",
+    "recordedValue": "{soh}% recorded",
+    "viewReport": "Report",
+    "remove": "Remove",
+    "deleted": "Reading from {date} removed.",
+    "deleteFailed": "Couldn’t remove the reading.",
+    "warrantyTitle": "Battery warranty",
+    "warrantyHelp": "From the car’s paperwork — usually a number of years or of km, whichever comes first. Leave a field blank if the warranty has no such limit.",
+    "warrantyUntil": "Ends on",
+    "warrantyKm": "Or at (km)",
+    "warrantySave": "Save warranty",
+    "warrantySaved": "Warranty saved.",
+    "warrantyFailed": "Couldn’t save the warranty.",
+    "warrantyUntilValue": "until {date}",
+    "warrantyKmValue": "{km} km",
+    "whicheverFirst": "or"
   }
 }

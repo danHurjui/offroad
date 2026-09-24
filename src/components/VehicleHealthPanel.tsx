@@ -21,6 +21,7 @@ const TONE_CLASS: Record<HealthTone, string> = {
 
 export default async function VehicleHealthPanel({ report }: { report: HealthReport }) {
   const t = await getTranslations('health')
+  const tb = await getTranslations('battery')
   // A document type named inside a message ("Renew the {type}") reads as
   // its short name, not the code.
   // Distances and depths are formatted the way the rest of the app writes
@@ -29,7 +30,9 @@ export default async function VehicleHealthPanel({ report }: { report: HealthRep
   const say = (m: Message) => {
     const values: Record<string, string | number> = { ...(m.values ?? {}) }
     if (typeof values.type === 'string') values.type = t(`doc.${values.type}`)
-    for (const key of ['km', 'mm'] as const) {
+    // RL-056: where a battery reading came from, named rather than coded.
+    if (typeof values.source === 'string') values.source = tb(`source.${values.source}`)
+    for (const key of ['km', 'mm', 'limitKm'] as const) {
       if (typeof values[key] === 'number') values[key] = (values[key] as number).toLocaleString('ro-RO')
     }
     return t(m.key, values)

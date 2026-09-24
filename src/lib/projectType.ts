@@ -216,6 +216,9 @@ export const PROJECT_TYPE_CONFIG: Record<ProjectType, ProjectTypeConfig> = {
       { value: 'ENGINE', label: 'Engine' },
       { value: 'TRANSMISSION', label: 'Transmission & Clutch' },
       { value: 'ELECTRICAL', label: 'Electrical' },
+      // RL-056 (#124): the traction battery, charge port, on-board charger
+      // and wallbox. The 12V battery stays under ELECTRICAL.
+      { value: 'HV_BATTERY', label: 'High-voltage battery & charging' },
       { value: 'COOLING', label: 'Cooling & Heating' },
       { value: 'EXHAUST', label: 'Exhaust & Emissions' },
       { value: 'BODYWORK', label: 'Bodywork & Glass' },

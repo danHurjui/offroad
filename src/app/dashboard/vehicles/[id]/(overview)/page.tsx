@@ -36,7 +36,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
   const config = await getVocabulary(vehicle.projectType)
   const completeStatus = config.completeStatus
 
-  const [tasks, foundState, documents, collaborators, latestReading, readings, tyreSets] = await Promise.all([
+  const [tasks, foundState, documents, collaborators, latestReading, readings, tyreSets, batteryReadings] = await Promise.all([
     prisma.task.findMany({
       where: { vehicleId: vehicle.id },
       orderBy: { updatedAt: 'desc' },
@@ -66,6 +66,13 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       where: { vehicleId: vehicle.id },
       select: { id: true, isFitted: true, treadDepthMm: true, dotYear: true, fittedAt: true, fittedKm: true },
     }),
+    // RL-056: the battery row, for a vehicle that plugs in.
+    takesCharge(powertrainOf(vehicle.fuelType))
+      ? prisma.batteryHealthReading.findMany({
+          where: { vehicleId: vehicle.id },
+          select: { date: true, sohPercent: true, source: true, createdAt: true },
+        })
+      : Promise.resolve([]),
   ])
   const health = computeHealth({
     vehicleId: vehicle.id,
@@ -76,6 +83,12 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
     readings,
     tyreSets: tyreSets.map((set) => ({ ...set, treadDepthMm: toNumberOrNull(set.treadDepthMm) })),
     serviceInterval: { km: vehicle.serviceIntervalKm, months: vehicle.serviceIntervalMonths },
+    fuelType: vehicle.fuelType,
+    battery: {
+      readings: batteryReadings,
+      warrantyUntil: vehicle.batteryWarrantyUntil,
+      warrantyKm: vehicle.batteryWarrantyKm,
+    },
   })
   // RL-019: Pro-gated, restoration only — the vehicle's plan (a
   // collaborator's own tier is irrelevant, same as everywhere else).
@@ -141,6 +154,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         { href: `${base}/photos`, label: t('photos') },
         ...when(takesFuel(powertrain), { href: `${base}/fuel`, label: t('fuel') }),
         ...when(takesCharge(powertrain), { href: `${base}/charging`, label: t('charging') }),
+        ...when(takesCharge(powertrain), { href: `${base}/battery`, label: t('battery') }),
         ...when(vehicle.projectType !== 'RESTORATION', { href: `${base}/tyres`, label: t('tyres') }),
         { href: `${base}/expenses`, label: t('expenses') },
         { href: `${base}/accidents`, label: t('accidents') },

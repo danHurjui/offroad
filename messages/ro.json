@@ -279,6 +279,7 @@
         "ENGINE": "Motor",
         "TRANSMISSION": "Transmisie și ambreiaj",
         "ELECTRICAL": "Instalație electrică",
+        "HV_BATTERY": "Baterie de înaltă tensiune și încărcare",
         "COOLING": "Răcire și climatizare",
         "EXHAUST": "Evacuare și emisii",
         "BODYWORK": "Caroserie și geamuri",
@@ -507,7 +508,8 @@
     "needsAttentionCount": "{count, plural, one {# necesită atenție} few {# necesită atenție} other {# necesită atenție}}",
     "otherCategories": "Alte categorii",
     "startInCategory": "Începe într-o categorie",
-    "otherCategoriesHint": "Nimic înregistrat aici încă. Alege una ca să începi acolo."
+    "otherCategoriesHint": "Nimic înregistrat aici încă. Alege una ca să începi acolo.",
+    "battery": "Baterie"
   },
   "home": {
     "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
@@ -2401,7 +2403,12 @@
     "orgCompWhilePaying": "Organizația plătește un plan. Anulează-l din portalul de facturare al organizației înainte să o faci gratuită, altfel cardul este taxat în continuare.",
     "orgManagersOnly": "Doar un proprietar sau un manager de flotă al organizației poate face asta.",
     "invalidEditableChoice": "Alege dintre vehiculele din listă.",
-    "tooManyEditable": "Planul păstrează cel mult {limit} editabile — debifează câteva mai întâi."
+    "tooManyEditable": "Planul păstrează cel mult {limit} editabile — debifează câteva mai întâi.",
+    "batterySohInvalid": "Introdu starea de sănătate ca număr întreg între 1 și 100.",
+    "batteryKmInvalid": "Introdu km ca număr întreg sau lasă câmpul gol.",
+    "batterySourceInvalid": "Alege de unde provine citirea.",
+    "batteryOwnOnly": "Poți modifica doar citirile bateriei înregistrate de tine.",
+    "batteryWarrantyInvalid": "Introdu sfârșitul garanției ca dată și km ca număr întreg peste zero, sau lasă-le goale."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2786,7 +2793,9 @@
       "documents": "Documente",
       "service": "Revizie",
       "tyres": "Anvelope",
-      "jobs": "Lucrări deschise"
+      "jobs": "Lucrări deschise",
+      "battery": "Baterie de înaltă tensiune",
+      "warranty": "Garanția bateriei"
     },
     "doc": {
       "ITP": "ITP",
@@ -2820,7 +2829,8 @@
       "ownDueTime": "Următoarea în {days, plural, one {# zi} few {# zile} other {# de zile}} (intervalul tău: la fiecare {months, plural, one {lună} few {# luni} other {# de luni}}).",
       "ownOverdueTime": "Depășită cu {days, plural, one {# zi} few {# zile} other {# de zile}} (intervalul tău: la fiecare {months, plural, one {lună} few {# luni} other {# de luni}}).",
       "ownDueTimeKmUnknown": "Următoarea în {days, plural, one {# zi} few {# zile} other {# de zile}} (intervalul tău: la fiecare {intervalKm, number} km sau {months, plural, one {lună} few {# luni} other {# de luni}}). Notează kilometrajul la revizie ca să urmărim și distanța.",
-      "ownNoDistance": "Intervalul tău este la fiecare {intervalKm, number} km. Notează kilometrajul în ziua reviziei și încă o dată de atunci, ca să știi cât mai ai."
+      "ownNoDistance": "Intervalul tău este la fiecare {intervalKm, number} km. Notează kilometrajul în ziua reviziei și încă o dată de atunci, ca să știi cât mai ai.",
+      "noDefault": "Niciun interval de revizie setat. RigLog nu presupune unul pentru o mașină electrică — programele diferă prea mult de la un producător la altul. Setează-l pe al tău ca să fie urmărită următoarea revizie."
     },
     "tyres": {
       "none": "Nimic înregistrat — adaugă anvelopele montate ca să urmărim profilul și vechimea.",
@@ -2850,7 +2860,26 @@
       "measureTread": "Notează adâncimea profilului",
       "tyres": "Verifică anvelopele",
       "fix": "Repară „{name}”",
-      "do": "Fă „{name}”"
+      "do": "Fă „{name}”",
+      "setServiceInterval": "Setează intervalul de revizie",
+      "recordBattery": "Înregistrează o citire a stării bateriei",
+      "setWarranty": "Adaugă garanția bateriei",
+      "batteryBeforeWarranty": "Testează bateria înainte să se încheie garanția"
+    },
+    "battery": {
+      "none": "Nicio citire a stării de sănătate înregistrată. Un test în service e cifra pe care o cere un cumpărător.",
+      "recorded": "Stare de sănătate {soh}% înregistrată pe {date} ({source}).",
+      "recordedSince": "Stare de sănătate {soh}% înregistrată pe {date} ({source}). Prima citire, pe {firstDate}, a înregistrat {firstSoh}%."
+    },
+    "warranty": {
+      "none": "Nicio garanție înregistrată. Adaugă data și km din actele mașinii ca să fie urmărită.",
+      "both": "Până pe {date} sau la {limitKm} km, care vine prima — mai sunt {days, plural, one {# zi} few {# zile} other {# de zile}} sau {km} km.",
+      "dateOnly": "Până pe {date} — mai sunt {days, plural, one {# zi} few {# zile} other {# de zile}}.",
+      "kmOnly": "Până la {limitKm} km — mai sunt {km} km.",
+      "dateKmUnknown": "Până pe {date} sau la {limitKm} km, care vine prima — mai sunt {days, plural, one {# zi} few {# zile} other {# de zile}}; kilometrajul actual nu e cunoscut.",
+      "kmUnknown": "Până la {limitKm} km. Kilometrajul actual nu e cunoscut — notează-l ca să știi cât mai e.",
+      "endedDate": "S-a încheiat pe {date}.",
+      "endedKm": "S-a încheiat la {limitKm} km."
     }
   },
   "tyres": {
@@ -3113,7 +3142,8 @@
       "noMileage": "Nicio citire de kilometraj înregistrată în RigLog.",
       "noDocuments": "Niciun document înregistrat în RigLog.",
       "noTyres": "Nicio anvelopă înregistrată în RigLog.",
-      "noAccidentsRecorded": "Accidente și avarii: niciuna înregistrată în RigLog. Asta nu înseamnă că nu s-a întâmplat niciuna."
+      "noAccidentsRecorded": "Accidente și avarii: niciuna înregistrată în RigLog. Asta nu înseamnă că nu s-a întâmplat niciuna.",
+      "noBatteryReadingsRecorded": "Baterie de înaltă tensiune: nicio citire a stării de sănătate înregistrată în RigLog. Asta nu spune nimic despre baterie în sine."
     },
     "historyTitle": "Istoricul lucrărilor",
     "datesRule": "Fiecare intrare arată ziua lucrării și ziua în care a fost introdusă în RigLog, plus ultima modificare dacă a fost mai târziu. Intrările scrise ulterior sunt normale, dar nu sunt același lucru cu cele scrise la momentul respectiv.",
@@ -3179,7 +3209,10 @@
     "pdfHelp": "PDF-ul este un instantaneu datat, cu aceleași opțiuni ca linkul.",
     "ownerView": "Versiunea proprietarului",
     "ownerViewAdvice": "Fiecare secțiune de mai jos este relatarea proprie a proprietarului, așa cum a introdus-o. Înainte să vă bazați pe ea, comparați-o cu facturile, o inspecție independentă și registrul oficial.",
-    "metaDescription": "Evidențele unui vehicul, așa cum le ține proprietarul în RigLog. Versiunea proprietarului, neverificată de RigLog."
+    "metaDescription": "Evidențele unui vehicul, așa cum le ține proprietarul în RigLog. Versiunea proprietarului, neverificată de RigLog.",
+    "batteryTitle": "Baterie de înaltă tensiune",
+    "batteryNote": "Starea de sănătate așa cum a fost înregistrată, cu sursa fiecărei cifre. Un test în service și afișajul mașinii sunt măsurători diferite, și niciuna nu e o inspecție.",
+    "batteryReading": "Stare de sănătate {soh}% — {source}"
   },
   "organizations": {
     "title": "Organizații",
@@ -3669,5 +3702,48 @@
     "saved": "Salvat.",
     "failed": "Alegerea nu a putut fi salvată",
     "rateNote": "Poți schimba asta de câteva ori pe zi."
+  },
+  "battery": {
+    "pageTitle": "Baterie de înaltă tensiune",
+    "intro": "Citirile stării de sănătate așa cum ți-au fost date, și garanția. RigLog le înregistrează; nu dă niciodată o notă bateriei.",
+    "notPlugIn": "Tipul de combustibil al acestui vehicul nu se încarcă la priză. Citirile deja înregistrate rămân aici; schimbă tipul de combustibil în setările vehiculului dacă e greșit.",
+    "addTitle": "Înregistrează o citire",
+    "sourceLabel": "De unde provine cifra",
+    "source": {
+      "WORKSHOP_TEST": "Test în service",
+      "CAR_DISPLAY": "Afișajul mașinii",
+      "OWNER_TOOL": "Tester propriu"
+    },
+    "soh": "Stare de sănătate (%)",
+    "sohHelp": "Cifra exact cum a dat-o testul sau ecranul. Sursele diferite măsoară diferit, așa că fiecare citire își păstrează sursa.",
+    "date": "Ziua testului",
+    "km": "Km la test",
+    "moreFields": "Notă și raport",
+    "note": "Notă",
+    "report": "Raport (foto sau PDF)",
+    "reportAttached": "Atașat: {name}",
+    "reportRemove": "Elimină",
+    "add": "Înregistrează citirea",
+    "adding": "Se înregistrează…",
+    "saved": "Citire înregistrată.",
+    "saveFailed": "Citirea nu a putut fi înregistrată.",
+    "reportFailed": "Citirea a fost înregistrată, dar raportul nu a putut fi atașat.",
+    "history": "Citiri",
+    "empty": "Nicio citire înregistrată încă.",
+    "recordedValue": "{soh}% înregistrat",
+    "viewReport": "Raport",
+    "remove": "Șterge",
+    "deleted": "Citirea din {date} a fost ștearsă.",
+    "deleteFailed": "Citirea nu a putut fi ștearsă.",
+    "warrantyTitle": "Garanția bateriei",
+    "warrantyHelp": "Din actele mașinii — de obicei un număr de ani sau de km, care vine primul. Lasă un câmp gol dacă garanția nu are o astfel de limită.",
+    "warrantyUntil": "Se încheie pe",
+    "warrantyKm": "Sau la (km)",
+    "warrantySave": "Salvează garanția",
+    "warrantySaved": "Garanție salvată.",
+    "warrantyFailed": "Garanția nu a putut fi salvată.",
+    "warrantyUntilValue": "până pe {date}",
+    "warrantyKmValue": "{km} km",
+    "whicheverFirst": "sau"
   }
 }

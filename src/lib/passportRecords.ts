@@ -28,7 +28,7 @@ export interface PassportView {
  */
 export async function loadPassport(vehicle: Vehicle, options: PassportOptions, now: Date = new Date()): Promise<PassportView> {
   const completeStatus = PROJECT_TYPE_CONFIG[vehicle.projectType].completeStatus
-  const [book, readings, fuel, charges, documents, tyreSets, accidents, owner, photos] = await Promise.all([
+  const [book, readings, fuel, charges, documents, tyreSets, accidents, batteryReadings, owner, photos] = await Promise.all([
     loadServiceBook(vehicle.id, completeStatus),
     prisma.odometerReading.findMany({
       where: { vehicleId: vehicle.id },
@@ -42,6 +42,11 @@ export async function loadPassport(vehicle: Vehicle, options: PassportOptions, n
     prisma.tyreSet.findMany({ where: { vehicleId: vehicle.id }, select: { season: true, label: true, isFitted: true, dotYear: true } }),
     // Photos are counted, never shown: they stay behind the owner's session.
     prisma.accident.findMany({ where: { vehicleId: vehicle.id }, include: { _count: { select: { photos: true } } } }),
+    // RL-056: the report file stays behind the owner's session, like photos.
+    prisma.batteryHealthReading.findMany({
+      where: { vehicleId: vehicle.id },
+      select: { date: true, sohPercent: true, km: true, source: true, note: true, createdAt: true },
+    }),
     vehicle.isPublic ? prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { username: true } }) : Promise.resolve(null),
     vehicle.isPublic
       ? prisma.taskPhoto.findMany({
@@ -63,6 +68,8 @@ export async function loadPassport(vehicle: Vehicle, options: PassportOptions, n
     fuelDates: [...fuel, ...charges].map((f) => f.date),
     documents,
     tyreSets,
+    fuelType: vehicle.fuelType,
+    batteryReadings,
     accidents: accidents.map((a) => ({
       date: a.date,
       kind: a.kind,

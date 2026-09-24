@@ -34,6 +34,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const th = await translator(locale, 'health')
     const tt = await translator(locale, 'tyres')
     const ta = await translator(locale, 'accidents')
+    const tb = await translator(locale, 'battery')
     const config = translateConfig(vehicle.projectType, await translator(locale, 'vocab'))
     const active = await prisma.passportLink.findFirst({ where: { vehicleId: vehicle.id, revokedAt: null }, orderBy: { createdAt: 'desc' } })
     const now = new Date()
@@ -104,6 +105,19 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
           .join('  ·  '),
       })),
       noAccidents: t('absence.noAccidentsRecorded'),
+      battery: p.battery.shown
+        ? {
+            title: t('batteryTitle'),
+            note: t('batteryNote'),
+            readings: p.battery.readings.map((r) => ({
+              heading: [date(r.date), r.km !== null ? km(r.km) : null, t('batteryReading', { soh: r.sohPercent, source: tb(`source.${r.source}`) })]
+                .filter(Boolean)
+                .join('  ·  '),
+              detail: [r.note, t('recordedOn', { date: date(r.recordedAt) })].filter(Boolean).join('  ·  '),
+            })),
+            none: t('absence.noBatteryReadingsRecorded'),
+          }
+        : null,
       footer: t('footerPdf', { date: date(now) }),
     })
 
