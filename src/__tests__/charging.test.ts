@@ -23,7 +23,7 @@ jest.mock('@/lib/prisma', () => {
     projectCollaborator: { findFirst: jest.fn() },
     organizationMember: { findUnique: jest.fn() },
     vehicleAssignment: { findFirst: jest.fn() },
-    odometerReading: { findMany: jest.fn(), create: jest.fn(), deleteMany: jest.fn() },
+    odometerReading: { findMany: jest.fn(), create: jest.fn(), update: jest.fn(), deleteMany: jest.fn() },
     chargeEntry: { create: jest.fn(), findUnique: jest.fn(), update: jest.fn(), delete: jest.fn() },
     $transaction: jest.fn(),
   }
@@ -40,7 +40,7 @@ import { parseNonNegativeAmount } from '@/lib/fuel'
 import { ODOMETER_SOURCES } from '@/lib/odometer'
 import { MONEY_COLUMNS } from '@/lib/ownershipCosts'
 import { POST } from '@/app/api/vehicles/[id]/charges/route'
-import { DELETE } from '@/app/api/vehicles/[id]/charges/[entryId]/route'
+import { DELETE, PATCH } from '@/app/api/vehicles/[id]/charges/[entryId]/route'
 import { POST as POST_RECEIPT } from '@/app/api/vehicles/[id]/charges/[entryId]/receipt/route'
 import { PUT as PUT_TARIFF } from '@/app/api/vehicles/[id]/charges/tariff/route'
 
@@ -201,6 +201,68 @@ describe('charging routes', () => {
     expect(JSON.stringify(body)).not.toContain('123.45')
   })
 
+  describe('PATCH — correcting a charge', () => {
+    const at = { params: { id: 'v1', entryId: 'c1' } }
+    const stored = {
+      id: 'c1', vehicleId: 'v1', createdByUserId: 'owner', date: new Date('2025-03-01T00:00:00Z'),
+      totalRon: decimal(90), totalFromTariff: false, odometerReadingId: 'r1',
+    }
+    beforeEach(() => {
+      ;(prisma.chargeEntry.findUnique as jest.Mock).mockResolvedValue(stored)
+      ;(prisma.chargeEntry.update as jest.Mock).mockImplementation(({ data }) =>
+        Promise.resolve({ id: 'c1', ...data, odometerReading: data.odometerReadingId ? { km: 41_500 } : null })
+      )
+      ;(prisma.odometerReading.findMany as jest.Mock).mockResolvedValue([
+        { id: 'r0', km: 40_000, readAt: new Date('2025-01-15T00:00:00Z'), isOverride: false, createdAt: new Date() },
+        { id: 'r1', km: 41_000, readAt: new Date('2025-03-01T00:00:00Z'), isOverride: false, createdAt: new Date() },
+      ])
+    })
+
+    it('moves its reading with it, checked against the history but not against itself', async () => {
+      const res = await PATCH(req({ totalRon: 95, kwh: 42, km: 41_500, location: 'PUBLIC_DC', date: '2025-03-02' }), at)
+      expect(res.status).toBe(200)
+      expect(prisma.odometerReading.update).toHaveBeenCalledWith({ where: { id: 'r1' }, data: { km: 41_500, readAt: new Date('2025-03-02T00:00:00Z') } })
+      expect(prisma.chargeEntry.update).toHaveBeenCalledWith(expect.objectContaining({
+        where: { id: 'c1' },
+        data: expect.objectContaining({ totalRon: 95, kwh: 42, location: 'PUBLIC_DC', date: new Date('2025-03-02T00:00:00Z'), odometerReadingId: 'r1' }),
+      }))
+    })
+
+    it('a blank km removes the reading it had', async () => {
+      await PATCH(req({ totalRon: 90, km: '' }), at)
+      expect(prisma.odometerReading.deleteMany).toHaveBeenCalledWith({ where: { id: 'r1', source: 'CHARGE' } })
+      expect((prisma.chargeEntry.update as jest.Mock).mock.calls[0][0].data.odometerReadingId).toBeNull()
+    })
+
+    it('refuses a km that breaks the history, and changes nothing', async () => {
+      const res = await PATCH(req({ totalRon: 90, km: 30_000 }), at)
+      expect(res.status).toBe(409)
+      expect(prisma.chargeEntry.update).not.toHaveBeenCalled()
+      expect(prisma.odometerReading.update).not.toHaveBeenCalled()
+    })
+
+    it('someone else corrects only their own', async () => {
+      mockSession.mockResolvedValue({ user: { id: 'mechanic' } })
+      ;(prisma.projectCollaborator.findFirst as jest.Mock).mockResolvedValue({ id: 'pc1' })
+      const res = await PATCH(req({ totalRon: 1 }), at)
+      expect([res.status, (await res.json()).code]).toEqual([403, 'chargeOwnOnly'])
+    })
+
+    it('a driver who never saw the total keeps it, and is not shown it', async () => {
+      mockSession.mockResolvedValue({ user: { id: 'driver' } })
+      ;(prisma.vehicle.findUnique as jest.Mock).mockResolvedValue({ ...PERSONAL, ownerId: 'record', organizationId: 'o1' })
+      ;(prisma.organizationMember.findUnique as jest.Mock).mockResolvedValue({ role: 'DRIVER' })
+      ;(prisma.vehicleAssignment.findFirst as jest.Mock).mockResolvedValue({ id: 'a1' })
+      ;(prisma.chargeEntry.findUnique as jest.Mock).mockResolvedValue({ ...stored, createdByUserId: 'driver' })
+      const res = await PATCH(req({ totalRon: '', kwh: 44, km: 41_200 }), at)
+      expect(res.status).toBe(200)
+      expect((prisma.chargeEntry.update as jest.Mock).mock.calls[0][0].data).toMatchObject({ totalRon: 90, totalFromTariff: false, kwh: 44 })
+      const body = await res.json()
+      expect(body.totalRon).toBeNull()
+      expect(JSON.stringify(body)).not.toContain('90')
+    })
+  })
+
   it('every write asks the read-only gate first', async () => {
     const refusal = NextResponse.json({ code: 'readOnly' }, { status: 403 })
     ;(refuseIfReadOnly as jest.Mock).mockResolvedValueOnce(refusal)
@@ -210,6 +272,9 @@ describe('charging routes', () => {
     ;(prisma.chargeEntry.findUnique as jest.Mock).mockResolvedValue({ id: 'c1', vehicleId: 'v1', createdByUserId: 'owner' })
     expect((await DELETE({} as never, { params: { id: 'v1', entryId: 'c1' } })).status).toBe(403)
     expect(prisma.chargeEntry.delete).not.toHaveBeenCalled()
+    ;(refuseIfReadOnly as jest.Mock).mockResolvedValueOnce(refusal)
+    expect((await PATCH(req({ totalRon: 1 }), { params: { id: 'v1', entryId: 'c1' } })).status).toBe(403)
+    expect(prisma.chargeEntry.update).not.toHaveBeenCalled()
     ;(refuseIfReadOnly as jest.Mock).mockResolvedValueOnce(refusal)
     expect((await PUT_TARIFF(req({ homeTariffRonPerKwh: 1 }), { params })).status).toBe(403)
     expect(prisma.vehicle.update).not.toHaveBeenCalled()

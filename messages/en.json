@@ -2803,7 +2803,12 @@
     "atThePlug": "“At the plug” is the energy the charger delivered, charging losses included, so it is higher than the figure on the car’s display. Stretches with a charge of unknown kWh, a missing odometer or a replaced gauge are left out rather than guessed.",
     "consumptionSince": "{value} kWh/100 km since the last charge to {level}%",
     "pluginHybridConsumption": "A plug-in hybrid uses fuel and electricity over the same km, so kWh/100 km on its own would not be what it claims. The fuel log shows both together.",
-    "pluginHybridConsumptionLink": "See it on the fuel log"
+    "pluginHybridConsumptionLink": "See it on the fuel log",
+    "edit": "Edit",
+    "updated": "Charge corrected.",
+    "saveChanges": "Save changes",
+    "cancel": "Cancel",
+    "totalKeptHelp": "Leave blank to keep the total as recorded."
   },
   "health": {
     "title": "Car health",

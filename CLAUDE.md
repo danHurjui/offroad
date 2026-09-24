@@ -824,6 +824,15 @@ amount. Three differences, each deliberate:
 The vehicle page and `DriverPanel` link Fuel on `takesFuel()` and Charging
 on `takesCharge()`.
 
+**A charge can be corrected** (PATCH, owner any / others their own, from
+the charging page): parsed like a new one, and its km follows it the way
+a job's does — the linked reading is moved, created or (blank km) removed
+in the same transaction, checked against the history but not against
+itself. Someone who does not see costs sends no total and **keeps the
+stored one** (never re-priced, never wiped, never echoed); a home charge
+left without a total is priced from today's tariff and labelled so.
+Fill-ups have no edit yet.
+
 **In the cost of ownership (RL-055 — #123)** a charge is its own
 `CostSource` (`'charge'`), and fuel and charging share one category,
 **`energy`** ("Fuel & charging") — categories are computed, never stored,

@@ -2803,7 +2803,12 @@
     "atThePlug": "„La priză” e energia livrată de stație, cu pierderile de încărcare incluse, deci e mai mare decât cifra de pe afișajul mașinii. Intervalele cu o încărcare fără kWh, fără kilometraj sau cu un bord înlocuit sunt lăsate deoparte, nu ghicite.",
     "consumptionSince": "{value} kWh/100 km de la ultima încărcare la {level}%",
     "pluginHybridConsumption": "Un hibrid plug-in folosește combustibil și curent pe aceiași kilometri, deci kWh/100 km singur n-ar însemna ce pare. Jurnalul de alimentare le arată împreună.",
-    "pluginHybridConsumptionLink": "Vezi în jurnalul de alimentare"
+    "pluginHybridConsumptionLink": "Vezi în jurnalul de alimentare",
+    "edit": "Modifică",
+    "updated": "Încărcare corectată.",
+    "saveChanges": "Salvează modificările",
+    "cancel": "Renunță",
+    "totalKeptHelp": "Lasă gol ca totalul să rămână cel înregistrat."
   },
   "health": {
     "title": "Starea mașinii",
