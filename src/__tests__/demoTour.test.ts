@@ -160,3 +160,21 @@ describe.each(LOCALES)('the tour text in %s', (locale) => {
     }
   })
 })
+
+// #106: under React's development StrictMode the effects run twice, and a
+// writer that ran before the arrival read replaced `#passport` with the
+// first feature. There is no DOM in this suite, so it holds the ordering
+// in the source; it was checked in Chromium against `next dev`.
+describe('the tour keeps a shared #feature link', () => {
+  const source = fs.readFileSync(path.join(process.cwd(), 'src/components/demo/DemoExplorer.tsx'), 'utf8')
+
+  it('writes the address bar only once the arrival read has been applied', () => {
+    expect(source).toMatch(/apply\(\)\s*\n\s*setHashRead\(true\)/)
+    expect(source).toMatch(/if \(!active \|\| !hashRead\) return\s*\n\s*window\.history\.replaceState/)
+  })
+
+  it('replaces the entry rather than adding one', () => {
+    const code = source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
+    expect(code).not.toMatch(/pushState/)
+  })
+})

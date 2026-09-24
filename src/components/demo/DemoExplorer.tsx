@@ -62,6 +62,12 @@ export default function DemoExplorer({ previews }: { previews: Record<string, Re
   const [chapterId, setChapterId] = useState(DEMO_SECTIONS[0].chapters[0].id)
   const [tier, setTier] = useState<TierFilter>('all')
   const [mode, setMode] = useState<ModeFilter>('all')
+  // #106: false until the address bar has been read on arrival. The
+  // writer below waits for it, or it replaces `#passport` with the first
+  // feature before the reader has seen it — which is what happened under
+  // React's development StrictMode, where effects run twice: the second
+  // read found the hash the first write had just put there.
+  const [hashRead, setHashRead] = useState(false)
 
   /**
    * `/demo#analytics` opens on that feature, and `/demo#pro` on that
@@ -94,6 +100,7 @@ export default function DemoExplorer({ previews }: { previews: Record<string, Re
       // feature because a link had a typo in it.
     }
     apply()
+    setHashRead(true)
     window.addEventListener('hashchange', apply)
     return () => window.removeEventListener('hashchange', apply)
   }, [])
@@ -118,9 +125,9 @@ export default function DemoExplorer({ previews }: { previews: Record<string, Re
    * `pushState`. Nothing here is a navigation; it is one page being read.
    */
   useEffect(() => {
-    if (!active) return
+    if (!active || !hashRead) return
     window.history.replaceState(null, '', `#${active.id}`)
-  }, [active])
+  }, [active, hashRead])
 
   const select = (section: string, chapter: string) => {
     setSectionId(section)
