@@ -24,20 +24,19 @@
     "makePublic": "Fă-mi profilul public (în curând)",
     "saved": "Salvat.",
     "plan": "Plan",
-    "planPaid": "Pro",
-    "planMonthly": "Pro (lunar)",
-    "planAnnual": "Pro (anual)",
-    "planLifetime": "Pro (pe viață)",
-    "planComped": "Pro — oferit",
+    "planPaid": "Personal",
+    "planMonthly": "Personal (lunar, la prețul tău inițial)",
+    "planAnnual": "Personal (anual, la prețul tău inițial)",
+    "planLifetime": "Personal (pe viață, cumpărat înaintea planurilor actuale)",
+    "planComped": "Personal — oferit",
     "planFree": "Gratuit",
     "planFreeLimits": "{vehicles, plural, one {un vehicul} other {# vehicule}}, {photos} poze per lucrare.",
-    "planProLimits": "vehicule și poze nelimitate.",
-    "foundingNote": "Ești membru fondator #{number}. Pro îți rămâne atâta timp cât funcționează RigLog — nu ai nimic de plătit și niciun abonament de gestionat.",
-    "compedNote": "Pro ți-a fost oferit de echipa RigLog. Nu ai nimic de plătit și niciun abonament de gestionat.",
+    "foundingNote": "Ești membru fondator #{number}. Planul plătit îți rămâne atâta timp cât funcționează RigLog — nu ai nimic de plătit și niciun abonament de gestionat.",
+    "compedNote": "Planul ți-a fost oferit de echipa RigLog. Nu ai nimic de plătit și niciun abonament de gestionat.",
     "manageSubscription": "Gestionează abonamentul",
     "opening": "Se deschide…",
     "portalFailed": "Nu am putut deschide portalul de facturare",
-    "upgrade": "Treci la Pro",
+    "upgrade": "Vezi planurile",
     "followingTitle": "Notificări pentru proiectele urmărite",
     "followingHelp": "Primești o notificare când un proiect pe care îl urmărești finalizează o lucrare sau adaugă poze.",
     "emailMe": "Trimite-mi e-mail",
@@ -51,7 +50,12 @@
     "deleteHelp": "Îți șterge contul și fiecare vehicul, lucrare, document și poză pe care le deții — inclusiv fișierele încărcate, nu doar înregistrările care trimit la ele. Evidența donațiilor se păstrează pentru contabilitate, cu contul tău desprins de ele. Operațiunea nu poate fi anulată, așa că descarcă-ți datele înainte dacă vrei o copie.",
     "deleteAccount": "Șterge contul",
     "confirmDelete": "Ștergi contul și toate vehiculele, lucrările și pozele? Operațiunea nu poate fi anulată.",
-    "confirmDeleteAgain": "Este definitiv. Ești absolut sigur?"
+    "confirmDeleteAgain": "Este definitiv. Ești absolut sigur?",
+    "planPersonalMonthly": "Personal (lunar)",
+    "planPersonalAnnual": "Personal (anual)",
+    "planPersonalLifetime": "Personal (pe viață)",
+    "planUncapped": "fără limită de vehicule și poze nelimitate — păstrate de dinaintea planurilor actuale.",
+    "planPersonalLimits": "până la {vehicles, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}, poze nelimitate."
   },
   "common": {
     "save": "Salvează",
@@ -397,7 +401,7 @@
     "addVehicle": "+ Adaugă vehicul",
     "collaborator": "Colaborator",
     "accountFallback": "Cont",
-    "paymentFailed": "Ultima plată RigLog Pro a eșuat. <link>Actualizează metoda de plată</link> ca să păstrezi accesul Pro.",
+    "paymentFailed": "Ultima plată RigLog a eșuat. <link>Actualizează metoda de plată</link> ca să îți păstrezi planul.",
     "emptyTitle": "Începe cu un vehicul",
     "emptyBody": "Totul în RigLog pornește de la un vehicul. Când îl adaugi, alegi ce fel de jurnal ține:",
     "emptyModeFixed": "Modul nu se mai poate schimba după aceea, pentru că fiecare înregistrează lucrările cu propriile categorii și stadii.",
@@ -491,7 +495,7 @@
     "ctaStart": "Începe gratuit",
     "ctaBrowse": "Vezi proiecte publice",
     "noCard": "Un vehicul gratuit, pentru totdeauna. Nu ai nevoie de card ca să începi.",
-    "foundingHeadline": "Membrii fondatori primesc Pro gratuit pe viață.",
+    "foundingHeadline": "Membrii fondatori primesc Personal gratuit pe viață.",
     "foundingRemaining": "{remaining} din {limit} {remaining, plural, one {loc rămas} other {locuri rămase}}.",
     "modesEyebrow": "O aplicație, trei roluri",
     "modesTitle": "Alege modul potrivit pentru vehicul",
@@ -500,7 +504,7 @@
     "featuresEyebrow": "Ce primești",
     "featuresTitle": "Făcută pentru felul în care se lucrează de fapt la mașini",
     "pricingEyebrow": "Prețuri",
-    "pricingTitle": "Gratuit la început, Pro când îl depășești",
+    "pricingTitle": "Gratuit la început, un plan când îl depășești",
     "free": "Gratuit",
     "freePrice": "0 RON",
     "freeOneVehicle": "Un vehicul",
@@ -508,15 +512,11 @@
     "freeReminders": "Notificări la expirarea documentelor",
     "freeTotalSpent": "Total cheltuit",
     "freeReports": "Rapoarte de lucrări și colaboratori",
-    "pro": "Pro",
-    "proFrom": "de la {price} RON",
     "perMonth": "/lună",
-    "proVehicles": "Vehicule nelimitate",
     "proAnalytics": "Analize complete de costuri, grafice și tendințe",
     "proPdf": "Export PDF al istoricului",
     "proCards": "Carduri de build și de transformare, de partajat",
     "proExtras": "Jurnal de traseu, decodor VIN, scor de originalitate",
-    "proAlsoAvailable": "Disponibil și anual ({annual} RON) sau ca plată unică pe viață ({lifetime} RON).",
     "proFoundingNote": "Primele {limit} conturi nu plătesc nimic — încă {remaining} disponibile.",
     "createAccount": "Creează un cont",
     "startFree": "Începe gratuit, faci upgrade mai târziu",
@@ -573,7 +573,11 @@
       }
     },
     "metaDescription": "Notează fiecare modificare, etapă de restaurare și reparație a vehiculului tău: costuri, poze, bonuri și memento-uri pentru ITP și RCA, într-un singur loc. Gratuit la început.",
-    "ctaDemo": "Vezi funcțiile"
+    "ctaDemo": "Vezi funcțiile",
+    "personal": "Personal",
+    "personalFrom": "{price} RON",
+    "personalVehicles": "Până la {count, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}, poze nelimitate",
+    "personalAlsoAvailable": "Sau {annual} RON pe an, ori {lifetime} RON o singură dată, pentru totdeauna."
   },
   "demo": {
     "metaTitle": "Toate funcțiile, cu ecrane de exemplu — RigLog",
@@ -586,11 +590,11 @@
     "ctaPricing": "Vezi prețurile",
     "sampleData": "Date de exemplu",
     "tierFree": "Gratuit",
-    "tierPro": "Pro",
+    "tierPro": "Personal",
     "onlyIn": "doar la {modes}",
     "seeItLive": "Vezi live →",
     "closingTitle": "Începe cu mașina pe care o ai deja",
-    "closingBody": "Contul gratuit acoperă {vehicles, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}, cu lucrări, poze, documente și memento-uri nelimitate. Pro adaugă restul, de la {price} RON pe lună, iar pe gratuit poți rămâne oricât.",
+    "closingBody": "Contul gratuit acoperă {vehicles, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}, cu lucrări, poze, documente și memento-uri nelimitate. Personal adaugă restul, cu {price} RON pe lună, iar pe gratuit poți rămâne oricât.",
     "modePreview": {
       "pick": "Alege un mod",
       "categories": "Categorii",
@@ -604,9 +608,9 @@
         "body": "Fiecare lucrare, fiecare piesă, fiecare bon, atașate vehiculului de care țin. Asta e jumătatea gratuită a RigLog și e jumătatea pe care o vei folosi în fiecare săptămână."
       },
       "pro": {
-        "eyebrow": "Cu Pro",
+        "eyebrow": "Cu Personal",
         "title": "Când un singur vehicul nu ajunge",
-        "body": "Pro deschide garajul pentru oricâte vehicule vrei și adaugă lucrurile care răspund la întrebări despre jurnal, nu care îl umplu: unde s-au dus banii, cine îl mai poate vedea și cum arată totul pentru altcineva."
+        "body": "Personal deschide garajul pentru mai multe vehicule și adaugă lucrurile care răspund la întrebări despre jurnal, nu care îl umplu: unde s-au dus banii, cine îl mai poate vedea și cum arată totul pentru altcineva."
       },
       "community": {
         "eyebrow": "Comunitate",
@@ -638,7 +642,7 @@
       },
       "costs": {
         "title": "Cât a costat până acum",
-        "body": "Piesele și manopera se adună pe lucrare, pe categorie și pe vehicul. Un cont gratuit vede totalul; Pro vede și cum s-a ajuns la el."
+        "body": "Piesele și manopera se adună pe lucrare, pe categorie și pe vehicul. Un cont gratuit vede totalul; Personal vede și cum s-a ajuns la el."
       },
       "wishlist": {
         "title": "Piesele care îți mai lipsesc",
@@ -670,7 +674,7 @@
       },
       "limits": {
         "title": "Oricâte vehicule ai",
-        "body": "Un cont gratuit acoperă {vehicles, plural, one {un vehicul} few {# vehicule} other {# de vehicule}} și {photos} poze pe lucrare. Pro le ridică pe amândouă — momentul în care un garaj cu un proiect și o mașină de zi cu zi încetează să mai fie două conturi."
+        "body": "Un cont gratuit acoperă {vehicles, plural, one {un vehicul} few {# vehicule} other {# de vehicule}} și {photos} poze pe lucrare. Personal le ridică pe amândouă — momentul în care un garaj cu un proiect și o mașină de zi cu zi încetează să mai fie două conturi."
       },
       "pdfExport": {
         "title": "Tot istoricul, ca PDF",
@@ -698,7 +702,7 @@
       },
       "partsWanted": {
         "title": "Cere piesa",
-        "body": "Postezi ce nu găsești și unde ești, iar restul tabloului răspunde. Postarea cere Pro; răspunsul la anunțul altcuiva e gratuit pentru toată lumea."
+        "body": "Postezi ce nu găsești și unde ești, iar restul tabloului răspunde. Postarea cere Personal; răspunsul la anunțul altcuiva e gratuit pentru toată lumea."
       },
       "roadmap": {
         "title": "Lista după care lucrăm",
@@ -887,7 +891,7 @@
     "faq": {
       "free": {
         "q": "Este gratuit?",
-        "a": "Da. Un cont gratuit acoperă un vehicul, cu lucrări, poze, documente și memento-uri nelimitate. Pro pornește de la {price} RON pe lună și adaugă vehicule nelimitate, analiza cheltuielilor, export PDF și restul. Nu se cere card ca să începi și nimic nu expiră."
+        "a": "Da. Un cont gratuit acoperă un vehicul, cu lucrări, poze, documente și memento-uri nelimitate. Personal costă {price} RON pe lună și adaugă mai multe vehicule, analiza cheltuielilor, export PDF și restul. Nu se cere card ca să începi și nimic nu expiră."
       },
       "phone": {
         "q": "Merge pe telefon?",
@@ -1209,7 +1213,7 @@
     "logging": "Se înregistrează…",
     "logPrice": "Înregistrează prețul",
     "logFailed": "Nu am putut înregistra prețul",
-    "proOnly": "Treci la Pro ca să setezi un preț țintă și să urmărești istoricul de preț pentru acest articol."
+    "proOnly": "Treci la Personal ca să setezi un preț țintă și să urmărești istoricul de preț pentru acest articol."
   },
   "donate": {
     "metaTitle": "Susține RigLog",
@@ -1222,7 +1226,7 @@
     "goesHosting": "Găzduire și baza de date Postgres",
     "goesDomain": "Domeniu, livrare de e-mail și notificări push",
     "goesFree": "Un vehicul gratuit pentru toată lumea, pentru totdeauna",
-    "notAPurchase": "O donație e o contribuție, nu o achiziție — nu deblochează Pro. Dacă vrei funcțiile Pro, <upgrade>pagina de upgrade</upgrade> e locul potrivit.",
+    "notAPurchase": "O donație e o contribuție, nu o achiziție — nu deblochează un plan. Dacă vrei funcțiile plătite, <upgrade>pagina cu planuri</upgrade> e locul potrivit.",
     "supporters": "Susținători",
     "supporterCount": "{count, plural, one {o persoană} other {# persoane}} · {total}",
     "noSupporters": "Nicio donație încă — poți fi primul.",
@@ -1333,26 +1337,29 @@
   },
   "upgrade": {
     "backToSettings": "← Înapoi la setări",
-    "title": "Treci la Pro",
-    "subtitle": "Vehicule și poze nelimitate, analize complete de costuri, export PDF al istoricului și multe altele. Prețuri în RON.",
+    "title": "Planuri",
+    "subtitle": "Personal e pentru vehiculele tale: până la {vehicles}, poze nelimitate, analiza completă a costurilor, exporturi PDF și altele. Prețuri în RON.",
     "monthly": "Lunar",
     "monthlyPeriod": "/ lună",
     "monthlyDescription": "Poți renunța oricând.",
     "annual": "Anual",
     "annualPeriod": "/ an",
-    "annualDescription": "Cel mai bun raport — sub 8,25 RON pe lună.",
+    "annualDescription": "Un an la prețul a {months} luni.",
     "lifetime": "Pe viață",
     "lifetimePeriod": "o singură dată",
-    "lifetimeDescription": "Plătești o dată, Pro pentru totdeauna.",
+    "lifetimeDescription": "Plătești o dată, Personal pentru totdeauna.",
     "redirecting": "Se redirecționează…",
     "choose": "Alege",
-    "checkoutFailed": "Nu am putut începe plata"
+    "checkoutFailed": "Nu am putut începe plata",
+    "holdsPersonal": "Ai Personal: până la {vehicles} vehicule și toate funcțiile plătite pentru ele. Îl gestionezi din setări.",
+    "holdsComped": "Ai Personal fără plată: până la {vehicles} vehicule și toate funcțiile plătite pentru ele.",
+    "holdsGrandfathered": "Ți-ai păstrat planul de dinainte ca acestea să existe: toate funcțiile Personal, fără limită de vehicule, la prețul pe care îl plăteai. Nimic de aici nu l-ar îmbunătăți."
   },
   "analytics": {
     "title": "Analiză de costuri",
     "hiddenFromCollaborators": "Proprietarul a ascuns totalurile de cost față de colaboratori.",
     "totalSpent": "Total cheltuit",
-    "upgradePrompt": "Treci la Pro pentru grafice, tendințe lunare, filtre pe perioadă și defalcarea celei mai scumpe lucrări.",
+    "upgradePrompt": "Treci la Personal pentru grafice, tendințe lunare, filtre pe perioadă și defalcarea celei mai scumpe lucrări.",
     "range": {
       "3m": "Ultimele 3 luni",
       "12m": "Ultimele 12 luni",
@@ -1394,7 +1401,7 @@
     "includes": "PDF-ul complet include fiecare lucrare grupată pe categorii, defalcarea costurilor și până la 3 poze per lucrare",
     "includesRestoration": ", plus fișa stării la găsire.",
     "includesEnd": ".",
-    "previewOnly": "Aceasta este o previzualizare a ceea ce conține exportul. Trecerea la Pro nu este disponibilă în această versiune de previzualizare — Pro va debloca descărcarea PDF-ului complet."
+    "previewOnly": "Aceasta este o previzualizare a ceea ce conține exportul. Descărcarea PDF-ului complet vine cu Personal."
   },
   "parts": {
     "metaTitle": "Piese căutate — Comunitatea RigLog",
@@ -1406,7 +1413,7 @@
     "logInToPost": "Autentifică-te ca să publici",
     "empty": "Nicio cerere deschisă momentan.",
     "newTitle": "Publică o cerere de piesă",
-    "proOnly": "Publicarea unei cereri de piesă este o funcție Pro. Trecerea la Pro nu este disponibilă în această versiune de previzualizare.",
+    "proOnly": "Publicarea unei cereri de piesă vine cu Personal.",
     "vehicleMake": "Marca vehiculului",
     "vehicleModel": "Modelul vehiculului",
     "partName": "Denumirea piesei",
@@ -1467,7 +1474,7 @@
     "decodeFailed": "Nu am putut decoda VIN-ul",
     "vinLabel": "Serie VIN / șasiu",
     "pageTitle": "Decodor VIN",
-    "proOnly": "Treci la Pro ca să decodezi VIN-ul acestui vehicul în specificațiile lui de fabrică."
+    "proOnly": "Treci la Personal ca să decodezi VIN-ul acestui vehicul în specificațiile lui de fabrică."
   },
   "receipt": {
     "title": "Bon / factură",
@@ -1502,7 +1509,7 @@
     "backToDashboard": "← Înapoi la panoul de bord",
     "backToTrailLog": "← Înapoi la jurnalul de traseu",
     "recordRun": "Înregistrează un traseu",
-    "proOnly": "Treci la Pro ca să înregistrezi trasee GPS pentru acest proiect.",
+    "proOnly": "Treci la Personal ca să înregistrezi trasee GPS pentru acest proiect.",
     "empty": "Niciun traseu înregistrat încă.",
     "distance": "Distanță",
     "duration": "Durată",
@@ -1594,9 +1601,9 @@
       "aCollaborator": "Un colaborator"
     },
     "paymentFailed": {
-      "subject": "Plata RigLog Pro a eșuat",
-      "intro": "Nu am putut procesa ultima plată pentru RigLog Pro.",
-      "body": "Stripe va reîncerca automat plata — dacă eșuează în continuare, accesul Pro poate fi suspendat. Îți poți actualiza cardul oricând din setările contului.",
+      "subject": "Plata RigLog a eșuat",
+      "intro": "Nu am putut procesa ultima plată RigLog.",
+      "body": "Stripe va reîncerca automat plata — dacă eșuează în continuare, planul tău poate fi suspendat. Îți poți actualiza cardul oricând din setările contului.",
       "cta": "Actualizează metoda de plată"
     },
     "priceAlert": {
@@ -1680,9 +1687,9 @@
       },
       "stripe": {
         "name": "Stripe",
-        "purpose": "Plăți pentru RigLog Pro și pentru donații.",
+        "purpose": "Plăți pentru planurile plătite RigLog și pentru donații.",
         "dataShared": "Adresa ta de e-mail și datele de plată pe care le introduci pe pagina de checkout a Stripe. Numerele de card nu ajung niciodată la RigLog — păstrăm doar identificatorii de client și de abonament de la Stripe.",
-        "when": "Doar dacă achiziționezi Pro sau donezi."
+        "when": "Doar dacă achiziționezi un plan sau donezi."
       },
       "emailProvider": {
         "name": "Brevo sau Resend",
@@ -1772,7 +1779,7 @@
       },
       "resale": {
         "rule": "Să revinzi accesul sau să împarți un cont între mai multe persoane",
-        "because": "Pro se plătește per persoană. Invitațiile de colaborator sunt modul acceptat de a lăsa pe altcineva să lucreze la vehiculul tău."
+        "because": "Personal se plătește per persoană. Invitațiile de colaborator sunt modul acceptat de a lăsa pe altcineva să lucreze la vehiculul tău."
       }
     }
   },
@@ -1864,7 +1871,7 @@
       "metaDescription": "Înțelegerea dintre tine și RigLog: ce primești, ce datorezi și cum poate fiecare parte să o încheie.",
       "title": "Termeni și condiții",
       "shortHeading": "Pe scurt",
-      "short1": "RigLog ține evidența lucrărilor pe care le faci la vehiculele tale. Ce pui în aplicație îți aparține și poți să-l descarci sau să-l ștergi oricând. Un vehicul este gratuit pentru totdeauna; Pro costă și poate fi anulat. Nu publica informații private ale altor persoane și nu încerca să spargi aplicația. Dacă greșim ceva, spune-ne.",
+      "short1": "RigLog ține evidența lucrărilor pe care le faci la vehiculele tale. Ce pui în aplicație îți aparține și poți să-l descarci sau să-l ștergi oricând. Un vehicul este gratuit pentru totdeauna; planurile plătite costă și pot fi anulate. Nu publica informații private ale altor persoane și nu încerca să spargi aplicația. Dacă greșim ceva, spune-ne.",
       "short2": "Restul paginii spune același lucru, cu detaliile care contează atunci când ceva merge prost.",
       "partiesHeading": "Cu cine încheie înțelegerea",
       "operatorFallback": "operatorul acestei instalări RigLog",
@@ -1879,22 +1886,22 @@
       "getHeading": "Ce primești",
       "freeTerm": "Gratuit.",
       "free": "{vehicles} vehicul, lucrări nelimitate la el, până la {photos} poze per lucrare, documente și notificări, PDF-ul cu raportul de lucrări, colaboratori și exportul datelor tale. Gratuit înseamnă gratuit — nu există o perioadă de probă care să se termine pe tăcute.",
-      "proTerm": "Pro.",
-      "pro": "Vehicule și poze nelimitate, analiza completă a costurilor, istoricul în PDF, carduri de partajat, decodorul VIN, jurnalele de traseu și alertele de preț. {monthly} RON pe lună, {annual} RON pe an sau {lifetime} RON o singură dată, pe viață.",
+      "proTerm": "Personal.",
+      "pro": "Până la {vehicles} vehicule, poze nelimitate, analiza completă a costurilor, istoricul în PDF, carduri de partajat, decodorul VIN, jurnalele de traseu și alertele de preț. {monthly} RON pe lună, {annual} RON pe an sau {lifetime} RON o singură dată, pe viață.",
       "uploadCap": "Fișierele încărcate sunt limitate la {mb} MB fiecare, pe orice plan — este o limită a platformei, nu un zid de plată.",
       "tierChanges": "Putem schimba ce include fiecare plan. Dacă o schimbare elimină ceva pentru care plătești, îți spunem înainte să se întâmple și poți anula și cere o rambursare proporțională pentru perioada plătită și nefolosită.",
-      "payingHeading": "Plata pentru Pro",
+      "payingHeading": "Plata pentru un plan",
       "paying1": "Plățile sunt procesate de Stripe. Nu vedem și nu stocăm niciodată datele cardului tău — doar referința Stripe pentru fișa ta de client.",
-      "paying2": "Planurile lunare și anuale se reînnoiesc automat până anulezi. Poți anula oricând din <settings>Profil și setări</settings>, de unde se deschide portalul de facturare Stripe. Anularea oprește următoarea plată; păstrezi Pro până la finalul perioadei deja plătite. Planul pe viață este o plată unică, fără nimic de anulat.",
+      "paying2": "Planurile lunare și anuale se reînnoiesc automat până anulezi. Poți anula oricând din <settings>Profil și setări</settings>, de unde se deschide portalul de facturare Stripe. Anularea oprește următoarea plată; îți păstrezi planul până la finalul perioadei deja plătite. Planul pe viață este o plată unică, fără nimic de anulat.",
       "withdrawal": "<b>Poți anula cu rambursare integrală în {days} zile de la achiziție, din orice motiv sau fără niciunul.</b> Legislația europeană și cea română îți dau acest drept pentru orice cumperi la distanță. Poate fi renunțat pentru conținut digital livrat imediat, dar numai dacă ți se cere întâi să renunți la el — iar noi nu îți cerem asta, deci dreptul rămâne. Scrie-ne sau deschide o solicitare și spune că te retragi.",
       "afterWithdrawal": "După {days} zile nu rambursăm pentru răzgândire. Rambursăm însă când te-am taxat din greșeală sau când serviciul a fost nefolosibil o perioadă semnificativă — cere-ne.",
-      "losingPro": "Pierderea Pro nu șterge nimic. Vehiculele, pozele și istoricul tău rămân exact acolo unde sunt; doar ecranele exclusiv Pro nu se mai deschid, iar exportul funcționează în continuare, ca să poți lua totul cu tine.",
+      "losingPro": "Pierderea unui plan plătit nu șterge nimic. Vehiculele, pozele și istoricul tău rămân exact acolo unde sunt; doar ecranele exclusiv plătite nu se mai deschid, iar exportul funcționează în continuare, ca să poți lua totul cu tine.",
       "foundingHeading": "Membri fondatori",
-      "founding1": "Primele {limit} conturi create vreodată primesc Pro fără plată. Dacă ești unul dintre ele, pagina de setări ți-o spune și îți dă numărul.",
+      "founding1": "Primele {limit} conturi create vreodată primesc Personal fără plată. Dacă ești unul dintre ele, pagina de setări ți-o spune și îți dă numărul.",
       "founding2": "Este un cadou, nu o achiziție: nu s-a plătit nimic, deci nu există nimic de rambursat și niciun abonament de anulat. Este legat de contul tău și nu poate fi transferat sau vândut.",
       "founding3": "<b>„Pe viață” înseamnă atâta timp cât funcționează RigLog.</b> Nu îl vom pune în spatele unei plăți mai târziu, iar cumpărarea — și apoi anularea — unui plan plătit nu îl va elimina. Îl putem retrage dacă acel cont încalcă regulile de mai sus, în aceleași condiții ca orice alt cont. Dacă RigLog se închide, se încheie odată cu serviciul; exportul funcționează în continuare și am anunța din timp.",
       "donationsHeading": "Donații",
-      "donations": "O donație este un cadou pentru costurile de funcționare. Nu cumpără nimic, nu deblochează nimic și nu este rambursabilă — așa că dă doar cât ești mulțumit să dai. Dacă ai vrut să cumperi Pro și ai donat din greșeală, spune-ne și rezolvăm.",
+      "donations": "O donație este un cadou pentru costurile de funcționare. Nu cumpără nimic, nu deblochează nimic și nu este rambursabilă — așa că dă doar cât ești mulțumit să dai. Dacă ai vrut să cumperi un plan și ai donat din greșeală, spune-ne și rezolvăm.",
       "contentHeading": "Conținutul tău rămâne al tău",
       "content1": "Pozele, notele, bonurile și istoricul proiectului îți aparțin. Nu revendicăm niciun drept de proprietate asupra lor.",
       "content2": "Ca să funcționeze serviciul, avem nevoie de permisiunea ta să stocăm conținutul, să-l salvăm de rezervă și să ți-l arătăm ție și oricui i-ai dat acces — colaboratorilor pe care îi inviți și întregului internet, pentru un proiect făcut public. Acea permisiune nu acoperă nimic altceva: nu îl vindem, nu îl licențiem mai departe, nu îl folosim pentru publicitate și nu antrenăm nimic pe el. Se încheie când ștergi conținutul sau contul.",
@@ -1921,7 +1928,10 @@
       "lawHeading": "Lege și litigii",
       "law1": "Se aplică legea română, iar instanțele din România au competență. Dacă ești consumator cu reședința în alt stat din UE, acest lucru nu te privează de protecția legislației imperative de consum din țara ta, nici de dreptul de a introduce o acțiune acolo.",
       "law2": "Te rugăm să ne semnalezi întâi nouă problema — cele mai multe lucruri sunt neînțelegeri și se rezolvă în aceeași săptămână. Dacă asta nu funcționează, te poți adresa <authority></authority> sau poți folosi <odr>platforma europeană de soluționare online a litigiilor</odr>.",
-      "law3": "Modul în care îți prelucrăm datele personale este descris în <privacy>politica de confidențialitate</privacy>, care face parte din această înțelegere."
+      "law3": "Modul în care îți prelucrăm datele personale este descris în <privacy>politica de confidențialitate</privacy>, care face parte din această înțelegere.",
+      "companyTerm": "Pro, Business și Fleet.",
+      "company": "Planuri pentru firme, cu mai mulți utilizatori și șoferi: Pro ({pro} RON pe lună, până la {proVehicles} vehicule), Business ({business} RON pe lună, până la {businessVehicles}) și Fleet (de la {fleet} RON pe lună, până la {fleetVehicles}). Nu sunt încă de vânzare; acești termeni vor spune mai mult când vor fi.",
+      "grandfathered": "Dacă aveai Pro înainte să existe aceste planuri — plătit lunar, anual sau o dată, ori ca membru fondator sau cadou — îl păstrezi ca Personal fără limită de vehicule, la prețul pe care îl plăteai, cât timp îl deții. Anularea încheie asta; dacă mai târziu cumperi Personal, e la prețul și limitele de atunci."
     }
   },
   "pdf": {
@@ -1974,9 +1984,9 @@
     "invalidBody": "Cerere invalidă",
     "fileRequired": "Fișierul este obligatoriu",
     "fileTooLarge": "Fișier prea mare (maximum {maxMb} MB)",
-    "collaboratorLimit": "Planul gratuit permite {limit} colaboratori. Treci la Pro pentru număr nelimitat.",
-    "taskPhotoLimit": "Planul gratuit permite {limit} fotografii per lucrare. Treci la Pro pentru număr nelimitat.",
-    "vehicleLimit": "Planul gratuit permite {limit} vehicul. Treci la Pro pentru vehicule nelimitate.",
+    "collaboratorLimit": "Planul gratuit permite {limit} colaboratori. Personal nu are limită.",
+    "taskPhotoLimit": "Planul gratuit permite {limit} fotografii per lucrare. Personal nu are limită.",
+    "vehicleLimit": "Planul gratuit acoperă {limit} vehicul. Personal acoperă până la {personal}.",
     "foundStatePhotoLimit": "Starea găsită este limitată la {limit} fotografii",
     "projectTypeInvalid": "projectType trebuie să fie unul dintre: {types}",
     "unsupportedFileType": "Tip de fișier neacceptat",
@@ -1994,7 +2004,7 @@
     "yearInvalid": "Anul trebuie să fie un an valid, din 4 cifre",
     "invalidCategoryStatus": "Categorie sau stare invalidă pentru acest tip de proiect",
     "workshopNameRequired": "Numele service-ului este obligatoriu când tipul lucrării este Service",
-    "proShareCards": "Cardurile de partajat sunt o funcție Pro.",
+    "proShareCards": "Cardurile de partajat vin cu Personal.",
     "invalidStatusForType": "Stare invalidă pentru acest tip de proiect",
     "adminFieldsLimited": "Aici pot fi modificate doar `active`, `isProComped` și `orgBeta`",
     "cannotDeactivateSelf": "Nu îți poți dezactiva propriul cont",
@@ -2006,7 +2016,7 @@
     "registrationFailed": "Înregistrarea nu a reușit",
     "tokenRequired": "Token-ul este obligatoriu",
     "resetLinkInvalid": "Link de resetare invalid sau expirat",
-    "proPartsRequest": "Publicarea unei cereri de piesă este o funcție Pro.",
+    "proPartsRequest": "Publicarea unei cereri de piesă vine cu Personal.",
     "vehicleMakeModelRequired": "Marca și modelul vehiculului sunt obligatorii",
     "partNameRequired": "Denumirea piesei este obligatorie",
     "invalidCondition": "Stare acceptată invalidă",
@@ -2018,7 +2028,7 @@
     "invalidPreferredMode": "Mod preferat invalid",
     "unsupportedLanguage": "Limbă neacceptată",
     "invalidPlan": "Planul trebuie să fie MONTHLY, ANNUAL sau LIFETIME",
-    "alreadyPro": "Ai deja Pro",
+    "alreadyPro": "Ai deja un plan plătit",
     "noBillingAccount": "Încă nu există un cont de facturare",
     "billingPortalFailed": "Nu am putut deschide portalul de facturare",
     "inviteTokenMissing": "Lipsește token-ul invitației",
@@ -2044,7 +2054,7 @@
     "conditionRatingRange": "Starea trebuie să fie între 1 și 5",
     "foundStateIntakeFirst": "Completează fișa stării la găsire înainte de a adăuga poze",
     "vinRestorationOnly": "Decodarea VIN se aplică doar proiectelor de restaurare",
-    "proVinDecoder": "Decodarea VIN este o funcție Pro.",
+    "proVinDecoder": "Decodarea VIN vine cu Personal.",
     "noVinOnFile": "Acest vehicul nu are încă un VIN înregistrat.",
     "dateRequired": "Data este obligatorie",
     "receiptOwnTasksOnly": "Poți atașa un bon doar la lucrările adăugate de tine",
@@ -2057,11 +2067,11 @@
     "collaboratorIdRequired": "Identificatorul colaboratorului este obligatoriu",
     "notACollaborator": "Nu este colaborator pe acest vehicul",
     "jobReportFailed": "Nu am putut genera raportul de lucrări",
-    "proPdfExport": "Exportul PDF este o funcție Pro. Treci la Pro ca să exporți istoricul complet.",
+    "proPdfExport": "Exportul PDF vine cu Personal. Treci la Personal ca să exporți istoricul complet.",
     "pdfFailed": "Nu am putut genera PDF-ul",
     "transformationRestorationOnly": "Cardurile de transformare există doar în modul restaurare",
     "trailOffroadOnly": "Jurnalul de traseu se aplică doar proiectelor off-road",
-    "proTrailLog": "Jurnalul de traseu este o funcție Pro.",
+    "proTrailLog": "Jurnalul de traseu vine cu Personal.",
     "validDateRequired": "Este necesară o dată validă",
     "alreadyCollaborator": "Această adresă este deja colaborator activ",
     "inviteLimitReached": "Ai atins limita zilnică de invitații pentru acest vehicul. Încearcă din nou mâine.",
@@ -2069,7 +2079,7 @@
     "onlyPendingResend": "Doar invitațiile în așteptare pot fi retrimise",
     "orderedIdsInvalid": "orderedIds trebuie să fie o listă de șiruri de caractere",
     "orderedIdsMismatch": "orderedIds trebuie să corespundă exact listei de dorințe a acestui vehicul",
-    "proPriceAlerts": "Alertele de preț sunt o funcție Pro.",
+    "proPriceAlerts": "Alertele de preț vin cu Personal.",
     "priceInvalid": "Prețul trebuie să fie un număr pozitiv",
     "wishlistNeedsCategory": "Acest articol are nevoie de o categorie validă înainte să devină o lucrare — trimite una în corpul cererii",
     "invalidDocumentType": "Tip de document invalid",
@@ -2111,9 +2121,9 @@
     "orgRoleInvalid": "Acesta nu este un rol recunoscut.",
     "orgLastOwner": "O organizație are nevoie de cel puțin un proprietar. Numește mai întâi pe altcineva proprietar sau șterge organizația.",
     "orgLastOwnerAccount": "Ești ultimul proprietar al {names}. Numește mai întâi pe altcineva proprietar acolo sau șterge organizația, apoi șterge-ți contul.",
-    "proServiceBookExport": "Exportul cărții de service este o funcție Pro.",
+    "proServiceBookExport": "Exportul cărții de service vine cu Personal.",
     "serviceBookFailed": "PDF-ul cărții de service nu a putut fi generat.",
-    "proPassport": "Partajarea și exportul pașaportului sunt funcții Pro.",
+    "proPassport": "Partajarea și exportul pașaportului vin cu Personal.",
     "passportFailed": "PDF-ul pașaportului nu a putut fi generat.",
     "orgAlreadyMember": "Această persoană este deja membră a organizației.",
     "orgAlreadyInvited": "Există deja o invitație în așteptare pentru această adresă. Retrimite-o în schimb.",
@@ -2133,11 +2143,12 @@
     "reportPeriodInvalid": "Perioada raportului nu e validă. Alege o zi de început și una de sfârșit, începutul primul.",
     "reportPeriodTooLong": "Un raport acoperă cel mult un an. Împarte perioada în două.",
     "reportFailed": "Raportul nu a putut fi creat. Încearcă din nou.",
-    "proTrips": "Foaia de deplasări e o funcție Pro pe un vehicul personal.",
+    "proTrips": "Foaia de deplasări pe un vehicul personal vine cu Personal.",
     "tripFieldInvalid": "{field} nu este valid",
     "tripKmBackwards": "Km la sosire nu pot fi mai mici decât la plecare.",
     "tripDriverInvalid": "Această persoană nu poate fi trecută ca șofer al vehiculului.",
-    "tripMonthInvalid": "Alege o lună (AAAA-LL)."
+    "tripMonthInvalid": "Alege o lună (AAAA-LL).",
+    "vehicleLimitPersonal": "Personal acoperă până la {limit} vehicule. Planurile pentru mai multe sunt cele pentru firme, care nu sunt încă de vânzare."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2161,13 +2172,13 @@
     "statUsers": "Utilizatori",
     "statActive": "Activi",
     "statDeactivated": "Dezactivați",
-    "statPro": "Pro (inclusiv oferit)",
+    "statPro": "Plan plătit (inclusiv oferit)",
     "statVehicles": "Vehicule",
     "statTickets": "Solicitări",
     "statOpenTickets": "Solicitări deschise",
     "statDonated": "Donat",
     "ticketsByStatus": "Solicitări pe stări",
-    "overviewNote": "Statutul Pro este setat de webhook-ul Stripe, iar drepturile de administrator se acordă direct în baza de date — niciunul nu poate fi schimbat din aceste ecrane. Vezi CLAUDE.md pentru motive.",
+    "overviewNote": "Planurile plătite sunt setate de webhook-ul Stripe, iar drepturile de administrator se acordă direct în baza de date — niciunul nu poate fi schimbat din aceste ecrane. Vezi CLAUDE.md pentru motive.",
     "total": "{count} în total",
     "searchUsers": "Caută după e-mail, nume sau nume de utilizator…",
     "all": "Toate",
@@ -2181,9 +2192,9 @@
     "adminChangeInDb": "Administrator — se schimbă în baza de date",
     "foundingNumber": "Fondator #{number}",
     "foundingMemberNumber": "Membru fondator #{number}",
-    "proComped": "Pro · oferit",
+    "proComped": "Personal · oferit",
     "adminBadge": "administrator",
-    "proBadge": "Pro",
+    "proBadge": "Personal",
     "deactivatedBadge": "dezactivat",
     "joined": "înscris {date}",
     "vehicleCount": "{count, plural, one {un vehicul} other {# vehicule}}",
@@ -2194,7 +2205,7 @@
     "newest": "Cele mai noi",
     "mostVoted": "Cele mai votate",
     "noTickets": "Nicio solicitare nu corespunde acestor filtre.",
-    "complimentaryPro": "Pro oferit",
+    "complimentaryPro": "Personal oferit",
     "noReasonRecorded": "Niciun motiv înregistrat.",
     "countVehicles": "Vehicule",
     "countTickets": "Solicitări",
@@ -2204,8 +2215,8 @@
     "noTicketsShort": "Nicio solicitare.",
     "backToUsers": "← Înapoi la utilizatori",
     "removeComp": "Retrage oferta",
-    "compPro": "Oferă Pro",
-    "whyPro": "De ce primește {name} Pro?",
+    "compPro": "Oferă Personal",
+    "whyPro": "De ce primește {name} Personal?",
     "reasonPlaceholder": "ex. tester beta, gest pentru sprijin",
     "granting": "Se acordă…",
     "grant": "Acordă",
@@ -2213,7 +2224,7 @@
     "triageNotePlaceholder": "Notă opțională, afișată public pe solicitare…",
     "updateFailed": "Nu am putut actualiza",
     "deleteFailed": "Nu am putut șterge",
-    "paidPro": "Pro plătit rămâne",
+    "paidPro": "Planul plătit rămâne",
     "grantedOn": "acordat {date}",
     "grantedBy": " de {who}",
     "unknownDate": "necunoscut",
@@ -2230,7 +2241,8 @@
     "orgBetaAccounts": "Conturi cu beta pentru organizații",
     "orgBetaAccountsHelp": "Pot crea o organizație. Se activează sau dezactivează din pagina fiecărui cont. Adminii pot crea oricând una.",
     "orgBetaNone": "Niciun cont nu o are activată încă.",
-    "statOrganizations": "Organizații"
+    "statOrganizations": "Organizații",
+    "grandfatheredBadge": "Pro păstrat · fără limită de vehicule"
   },
   "verifyEmail": {
     "bannerTitle": "Confirmă-ți adresa de e-mail",
@@ -2403,7 +2415,7 @@
     "scanUnsure": "Nu s-a putut citi clar — scrie valoarea de pe bon.",
     "scanUnsureDate": "Data nu s-a putut citi clar — verific-o pe bon.",
     "scanFailed": "Bonul nu a putut fi citit. Scrie cifrele — fotografia este deja atașată.",
-    "scanPro": "Scanează bonurile în loc să le scrii — cu Pro",
+    "scanPro": "Scanează bonurile în loc să le scrii — cu Personal",
     "receiptAttached": "Atașat: {name}",
     "receiptRemove": "Elimină",
     "scanningAgain": "Încă o citire, pentru verificare… {percent}%"
@@ -2636,7 +2648,7 @@
       "fewReadings": "Nu sunt destule citiri de kilometraj în această perioadă. Pentru o distanță e nevoie de două.",
       "noDistance": "Citirile de kilometraj din această perioadă nu arată nicio distanță parcursă."
     },
-    "upgradePrompt": "Treci la Pro pentru defalcarea pe categorii, fiecare înregistrare din spatele cifrelor, costul pe km și filtrele de perioadă.",
+    "upgradePrompt": "Treci la Personal pentru defalcarea pe categorii, fiecare înregistrare din spatele cifrelor, costul pe km și filtrele de perioadă.",
     "coverageTitle": "Ce nu include acest total",
     "coverage": {
       "noPurchase": "Lipsește prețul de cumpărare. Adaugă-l la Valoare și finanțare.",
@@ -2689,7 +2701,7 @@
     "withKm": "{count, plural, =0 {niciuna cu km} one {# cu km} few {# cu km} other {# cu km}}",
     "total": "Total",
     "hidden": "Ascuns de proprietar",
-    "exportPro": "Exportul PDF este o funcție Pro. Cartea în sine e gratuită de citit și de ținut la zi.",
+    "exportPro": "Exportul PDF vine cu Personal. Cartea în sine e gratuită de citit și de ținut la zi.",
     "provenance": "O evidență ținută de proprietarul vehiculului în RigLog. RigLog păstrează ce i se spune și nu verifică.",
     "empty": "Nicio lucrare finalizată încă. Marchează o lucrare ca terminată și apare aici.",
     "noKm": "fără km înregistrați",
@@ -2799,7 +2811,7 @@
     "linkCreated": "Link de partajare creat",
     "linkReplaced": "Link nou creat. Cel vechi nu se mai deschide.",
     "shareFailed": "Linkul nu a putut fi creat",
-    "sharePro": "Partajarea pașaportului și exportul PDF sunt funcții Pro. Previzualizarea de mai jos este gratuită.",
+    "sharePro": "Partajarea pașaportului și exportul PDF vin cu Personal. Previzualizarea de mai jos este gratuită.",
     "pdfHelp": "PDF-ul este un instantaneu datat, cu aceleași opțiuni ca linkul.",
     "ownerView": "Versiunea proprietarului",
     "ownerViewAdvice": "Fiecare secțiune de mai jos este relatarea proprie a proprietarului, așa cum a introdus-o. Înainte să vă bazați pe ea, comparați-o cu facturile, o inspecție independentă și registrul oficial.",
@@ -3021,7 +3033,7 @@
     "failed": "Factura nu a putut fi citită. Scrie lucrarea — fotografia va fi atașată oricum.",
     "attached": "Factura de atașat: {name}",
     "attachFailed": "Lucrarea a fost salvată, dar factura nu a putut fi atașată.",
-    "pro": "Scanează facturile service-ului în loc să le scrii — cu Pro",
+    "pro": "Scanează facturile service-ului în loc să le scrii — cu Personal",
     "unsure": "Nu s-a putut citi clar — scrie valoarea de pe factură.",
     "unsureDate": "Data nu s-a putut citi clar — verific-o pe factură.",
     "noSplit": "Liniile facturii nu s-au adunat la totalul ei, așa că piesele și manopera nu au fost completate — scrie-le de pe factură.",
@@ -3115,8 +3127,8 @@
     "intro": "Toate deplasările cu acest vehicul, de serviciu sau personale, cu km la fiecare capăt. Km intră în istoricul de kilometraj al vehiculului, iar ce a parcurs contorul fără să fie într-o deplasare apare mai jos.",
     "introDriver": "Deplasările tale cu acest vehicul, de serviciu sau personale, cu km la fiecare capăt. Vezi și exporți doar deplasările tale.",
     "notOfficial": "Acestea sunt deplasările așa cum au fost înregistrate — nu o foaie de parcurs oficială. Nu s-a verificat aici ce cere ANAF pe una, așa că dă tabelul contabilului, nu-l depune ca documentul în sine.",
-    "pro": "Foaia de deplasări e o funcție Pro pe un vehicul personal. Pe un vehicul al firmei vine cu organizația.",
-    "upgrade": "Vezi Pro",
+    "pro": "Pe un vehicul personal, foaia de deplasări vine cu Personal. Pe un vehicul al firmei vine cu organizația.",
+    "upgrade": "Vezi planurile",
     "addTitle": "Adaugă o deplasare",
     "date": "Data",
     "driver": "Șofer",
@@ -3186,5 +3198,22 @@
       "noOdometer": "Mai puțin de două citiri de km luna aceasta: nimic cu care să compari",
       "withoutDistance": "Deplasări fără distanță (o citire a fost ștearsă)"
     }
+  },
+  "plans": {
+    "name": {
+      "FREE": "Gratuit",
+      "PERSONAL": "Personal",
+      "PRO": "Pro",
+      "BUSINESS": "Business",
+      "FLEET": "Fleet"
+    },
+    "companyTitle": "Pentru firme",
+    "companySoon": "În curând",
+    "companyIntro": "Mai mulți utilizatori, șoferi, conformitatea flotei, rapoarte și foi de deplasare. Organizațiile sunt deocamdată într-un beta închis; planurile acestea se vând când se deschide.",
+    "priceMonth": "{price} RON/lună",
+    "priceFrom": "de la {price} RON/lună",
+    "vehiclesUpTo": "Până la {count, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}",
+    "fleetStep": "{count} de vehicule: {price} RON",
+    "annualNote": "Fiecare și anual, la prețul a zece luni."
   }
 }

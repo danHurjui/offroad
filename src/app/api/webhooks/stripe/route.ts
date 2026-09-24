@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
-import { getStripe, isProPlanId } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
+import { isStoredPlanId } from '@/lib/plans'
 import { sendEmail, paymentFailedEmail, emailLocale } from '@/lib/email'
 import { appUrlForNotification } from '@/lib/appUrl'
 
@@ -54,7 +55,9 @@ export async function POST(req: NextRequest) {
 
         const userId = checkoutSession.metadata?.userId
         const plan = checkoutSession.metadata?.plan
-        if (!userId || !isProPlanId(plan)) break
+        // Any stored plan, legacy included: a checkout opened just before the
+        // ladder shipped can complete after it, and was paid for.
+        if (!userId || !isStoredPlanId(plan)) break
 
         const customerId = typeof checkoutSession.customer === 'string' ? checkoutSession.customer : checkoutSession.customer?.id
         const subscriptionId =

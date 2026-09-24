@@ -60,7 +60,7 @@ describe('POST /api/webhooks/stripe', () => {
           mode: 'subscription',
           customer: 'cus_1',
           subscription: 'sub_1',
-          metadata: { userId: 'u1', plan: 'MONTHLY' },
+          metadata: { userId: 'u1', plan: 'PERSONAL_MONTHLY' },
         },
       },
     })
@@ -68,11 +68,13 @@ describe('POST /api/webhooks/stripe', () => {
     expect(res.status).toBe(200)
     expect(mockUserUpdate).toHaveBeenCalledWith({
       where: { id: 'u1' },
-      data: { isPro: true, proPlan: 'MONTHLY', stripeCustomerId: 'cus_1', stripeSubscriptionId: 'sub_1', proPaymentFailedAt: null },
+      data: { isPro: true, proPlan: 'PERSONAL_MONTHLY', stripeCustomerId: 'cus_1', stripeSubscriptionId: 'sub_1', proPaymentFailedAt: null },
     })
   })
 
-  it('flips isPro on checkout.session.completed for a lifetime payment, with no subscription id', async () => {
+  // RL-042: a checkout for a retired plan, opened before the ladder shipped
+  // and paid after it, still settles — the money was taken.
+  it('flips isPro on checkout.session.completed for a (retired) lifetime payment, with no subscription id', async () => {
     mockConstructEvent.mockReturnValue({
       type: 'checkout.session.completed',
       data: {

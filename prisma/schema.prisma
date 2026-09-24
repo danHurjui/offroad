@@ -61,10 +61,18 @@ enum DocumentType {
 
 /// RL-017: which Stripe product got the user to isPro=true. MONTHLY/ANNUAL
 /// are recurring Subscriptions; LIFETIME is a one-time Payment.
+///
+/// RL-042 (#54): MONTHLY/ANNUAL/LIFETIME are the plans sold before the
+/// pricing ladder — no longer on sale, kept for the people who hold them
+/// (grandfathered, uncapped; see src/lib/plans.ts). PERSONAL_* is what is
+/// sold now.
 enum ProPlan {
   MONTHLY
   ANNUAL
   LIFETIME
+  PERSONAL_MONTHLY
+  PERSONAL_ANNUAL
+  PERSONAL_LIFETIME
 }
 
 /// A person who can log in. `accountType` distinguishes vehicle owners
@@ -129,6 +137,12 @@ model User {
   /// LIFETIME is a one-time Payment and has no subscription to track.
   stripeSubscriptionId String?      @unique
   proPlan              ProPlan?
+  /// RL-042 (#54): held Pro before the pricing ladder — set by the
+  /// migration for everyone with `isPro` or `isProComped` on that day, and
+  /// never by a route. Such an account keeps Personal with no vehicle cap
+  /// while it holds that old entitlement (`vehicleLimit()` in
+  /// src/lib/plans.ts). Never cleared.
+  grandfatheredAt      DateTime?
   /// Set by the webhook on `invoice.payment_failed`, cleared on the next
   /// `invoice.payment_succeeded` — drives the in-app failed-payment banner.
   /// isPro is left untouched here; Stripe's own retry schedule (and

@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { subscribeToPush, unsubscribeFromPush } from '@/lib/pushClient'
 import { proKind, FREE_TIER } from '@/lib/pro'
+import { vehicleLimit, type StoredPlanId } from '@/lib/plans'
 import AvatarField from './AvatarField'
 
 interface Profile {
@@ -18,17 +19,21 @@ interface Profile {
   isPro: boolean
   isProComped: boolean
   foundingNumber: number | null
-  proPlan: 'MONTHLY' | 'ANNUAL' | 'LIFETIME' | null
+  proPlan: StoredPlanId | null
+  grandfatheredAt: Date | null
   stripeCustomerId: string | null
   notifyFollowedEmail: boolean
   notifyFollowedPush: boolean
 }
 
 /** Catalogue keys, so the plan name follows the interface language. */
-const PLAN_KEYS: Record<NonNullable<Profile['proPlan']>, string> = {
+const PLAN_KEYS: Record<StoredPlanId, string> = {
   MONTHLY: 'planMonthly',
   ANNUAL: 'planAnnual',
   LIFETIME: 'planLifetime',
+  PERSONAL_MONTHLY: 'planPersonalMonthly',
+  PERSONAL_ANNUAL: 'planPersonalAnnual',
+  PERSONAL_LIFETIME: 'planPersonalLifetime',
 }
 
 // RL-009: profile & settings. Every field saves immediately with a
@@ -42,6 +47,8 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
   const [location, setLocation] = useState(profile.location ?? '')
   const [isPublicProfile, setIsPublicProfile] = useState(profile.isPublicProfile)
   const kind = proKind(profile)
+  // RL-042: what the account may hold — null for a grandfathered one.
+  const vehicleCap = vehicleLimit(profile)
   const [saved, setSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -183,7 +190,9 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
                 vehicles: FREE_TIER.vehicles,
                 photos: FREE_TIER.photosPerTask,
               })
-            : t('planProLimits')}
+            : vehicleCap === null
+              ? t('planUncapped')
+              : t('planPersonalLimits', { vehicles: vehicleCap })}
         </p>
         {kind === 'comped' && (
           <p className="mt-1 text-xs text-ink-faint">

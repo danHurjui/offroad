@@ -7,7 +7,7 @@ import {
   WITHDRAWAL_PERIOD_DAYS,
 } from '@/lib/legal'
 import { FREE_TIER } from '@/lib/pro'
-import { PRO_PLANS } from '@/lib/stripe'
+import { LADDER } from '@/lib/plans'
 import { LOCALES } from '@/i18n/config'
 
 /**
@@ -39,11 +39,12 @@ const ENGLISH = wording('en')
 describe('the terms page quotes the code, not a copy of it', () => {
   it('reads its numbers from the modules that enforce them', () => {
     expect(TERMS).toMatch(/from '@\/lib\/pro'/)
-    expect(TERMS).toMatch(/from '@\/lib\/stripe'/)
+    expect(TERMS).toMatch(/from '@\/lib\/plans'/)
     expect(TERMS).toMatch(/from '@\/lib\/storage'/)
     expect(TERMS).toMatch(/FREE_TIER\.vehicles/)
     expect(TERMS).toMatch(/FREE_TIER\.photosPerTask/)
-    expect(TERMS).toMatch(/PRO_PLANS\.(MONTHLY|ANNUAL|LIFETIME)\.priceRon/)
+    expect(TERMS).toMatch(/LADDER\.PERSONAL\.(monthlyRon|annualRon|lifetimeRon)/)
+    expect(TERMS).toMatch(/LADDER\.PERSONAL\.vehicles/)
   })
 
   /**
@@ -52,8 +53,10 @@ describe('the terms page quotes the code, not a copy of it', () => {
    * while the API refuses the second.
    */
   it('hardcodes no price or limit that has a constant', () => {
-    const prices = Object.values(PRO_PLANS).map((p) => String(p.priceRon))
-    for (const price of prices) {
+    const prices = Object.values(LADDER).flatMap((tier) => [tier.monthlyRon, tier.annualRon, tier.lifetimeRon])
+    for (const ron of prices) {
+      if (!ron) continue
+      const price = String(ron)
       // The digits may appear inside an import path or a date; what must
       // not appear is a price written next to "RON".
       expect(TERMS).not.toMatch(new RegExp(`${price.replace('.', '\\.')}\\s*RON`))
@@ -80,7 +83,10 @@ describe('free tier limits', () => {
       path.join(process.cwd(), 'src', 'app', 'api', 'vehicles', '[id]', 'tasks', '[taskId]', 'photos', 'route.ts'),
       'utf8'
     )
-    expect(vehicles).toMatch(/FREE_TIER\.vehicles/)
+    // The vehicle allowance goes through vehicleAllowance.ts, which reads
+    // the ladder — and the ladder's Free rung is FREE_TIER.vehicles.
+    expect(vehicles).toMatch(/refuseOverVehicleLimit/)
+    expect(LADDER.FREE.vehicles).toBe(FREE_TIER.vehicles)
     expect(photos).toMatch(/FREE_TIER\.photosPerTask/)
     // And no stray local copy left behind.
     expect(vehicles).not.toMatch(/FREE_TIER_VEHICLE_LIMIT\s*=/)

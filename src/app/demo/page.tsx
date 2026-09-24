@@ -6,7 +6,7 @@ import { publicPageMetadata } from '@/lib/pageMetadata'
 import { breadcrumbJsonLd, softwareApplicationJsonLd } from '@/lib/structuredData'
 import { DEMO_FAQ_IDS, DEMO_SECTIONS } from '@/lib/demoTour'
 import { FREE_TIER } from '@/lib/pro'
-import { PRO_PLANS } from '@/lib/stripe'
+import { formatPlanPrice, LADDER } from '@/lib/plans'
 import JsonLd from '@/components/JsonLd'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
@@ -71,7 +71,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * written here: the categories and statuses come from
  * `PROJECT_TYPE_CONFIG` through the vocabulary helpers, the free-tier
  * limits from `FREE_TIER` via `chapterValues()`, the prices from
- * `PRO_PLANS`, and which chapter is Pro is declared in
+ * the ladder (`LADDER`, src/lib/plans.ts), and which chapter is Pro is declared in
  * `src/lib/demoTour.ts` beside a test. Several previews go further and
  * run the real thing — `VinPreview` actually decodes a chassis number,
  * `ShortcutsPreview` reads `SHORTCUTS`, `OriginalityPreview` uses the
@@ -263,7 +263,7 @@ export default async function DemoPage() {
                 <h3 className="text-base font-semibold">{t(`faq.${id}.q`)}</h3>
               </dt>
               <dd className="mt-1.5 text-ink-muted">
-                {t(`faq.${id}.a`, { price: PRO_PLANS.MONTHLY.priceRon })}
+                {t(`faq.${id}.a`, { price: formatPlanPrice(LADDER.PERSONAL.monthlyRon, locale) })}
               </dd>
             </div>
           ))}
@@ -274,7 +274,7 @@ export default async function DemoPage() {
         <div className="mx-auto max-w-5xl px-4 py-16 text-center">
           <h2 className="text-2xl font-bold text-ink sm:text-3xl">{t('closingTitle')}</h2>
           <p className="mx-auto mt-3 max-w-2xl text-ink-muted">
-            {t('closingBody', { vehicles: FREE_TIER.vehicles, price: PRO_PLANS.MONTHLY.priceRon })}
+            {t('closingBody', { vehicles: FREE_TIER.vehicles, price: formatPlanPrice(LADDER.PERSONAL.monthlyRon, locale) })}
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link href="/register" className="btn-primary px-6 py-3 text-base">

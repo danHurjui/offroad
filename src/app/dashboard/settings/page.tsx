@@ -37,6 +37,7 @@ export default async function SettingsPage() {
       isProComped: true,
       foundingNumber: true,
       proPlan: true,
+      grandfatheredAt: true,
       stripeCustomerId: true,
       notifyFollowedEmail: true,
       notifyFollowedPush: true,

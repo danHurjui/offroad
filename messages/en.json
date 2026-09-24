@@ -24,20 +24,19 @@
     "makePublic": "Make my profile public (coming soon)",
     "saved": "Saved.",
     "plan": "Plan",
-    "planPaid": "Pro",
-    "planMonthly": "Pro (Monthly)",
-    "planAnnual": "Pro (Annual)",
-    "planLifetime": "Pro (Lifetime)",
-    "planComped": "Pro — complimentary",
+    "planPaid": "Personal",
+    "planMonthly": "Personal (Monthly, at your original price)",
+    "planAnnual": "Personal (Annual, at your original price)",
+    "planLifetime": "Personal (Lifetime, bought before the current plans)",
+    "planComped": "Personal — complimentary",
     "planFree": "Free",
     "planFreeLimits": "{vehicles, plural, one {# vehicle} other {# vehicles}}, {photos} photos per task.",
-    "planProLimits": "unlimited vehicles and photos.",
-    "foundingNote": "You are founding member #{number}. Pro is yours for as long as RigLog runs — there is nothing to pay and no subscription to manage.",
-    "compedNote": "Pro was granted to you by the RigLog team. There is nothing to pay and no subscription to manage.",
+    "foundingNote": "You are founding member #{number}. Your paid plan is yours for as long as RigLog runs — there is nothing to pay and no subscription to manage.",
+    "compedNote": "Your plan was granted to you by the RigLog team. There is nothing to pay and no subscription to manage.",
     "manageSubscription": "Manage subscription",
     "opening": "Opening…",
     "portalFailed": "Could not open billing portal",
-    "upgrade": "Upgrade to Pro",
+    "upgrade": "See the plans",
     "followingTitle": "Following notifications",
     "followingHelp": "Get notified when a project you follow completes a task or adds photos.",
     "emailMe": "Email me",
@@ -51,7 +50,12 @@
     "deleteHelp": "Deletes your account and every vehicle, task, document and photo you own — including the uploaded files themselves, not just the entries pointing at them. Records of any donations are kept for accounting, with your account detached from them. This cannot be undone, so take a copy of your data first if you want one.",
     "deleteAccount": "Delete account",
     "confirmDelete": "Delete your account and all vehicles/tasks/photos? This cannot be undone.",
-    "confirmDeleteAgain": "This is permanent. Are you absolutely sure?"
+    "confirmDeleteAgain": "This is permanent. Are you absolutely sure?",
+    "planPersonalMonthly": "Personal (Monthly)",
+    "planPersonalAnnual": "Personal (Annual)",
+    "planPersonalLifetime": "Personal (Lifetime)",
+    "planUncapped": "no vehicle cap and unlimited photos — kept from before the current plans.",
+    "planPersonalLimits": "up to {vehicles, plural, one {# vehicle} other {# vehicles}}, unlimited photos."
   },
   "common": {
     "save": "Save",
@@ -397,7 +401,7 @@
     "addVehicle": "+ Add vehicle",
     "collaborator": "Collaborator",
     "accountFallback": "Account",
-    "paymentFailed": "Your last RigLog Pro payment failed. <link>Update your payment method</link> to keep Pro access.",
+    "paymentFailed": "Your last RigLog payment failed. <link>Update your payment method</link> to keep your plan.",
     "emptyTitle": "Start with one vehicle",
     "emptyBody": "Everything in RigLog hangs off a vehicle. When you add one, you choose what kind of log it keeps:",
     "emptyModeFixed": "The mode can’t be changed afterwards, because each one records work in its own categories and statuses.",
@@ -491,7 +495,7 @@
     "ctaStart": "Start logging — free",
     "ctaBrowse": "Browse public builds",
     "noCard": "One vehicle free, forever. No card needed to start.",
-    "foundingHeadline": "Founding members get Pro free for life.",
+    "foundingHeadline": "Founding members get Personal free for life.",
     "foundingRemaining": "{remaining} of {limit} {remaining, plural, one {place} other {places}} left.",
     "modesEyebrow": "One app, three jobs",
     "modesTitle": "Pick the mode that fits the vehicle",
@@ -500,7 +504,7 @@
     "featuresEyebrow": "What you get",
     "featuresTitle": "Built for the way people actually work on cars",
     "pricingEyebrow": "Pricing",
-    "pricingTitle": "Free to start, Pro when you outgrow it",
+    "pricingTitle": "Free to start, a plan when you outgrow it",
     "free": "Free",
     "freePrice": "0 RON",
     "freeOneVehicle": "One vehicle",
@@ -508,15 +512,11 @@
     "freeReminders": "Document expiry reminders",
     "freeTotalSpent": "Total spent",
     "freeReports": "Job reports and collaborators",
-    "pro": "Pro",
-    "proFrom": "from {price} RON",
     "perMonth": "/month",
-    "proVehicles": "Unlimited vehicles",
     "proAnalytics": "Full cost analytics, charts and trends",
     "proPdf": "PDF build-history export",
     "proCards": "Shareable build & transformation cards",
     "proExtras": "Trail log, VIN decoder, originality score",
-    "proAlsoAvailable": "Also available annually ({annual} RON) or as a one-off lifetime purchase ({lifetime} RON).",
     "proFoundingNote": "The first {limit} accounts pay none of it — {remaining} still open.",
     "createAccount": "Create an account",
     "startFree": "Start free, upgrade later",
@@ -573,7 +573,11 @@
       }
     },
     "metaDescription": "Log every modification, restoration stage and repair on your vehicle: costs, photos, receipts and reminders for insurance and inspection, all in one place. Free to start.",
-    "ctaDemo": "See the features"
+    "ctaDemo": "See the features",
+    "personal": "Personal",
+    "personalFrom": "{price} RON",
+    "personalVehicles": "Up to {count, plural, one {# vehicle} other {# vehicles}}, unlimited photos",
+    "personalAlsoAvailable": "Also {annual} RON a year, or {lifetime} RON once for good."
   },
   "demo": {
     "metaTitle": "Every feature, with sample screens — RigLog",
@@ -586,11 +590,11 @@
     "ctaPricing": "See the pricing",
     "sampleData": "Sample data",
     "tierFree": "Free",
-    "tierPro": "Pro",
+    "tierPro": "Personal",
     "onlyIn": "{modes} only",
     "seeItLive": "See it live →",
     "closingTitle": "Start with the vehicle you already own",
-    "closingBody": "The free account covers {vehicles, plural, one {one vehicle} other {# vehicles}}, with unlimited jobs, photos, documents and reminders. Pro adds the rest, from {price} RON a month, and you can stay on free for as long as you like.",
+    "closingBody": "The free account covers {vehicles, plural, one {one vehicle} other {# vehicles}}, with unlimited jobs, photos, documents and reminders. Personal adds the rest, for {price} RON a month, and you can stay on free for as long as you like.",
     "modePreview": {
       "pick": "Choose a mode",
       "categories": "Categories",
@@ -604,9 +608,9 @@
         "body": "Every job, every part, every receipt, attached to the vehicle it belongs to. This is the free half of RigLog, and it is the half you will use every week."
       },
       "pro": {
-        "eyebrow": "With Pro",
+        "eyebrow": "With Personal",
         "title": "When one vehicle isn’t enough",
-        "body": "Pro opens the garage to as many vehicles as you like, and adds the parts that answer questions about the log rather than adding to it — where the money went, who else can see it, and what the whole thing looks like to somebody else."
+        "body": "Personal opens the garage to more vehicles, and adds the parts that answer questions about the log rather than adding to it — where the money went, who else can see it, and what the whole thing looks like to somebody else."
       },
       "community": {
         "eyebrow": "Community",
@@ -638,7 +642,7 @@
       },
       "costs": {
         "title": "What it has cost so far",
-        "body": "Parts and labour add up per job, per category and per vehicle. A free account sees the running total; Pro sees how it got there."
+        "body": "Parts and labour add up per job, per category and per vehicle. A free account sees the running total; Personal sees how it got there."
       },
       "wishlist": {
         "title": "The parts you still need",
@@ -670,7 +674,7 @@
       },
       "limits": {
         "title": "As many vehicles as you have",
-        "body": "A free account covers {vehicles, plural, one {one vehicle} other {# vehicles}} and {photos} photos per job. Pro lifts both — which is the point at which a garage with a project and a daily driver stops being two accounts."
+        "body": "A free account covers {vehicles, plural, one {one vehicle} other {# vehicles}} and {photos} photos per job. Personal raises both — which is the point at which a garage with a project and a daily driver stops being two accounts."
       },
       "pdfExport": {
         "title": "The whole history as a PDF",
@@ -698,7 +702,7 @@
       },
       "partsWanted": {
         "title": "Ask for the part",
-        "body": "Post what you can’t find and where you are, and let the rest of the board answer. Posting needs Pro; replying to somebody else’s is free for everyone."
+        "body": "Post what you can’t find and where you are, and let the rest of the board answer. Posting needs Personal; replying to somebody else’s is free for everyone."
       },
       "roadmap": {
         "title": "The list we work from",
@@ -887,7 +891,7 @@
     "faq": {
       "free": {
         "q": "Is it free?",
-        "a": "Yes. A free account covers one vehicle, with unlimited jobs, photos, documents and reminders. Pro starts at {price} RON a month and adds unlimited vehicles, spend analysis, PDF export and the rest. No card is asked for to start, and nothing expires."
+        "a": "Yes. A free account covers one vehicle, with unlimited jobs, photos, documents and reminders. Personal is {price} RON a month and adds more vehicles, spend analysis, PDF export and the rest. No card is asked for to start, and nothing expires."
       },
       "phone": {
         "q": "Does it work on a phone?",
@@ -1209,7 +1213,7 @@
     "logging": "Logging…",
     "logPrice": "Log price",
     "logFailed": "Could not log price",
-    "proOnly": "Upgrade to Pro to set a price alert target and track price history for this item."
+    "proOnly": "Upgrade to Personal to set a price alert target and track price history for this item."
   },
   "donate": {
     "metaTitle": "Support RigLog",
@@ -1222,7 +1226,7 @@
     "goesHosting": "Hosting and the Postgres database",
     "goesDomain": "Domain, email delivery and push notifications",
     "goesFree": "Keeping one vehicle free for everyone, forever",
-    "notAPurchase": "A donation is a contribution, not a purchase — it doesn’t unlock Pro. If you want the Pro features, the <upgrade>upgrade page</upgrade> is the place for that.",
+    "notAPurchase": "A donation is a contribution, not a purchase — it doesn’t unlock a plan. If you want the paid features, the <upgrade>plans page</upgrade> is the place for that.",
     "supporters": "Supporters",
     "supporterCount": "{count, plural, one {# person} other {# people}} · {total}",
     "noSupporters": "No donations yet — you could be the first.",
@@ -1333,26 +1337,29 @@
   },
   "upgrade": {
     "backToSettings": "← Back to settings",
-    "title": "Upgrade to Pro",
-    "subtitle": "Unlimited vehicles and photos, full cost analytics, PDF build history export, and more. Prices in RON.",
+    "title": "Plans",
+    "subtitle": "Personal is for your own vehicles: up to {vehicles}, unlimited photos, full cost analytics, PDF exports and more. Prices in RON.",
     "monthly": "Monthly",
     "monthlyPeriod": "/ month",
     "monthlyDescription": "Cancel any time.",
     "annual": "Annual",
     "annualPeriod": "/ year",
-    "annualDescription": "Best value — under 8.25 RON/month.",
+    "annualDescription": "A year for the price of {months} months.",
     "lifetime": "Lifetime",
     "lifetimePeriod": "once",
-    "lifetimeDescription": "Pay once, Pro forever.",
+    "lifetimeDescription": "Pay once, Personal for good.",
     "redirecting": "Redirecting…",
     "choose": "Choose",
-    "checkoutFailed": "Could not start checkout"
+    "checkoutFailed": "Could not start checkout",
+    "holdsPersonal": "You have Personal: up to {vehicles} vehicles and every paid feature for them. Manage it from settings.",
+    "holdsComped": "You have Personal at no charge: up to {vehicles} vehicles and every paid feature for them.",
+    "holdsGrandfathered": "You kept your plan from before these existed: every Personal feature, with no vehicle cap, at the price you were paying. Nothing here would be an upgrade on it."
   },
   "analytics": {
     "title": "Cost analytics",
     "hiddenFromCollaborators": "The owner has hidden cost totals from collaborators.",
     "totalSpent": "Total spent",
-    "upgradePrompt": "Upgrade to Pro for charts, monthly trends, date filters, and the most expensive task breakdown.",
+    "upgradePrompt": "Upgrade to Personal for charts, monthly trends, date filters, and the most expensive task breakdown.",
     "range": {
       "3m": "Last 3 months",
       "12m": "Last 12 months",
@@ -1394,7 +1401,7 @@
     "includes": "The full PDF includes every task grouped by category, cost breakdown, and up to 3 photos per task",
     "includesRestoration": ", plus the found state intake.",
     "includesEnd": ".",
-    "previewOnly": "This is a preview of what your export includes. Upgrading to Pro is not available in this preview build — Pro will unlock the full PDF download."
+    "previewOnly": "This is a preview of what your export includes. The full PDF download comes with Personal."
   },
   "parts": {
     "metaTitle": "Parts wanted — RigLog Community",
@@ -1406,7 +1413,7 @@
     "logInToPost": "Log in to post",
     "empty": "No open parts requests right now.",
     "newTitle": "Post a parts request",
-    "proOnly": "Posting a parts request is a Pro feature. Upgrading to Pro is not available in this preview build.",
+    "proOnly": "Posting a parts request comes with Personal.",
     "vehicleMake": "Vehicle make",
     "vehicleModel": "Vehicle model",
     "partName": "Part name",
@@ -1467,7 +1474,7 @@
     "decodeFailed": "Could not decode VIN",
     "vinLabel": "VIN / chassis number",
     "pageTitle": "VIN decoder",
-    "proOnly": "Upgrade to Pro to decode this vehicle’s VIN into its original factory specification."
+    "proOnly": "Upgrade to Personal to decode this vehicle’s VIN into its original factory specification."
   },
   "receipt": {
     "title": "Receipt",
@@ -1502,7 +1509,7 @@
     "backToDashboard": "← Back to dashboard",
     "backToTrailLog": "← Back to trail log",
     "recordRun": "Record a run",
-    "proOnly": "Upgrade to Pro to record GPS trail runs for this build.",
+    "proOnly": "Upgrade to Personal to record GPS trail runs for this build.",
     "empty": "No trail runs recorded yet.",
     "distance": "Distance",
     "duration": "Duration",
@@ -1594,9 +1601,9 @@
       "aCollaborator": "A collaborator"
     },
     "paymentFailed": {
-      "subject": "Your RigLog Pro payment failed",
-      "intro": "We couldn’t process your latest RigLog Pro payment.",
-      "body": "Stripe will automatically retry the charge — if it keeps failing, your Pro access may be paused. You can update your card any time from account settings.",
+      "subject": "Your RigLog payment failed",
+      "intro": "We couldn’t process your latest RigLog payment.",
+      "body": "Stripe will automatically retry the charge — if it keeps failing, your plan may be paused. You can update your card any time from account settings.",
       "cta": "Update payment method"
     },
     "priceAlert": {
@@ -1680,9 +1687,9 @@
       },
       "stripe": {
         "name": "Stripe",
-        "purpose": "Payments for RigLog Pro and for donations.",
+        "purpose": "Payments for RigLog’s paid plans and for donations.",
         "dataShared": "Your email address and the payment details you enter on Stripe’s own checkout page. Card numbers never reach RigLog — we store only Stripe’s customer and subscription identifiers.",
-        "when": "Only if you buy Pro or donate."
+        "when": "Only if you buy a plan or donate."
       },
       "emailProvider": {
         "name": "Brevo, or Resend",
@@ -1772,7 +1779,7 @@
       },
       "resale": {
         "rule": "Resell access, or share one account between several people",
-        "because": "Pro is priced per person. Collaborator invitations are the supported way to let someone else work on your vehicle."
+        "because": "Personal is priced per person. Collaborator invitations are the supported way to let someone else work on your vehicle."
       }
     }
   },
@@ -1864,7 +1871,7 @@
       "metaDescription": "The agreement between you and RigLog: what you get, what you owe, and how either side ends it.",
       "title": "Terms of service",
       "shortHeading": "The short version",
-      "short1": "RigLog logs the work you do on your vehicles. You own what you put in and can take it out or delete it at any time. One vehicle is free forever; Pro costs money and can be cancelled. Don’t post other people’s private information, and don’t try to break the app. If we get something wrong, tell us.",
+      "short1": "RigLog logs the work you do on your vehicles. You own what you put in and can take it out or delete it at any time. One vehicle is free forever; the paid plans cost money and can be cancelled. Don’t post other people’s private information, and don’t try to break the app. If we get something wrong, tell us.",
       "short2": "The rest of this page is the same thing in the detail that matters when something goes wrong.",
       "partiesHeading": "Who you are agreeing with",
       "operatorFallback": "the operator of this RigLog installation",
@@ -1879,22 +1886,22 @@
       "getHeading": "What you get",
       "freeTerm": "Free.",
       "free": "{vehicles} vehicle, unlimited tasks on it, up to {photos} photos per task, documents and reminders, the job-report PDF, collaborators, and your data export. Free means free — there is no trial that quietly ends.",
-      "proTerm": "Pro.",
-      "pro": "Unlimited vehicles and photos, the full cost analytics, PDF build history, shareable cards, the VIN decoder, trail logs and price alerts. {monthly} RON monthly, {annual} RON annually, or {lifetime} RON once for lifetime access.",
+      "proTerm": "Personal.",
+      "pro": "Up to {vehicles} vehicles, unlimited photos, the full cost analytics, PDF build history, shareable cards, the VIN decoder, trail logs and price alerts. {monthly} RON monthly, {annual} RON annually, or {lifetime} RON once for lifetime access.",
       "uploadCap": "Uploads are capped at {mb}MB per file on every tier — a platform limit, not a paywall.",
       "tierChanges": "We may change what each tier includes. If a change removes something you are paying for, we will say so before it happens and you can cancel and claim a proportional refund for time you have paid for and not used.",
-      "payingHeading": "Paying for Pro",
+      "payingHeading": "Paying for a plan",
       "paying1": "Payments are handled by Stripe. We never see or store your card details — only Stripe’s reference for your customer record.",
-      "paying2": "Monthly and annual plans renew automatically until you cancel. Cancel any time from <settings>Profile & settings</settings>, which opens Stripe’s billing portal. Cancelling stops the next charge; you keep Pro until the period you have already paid for runs out. Lifetime is a single payment with nothing to cancel.",
+      "paying2": "Monthly and annual plans renew automatically until you cancel. Cancel any time from <settings>Profile & settings</settings>, which opens Stripe’s billing portal. Cancelling stops the next charge; you keep your plan until the period you have already paid for runs out. Lifetime is a single payment with nothing to cancel.",
       "withdrawal": "<b>You can cancel for a full refund within {days} days of buying, for any reason or none.</b> EU and Romanian law give you that right on anything bought at a distance. It can be waived for digital content delivered immediately, but only if you are asked to waive it first — and we don’t ask, so it stands. Email us, or open a ticket, and say you are withdrawing.",
       "afterWithdrawal": "After {days} days we don’t give refunds for a change of mind. We do refund when we have charged you in error or the service has been unusable for a meaningful stretch — ask.",
-      "losingPro": "Losing Pro never deletes anything. Your vehicles, photos and history stay exactly where they are; the Pro-only screens stop opening, and your export keeps working so you can take everything with you.",
+      "losingPro": "Losing a paid plan never deletes anything. Your vehicles, photos and history stay exactly where they are; the paid-only screens stop opening, and your export keeps working so you can take everything with you.",
       "foundingHeading": "Founding members",
-      "founding1": "The first {limit} accounts ever created get Pro at no charge. If you are one of them, your settings page says so and gives your number.",
+      "founding1": "The first {limit} accounts ever created get Personal at no charge. If you are one of them, your settings page says so and gives your number.",
       "founding2": "It is a gift rather than a purchase: nothing was paid, so there is nothing to refund and no subscription to cancel. It is tied to your account and cannot be transferred or sold.",
       "founding3": "<b>“For life” means for as long as RigLog runs.</b> We will not put it behind a payment later, and buying — then cancelling — a paid plan will not remove it. We can withdraw it if the account breaks the rules above, on the same terms as any other account. If RigLog shuts down, it ends with the service; your export still works, and we would give notice.",
       "donationsHeading": "Donations",
-      "donations": "A donation is a gift toward running costs. It buys nothing, unlocks nothing, and is not refundable — so please only give what you are happy to part with. If you meant to buy Pro and donated by mistake, tell us and we will sort it out.",
+      "donations": "A donation is a gift toward running costs. It buys nothing, unlocks nothing, and is not refundable — so please only give what you are happy to part with. If you meant to buy a plan and donated by mistake, tell us and we will sort it out.",
       "contentHeading": "Your content stays yours",
       "content1": "Your photos, notes, receipts and build history belong to you. We claim no ownership of them.",
       "content2": "To run the service we need your permission to store your content, back it up, and show it back to you and to anyone you have given access — collaborators you invite, and the whole internet for a project you switch to public. That permission covers nothing else: we do not sell it, license it on, use it to advertise, or train anything on it. It ends when you delete the content or your account.",
@@ -1921,7 +1928,10 @@
       "lawHeading": "Law and disputes",
       "law1": "Romanian law applies, and the courts of Romania have jurisdiction. If you are a consumer resident elsewhere in the EU, this does not deprive you of the protection of your own country’s mandatory consumer law, nor of the right to bring a claim there.",
       "law2": "Please raise a problem with us first — most things are a misunderstanding and get fixed the same week. If that fails you can go to <authority></authority>, or use the EU’s <odr>online dispute resolution platform</odr>.",
-      "law3": "How we handle your personal data is in the <privacy>privacy policy</privacy>, which is part of this agreement."
+      "law3": "How we handle your personal data is in the <privacy>privacy policy</privacy>, which is part of this agreement.",
+      "companyTerm": "Pro, Business and Fleet.",
+      "company": "Plans for companies, with several users and drivers: Pro ({pro} RON a month, up to {proVehicles} vehicles), Business ({business} RON a month, up to {businessVehicles}) and Fleet (from {fleet} RON a month, up to {fleetVehicles}). They are not on sale yet; these terms will say more when they are.",
+      "grandfathered": "If you held Pro before these plans existed — paid monthly, annually or once, or as a founding member or a gift — you keep it as Personal with no vehicle cap, at the price you were paying, for as long as you hold it. Cancelling ends that; buying Personal later is at the price and allowance of the day."
     }
   },
   "pdf": {
@@ -1974,9 +1984,9 @@
     "invalidBody": "Invalid request body",
     "fileRequired": "file is required",
     "fileTooLarge": "File too large (max {maxMb}MB)",
-    "collaboratorLimit": "Free tier is limited to {limit} collaborators. Upgrade to Pro for unlimited.",
-    "taskPhotoLimit": "Free tier is limited to {limit} photos per task. Upgrade to Pro for unlimited.",
-    "vehicleLimit": "Free tier is limited to {limit} vehicle. Upgrade to Pro for unlimited vehicles.",
+    "collaboratorLimit": "Free tier is limited to {limit} collaborators. Personal has no limit.",
+    "taskPhotoLimit": "Free tier is limited to {limit} photos per task. Personal has no limit.",
+    "vehicleLimit": "Free covers {limit} vehicle. Personal covers up to {personal}.",
     "foundStatePhotoLimit": "Found state is limited to {limit} photos",
     "projectTypeInvalid": "projectType must be one of: {types}",
     "unsupportedFileType": "Unsupported file type",
@@ -1994,7 +2004,7 @@
     "yearInvalid": "year must be a valid 4-digit year",
     "invalidCategoryStatus": "Invalid category/status for this project type",
     "workshopNameRequired": "workshopName is required when work type is Workshop",
-    "proShareCards": "Share cards are a Pro feature.",
+    "proShareCards": "Share cards come with Personal.",
     "invalidStatusForType": "Invalid status for this project type",
     "adminFieldsLimited": "Only `active`, `isProComped` and `orgBeta` can be changed here",
     "cannotDeactivateSelf": "You cannot deactivate your own account",
@@ -2006,7 +2016,7 @@
     "registrationFailed": "Registration failed",
     "tokenRequired": "Token is required",
     "resetLinkInvalid": "Invalid or expired reset link",
-    "proPartsRequest": "Posting a parts request is a Pro feature.",
+    "proPartsRequest": "Posting a parts request comes with Personal.",
     "vehicleMakeModelRequired": "vehicleMake and vehicleModel are required",
     "partNameRequired": "partName is required",
     "invalidCondition": "Invalid conditionAccepted",
@@ -2018,7 +2028,7 @@
     "invalidPreferredMode": "Invalid preferredMode",
     "unsupportedLanguage": "Unsupported language",
     "invalidPlan": "plan must be one of MONTHLY, ANNUAL, LIFETIME",
-    "alreadyPro": "Already on Pro",
+    "alreadyPro": "You already have a paid plan",
     "noBillingAccount": "No billing account yet",
     "billingPortalFailed": "Could not open billing portal",
     "inviteTokenMissing": "Missing invite token",
@@ -2044,7 +2054,7 @@
     "conditionRatingRange": "conditionRating must be 1-5",
     "foundStateIntakeFirst": "Complete the found state intake before adding photos",
     "vinRestorationOnly": "VIN decoding only applies to restoration projects",
-    "proVinDecoder": "VIN decoding is a Pro feature.",
+    "proVinDecoder": "VIN decoding comes with Personal.",
     "noVinOnFile": "This vehicle has no VIN on file yet.",
     "dateRequired": "date is required",
     "receiptOwnTasksOnly": "You can only attach a receipt to tasks you added",
@@ -2057,11 +2067,11 @@
     "collaboratorIdRequired": "collaboratorId is required",
     "notACollaborator": "Not a collaborator on this vehicle",
     "jobReportFailed": "Could not generate job report",
-    "proPdfExport": "PDF export is a Pro feature. Upgrade to export your full build history.",
+    "proPdfExport": "PDF export comes with Personal. Upgrade to export your full build history.",
     "pdfFailed": "Could not generate PDF",
     "transformationRestorationOnly": "Transformation cards are restoration mode only",
     "trailOffroadOnly": "Trail log only applies to off-road projects",
-    "proTrailLog": "Trail log is a Pro feature.",
+    "proTrailLog": "The trail log comes with Personal.",
     "validDateRequired": "A valid date is required",
     "alreadyCollaborator": "This email is already an active collaborator",
     "inviteLimitReached": "Daily invite limit reached for this vehicle. Try again tomorrow.",
@@ -2069,7 +2079,7 @@
     "onlyPendingResend": "Only pending invites can be resent",
     "orderedIdsInvalid": "orderedIds must be an array of strings",
     "orderedIdsMismatch": "orderedIds must match this vehicle's wishlist exactly",
-    "proPriceAlerts": "Price alerts are a Pro feature.",
+    "proPriceAlerts": "Price alerts come with Personal.",
     "priceInvalid": "priceRon must be a positive number",
     "wishlistNeedsCategory": "This item needs a valid category before it can become a task — pass one in the request body",
     "invalidDocumentType": "Invalid document type",
@@ -2111,9 +2121,9 @@
     "orgRoleInvalid": "That isn’t a recognised role.",
     "orgLastOwner": "An organisation needs at least one owner. Make someone else an owner first, or delete the organisation.",
     "orgLastOwnerAccount": "You are the last owner of {names}. Make someone else an owner there first, or delete the organisation, then delete your account.",
-    "proServiceBookExport": "Exporting the service book is a Pro feature.",
+    "proServiceBookExport": "Exporting the service book comes with Personal.",
     "serviceBookFailed": "Could not generate the service book PDF.",
-    "proPassport": "Sharing and exporting the passport is a Pro feature.",
+    "proPassport": "Sharing and exporting the passport come with Personal.",
     "passportFailed": "Could not generate the passport PDF.",
     "orgAlreadyMember": "That person is already a member of this organisation.",
     "orgAlreadyInvited": "There is already a pending invitation for that address. Resend it instead.",
@@ -2133,11 +2143,12 @@
     "reportPeriodInvalid": "The report period isn’t valid. Choose a start and an end day, the start first.",
     "reportPeriodTooLong": "A report covers at most a year. Split the period in two.",
     "reportFailed": "The report couldn’t be created. Please try again.",
-    "proTrips": "The trip sheet is a Pro feature on a personal vehicle.",
+    "proTrips": "The trip sheet on a personal vehicle comes with Personal.",
     "tripFieldInvalid": "{field} is not valid",
     "tripKmBackwards": "The km at the end can’t be lower than at the start.",
     "tripDriverInvalid": "That person can’t be recorded as the driver of this vehicle.",
-    "tripMonthInvalid": "Choose a month (YYYY-MM)."
+    "tripMonthInvalid": "Choose a month (YYYY-MM).",
+    "vehicleLimitPersonal": "Personal covers up to {limit} vehicles. The plans for more are the company ones, which are not on sale yet."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2161,13 +2172,13 @@
     "statUsers": "Users",
     "statActive": "Active",
     "statDeactivated": "Deactivated",
-    "statPro": "Pro (incl. comped)",
+    "statPro": "Paid plan (incl. comped)",
     "statVehicles": "Vehicles",
     "statTickets": "Tickets",
     "statOpenTickets": "Open tickets",
     "statDonated": "Donated",
     "ticketsByStatus": "Tickets by status",
-    "overviewNote": "Pro status is set by the Stripe webhook and admin rights are granted directly in the database — neither can be changed from these screens. See CLAUDE.md for why.",
+    "overviewNote": "Paid plans are set by the Stripe webhook and admin rights are granted directly in the database — neither can be changed from these screens. See CLAUDE.md for why.",
     "total": "{count} total",
     "searchUsers": "Search email, name or username…",
     "all": "All",
@@ -2181,9 +2192,9 @@
     "adminChangeInDb": "Admin — change in the database",
     "foundingNumber": "Founding #{number}",
     "foundingMemberNumber": "Founding member #{number}",
-    "proComped": "Pro · comped",
+    "proComped": "Personal · comped",
     "adminBadge": "admin",
-    "proBadge": "Pro",
+    "proBadge": "Personal",
     "deactivatedBadge": "deactivated",
     "joined": "joined {date}",
     "vehicleCount": "{count, plural, one {# vehicle} other {# vehicles}}",
@@ -2194,7 +2205,7 @@
     "newest": "Newest",
     "mostVoted": "Most voted",
     "noTickets": "No tickets match those filters.",
-    "complimentaryPro": "Complimentary Pro",
+    "complimentaryPro": "Complimentary Personal",
     "noReasonRecorded": "No reason recorded.",
     "countVehicles": "Vehicles",
     "countTickets": "Tickets",
@@ -2204,8 +2215,8 @@
     "noTicketsShort": "No tickets.",
     "backToUsers": "← Back to users",
     "removeComp": "Remove comp",
-    "compPro": "Comp Pro",
-    "whyPro": "Why is {name} getting Pro?",
+    "compPro": "Comp Personal",
+    "whyPro": "Why is {name} getting Personal?",
     "reasonPlaceholder": "e.g. beta tester, support goodwill",
     "granting": "Granting…",
     "grant": "Grant",
@@ -2213,7 +2224,7 @@
     "triageNotePlaceholder": "Optional note shown publicly on the ticket…",
     "updateFailed": "Could not update",
     "deleteFailed": "Could not delete",
-    "paidPro": "Paid Pro stays",
+    "paidPro": "Paid plan stays",
     "grantedOn": "granted {date}",
     "grantedBy": " by {who}",
     "unknownDate": "unknown",
@@ -2230,7 +2241,8 @@
     "orgBetaAccounts": "Accounts with the organisations beta",
     "orgBetaAccountsHelp": "They can create an organisation. Switch it on or off on each account’s page. Admins can always create one.",
     "orgBetaNone": "No account has it switched on yet.",
-    "statOrganizations": "Organisations"
+    "statOrganizations": "Organisations",
+    "grandfatheredBadge": "Kept Pro · no vehicle cap"
   },
   "verifyEmail": {
     "bannerTitle": "Confirm your email address",
@@ -2403,7 +2415,7 @@
     "scanUnsure": "Couldn't read this clearly — type it from the receipt.",
     "scanUnsureDate": "Couldn't read the date clearly — check it against the receipt.",
     "scanFailed": "Couldn't read this receipt. Type the figures in — the photo is already attached.",
-    "scanPro": "Scan receipts instead of typing them — with Pro",
+    "scanPro": "Scan receipts instead of typing them — with Personal",
     "receiptAttached": "Attached: {name}",
     "receiptRemove": "Remove",
     "scanningAgain": "Taking a second look… {percent}%"
@@ -2636,7 +2648,7 @@
       "fewReadings": "Not enough odometer readings in this period. It takes two to measure a distance.",
       "noDistance": "The odometer readings in this period show no distance covered."
     },
-    "upgradePrompt": "Upgrade to Pro for the breakdown by category, every entry behind each figure, cost per km and period filters.",
+    "upgradePrompt": "Upgrade to Personal for the breakdown by category, every entry behind each figure, cost per km and period filters.",
     "coverageTitle": "What this total doesn't include",
     "coverage": {
       "noPurchase": "No purchase price. Add it under Value and finance.",
@@ -2689,7 +2701,7 @@
     "withKm": "{count, plural, =0 {none with km} one {# with km} other {# with km}}",
     "total": "Total",
     "hidden": "Hidden by the owner",
-    "exportPro": "The PDF export is a Pro feature. The book itself is free to read and keep up to date.",
+    "exportPro": "The PDF export comes with Personal. The book itself is free to read and keep up to date.",
     "provenance": "A record kept by the vehicle's owner in RigLog. RigLog stores what it is told and does not verify it.",
     "empty": "No completed jobs yet. Mark a job as done and it appears here.",
     "noKm": "no km recorded",
@@ -2799,7 +2811,7 @@
     "linkCreated": "Share link created",
     "linkReplaced": "New link created. The old one no longer opens.",
     "shareFailed": "Couldn't create the link",
-    "sharePro": "Sharing the passport and exporting it as a PDF are Pro features. The preview below is free.",
+    "sharePro": "Sharing the passport and exporting it as a PDF come with Personal. The preview below is free.",
     "pdfHelp": "The PDF is a dated snapshot with the same choices as the link.",
     "ownerView": "Owner’s view",
     "ownerViewAdvice": "Every section below is the owner’s own account, as they entered it. Before relying on it, compare it with receipts, an independent inspection and the official registry.",
@@ -3021,7 +3033,7 @@
     "failed": "Couldn't read this invoice. Type the job in — the photo will still be attached.",
     "attached": "Invoice to attach: {name}",
     "attachFailed": "The job was saved, but the invoice couldn't be attached.",
-    "pro": "Scan workshop invoices instead of typing them — with Pro",
+    "pro": "Scan workshop invoices instead of typing them — with Personal",
     "unsure": "Couldn't read this clearly — type it from the invoice.",
     "unsureDate": "Couldn't read the date clearly — check it against the invoice.",
     "noSplit": "The invoice lines didn't add up to its total, so parts and labour weren't filled in — type them from the invoice.",
@@ -3115,8 +3127,8 @@
     "intro": "Every trip on this vehicle, business or personal, with the km at each end. The km go into the vehicle’s mileage history, and whatever the odometer covered that no trip accounts for is shown below.",
     "introDriver": "Your trips on this vehicle, business or personal, with the km at each end. You see and export only your own.",
     "notOfficial": "This is the trips as recorded — not an official foaie de parcurs. What ANAF requires on one hasn’t been checked here, so give the spreadsheet to your accountant rather than filing it as the document itself.",
-    "pro": "The trip sheet is a Pro feature on a personal vehicle. On a company vehicle it comes with the organisation.",
-    "upgrade": "See Pro",
+    "pro": "On a personal vehicle the trip sheet comes with Personal. On a company vehicle it comes with the organisation.",
+    "upgrade": "See the plans",
     "addTitle": "Log a trip",
     "date": "Date",
     "driver": "Driver",
@@ -3186,5 +3198,22 @@
       "noOdometer": "Fewer than two km readings this month: nothing to check against",
       "withoutDistance": "Trips without a distance (a reading was deleted)"
     }
+  },
+  "plans": {
+    "name": {
+      "FREE": "Free",
+      "PERSONAL": "Personal",
+      "PRO": "Pro",
+      "BUSINESS": "Business",
+      "FLEET": "Fleet"
+    },
+    "companyTitle": "For companies",
+    "companySoon": "Coming soon",
+    "companyIntro": "Several users, drivers, fleet compliance, reports and trip sheets. Organisations are in a closed beta for now; these plans go on sale when it opens.",
+    "priceMonth": "{price} RON/month",
+    "priceFrom": "from {price} RON/month",
+    "vehiclesUpTo": "Up to {count, plural, one {# vehicle} other {# vehicles}}",
+    "fleetStep": "{count} vehicles: {price} RON",
+    "annualNote": "Each also by the year, for the price of ten months."
   }
 }

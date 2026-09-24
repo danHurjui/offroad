@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
-import { getStripe, isProPlanId, priceIdFor, PRO_PLANS, describeStripeFailure } from '@/lib/stripe'
+import { getStripe, priceIdFor, PERSONAL_PLANS, describeStripeFailure } from '@/lib/stripe'
+import { isPersonalPlanId } from '@/lib/plans'
 import { readJsonBody } from '@/lib/requestBody'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
 import { requireAppUrl } from '@/lib/appUrl'
 import { isMissingCustomerError, forgetStripeCustomer } from '@/lib/stripeCustomer'
 
-// RL-017: creates a Stripe Checkout session for one of the three Pro
-// purchase options. The webhook (not this route) is what actually flips
+// RL-017: creates a Stripe Checkout session for one of the three Personal
+// purchase options (RL-042: the plans sold before the ladder are refused
+// here as unknown — nobody can buy one any more). The webhook (not this route) is what actually flips
 // isPro — a client redirecting here successfully doesn't mean payment
 // succeeded yet.
 export async function POST(req: NextRequest) {
@@ -23,7 +25,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const plan = body.plan
-    if (!isProPlanId(plan)) {
+    if (!isPersonalPlanId(plan)) {
       return await apiError('invalidPlan', 400)
     }
 
@@ -47,7 +49,7 @@ export async function POST(req: NextRequest) {
     //   customer behind it.
     const priceId = priceIdFor(plan)
     const baseUrl = requireAppUrl()
-    const planConfig = PRO_PLANS[plan]
+    const planConfig = PERSONAL_PLANS[plan]
 
     const createCustomer = async (): Promise<string> => {
       const customer = await stripe.customers.create({ email: user.email, metadata: { userId: user.id } })

@@ -9,9 +9,9 @@ import {
   getStripe,
   priceIdFor,
   StripeConfigError,
-  PRO_PLANS,
-  type ProPlanId,
+  PERSONAL_PLANS,
 } from '@/lib/stripe'
+import { PERSONAL_PLAN_IDS } from '@/lib/plans'
 import { DONATION_CURRENCY } from '@/lib/donations'
 import { verificationDisabledReason } from '@/lib/emailVerification'
 import { APP_VERSION, BUILD_SHA, BUILD_TIME, isBuildKnown } from '@/lib/version'
@@ -68,7 +68,7 @@ export function worstStatus(groups: DiagnosticGroup[]): CheckStatus {
 /**
  * Joins two sentences when the first may not be punctuated. The Stripe
  * config messages are written to stand alone, so some end in a full stop
- * and some don't; without this the page reads "STRIPE_PRICE_ANNUAL is not
+ * and some don't; without this the page reads "STRIPE_PRICE_PERSONAL_ANNUAL is not
  * set Donations are unaffected".
  */
 function sentences(...parts: string[]): string {
@@ -96,7 +96,7 @@ function paymentChecks(): DiagnosticCheck[] {
           'switch happens where that variable is set, not in the app. To go live: turn the ' +
           'dashboard\'s test-mode toggle off, copy Developers → API keys → Secret key (sk_live_…), ' +
           'set it on the Production environment, and REDEPLOY — changing a variable does not ' +
-          'touch the deployment already running. Replace the three STRIPE_PRICE_ ids in the same ' +
+          'touch the deployment already running. Replace the three STRIPE_PRICE_PERSONAL_ ids in the same ' +
           'pass: a Price created in test mode does not exist in live mode.'
         : 'Set, and it is a live key. Real cards are charged.',
     })
@@ -277,9 +277,9 @@ export async function stripePricesCheck(): Promise<DiagnosticCheck | null> {
   }
 
   const configured: Array<{ variable: string; priceId: string }> = []
-  for (const plan of Object.keys(PRO_PLANS) as ProPlanId[]) {
+  for (const plan of PERSONAL_PLAN_IDS) {
     try {
-      configured.push({ variable: PRO_PLANS[plan].envVar, priceId: priceIdFor(plan) })
+      configured.push({ variable: PERSONAL_PLANS[plan].envVar, priceId: priceIdFor(plan) })
     } catch (e) {
       if (!(e instanceof StripeConfigError)) throw e
     }

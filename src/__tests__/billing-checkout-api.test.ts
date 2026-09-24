@@ -29,9 +29,9 @@ function req(body: unknown) {
 
 beforeEach(() => {
   jest.clearAllMocks()
-  process.env.STRIPE_PRICE_MONTHLY = 'price_monthly'
-  process.env.STRIPE_PRICE_ANNUAL = 'price_annual'
-  process.env.STRIPE_PRICE_LIFETIME = 'price_lifetime'
+  process.env.STRIPE_PRICE_PERSONAL_MONTHLY = 'price_monthly'
+  process.env.STRIPE_PRICE_PERSONAL_ANNUAL = 'price_annual'
+  process.env.STRIPE_PRICE_PERSONAL_LIFETIME = 'price_lifetime'
   mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
   mockUserFindUnique.mockResolvedValue({ id: 'u1', email: 'u1@x.com', isPro: false, stripeCustomerId: null })
   mockGetStripe.mockReturnValue({
@@ -48,15 +48,33 @@ describe('POST /api/billing/checkout', () => {
     expect(res.status).toBe(400)
   })
 
+  // RL-042: the plans sold before the ladder are no longer on sale.
+  it.each(['MONTHLY', 'ANNUAL', 'LIFETIME'])('refuses the retired %s plan', async (plan) => {
+    const res = await POST(req({ plan }))
+    expect(res.status).toBe(400)
+    expect(mockCheckoutCreate).not.toHaveBeenCalled()
+  })
+
+  it('opens Personal at its own price and records the plan in the metadata', async () => {
+    await POST(req({ plan: 'PERSONAL_MONTHLY' }))
+    expect(mockCheckoutCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mode: 'subscription',
+        line_items: [{ price: 'price_monthly', quantity: 1 }],
+        metadata: { userId: 'u1', plan: 'PERSONAL_MONTHLY' },
+      })
+    )
+  })
+
   it('returns 400 when the user is already Pro', async () => {
     mockUserFindUnique.mockResolvedValue({ id: 'u1', email: 'u1@x.com', isPro: true, stripeCustomerId: 'cus_1' })
-    const res = await POST(req({ plan: 'MONTHLY' }))
+    const res = await POST(req({ plan: 'PERSONAL_MONTHLY' }))
     expect(res.status).toBe(400)
     expect(mockCheckoutCreate).not.toHaveBeenCalled()
   })
 
   it('creates a Stripe customer and saves it when the user has none yet', async () => {
-    const res = await POST(req({ plan: 'MONTHLY' }))
+    const res = await POST(req({ plan: 'PERSONAL_MONTHLY' }))
     expect(res.status).toBe(200)
     expect(mockCustomersCreate).toHaveBeenCalledWith({ email: 'u1@x.com', metadata: { userId: 'u1' } })
     expect(mockUserUpdate).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { stripeCustomerId: 'cus_new' } })
@@ -64,20 +82,20 @@ describe('POST /api/billing/checkout', () => {
 
   it('reuses an existing Stripe customer without creating a new one', async () => {
     mockUserFindUnique.mockResolvedValue({ id: 'u1', email: 'u1@x.com', isPro: false, stripeCustomerId: 'cus_existing' })
-    await POST(req({ plan: 'ANNUAL' }))
+    await POST(req({ plan: 'PERSONAL_ANNUAL' }))
     expect(mockCustomersCreate).not.toHaveBeenCalled()
     expect(mockCheckoutCreate).toHaveBeenCalledWith(expect.objectContaining({ customer: 'cus_existing' }))
   })
 
   it('uses subscription mode for MONTHLY/ANNUAL and payment mode for LIFETIME', async () => {
-    await POST(req({ plan: 'LIFETIME' }))
+    await POST(req({ plan: 'PERSONAL_LIFETIME' }))
     expect(mockCheckoutCreate).toHaveBeenCalledWith(
       expect.objectContaining({ mode: 'payment', line_items: [{ price: 'price_lifetime', quantity: 1 }] })
     )
   })
 
   it('returns the checkout URL', async () => {
-    const res = await POST(req({ plan: 'MONTHLY' }))
+    const res = await POST(req({ plan: 'PERSONAL_MONTHLY' }))
     const body = await res.json()
     expect(body.url).toBe('https://checkout.stripe.com/session123')
   })
@@ -101,14 +119,14 @@ describe('POST /api/billing/checkout', () => {
     })
 
     it('replaces it and completes the checkout', async () => {
-      const res = await POST(req({ plan: 'MONTHLY' }))
+      const res = await POST(req({ plan: 'PERSONAL_MONTHLY' }))
       expect(res.status).toBe(200)
       expect(mockCustomersCreate).toHaveBeenCalledTimes(1)
       expect(mockCheckoutCreate.mock.calls[1][0].customer).toBe('cus_new')
     })
 
     it('saves the replacement so the next attempt does not repeat the work', async () => {
-      await POST(req({ plan: 'MONTHLY' }))
+      await POST(req({ plan: 'PERSONAL_MONTHLY' }))
       expect(mockUserUpdate).toHaveBeenCalledWith({
         where: { id: 'u1' },
         data: { stripeCustomerId: 'cus_new' },
@@ -120,7 +138,7 @@ describe('POST /api/billing/checkout', () => {
       mockCheckoutCreate.mockRejectedValue(
         Object.assign(new Error('No such customer'), { code: 'resource_missing', param: 'customer' })
       )
-      const res = await POST(req({ plan: 'MONTHLY' }))
+      const res = await POST(req({ plan: 'PERSONAL_MONTHLY' }))
       expect(res.status).toBe(500)
       expect(mockCheckoutCreate).toHaveBeenCalledTimes(2)
     })
@@ -135,7 +153,7 @@ describe('POST /api/billing/checkout', () => {
           param: 'line_items[0][price]',
         })
       )
-      const res = await POST(req({ plan: 'MONTHLY' }))
+      const res = await POST(req({ plan: 'PERSONAL_MONTHLY' }))
       expect(res.status).toBe(500)
       expect(mockCheckoutCreate).toHaveBeenCalledTimes(1)
       expect(mockUserUpdate).not.toHaveBeenCalled()
@@ -143,8 +161,8 @@ describe('POST /api/billing/checkout', () => {
   })
 
   it('answers a misconfigured site with 503 rather than a payment failure', async () => {
-    delete process.env.STRIPE_PRICE_MONTHLY
-    const res = await POST(req({ plan: 'MONTHLY' }))
+    delete process.env.STRIPE_PRICE_PERSONAL_MONTHLY
+    const res = await POST(req({ plan: 'PERSONAL_MONTHLY' }))
     expect(res.status).toBe(503)
     expect((await res.json()).code).toBe('paymentsUnavailable')
     // And nothing was created at Stripe on the way to finding out.

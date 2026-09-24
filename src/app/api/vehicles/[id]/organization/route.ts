@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { apiError, apiErrorWith } from '@/lib/apiError'
+import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { accessForRole, requireVehicleOwner } from '@/lib/access'
 import { readJsonBody } from '@/lib/requestBody'
 import { endAssignmentsFor } from '@/lib/assignments'
-import { FREE_TIER, hasPro, PRO_SELECT } from '@/lib/pro'
+import { refuseOverVehicleLimit } from '@/lib/vehicleAllowance'
 
 /**
  * RL-038: move a personal vehicle into an organisation. Only its owner, and
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
  * RL-038 slice 4: move a company vehicle out, into the caller's own
  * garage — the way to keep a vehicle when an organisation winds down,
  * rather than deleting it with the organisation. An OWNER or
- * FLEET_MANAGER (owner access) only, and within their own free-tier limit,
+ * FLEET_MANAGER (owner access) only, and within their own vehicle allowance,
  * since it becomes one of their personal vehicles.
  *
  * The caller becomes its owner; the organisation's members lose access at
@@ -73,13 +73,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!vehicle) return await apiError('notFound', 404)
   if (!vehicle.organizationId) return await apiError('vehicleNotCompany', 400)
 
-  const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
-  if (!hasPro(user)) {
-    const personal = await prisma.vehicle.count({ where: { ownerId: session.user.id, organizationId: null } })
-    if (personal >= FREE_TIER.vehicles) {
-      return await apiErrorWith('vehicleLimit', { limit: FREE_TIER.vehicles }, 403, { code: 'UPGRADE_REQUIRED' })
-    }
-  }
+  const overLimit = await refuseOverVehicleLimit(session.user.id)
+  if (overLimit) return overLimit
 
   try {
     // Conditional on still being in the same organisation. Its driver, if

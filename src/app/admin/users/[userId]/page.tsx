@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { requireAdminOrNotFound } from '@/lib/serverAuth'
 import { type ProjectType } from '@/lib/projectType'
 import { getAllVocabulary } from '@/lib/vocabulary'
+import { isGrandfathered } from '@/lib/plans'
 import { TICKET_TYPES, TICKET_STATUSES, type TicketType, type TicketStatus } from '@/lib/tickets'
 import AdminUserActiveToggle from '@/components/AdminUserActiveToggle'
 import AdminCompProToggle from '@/components/AdminCompProToggle'
@@ -24,7 +25,7 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
     where: { id: params.userId },
     select: {
       id: true, email: true, displayName: true, username: true, location: true,
-      isPro: true, proPlan: true, isAdmin: true, active: true, accountType: true, createdAt: true,
+      isPro: true, proPlan: true, grandfatheredAt: true, isAdmin: true, active: true, accountType: true, createdAt: true,
       isProComped: true, foundingNumber: true, proCompedAt: true, proCompedReason: true, proCompedById: true, orgBetaAt: true,
       vehicles: {
         select: { id: true, make: true, model: true, year: true, projectType: true, isPublic: true },
@@ -58,8 +59,9 @@ export default async function AdminUserDetailPage({ params }: { params: { userId
             <h1 className="text-xl font-bold text-ink">{user.displayName}</h1>
             {user.isAdmin && <span className="badge badge-warn">{t('adminBadge')}</span>}
             {user.isPro && (
-              <span className="badge badge-brand">Pro{user.proPlan ? ` · ${user.proPlan}` : ''}</span>
+              <span className="badge badge-brand">{t('proBadge')}{user.proPlan ? ` · ${user.proPlan}` : ''}</span>
             )}
+            {isGrandfathered(user) && <span className="badge badge-success">{t('grandfatheredBadge')}</span>}
             {user.isProComped && (
               <span className="badge badge-success">
                 {user.foundingNumber !== null

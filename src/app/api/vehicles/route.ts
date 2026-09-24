@@ -6,7 +6,7 @@ import { requireSession } from '@/lib/authz'
 import { isProjectType, PROJECT_TYPES } from '@/lib/projectType'
 import { generateVehicleSlug } from '@/lib/vehicleSlug'
 import { readJsonBody } from '@/lib/requestBody'
-import { hasPro, PRO_SELECT, FREE_TIER } from '@/lib/pro'
+import { refuseOverVehicleLimit } from '@/lib/vehicleAllowance'
 import { parseProfile } from '@/lib/vehicleProfile'
 import { serializeVehicle } from '@/lib/serialize'
 
@@ -59,21 +59,9 @@ export async function POST(req: NextRequest) {
       return await apiError('yearInvalid', 400)
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { ...PRO_SELECT },
-    })
-    if (!hasPro(user)) {
-      const existingCount = await prisma.vehicle.count({ where: { ownerId: session.user.id, organizationId: null } })
-      if (existingCount >= FREE_TIER.vehicles) {
-        return await apiErrorWith(
-          'vehicleLimit',
-          { limit: FREE_TIER.vehicles },
-          403,
-          { code: 'UPGRADE_REQUIRED' }
-        )
-      }
-    }
+    // RL-042: Free holds one, Personal three, a grandfathered account any.
+    const overLimit = await refuseOverVehicleLimit(session.user.id)
+    if (overLimit) return overLimit
 
     // RL-050: the create form offers the plate; the rest of the profile
     // is accepted here too so an import or a future form needs no change.
