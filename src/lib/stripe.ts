@@ -311,8 +311,8 @@ function adviceForStripeError(type?: string, code?: string, message?: string): s
         return (
           'Managed Payments (Stripe as merchant of record) is enabled on this account, and it ' +
           'requires a tax code on the product behind every line item. Donations opt out of it per ' +
-          'session, since a contribution is not a sale and has no honest tax code. For the Pro ' +
-          'plans, either set a tax code on each product in the Stripe dashboard (Product ' +
+          'session, since a contribution is not a sale and has no honest tax code. For the paid ' +
+          'plans (Personal and the company plans), either set a tax code on each product in the Stripe dashboard (Product ' +
           'catalogue → the product → Tax code) or turn Managed Payments off by default under ' +
           'Settings → Managed payments.'
         )

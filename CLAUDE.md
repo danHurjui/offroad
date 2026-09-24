@@ -520,7 +520,8 @@ product carries no tax code — which an inline `price_data` product cannot
 have. A donation has no product to classify: it is a contribution, not a
 sale, so there is no honest tax code for it, and routing a gift through
 merchant-of-record would have Stripe sell something on the site's behalf
-and take a further cut. The Pro plans are deliberately **not** opted out:
+and take a further cut. The paid plans (Personal and the company plans
+alike) are deliberately **not** opted out:
 their Prices are configured in the dashboard, where a tax code can be set,
 so whether an actual sale uses merchant of record stays the operator's
 call. Passing a new optional request parameter is backwards-compatible

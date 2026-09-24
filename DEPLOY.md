@@ -492,11 +492,13 @@ Donations are already handled: their session opts out of Managed
 Payments, because a contribution is not a sale and has no honest tax code
 to give it. Nothing to do there.
 
-The Pro plans are not opted out, because that is a real sale and the
-choice is yours. If Pro checkout fails this way, either set a tax code on
-each product (Stripe dashboard → Product catalogue → the product → Tax
-code), or turn Managed Payments off by default under Settings → Managed
-payments.
+The paid plans — Personal and the ten company plans alike — are not
+opted out, because each is a real sale and the choice is yours. If a plan
+checkout fails this way, either set a tax code on each product (Stripe
+dashboard → Product catalogue → the product → Tax code), or turn Managed
+Payments off by default under Settings → Managed payments. Whichever you
+pick applies to all thirteen Prices; there is no per-plan switch in the
+code.
 
 ### Checkout or a donation says payments are not set up
 
