@@ -5,6 +5,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { saveUpload, deleteUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 import { readFormData } from '@/lib/requestBody'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 async function loadTask(vehicleId: string, taskId: string) {
   const task = await prisma.task.findUnique({ where: { id: taskId } })
@@ -22,6 +23,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const task = await loadTask(params.id, params.taskId)
   if (!task) return await apiError('notFound', 404)
@@ -71,6 +74,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const task = await loadTask(params.id, params.taskId)
   if (!task) return await apiError('notFound', 404)

@@ -8,6 +8,7 @@ import { serializeTrailRun } from '@/lib/serialize'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-027: trail log — off-road mode only, Pro-gated, owner-only (like
 // wishlist/documents — this is a personal driving log, not shared build
@@ -61,6 +62,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const { vehicle, error } = await loadOffroadOwnerVehicle(params.id, session.user.id)
   if (error) return error
+  const readOnly = await refuseIfReadOnly(vehicle!)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error

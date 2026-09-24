@@ -9,6 +9,7 @@ import { parseKm, startOfDayUtc } from '@/lib/odometer'
 import { ReadingConflict, conflictResponse, futureResponse, isFutureDay, loadReadings } from '@/lib/odometerRecords'
 import { checkReading } from '@/lib/odometer'
 import { serializeFuelEntry } from '@/lib/serialize'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /**
  * RL-044: record a fill-up. Three numbers — lei, litres, km — with a full
@@ -26,6 +27,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error

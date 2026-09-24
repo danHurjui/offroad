@@ -136,6 +136,18 @@ export function vehicleLimit(user: PlanStatusLike | null | undefined): number | 
   return LADDER[personalTier(user)].vehicles
 }
 
+/**
+ * RL-042 (#54): which personal vehicles sit beyond the allowance — those
+ * are **read-only, never deleted**. The oldest `limit` stay writable (the
+ * ones the account had room for first); the rest, newest first, are the
+ * ones over. Pure; `vehicleAllowance.ts` loads the rows.
+ */
+export function overLimitIds(vehicles: Array<{ id: string; createdAt: Date }>, limit: number | null): string[] {
+  if (limit === null || vehicles.length <= limit) return []
+  const ordered = [...vehicles].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id))
+  return ordered.slice(limit).map((v) => v.id)
+}
+
 // ─── Prices, for display ────────────────────────────────────────────────
 
 /**

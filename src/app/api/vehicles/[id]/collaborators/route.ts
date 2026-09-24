@@ -9,6 +9,7 @@ import { sendEmail, collaboratorInviteEmail, inviteeLocale } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
 import { appUrlForNotification } from '@/lib/appUrl'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-030: invite mechanic/specialist as project collaborator. Owner only.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -40,6 +41,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error

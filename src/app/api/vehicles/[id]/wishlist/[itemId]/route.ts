@@ -7,6 +7,7 @@ import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { serializeWishlistItem } from '@/lib/serialize'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 async function loadItem(vehicleId: string, itemId: string) {
   const item = await prisma.wishlistItem.findUnique({ where: { id: itemId } })
@@ -35,6 +36,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const item = await loadItem(params.id, params.itemId)
   if (!item) return await apiError('notFound', 404)
@@ -94,6 +97,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const item = await loadItem(params.id, params.itemId)
   if (!item) return await apiError('notFound', 404)

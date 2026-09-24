@@ -3,6 +3,7 @@ import { apiError } from '@/lib/apiError'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /**
  * Removing a reading. The owner may remove any; a collaborator only the
@@ -18,6 +19,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const { session } = auth
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const reading = await prisma.odometerReading.findUnique({ where: { id: params.readingId } })
   if (!reading || reading.vehicleId !== vehicle.id) return await apiError('notFound', 404)

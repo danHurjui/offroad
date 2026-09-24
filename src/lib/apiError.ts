@@ -68,6 +68,7 @@ export type ApiErrorKey =
   | 'taskPhotoLimit'
   | 'vehicleLimit'
   | 'vehicleLimitPersonal'
+  | 'vehicleReadOnly'
   | 'foundStatePhotoLimit'
   | 'fuelLitresInvalid'
   | 'fuelOwnOnly'

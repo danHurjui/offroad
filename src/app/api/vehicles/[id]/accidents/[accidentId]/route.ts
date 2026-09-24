@@ -8,12 +8,15 @@ import { toNumberOrNull } from '@/lib/serialize'
 import { deleteStoredFiles } from '@/lib/personalData'
 import { loadAccident } from '../load'
 import { hidesCosts } from '@/lib/access'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string; accidentId: string } }) {
   const auth = await requireSession()
   if (!auth.ok) return auth.error
   const loaded = await loadAccident(params.id, params.accidentId, auth.session.user.id)
   if (!loaded.ok) return loaded.error
+  const readOnly = await refuseIfReadOnly(loaded.vehicle)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -37,6 +40,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!auth.ok) return auth.error
   const loaded = await loadAccident(params.id, params.accidentId, auth.session.user.id)
   if (!loaded.ok) return loaded.error
+  const readOnly = await refuseIfReadOnly(loaded.vehicle)
+  if (readOnly) return readOnly
   try {
     await prisma.accident.delete({ where: { id: loaded.accident.id } })
   } catch {

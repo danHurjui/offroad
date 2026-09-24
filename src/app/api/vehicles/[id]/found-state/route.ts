@@ -7,6 +7,7 @@ import { toNumberOrNull } from '@/lib/serialize'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
 import { syncFoundStateReading } from '@/lib/odometerRecords'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-008: found state intake — restoration mode only, editable after creation.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -37,6 +38,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
   if (vehicle.projectType !== 'RESTORATION') {
     return await apiError('foundStateRestorationOnly', 400)
   }

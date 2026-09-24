@@ -7,6 +7,7 @@ import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { serializeWishlistItem } from '@/lib/serialize'
 import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-011 (off-road wishlist) / RL-012 (restoration parts hunt) — same
 // entity, mode-specific status vocabulary and an extra partCondition
@@ -34,6 +35,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error

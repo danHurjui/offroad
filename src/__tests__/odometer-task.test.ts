@@ -2,6 +2,12 @@
  * RL-044: the km on a job is written with the job, in one transaction —
  * a refused reading refuses the job too, so it is never half-saved.
  */
+// RL-042: the read-only gate reads the owner's plan and vehicles, which
+// these mocks do not model; readOnly.test.ts tests it on its own.
+jest.mock('@/lib/vehicleAllowance', () => ({
+  ...jest.requireActual('@/lib/vehicleAllowance'),
+  refuseIfReadOnly: jest.fn(async () => null),
+}))
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
 jest.mock('@/lib/auth', () => ({ authOptions: {} }))
 jest.mock('@/lib/storage', () => ({ deleteUpload: jest.fn().mockResolvedValue(undefined) }))

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { deleteUpload } from '@/lib/storage'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-006: delete removes from Storage and from the task.
 export async function DELETE(
@@ -16,6 +17,8 @@ export async function DELETE(
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const photo = await prisma.taskPhoto.findUnique({ where: { id: params.photoId } })
   if (!photo || photo.taskId !== params.taskId || photo.vehicleId !== params.id) {

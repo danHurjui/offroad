@@ -11,6 +11,7 @@ import { readJsonBody } from '@/lib/requestBody'
 import { collectStorageKeys, deleteStoredFiles } from '@/lib/personalData'
 import { parseProfile } from '@/lib/vehicleProfile'
 import { parseValues } from '@/lib/ownershipCosts'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
 
@@ -63,6 +64,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
   const body = parsed.body
+
+  // RL-042: a vehicle over its owner's allowance is read-only — except that
+  // taking it off the public site stays open. Privacy is never behind a plan.
+  const onlyUnpublishing = Object.keys(body).length > 0 && Object.keys(body).every((k) => k === 'isPublic') && body.isPublic === false
+  if (!onlyUnpublishing) {
+    const readOnly = await refuseIfReadOnly(vehicle)
+    if (readOnly) return readOnly
+  }
 
   try {
     const data: Record<string, unknown> = {}

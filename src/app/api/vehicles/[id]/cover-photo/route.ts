@@ -5,6 +5,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { saveUpload, deleteUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 import { readFormData } from '@/lib/requestBody'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-002: cover photo upload, owner only.
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -14,6 +15,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const parsedForm = await readFormData(req)
   if (!parsedForm.ok) return parsedForm.error
@@ -66,6 +69,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   try {
     if (!vehicle.coverPhotoUrl) return NextResponse.json({ coverPhotoUrl: null })

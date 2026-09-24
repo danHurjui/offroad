@@ -39,7 +39,16 @@ const PLAN_KEYS: Record<StoredPlanId, string> = {
 // RL-009: profile & settings. Every field saves immediately with a
 // success toast, no separate Save button — except the toggle, which
 // mutates as soon as it's flipped.
-export default function SettingsForm({ profile }: { profile: Profile }) {
+/** RL-042: the vehicle allowance, worked out on the server. */
+interface Allowance {
+  /** Personal vehicles read-only now (over the current plan's allowance). */
+  readOnlyNow: string[]
+  /** The ones that would be read-only if the paid plan ended. */
+  ifPlanEnds: string[]
+  freeVehicles: number
+}
+
+export default function SettingsForm({ profile, allowance }: { profile: Profile; allowance: Allowance }) {
   const t = useTranslations('settings')
   const tc = useTranslations('common')
   const router = useRouter()
@@ -49,6 +58,8 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
   const kind = proKind(profile)
   // RL-042: what the account may hold — null for a grandfathered one.
   const vehicleCap = vehicleLimit(profile)
+  // A one-off purchase never lapses, so it has no "if it ends".
+  const isLifetime = profile.proPlan === 'LIFETIME' || profile.proPlan === 'PERSONAL_LIFETIME'
   const [saved, setSaved] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -199,6 +210,16 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
             {profile.foundingNumber !== null
               ? t('foundingNote', { number: profile.foundingNumber })
               : t('compedNote')}
+          </p>
+        )}
+        {allowance.readOnlyNow.length > 0 && (
+          <p className="note-warn mt-3 rounded-lg p-3 text-sm">
+            {t('readOnlyNow', { vehicles: allowance.readOnlyNow.join(', ') })}
+          </p>
+        )}
+        {kind === 'paid' && !isLifetime && allowance.ifPlanEnds.length > 0 && (
+          <p className="mt-3 text-xs text-ink-muted">
+            {t('ifPlanEnds', { free: allowance.freeVehicles, vehicles: allowance.ifPlanEnds.join(', ') })}
           </p>
         )}
         {kind !== 'none' ? (

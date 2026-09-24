@@ -12,6 +12,7 @@ import { invalidAmountResponse } from '@/lib/amounts'
 import { appUrlForNotification } from '@/lib/appUrl'
 import { parseKm } from '@/lib/odometer'
 import { ReadingConflict, conflictResponse, futureResponse, isFutureDay, syncTaskReading } from '@/lib/odometerRecords'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-004: add / edit a task or modification. RL-029: DIY/workshop split.
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -52,6 +53,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error

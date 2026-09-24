@@ -8,6 +8,7 @@ import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from
 import { notifyFollowers } from '@/lib/followNotify'
 import { readFormData } from '@/lib/requestBody'
 import { hasPro, PRO_SELECT, FREE_TIER } from '@/lib/pro'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 
 // RL-006: photo upload, linked to task.
@@ -33,6 +34,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const task = await prisma.task.findUnique({ where: { id: params.taskId } })
   if (!task || task.vehicleId !== vehicle.id) {

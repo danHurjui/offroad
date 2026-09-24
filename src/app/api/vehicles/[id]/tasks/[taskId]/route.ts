@@ -11,6 +11,7 @@ import { invalidAmountResponse } from '@/lib/amounts'
 import { parseKm } from '@/lib/odometer'
 import { ReadingConflict, conflictResponse, futureResponse, isFutureDay, syncTaskReading } from '@/lib/odometerRecords'
 import { deleteStoredFiles } from '@/lib/personalData'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 async function loadTask(vehicleId: string, taskId: string) {
   const task = await prisma.task.findUnique({ where: { id: taskId }, include: { photos: true } })
@@ -44,6 +45,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const task = await loadTask(params.id, params.taskId)
   if (!task) return await apiError('notFound', 404)
@@ -171,6 +174,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
   if (vehicle.access !== 'owner') {
     return await apiError('onlyOwnerDeletesTask', 403)
   }

@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { readJsonBody } from '@/lib/requestBody'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-011/012: drag-to-reorder. Body: { orderedIds: string[] } — every id
 // in the vehicle's wishlist, in the new order. priority is set to array
@@ -17,6 +18,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error

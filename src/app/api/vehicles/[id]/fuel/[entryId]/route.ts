@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { deleteUpload } from '@/lib/storage'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /**
  * Removing a fill-up. Owner: any; collaborator: their own (pitfall #4).
@@ -19,6 +20,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const { session } = auth
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const entry = await prisma.fuelEntry.findUnique({ where: { id: params.entryId } })
   if (!entry || entry.vehicleId !== vehicle.id) return await apiError('notFound', 404)

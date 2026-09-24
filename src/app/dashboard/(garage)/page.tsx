@@ -9,7 +9,7 @@ import VehicleCoverImg from '@/components/VehicleCoverImg'
 import { PlateBadge } from '@/components/VehicleIdentity'
 import { matchesVehicleSearch } from '@/lib/vehicleProfile'
 import FirstVehicleChecklist, { type ChecklistStep } from '@/components/FirstVehicleChecklist'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { overLimitIds, PLAN_SELECT, vehicleLimit } from '@/lib/plans'
 import { isGarageSort, sortGarage, summarizeGarage, type GarageCard, type GarageSort } from '@/lib/garage'
 import GarageLayout from '@/components/GarageLayout'
 import { toNumberOrNull } from '@/lib/serialize'
@@ -37,12 +37,16 @@ export default async function DashboardPage({ searchParams }: { searchParams: Ga
   // first-run checklist are about that).
   const [all, user] = await Promise.all([
     listAccessibleVehicles(session.user.id),
-    prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT, onboardingClosedAt: true } }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PLAN_SELECT, onboardingClosedAt: true } }),
   ])
   const owned = all.filter((v) => v.access === 'owner' && v.organizationId === null)
   const collaborating = all.filter((v) => v.access !== 'owner')
 
-  const atFreeLimit = !hasPro(user) && owned.length >= 1
+  // RL-042: the plan's allowance. Personal vehicles beyond it are
+  // read-only (never deleted) — the oldest stay writable.
+  const limit = vehicleLimit(user)
+  const atLimit = limit !== null && owned.length >= limit
+  const readOnly = new Set(overLimitIds(owned, limit))
   const tp = await getTranslations('vehicleProfile')
   const query = (searchParams.q ?? '').slice(0, 60)
   const mode = isProjectType(searchParams.mode) ? searchParams.mode : null
@@ -94,10 +98,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Ga
               {ta('viewGarageSpend')}
             </Link>
           )}
-        {atFreeLimit ? (
-          <span className="badge bg-surface-subtle text-ink-muted" title={t('freeLimitTitle')}>
-            {t('freeLimitBadge')}
-          </span>
+        {atLimit ? (
+          <Link href="/dashboard/upgrade" className="badge bg-surface-subtle text-ink-muted" title={t('freeLimitTitle', { limit: limit ?? 0 })}>
+            {t('freeLimitBadge', { count: owned.length, limit: limit ?? 0 })}
+          </Link>
         ) : (
           <Link href="/dashboard/vehicles/new" className="btn-primary">
             {t('addVehicle')}
@@ -124,7 +128,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Ga
               <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 group-data-[density=compact]/garage:gap-2 sm:group-data-[density=compact]/garage:grid-cols-1">
                 {shown.map(({ vehicle, card }) => (
                   <li key={vehicle.id} className="min-w-0">
-                    <VehicleCard vehicle={vehicle} card={card} />
+                    <VehicleCard vehicle={vehicle} card={card} readOnly={readOnly.has(vehicle.id)} />
                   </li>
                 ))}
               </ul>
@@ -223,7 +227,9 @@ const compact = {
 async function VehicleCard({
   vehicle,
   card,
+  readOnly,
 }: {
+  readOnly: boolean
   vehicle: {
     id: string
     make: string
@@ -249,6 +255,7 @@ async function VehicleCard({
         <div className="flex flex-wrap items-center gap-2">
           <span className="badge badge-brand">{config.label}</span>
           {!card.isOwner && <span className="badge bg-surface-subtle text-ink-muted">{t('collaborator')}</span>}
+          {readOnly && <span className="badge badge-warn">{t('garage.readOnly')}</span>}
           {card.attention.length > 0 && (
             <span
               className="badge badge-danger"

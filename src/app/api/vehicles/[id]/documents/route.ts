@@ -7,6 +7,7 @@ import { isValidDocumentType } from '@/lib/documents'
 import { readJsonBody } from '@/lib/requestBody'
 import { parseCostPaid } from '@/lib/ownershipCosts'
 import { serializeDocument } from '@/lib/serialize'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-013: document reminders — ITP, RCA, CASCO, Rovinieta, and travel docs.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -32,6 +33,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error

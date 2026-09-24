@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { readFormData } from '@/lib/requestBody'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES } from '@/lib/storage'
 import { HANDOVER_PHOTO_LIMIT, HANDOVER_PHOTO_TYPES, isHandoverStage } from '@/lib/assignments'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /**
  * RL-040 handover: a condition photo at the start or end of an assignment.
@@ -20,6 +21,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const assignment = await prisma.vehicleAssignment.findUnique({
     where: { id: params.assignmentId },

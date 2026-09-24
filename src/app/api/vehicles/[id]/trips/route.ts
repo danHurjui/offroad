@@ -8,6 +8,7 @@ import { parseKm, startOfDayUtc } from '@/lib/odometer'
 import { ReadingConflict, conflictResponse, futureResponse, isFutureDay } from '@/lib/odometerRecords'
 import { parseTripText } from '@/lib/trips'
 import { TRIP_SELECT, toLoadedTrip, tripGate, writeTripReadings } from '@/lib/tripRecords'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /**
  * RL-051: log a trip — the day, from → to, what for, business or personal,
@@ -25,6 +26,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
   const gate = await tripGate(vehicle)
   if (gate === 'forbidden') return await apiError('notFound', 404)
   if (gate === 'upgrade') return await apiError('proTrips', 403, { code: 'UPGRADE_REQUIRED' })
