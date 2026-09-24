@@ -595,8 +595,8 @@
         "body": "Fiecare proiect e privat implicit. Îl publici când vrei o pagină publică, un card de partajat și un loc în fluxul comunității."
       },
       "fuel": {
-        "title": "Alimentări și consum real",
-        "body": "Fiecare alimentare, cu consumul măsurat între două plinuri — cât a consumat de fapt mașina, niciodată o estimare."
+        "title": "Alimentări, încărcări și consum real",
+        "body": "Diesel, hibrid sau electric: fiecare alimentare și fiecare încărcare, cu consumul măsurat între două plinuri sau două încărcări până la același nivel — cât a consumat de fapt mașina, niciodată o estimare."
       },
       "health": {
         "title": "Starea mașinii dintr-o privire",
@@ -850,6 +850,10 @@
       "fleetReports": {
         "title": "Rapoarte pentru contabil",
         "body": "Pentru orice perioadă: fiecare lucrare și fiecare cost într-un tabel pe care Excel îl deschide corect cu setări românești, cu șoferul din ziua respectivă, plus un PDF cu ce a cheltuit flota și ce documente au expirat sau au fost reînnoite."
+      },
+      "charging": {
+        "title": "Încărcări pentru mașini electrice și plug-in",
+        "body": "Notezi fiecare încărcare cu kWh și cât a costat — sau nimic, când a fost gratuită. Încărcările de acasă pot fi calculate din tariful tău și spun asta. Consumul se măsoară „la priză”, între două încărcări până la același nivel al bateriei, iar Starea mașinii păstrează citirile stării de sănătate a bateriei și garanția ei — înregistrate, niciodată notate."
       }
     },
     "sample": {
@@ -1078,6 +1082,9 @@
         "fuel": "Combustibil",
         "service": "Lucrări și service",
         "note": "Fișierul brut: fiecare câmp între ghilimele, „;” între coloane, virgula zecimală românească."
+      },
+      "charging": {
+        "note": "Măsurat de la 80% înapoi la 80%: încărcarea gratuită de la supermarket își adaugă kWh, iar încărcarea rapidă la 90% nu închide nimic. Pierderile la încărcare sunt incluse, deci cifra e mai mare decât cea de pe afișajul mașinii."
       }
     },
     "categories": "Categorii",
@@ -1129,6 +1136,10 @@
       "company": {
         "q": "Merge pentru flota unei firme?",
         "a": "Da. O organizație își ține propriile vehicule, cu roluri pentru manageri, mecanici și șoferi, un tablou de conformitate pentru toate documentele, șoferi și predări, curse și rapoarte pentru contabil. Planurile de firmă au prețul după numărul de vehicule."
+      },
+      "electric": {
+        "q": "Merge pentru o mașină electrică sau un plug-in hybrid?",
+        "a": "Da. Setezi tipul de combustibil și aplicația îl urmează: o mașină electrică primește jurnal de încărcări în loc de alimentări, un plug-in hybrid le primește pe amândouă. Notezi fiecare încărcare (kWh, cât a costat, unde, procentul bateriei dacă îl știi), iar consumul se măsoară la priză între două încărcări până la același nivel. Un plug-in hybrid primește litri și kWh la 100 km împreună, niciodată doar litri. Citirile stării bateriei și garanția ei stau în Starea mașinii. Nimic nu se citește din mașină sau de la o rețea de încărcare — fiecare cifră e una introdusă de tine."
       }
     },
     "breadcrumb": "Funcții",

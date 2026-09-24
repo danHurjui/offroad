@@ -42,6 +42,7 @@ import {
 import {
   AccidentsPreview,
   FuelPreview,
+  ChargingPreview,
   HealthPreview,
   IdentityPreview,
   OdometerPreview,
@@ -145,6 +146,7 @@ export default async function DemoPage() {
     identity: screen('identity', <IdentityPreview />),
     odometer: screen('odometer', <OdometerPreview />),
     fuel: screen('fuel', <FuelPreview />),
+    charging: screen('charging', <ChargingPreview />),
     receiptScan: screen('receiptScan', <ReceiptScanPreview />),
     health: screen('health', <HealthPreview />),
     tyres: screen('tyres', <TyresPreview />),

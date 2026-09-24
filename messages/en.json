@@ -595,8 +595,8 @@
         "body": "Every project is private by default. Publish it when you want a public page, a shareable card, and a spot in the community feed."
       },
       "fuel": {
-        "title": "Fuel and real consumption",
-        "body": "Every fill-up, with consumption measured between two full tanks — what the car actually used, never an estimate."
+        "title": "Fuel, charging and real consumption",
+        "body": "Diesel, hybrid or electric: every fill-up and every charge, with consumption measured between two full tanks or two charges to the same level — what the car actually used, never an estimate."
       },
       "health": {
         "title": "Car Health at a glance",
@@ -850,6 +850,10 @@
       "fleetReports": {
         "title": "Reports for the accountant",
         "body": "For any period: every job and every cost as a spreadsheet Excel opens correctly under Romanian settings, with the driver assigned that day, and a PDF summary of what the fleet spent and which documents expired or were renewed."
+      },
+      "charging": {
+        "title": "Charging log for electric and plug-in cars",
+        "body": "Log each charge with its kWh and what it cost — or nothing, when it was free. Home charges can be priced from your own tariff, and say so. Consumption is measured “at the plug”, between two charges back to the same battery level, and Car Health keeps the battery’s state-of-health readings and its warranty — recorded, never rated."
       }
     },
     "sample": {
@@ -1078,6 +1082,9 @@
         "fuel": "Fuel",
         "service": "Jobs and service",
         "note": "The raw file: every field quoted, “;” between columns, the Romanian decimal comma."
+      },
+      "charging": {
+        "note": "Measured from 80% back to 80%: the free supermarket charge adds its kWh, and the fast charge to 90% closes nothing. Charging losses are included, so it reads higher than the car’s own display."
       }
     },
     "categories": "Categories",
@@ -1129,6 +1136,10 @@
       "company": {
         "q": "Does it work for a company fleet?",
         "a": "Yes. An organisation holds its own vehicles, with roles for managers, mechanics and drivers, a compliance board for every document, drivers and handovers, trips, and reports for the accountant. Company plans are priced by the number of vehicles."
+      },
+      "electric": {
+        "q": "Does it work for an electric car or a plug-in hybrid?",
+        "a": "Yes. Set the fuel type and the app follows it: an electric car gets a charging log instead of fuel, a plug-in hybrid gets both. You record each charge (kWh, what it cost, where, the battery % if you know it), and consumption is measured at the plug between two charges back to the same level. A plug-in hybrid gets litres and kWh per 100 km together, never litres alone. Battery health readings and the battery warranty sit in Car Health. Nothing is read from the car or from a charging network — every figure is one you entered."
       }
     },
     "breadcrumb": "Features",

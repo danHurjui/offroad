@@ -464,7 +464,7 @@ development StrictMode effects run twice, and a writer that went first
 replaced `#passport` with the first feature before the second read.
 
 Since phase 5 and the fleet work it has six categories: the log, With
-Personal, **Car records** (identity, odometer, fuel, receipt scan, Car
+Personal, **Car records** (identity, odometer, fuel, charging, receipt scan, Car
 Health, tyres, cost of ownership, service book, passport, accidents),
 **For companies** (organisation, fleet compliance and cost, drivers,
 trips, reports), community and the app. A chapter's tier is one of three

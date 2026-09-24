@@ -1,6 +1,7 @@
 import { getLocale, getTranslations } from 'next-intl/server'
 import { computeHealth, type HealthTone, type Message } from '@/lib/vehicleHealth'
 import { consumptionIntervals, fuelSummary, type FuelLike } from '@/lib/fuel'
+import { chargeConsumption, chargeSummary, type ChargeLocation, type ChargeMeasurable } from '@/lib/charging'
 import { formatAmount, formatRon } from '@/lib/money'
 import { labelFor } from '@/lib/projectType'
 import { getVocabulary } from '@/lib/vocabulary'
@@ -8,7 +9,7 @@ import { CarSide, CarTop, ReceiptPicture } from './pictures'
 
 /**
  * The tour's screens for the records a car on the road accumulates
- * (phase 5 of #49): identity, odometer, fuel, the receipt scanner, Car
+ * (phase 5 of #49): identity, odometer, fuel, charging, the receipt scanner, Car
  * Health, tyres, cost of ownership, the service book, the passport and
  * accidents.
  *
@@ -246,6 +247,103 @@ export async function FuelPreview() {
         ))}
       </ul>
       <p className="mt-2 text-xs text-ink-muted">{t('sample.fuel.note')}</p>
+    </div>
+  )
+}
+
+/**
+ * The charging log (RL-053/RL-054). The figures are `chargeSummary()` and
+ * `chargeConsumption()` over the sample charges, and the samples are
+ * chosen to show the rules rather than describe them: a free supermarket
+ * charge (a record, 0 lei, energy but no cost), home charges priced from
+ * the tariff, and a fast charge to 90% that closes nothing — consumption
+ * is only measured from 80% back to 80%. The battery line is Car Health's
+ * own row, from `computeHealth()`.
+ */
+export async function ChargingPreview() {
+  const t = await getTranslations('demo')
+  const tc = await getTranslations('charging')
+  const th = await getTranslations('health')
+  const tb = await getTranslations('battery')
+  const format = await dateFormat()
+  const now = new Date()
+
+  type SampleCharge = ChargeMeasurable & { location: ChargeLocation; totalFromTariff: boolean }
+  const charges: SampleCharge[] = [
+    { id: 'c1', date: daysAgo(now, 40), km: 20_100, kwh: 32, totalRon: 38.4, socTo: 80, location: 'HOME', totalFromTariff: true },
+    { id: 'c2', date: daysAgo(now, 31), km: 20_190, kwh: 11, totalRon: 0, socTo: null, location: 'PUBLIC_AC', totalFromTariff: false },
+    { id: 'c3', date: daysAgo(now, 24), km: 20_420, kwh: 30, totalRon: 36, socTo: 80, location: 'HOME', totalFromTariff: true },
+    { id: 'c4', date: daysAgo(now, 12), km: 20_700, kwh: 38, totalRon: 95, socTo: 90, location: 'PUBLIC_DC', totalFromTariff: false },
+    { id: 'c5', date: daysAgo(now, 3), km: 20_860, kwh: 25, totalRon: 30, socTo: 80, location: 'HOME', totalFromTariff: true },
+  ]
+  const summary = chargeSummary(charges)
+  const consumption = chargeConsumption(charges)
+  const battery = computeHealth({
+    vehicleId: 'sample',
+    projectType: SAMPLE_MODE,
+    now,
+    fuelType: 'ELECTRIC',
+    documents: [],
+    tasks: [],
+    readings: [],
+    tyreSets: [],
+    battery: {
+      readings: [
+        { date: daysAgo(now, 900), sohPercent: 98, source: 'WORKSHOP_TEST' },
+        { date: daysAgo(now, 20), sohPercent: 93, source: 'WORKSHOP_TEST' },
+      ],
+      warrantyUntil: null,
+      warrantyKm: null,
+    },
+  }).rows.find((row) => row.id === 'battery')
+  const number = (value: number, digits = 2) => value.toLocaleString('ro-RO', { maximumFractionDigits: digits })
+  const say = (m: Message) => {
+    const values: Record<string, string | number> = { ...(m.values ?? {}) }
+    if (typeof values.source === 'string') values.source = tb(`source.${values.source}`)
+    return th(m.key, values)
+  }
+
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-lg bg-surface-muted p-3">
+          <div className="text-xs text-ink-faint">{tc('consumption')}</div>
+          <div className="mt-0.5 text-base font-semibold tabular-nums text-ink">
+            {consumption.averagePer100Km !== null ? tc('consumptionValue', { value: number(consumption.averagePer100Km) }) : '—'}
+          </div>
+          <div className="text-[11px] text-ink-faint">
+            {tc('consumptionMeasured', { km: km(consumption.measuredKm), intervals: consumption.intervals })}
+          </div>
+        </div>
+        <div className="rounded-lg bg-surface-muted p-3">
+          <div className="text-xs text-ink-faint">{tc('spent')}</div>
+          <div className="mt-0.5 text-base font-semibold tabular-nums text-ink">{formatRon(summary.totalRon)}</div>
+          <div className="text-[11px] text-ink-faint">{tc('kwhTotal', { kwh: number(summary.totalKwh), charges: summary.charges })}</div>
+        </div>
+      </div>
+
+      <ul className="mt-4 divide-y divide-surface-border border-t border-surface-border">
+        {[...charges].reverse().slice(0, 4).map((charge) => (
+          <li key={charge.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+            <span className="text-ink-muted">
+              {format(charge.date)} · {number(charge.kwh ?? 0)} kWh
+              {charge.socTo !== null && ` · ${tc('socToOnly', { to: charge.socTo })}`}
+            </span>
+            <span className="flex flex-wrap items-center gap-2">
+              <span className="tabular-nums text-ink">{charge.totalRon === 0 ? tc('free') : formatRon(charge.totalRon)}</span>
+              <span className="badge badge-neutral">{tc(`where.${charge.location}`)}</span>
+              {charge.totalFromTariff && <span className="badge badge-info">{tc('fromTariff')}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {battery && (
+        <p className="mt-2 rounded-lg bg-surface-muted p-2 text-xs text-ink-muted">
+          <span className="font-medium text-ink">{th('area.battery')}: </span>
+          {say(battery.reason)}
+        </p>
+      )}
+      <p className="mt-2 text-xs text-ink-muted">{t('sample.charging.note')}</p>
     </div>
   )
 }
