@@ -66,27 +66,44 @@ describe('PUT /api/vehicles/[id]/found-state', () => {
     expect(res.status).toBe(400)
   })
 
-  it('upserts and serializes purchasePriceRon', async () => {
+  it('answers with the vehicle’s purchase, as a number, under the intake’s old names', async () => {
     mockVehicleFindUnique.mockResolvedValue({ id: 'v1', ownerId: 'u1', projectType: 'RESTORATION' })
-    mockUpsert.mockResolvedValue({
-      id: 'fs1', vehicleId: 'v1', purchasePriceRon: { toNumber: () => 1500 }, photos: [],
+    mockUpsert.mockResolvedValue({ id: 'fs1', vehicleId: 'v1', photos: [] })
+    ;(prisma.vehicle.update as jest.Mock).mockResolvedValue({
+      purchaseDate: new Date('2025-01-01'), purchasePriceRon: { toNumber: () => 1500 },
     })
     const res = await PUT(makePutReq({ acquisitionDate: '2025-01-01', purchasePriceRon: 1500 }), { params })
     const data = await res.json()
     expect(res.status).toBe(200)
-    expect(data.purchasePriceRon).toBe(1500)
+    expect(data).toMatchObject({ purchasePriceRon: 1500, acquisitionDate: '2025-01-01T00:00:00.000Z' })
   })
 
-  // RL-045: the purchase lives on the vehicle for every mode; the intake's
-  // copy is kept in step until a later release drops it.
-  it('mirrors the acquisition onto the vehicle as its purchase', async () => {
+  // #105: the purchase lives on the vehicle only; the intake has no copy.
+  it('writes the acquisition to the vehicle, and nothing of it to the intake', async () => {
     mockVehicleFindUnique.mockResolvedValue({ id: 'v1', ownerId: 'u1', projectType: 'RESTORATION' })
-    mockUpsert.mockResolvedValue({ id: 'fs1', vehicleId: 'v1', purchasePriceRon: null, photos: [] })
+    mockUpsert.mockResolvedValue({ id: 'fs1', vehicleId: 'v1', photos: [] })
+    ;(prisma.vehicle.update as jest.Mock).mockResolvedValue({ purchaseDate: null, purchasePriceRon: null })
     await PUT(makePutReq({ acquisitionDate: '2025-01-01', purchasePriceRon: 1500 }), { params })
     expect(prisma.vehicle.update).toHaveBeenCalledWith({
       where: { id: 'v1' },
       data: { purchaseDate: new Date('2025-01-01'), purchasePriceRon: 1500 },
+      select: { purchaseDate: true, purchasePriceRon: true },
     })
+    const written = mockUpsert.mock.calls[0][0]
+    for (const part of [written.create, written.update]) {
+      expect(part).not.toHaveProperty('acquisitionDate')
+      expect(part).not.toHaveProperty('purchasePriceRon')
+    }
+  })
+
+  it('GET reads the purchase from the vehicle', async () => {
+    mockVehicleFindUnique.mockResolvedValue({
+      id: 'v1', ownerId: 'u1', projectType: 'RESTORATION',
+      purchaseDate: new Date('2024-03-01'), purchasePriceRon: { toNumber: () => 900 },
+    })
+    mockFoundStateFindUnique.mockResolvedValue({ id: 'fs1', vehicleId: 'v1', photos: [] })
+    const data = await (await GET({} as never, { params })).json()
+    expect(data).toMatchObject({ acquisitionDate: '2024-03-01T00:00:00.000Z', purchasePriceRon: 900 })
   })
 
   // RL-044: the intake odometer is the first reading of one history.

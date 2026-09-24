@@ -56,7 +56,6 @@ export const MONEY_COLUMNS: Record<string, CostSource | { excluded: string }> = 
   'Vehicle.purchasePriceRon': 'purchase',
   'Vehicle.financeMonthlyRon': 'finance',
   'Vehicle.currentValueRon': { excluded: "the owner's estimate of what the vehicle is worth — shown beside the total, never a cost" },
-  'FoundState.purchasePriceRon': { excluded: 'a mirror of Vehicle.purchasePriceRon, kept until a later release drops it' },
   'WishlistItem.estimatedCostRon': { excluded: 'planned, not spent — it counts once it becomes a job' },
   'WishlistItem.targetPriceRon': { excluded: 'a price the owner hopes to pay' },
   'WishlistPriceEntry.priceRon': { excluded: 'a price seen on a listing, not paid' },

@@ -32,7 +32,12 @@ export default async function FoundStatePage({ params }: { params: { id: string 
         vehicleId={vehicle.id}
         initial={
           foundState
-            ? { ...foundState, acquisitionDate: foundState.acquisitionDate.toISOString(), purchasePriceRon: hidesCosts(vehicle) ? null : toNumberOrNull(foundState.purchasePriceRon) }
+            ? {
+                ...foundState,
+                // #105: the purchase is the vehicle's; the intake edits it there.
+                acquisitionDate: vehicle.purchaseDate?.toISOString() ?? null,
+                purchasePriceRon: hidesCosts(vehicle) ? null : toNumberOrNull(vehicle.purchasePriceRon),
+              }
             : null
         }
       />

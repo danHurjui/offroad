@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { Prisma } from '@prisma/client'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
@@ -8,6 +9,24 @@ import { readJsonBody } from '@/lib/requestBody'
 import { invalidAmountResponse } from '@/lib/amounts'
 import { syncFoundStateReading } from '@/lib/odometerRecords'
 import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
+
+/**
+ * #105: the acquisition date and price paid are the vehicle's
+ * (`purchaseDate` / `purchasePriceRon`) — the intake reads and writes them
+ * there, and its responses carry them under their old names so the form
+ * and any client keep working. RL-031/RL-040: the price paid is a cost
+ * like any other, so it is null for someone who cannot see costs.
+ */
+function withPurchase<T extends object>(
+  foundState: T,
+  vehicle: Parameters<typeof hidesCosts>[0] & { purchaseDate: Date | null; purchasePriceRon: Prisma.Decimal | null }
+) {
+  return {
+    ...foundState,
+    acquisitionDate: vehicle.purchaseDate,
+    purchasePriceRon: hidesCosts(vehicle) ? null : toNumberOrNull(vehicle.purchasePriceRon),
+  }
+}
 
 // RL-008: found state intake — restoration mode only, editable after creation.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -27,8 +46,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   })
   if (!foundState) return NextResponse.json(null)
 
-  // RL-031/RL-040: the price paid is a cost like any other.
-  return NextResponse.json({ ...foundState, purchasePriceRon: hidesCosts(vehicle) ? null : toNumberOrNull(foundState.purchasePriceRon) })
+  return NextResponse.json(withPurchase(foundState, vehicle))
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -77,15 +95,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       }
     }
 
+    const acquiredOn = new Date(acquisitionDate)
     // Someone who cannot see costs was shown no price, so what their form
-    // sends back for it means nothing: the stored price is kept.
-    const hidden = hidesCosts(vehicle)
-    const keptPrice = hidden
-      ? (await prisma.vehicle.findUnique({ where: { id: vehicle.id }, select: { purchasePriceRon: true } }))?.purchasePriceRon ?? null
-      : null
+    // sends back for it means nothing: the stored price is left alone.
+    const purchase = hidesCosts(vehicle)
+      ? { purchaseDate: acquiredOn }
+      : { purchaseDate: acquiredOn, purchasePriceRon: purchasePriceRon != null ? Number(purchasePriceRon) : null }
     const data = {
-      acquisitionDate: new Date(acquisitionDate),
-      purchasePriceRon: hidden ? keptPrice : purchasePriceRon != null ? Number(purchasePriceRon) : null,
       odometer: odometer != null ? Number(odometer) : null,
       knownHistory: knownHistory || null,
       conditionRating: conditionRating != null ? Number(conditionRating) : null,
@@ -99,30 +115,30 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       interiorNotes: interiorNotes || null,
     }
 
-    // RL-045: the purchase lives on the vehicle for every mode now; the
-    // intake's copy is kept in step until a later release drops it.
-    const foundState = await prisma.$transaction(async (tx) => {
+    // #105: the purchase is written to the vehicle only.
+    const [foundState, updatedVehicle] = await prisma.$transaction(async (tx) => {
       const row = await tx.foundState.upsert({
         where: { vehicleId: vehicle.id },
         create: { vehicleId: vehicle.id, ...data },
         update: data,
         include: { photos: true },
       })
-      await tx.vehicle.update({
+      const saved = await tx.vehicle.update({
         where: { id: vehicle.id },
-        data: { purchaseDate: data.acquisitionDate, purchasePriceRon: data.purchasePriceRon },
+        data: purchase,
+        select: { purchaseDate: true, purchasePriceRon: true },
       })
-      return row
+      return [row, saved] as const
     })
     // RL-044: one mileage history, not a snapshot beside it.
     await syncFoundStateReading({
       vehicleId: vehicle.id,
       km: foundState.odometer,
-      acquisitionDate: foundState.acquisitionDate,
+      acquisitionDate: acquiredOn,
       userId: session.user.id,
     })
 
-    return NextResponse.json({ ...foundState, purchasePriceRon: hidden ? null : toNumberOrNull(foundState.purchasePriceRon) })
+    return NextResponse.json(withPurchase(foundState, { ...vehicle, ...updatedVehicle }))
   } catch {
     return await apiError('internalError', 500)
   }

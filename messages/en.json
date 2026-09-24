@@ -2254,7 +2254,7 @@
     "nothingToUpdate": "Nothing to update",
     "makeRequired": "make is required",
     "modelRequired": "model is required",
-    "acquisitionDateRequired": "acquisitionDate is required",
+    "acquisitionDateRequired": "The acquisition date is required",
     "conditionRatingRange": "conditionRating must be 1-5",
     "foundStateIntakeFirst": "Complete the found state intake before adding photos",
     "vinRestorationOnly": "VIN decoding only applies to restoration projects",

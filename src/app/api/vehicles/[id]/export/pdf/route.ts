@@ -140,8 +140,9 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
       categories,
       foundState: foundState
         ? {
-            acquisitionDate: foundState.acquisitionDate,
-            purchasePriceRon: toNumberOrNull(foundState.purchasePriceRon),
+            // #105: the purchase is the vehicle's, for every mode.
+            acquisitionDate: vehicle.purchaseDate,
+            purchasePriceRon: toNumberOrNull(vehicle.purchasePriceRon),
             odometer: foundState.odometer,
             knownHistory: foundState.knownHistory,
             conditionRating: foundState.conditionRating,

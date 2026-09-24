@@ -63,7 +63,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     afterPhoto ? resolveImageDataUri(afterPhoto.url) : Promise.resolve(null),
   ])
 
-  const startDate = foundState?.acquisitionDate ?? vehicle.createdAt
+  const startDate = vehicle.purchaseDate ?? vehicle.createdAt
   const completedCount = tasks.filter((t) => t.status === completeStatus).length
   const isComplete = tasks.length > 0 && tasks.every((t) => t.status === completeStatus)
   const originalityScore = computeOriginalityScore(tasks, completeStatus)

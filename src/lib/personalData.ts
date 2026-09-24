@@ -249,9 +249,8 @@ function serializeVehicle(vehicle: VehicleWithRelations) {
       partsCostRon: toNumberOrNull(task.partsCostRon),
       labourCostRon: toNumberOrNull(task.labourCostRon),
     })),
-    foundState: vehicle.foundState
-      ? { ...vehicle.foundState, purchasePriceRon: toNumberOrNull(vehicle.foundState.purchasePriceRon) }
-      : null,
+    // The purchase is on the vehicle (vehicleMoney above), not repeated here.
+    foundState: vehicle.foundState,
     wishlistItems: vehicle.wishlistItems.map((item) => ({
       ...item,
       estimatedCostRon: toNumberOrNull(item.estimatedCostRon),
