@@ -11,6 +11,7 @@ import OrganizationDelete from '@/components/OrganizationDelete'
 import OrganizationInvites from '@/components/OrganizationInvites'
 import { inviteStatus } from '@/lib/organizationInvites'
 import OrgPlanSummary from '@/components/OrgPlanSummary'
+import OrganizationSites from '@/components/OrganizationSites'
 import { orgReadOnlyVehicleIds } from '@/lib/vehicleAllowance'
 
 // RL-038: one organisation. Anyone in it sees who else is; owners edit the
@@ -44,6 +45,16 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
     }),
   ])
   const readOnly = managesVehicles ? await orgReadOnlyVehicleIds(org.id) : new Set<string>()
+  // #103: the sites are for the people who run the fleet.
+  const sites = managesVehicles
+    ? (
+        await prisma.organizationSite.findMany({
+          where: { organizationId: org.id },
+          select: { id: true, name: true, _count: { select: { vehicles: true } } },
+          orderBy: { name: 'asc' },
+        })
+      ).map((s) => ({ id: s.id, name: s.name, vehicles: s._count.vehicles }))
+    : []
   // Open invitations only — accepted ones are members above, withdrawn ones are gone.
   const invites = manager
     ? (
@@ -115,6 +126,8 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
           ))}
         </ul>
       )}
+
+      {managesVehicles && <OrganizationSites organizationId={org.id} sites={sites} />}
 
       <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('membersTitle')}</h2>
       <p className="mb-3 text-xs text-ink-faint">{t('rolesHelp')}</p>

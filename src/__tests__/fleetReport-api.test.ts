@@ -9,6 +9,7 @@ jest.mock('@/lib/prisma', () => ({
     vehicleAssignment: { findMany: jest.fn() },
     task: { findMany: jest.fn(), count: jest.fn() },
     document: { findMany: jest.fn() },
+    organizationSite: { findUnique: jest.fn() },
   },
 }))
 jest.mock('@/lib/ownershipRecords', () => ({ loadOwnershipInputs: jest.fn() }))
@@ -140,6 +141,20 @@ describe.each([
   it('reads only this organisation’s vehicles', async () => {
     await GET(req(MARCH, route), params)
     expect(mockVehicles).toHaveBeenCalledWith(expect.objectContaining({ where: { organizationId: 'org1' } }))
+  })
+
+  // #103: a site narrows the report, and must be this organisation's.
+  it('refuses a site that is not this organisation’s', async () => {
+    ;(prisma.organizationSite.findUnique as jest.Mock).mockResolvedValue({ id: 's9', name: 'Their depot', organizationId: 'other' })
+    const res = await GET(req(`${MARCH}&site=s9`, route), params)
+    expect(res.status).toBe(404)
+    expect(mockVehicles).not.toHaveBeenCalled()
+  })
+
+  it('narrows to the site’s vehicles', async () => {
+    ;(prisma.organizationSite.findUnique as jest.Mock).mockResolvedValue({ id: 's1', name: 'Cluj', organizationId: 'org1' })
+    expect((await GET(req(`${MARCH}&site=s1`, route), params)).status).toBe(200)
+    expect(mockVehicles).toHaveBeenCalledWith(expect.objectContaining({ where: { organizationId: 'org1', siteId: 's1' } }))
   })
 
   it('refuses a vehicle that is not this organisation’s', async () => {

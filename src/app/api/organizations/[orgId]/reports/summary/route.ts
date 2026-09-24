@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, { params }: { params: { orgId: strin
   if (!auth.ok) return auth.error
   const loaded = await loadReport(params.orgId, auth.session.user.id, req.nextUrl.searchParams)
   if (!loaded.ok) return loaded.error
-  const { organization, period, vehicles, assignments } = loaded.report
+  const { organization, period, site, vehicles, assignments } = loaded.report
 
   try {
     const locale = localeFromRequest()
@@ -56,7 +56,8 @@ export async function GET(req: NextRequest, { params }: { params: { orgId: strin
         : t(`pdf.outcome.${o.kind}`)
 
     const docDefinition = buildFleetReportDocDefinition({
-      organizationName: organization.name,
+      // #103: a report narrowed to a site says so on every page.
+      organizationName: site ? `${organization.name} · ${site.name}` : organization.name,
       strings: {
         title: t('pdf.title'),
         period: t('pdf.period', { from: reportDate(period.from), to: reportDate(period.to) }),
@@ -88,7 +89,7 @@ export async function GET(req: NextRequest, { params }: { params: { orgId: strin
         noRenewals: t('pdf.noRenewals'),
         renewalsNote: t('pdf.renewalsNote'),
         footnote: t('pdf.footnote'),
-        footer: t('pdf.footer', { organization: organization.name, from: reportDate(period.from), to: reportDate(period.to) }),
+        footer: t('pdf.footer', { organization: site ? `${organization.name} · ${site.name}` : organization.name, from: reportDate(period.from), to: reportDate(period.to) }),
       },
       vehicles: spend.vehicles.map((line) => ({
         name: shortName(line.vehicleId),
@@ -118,7 +119,7 @@ export async function GET(req: NextRequest, { params }: { params: { orgId: strin
     })
 
     const buffer = await renderPdf(docDefinition)
-    return reportResponse(new Uint8Array(buffer), 'application/pdf', reportFilename(['Fleet', organization.name], period, 'pdf'))
+    return reportResponse(new Uint8Array(buffer), 'application/pdf', reportFilename(['Fleet', organization.name, ...(site ? [site.name] : [])], period, 'pdf'))
   } catch (e) {
     console.error('Fleet summary report failed:', e)
     return await apiError('reportFailed', 500)

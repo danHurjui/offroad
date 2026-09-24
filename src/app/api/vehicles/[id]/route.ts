@@ -109,6 +109,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!values.ok) return await apiErrorWith('valuesFieldInvalid', { field: values.field }, 400)
     Object.assign(data, values.data)
 
+    // #103: the site a company vehicle belongs to — only ever one of its own
+    // organisation's sites. A personal vehicle has none to belong to.
+    if (body.siteId !== undefined) {
+      if (body.siteId === null || body.siteId === '') {
+        data.siteId = null
+      } else {
+        const site =
+          typeof body.siteId === 'string' && vehicle.organizationId
+            ? await prisma.organizationSite.findUnique({ where: { id: body.siteId }, select: { organizationId: true } })
+            : null
+        if (!site || site.organizationId !== vehicle.organizationId) return await apiError('siteNotInOrganization', 400)
+        data.siteId = body.siteId
+      }
+    }
+
     // #104: the owner's own service interval for Car Health.
     const interval = parseServiceInterval(body)
     if (!interval.ok) return await apiErrorWith('profileFieldInvalid', { field: interval.field }, 400)

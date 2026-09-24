@@ -6,11 +6,14 @@ import { prisma } from '@/lib/prisma'
 import { accessForRole } from '@/lib/access'
 import { daysUntilMessage } from '@/lib/documents'
 import { complianceBoard, FLEET_DOCUMENT_TYPES, type FleetCell } from '@/lib/fleet'
+import { pickSite, siteVehicleWhere } from '@/lib/sites'
+import { loadSites } from '@/lib/siteRecords'
+import SiteFilterSelect from '@/components/SiteFilterSelect'
 
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 const CELL_CLASS = { valid: 'badge-success', expiring: 'badge-warn', expired: 'badge-danger' } as const
 
-type Params = { params: { orgId: string }; searchParams: { vehicle?: string } }
+type Params = { params: { orgId: string }; searchParams: { vehicle?: string; site?: string } }
 
 // RL-039: the fleet's compliance board. For the people who manage the
 // organisation's vehicles (OWNER, FLEET_MANAGER); a 404 for anyone else.
@@ -31,8 +34,11 @@ export default async function FleetPage({ params, searchParams }: Params) {
   if (!membership || accessForRole(membership.role) !== 'owner') notFound()
   const org = membership.organization
 
+  // #103: a site narrows the board to its vehicles — still every one of them.
+  const sites = await loadSites(org.id)
+  const site = pickSite(sites, searchParams.site)
   const vehicles = await prisma.vehicle.findMany({
-    where: { organizationId: org.id },
+    where: { organizationId: org.id, ...siteVehicleWhere(site) },
     select: { id: true, year: true, make: true, model: true, plate: true },
     orderBy: { createdAt: 'asc' },
   })
@@ -94,17 +100,20 @@ export default async function FleetPage({ params, searchParams }: Params) {
         </div>
       </div>
 
-      {vehicles.length > 1 && (
+      {(vehicles.length > 1 || sites.length > 0) && (
         <form method="get" className="mb-4 flex flex-wrap items-end gap-2">
-          <div className="min-w-0">
-            <label className="label" htmlFor="fleet-vehicle">{t('filterVehicle')}</label>
-            <select id="fleet-vehicle" name="vehicle" className="input" defaultValue={selected?.id ?? ''}>
-              <option value="">{t('allVehicles')}</option>
-              {vehicles.map((v) => (
-                <option key={v.id} value={v.id}>{v.plate ? `${v.plate} · ` : ''}{v.year} {v.make} {v.model}</option>
-              ))}
-            </select>
-          </div>
+          <SiteFilterSelect id="fleet-site" sites={sites} selected={site} label={t('filterSite')} allLabel={t('allSites')} />
+          {vehicles.length > 1 && (
+            <div className="min-w-0">
+              <label className="label" htmlFor="fleet-vehicle">{t('filterVehicle')}</label>
+              <select id="fleet-vehicle" name="vehicle" className="input" defaultValue={selected?.id ?? ''}>
+                <option value="">{t('allVehicles')}</option>
+                {vehicles.map((v) => (
+                  <option key={v.id} value={v.id}>{v.plate ? `${v.plate} · ` : ''}{v.year} {v.make} {v.model}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <button type="submit" className="btn-secondary">{t('apply')}</button>
         </form>
       )}

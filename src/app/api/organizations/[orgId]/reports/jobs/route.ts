@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, { params }: { params: { orgId: strin
   if (!auth.ok) return auth.error
   const loaded = await loadReport(params.orgId, auth.session.user.id, req.nextUrl.searchParams)
   if (!loaded.ok) return loaded.error
-  const { organization, period, vehicles, assignments } = loaded.report
+  const { organization, period, site, vehicles, assignments } = loaded.report
 
   try {
     const locale = localeFromRequest()
@@ -110,7 +110,7 @@ export async function GET(req: NextRequest, { params }: { params: { orgId: strin
         ]
       })
     )
-    return reportResponse(csv, 'text/csv; charset=utf-8', reportFilename(['Jobs', organization.name], period, 'csv'))
+    return reportResponse(csv, 'text/csv; charset=utf-8', reportFilename(['Jobs', organization.name, ...(site ? [site.name] : [])], period, 'csv'))
   } catch (e) {
     console.error('Fleet jobs report failed:', e)
     return await apiError('reportFailed', 500)

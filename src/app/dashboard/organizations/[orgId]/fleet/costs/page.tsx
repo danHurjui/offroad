@@ -9,11 +9,14 @@ import { loadOwnershipInputs } from '@/lib/ownershipRecords'
 import { fleetCost } from '@/lib/fleet'
 import FleetCostChart from '@/components/FleetCostChart'
 import { formatRon } from '@/lib/money'
+import { pickSite, siteVehicleWhere } from '@/lib/sites'
+import { loadSites } from '@/lib/siteRecords'
+import SiteFilterSelect from '@/components/SiteFilterSelect'
 
 const RANGES: DateRange[] = ['3m', '12m', 'all']
 const money = (n: number) => formatRon(n, 0)
 
-type Params = { params: { orgId: string }; searchParams: { range?: string; vehicle?: string } }
+type Params = { params: { orgId: string }; searchParams: { range?: string; vehicle?: string; site?: string } }
 
 // RL-039: what the fleet costs. Each vehicle's figure is its own cost-of-
 // ownership report (the vehicle's costs page), added up; the gaps each
@@ -35,7 +38,10 @@ export default async function FleetCostsPage({ params, searchParams }: Params) {
   const org = membership.organization
 
   const range: DateRange = isDateRange(searchParams.range) ? searchParams.range : '12m'
-  const vehicles = await prisma.vehicle.findMany({ where: { organizationId: org.id }, orderBy: { createdAt: 'asc' } })
+  // #103: a site narrows the costs to its vehicles.
+  const sites = await loadSites(org.id)
+  const site = pickSite(sites, searchParams.site)
+  const vehicles = await prisma.vehicle.findMany({ where: { organizationId: org.id, ...siteVehicleWhere(site) }, orderBy: { createdAt: 'asc' } })
   const selected = vehicles.find((v) => v.id === searchParams.vehicle) ?? null
   const shown = selected ? [selected] : vehicles
   const inputs = await loadOwnershipInputs(shown, new Date())
@@ -70,6 +76,7 @@ export default async function FleetCostsPage({ params, searchParams }: Params) {
             ))}
           </select>
         </div>
+        <SiteFilterSelect id="fleet-cost-site" sites={sites} selected={site} label={tf('filterSite')} allLabel={tf('allSites')} />
         {vehicles.length > 1 && (
           <div className="min-w-0">
             <label className="label" htmlFor="fleet-cost-vehicle">{tf('filterVehicle')}</label>
