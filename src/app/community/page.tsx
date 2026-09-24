@@ -138,10 +138,10 @@ export default async function CommunityFeedPage({ searchParams }: { searchParams
 
         {session && (
           <div className="mb-4 flex gap-2 text-sm">
-            <Link href={buildHref({ following: undefined, page: undefined })} className={`badge ${!followingOnly ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
+            <Link href={buildHref({ following: undefined, page: undefined })} className={`chip ${!followingOnly ? 'chip-on' : ''}`} aria-current={!followingOnly ? 'true' : undefined}>
               {t('all')}
             </Link>
-            <Link href={buildHref({ following: '1', page: undefined })} className={`badge ${followingOnly ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
+            <Link href={buildHref({ following: '1', page: undefined })} className={`chip ${followingOnly ? 'chip-on' : ''}`} aria-current={followingOnly ? 'true' : undefined}>
               {t('following')}
             </Link>
           </div>

@@ -325,6 +325,9 @@ async function GarageControls({
   const tg = await getTranslations('dashboard.garage')
   const vocabulary = await getAllVocabulary()
   return (
+    // Search and its button share a row, and mode/sort sit side by side
+    // even on a phone: stacked one per line, this form was taller than the
+    // first vehicle card it was there to help find.
     <form role="search" action="/dashboard" className="card mb-4 space-y-3 p-3">
       <div className="flex gap-2">
         <label htmlFor="garage-search" className="sr-only">{t('searchLabel')}</label>
@@ -336,12 +339,14 @@ async function GarageControls({
           placeholder={t('searchPlaceholder')}
           className="input min-w-0 flex-1"
           autoComplete="off"
+          enterKeyHint="search"
         />
+        <button type="submit" className="btn-primary shrink-0">{tg('apply')}</button>
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
-        {modes.length > 1 ? (
+      <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end sm:gap-3">
+        {modes.length > 1 && (
           <div className="min-w-0">
-            <label htmlFor="garage-mode" className="label">{tg('filterMode')}</label>
+            <label htmlFor="garage-mode" className="label text-xs">{tg('filterMode')}</label>
             <select id="garage-mode" name="mode" defaultValue={mode ?? ''} className="input">
               <option value="">{tg('allModes')}</option>
               {modes.map((type) => (
@@ -349,29 +354,26 @@ async function GarageControls({
               ))}
             </select>
           </div>
-        ) : (
-          <div className="hidden sm:block" />
         )}
-        <div className="min-w-0">
-          <label htmlFor="garage-sort" className="label">{tg('sort')}</label>
+        <div className={`min-w-0 ${modes.length > 1 ? '' : 'min-[420px]:col-span-2'}`}>
+          <label htmlFor="garage-sort" className="label text-xs">{tg('sort')}</label>
           <select id="garage-sort" name="sort" defaultValue={sort} className="input">
             <option value="activity">{tg('sortActivity')}</option>
             <option value="attention">{tg('sortAttention')}</option>
             <option value="name">{tg('sortName')}</option>
           </select>
         </div>
-        <label className="flex min-w-0 items-center gap-2 text-sm text-ink sm:pb-2">
-          <input type="checkbox" name="attention" value="1" defaultChecked={attentionOnly} />
-          {tg('filterAttention')}
-        </label>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <button type="submit" className="btn-primary">{tg('apply')}</button>
-        {filtering && (
-          <Link href="/dashboard" className="btn-secondary">
-            {tg('clear')}
-          </Link>
-        )}
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 min-[420px]:col-span-2 sm:col-span-1 sm:min-h-9">
+          <label className="flex min-h-11 items-center gap-2 text-sm text-ink sm:min-h-0">
+            <input type="checkbox" name="attention" value="1" defaultChecked={attentionOnly} className="h-4 w-4" />
+            {tg('filterAttention')}
+          </label>
+          {filtering && (
+            <Link href="/dashboard" className="text-sm text-brand-600 hover:underline dark:text-brand-300">
+              {tg('clear')}
+            </Link>
+          )}
+        </div>
       </div>
     </form>
   )

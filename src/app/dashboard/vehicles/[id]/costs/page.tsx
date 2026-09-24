@@ -117,7 +117,7 @@ export default async function OwnershipCostsPage({
               key={r}
               href={`/dashboard/vehicles/${vehicle.id}/costs?range=${r}`}
               aria-current={range === r ? 'page' : undefined}
-              className={`badge ${range === r ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}
+              className={`chip ${range === r ? 'chip-on' : ''}`}
             >
               {t(`range.${r}`)}
             </Link>

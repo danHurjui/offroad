@@ -105,7 +105,7 @@ export default function Nav({
           ))}
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
           <QuickAddButton />
           <ShortcutHelpButton />
           <LanguageToggle compact />
@@ -141,7 +141,7 @@ export default function Nav({
 
           <button
             type="button"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink sm:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink sm:hidden"
             aria-label={menuOpen ? t('closeMenu') : t('openMenu')}
             aria-expanded={menuOpen}
             aria-controls="mobile-menu"

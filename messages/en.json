@@ -77,7 +77,13 @@
     "skipToContent": "Skip to content",
     "previous": "← Previous",
     "next": "Next →",
-    "pageOf": "Page {page} of {total}"
+    "pageOf": "Page {page} of {total}",
+    "showPassword": "Show",
+    "hidePassword": "Hide",
+    "showPasswordAria": "Show password",
+    "hidePasswordAria": "Hide password",
+    "backToHome": "← RigLog home",
+    "filters": "Filters"
   },
   "cover": {
     "label": "Cover photo",
@@ -490,7 +496,17 @@
     "serviceBook": "Service book",
     "passport": "Passport",
     "drivers": "Drivers",
-    "trips": "Trips"
+    "trips": "Trips",
+    "sectionsNav": "Sections of this vehicle",
+    "sectionGroup": {
+      "records": "Records",
+      "planning": "Plans & money",
+      "share": "Share & export"
+    },
+    "needsAttentionCount": "{count, plural, one {# needs attention} other {# need attention}}",
+    "otherCategories": "Other categories",
+    "startInCategory": "Start in a category",
+    "otherCategoriesHint": "Nothing logged in these yet. Pick one to start logging there."
   },
   "home": {
     "metaTitle": "Car build, restoration and repair log — RigLog",
@@ -1778,7 +1794,11 @@
     "cardFailed": "Could not generate card",
     "pdfFailed": "Could not generate PDF",
     "shareUnsupported": "Sharing is not supported on this device — use Download instead.",
-    "originalityHelp": "Originality score = OEM original parts / all completed tasks. Useful for buyers and concours judges — a rough measure of how much of the car is still factory-original."
+    "originalityHelp": "Originality score = OEM original parts / all completed tasks. Useful for buyers and concours judges — a rough measure of how much of the car is still factory-original.",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "themeCycle": "Theme: {current}. Switch to {next}."
   },
   "email": {
     "passwordReset": {

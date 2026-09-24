@@ -108,15 +108,15 @@ export default async function TicketsPage({
             <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('type')}</span>
             <Link
               href={filterHref({ type: '' })}
-              className={`badge ${!type ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
+              className={`chip ${!type ? 'chip-on' : ''}`} aria-current={!type ? 'true' : undefined}
             >
-              All
+              {t('all')}
             </Link>
             {TICKET_TYPE_VALUES.map((t) => (
               <Link
                 key={t}
                 href={filterHref({ type: t })}
-                className={`badge ${type === t ? TICKET_TYPES[t].badgeClass : 'bg-surface-subtle text-ink-muted'}`}
+                className={`chip ${type === t ? 'chip-on' : ''}`} aria-current={type === t ? 'true' : undefined}
               >
                 {tv(`type.${t}.label`)}
               </Link>
@@ -126,15 +126,15 @@ export default async function TicketsPage({
             <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('status')}</span>
             <Link
               href={filterHref({ status: '' })}
-              className={`badge ${!status ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
+              className={`chip ${!status ? 'chip-on' : ''}`} aria-current={!status ? 'true' : undefined}
             >
-              All
+              {t('all')}
             </Link>
             {TICKET_STATUS_VALUES.map((s) => (
               <Link
                 key={s}
                 href={filterHref({ status: s })}
-                className={`badge ${status === s ? TICKET_STATUSES[s].badgeClass : 'bg-surface-subtle text-ink-muted'}`}
+                className={`chip ${status === s ? 'chip-on' : ''}`} aria-current={status === s ? 'true' : undefined}
               >
                 {tv(`status.${s}`)}
               </Link>
@@ -144,13 +144,13 @@ export default async function TicketsPage({
             <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('sort')}</span>
             <Link
               href={filterHref({ sort: 'votes' })}
-              className={`badge ${sort === 'votes' ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
+              className={`chip ${sort === 'votes' ? 'chip-on' : ''}`} aria-current={sort === 'votes' ? 'true' : undefined}
             >
               {t('mostVoted')}
             </Link>
             <Link
               href={filterHref({ sort: 'newest' })}
-              className={`badge ${sort === 'newest' ? 'badge-brand' : 'bg-surface-subtle text-ink-muted'}`}
+              className={`chip ${sort === 'newest' ? 'chip-on' : ''}`} aria-current={sort === 'newest' ? 'true' : undefined}
             >
               {t('newest')}
             </Link>

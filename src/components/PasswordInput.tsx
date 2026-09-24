@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 /**
  * A password field with a reveal toggle. On a phone — which is most of this
@@ -36,6 +37,7 @@ export default function PasswordInput({
   minLength?: number
   required?: boolean
 }) {
+  const t = useTranslations('common')
   const [revealed, setRevealed] = useState(false)
 
   return (
@@ -48,7 +50,7 @@ export default function PasswordInput({
           id={id}
           name={id}
           type={revealed ? 'text' : 'password'}
-          className="input pr-16"
+          className="input pr-20"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           autoComplete={autoComplete}
@@ -70,9 +72,10 @@ export default function PasswordInput({
           // field wants the submit button, not this.
           tabIndex={-1}
           aria-pressed={revealed}
+          aria-label={revealed ? t('hidePasswordAria') : t('showPasswordAria')}
           className="absolute inset-y-0 right-0 flex items-center rounded-r-lg px-3 text-xs font-medium text-ink-muted hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
         >
-          {revealed ? 'Hide' : 'Show'}
+          {revealed ? t('hidePassword') : t('showPassword')}
         </button>
       </div>
     </div>

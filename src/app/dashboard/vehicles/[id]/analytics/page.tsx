@@ -90,7 +90,7 @@ export default async function CostAnalyticsPage({
               <Link
                 key={r}
                 href={`/dashboard/vehicles/${vehicle.id}/analytics?range=${r}`}
-                className={`badge ${range === r ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}
+                className={`chip ${range === r ? 'chip-on' : ''}`} aria-current={range === r ? 'true' : undefined}
               >
                 {t(`range.${r}`)}
               </Link>

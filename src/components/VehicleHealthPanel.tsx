@@ -41,14 +41,17 @@ export default async function VehicleHealthPanel({ report }: { report: HealthRep
       <p className="mb-3 text-xs text-ink-faint">{t('subtitle')}</p>
       <ul className="divide-y divide-surface-border">
         {report.rows.map((row) => (
-          <li key={row.id} className="flex flex-wrap items-start gap-x-3 gap-y-1 py-2">
-            <span className={`badge ${TONE_CLASS[row.tone]} shrink-0`}>{t(`tone.${row.tone}`)}</span>
-            <div className="min-w-0 flex-1 basis-48">
-              <Link href={row.href} className="font-medium text-ink hover:underline">
+          // Name and verdict on one line, the reason under both at full
+          // width. With the badge as a left column, a phone left the reason
+          // about 160px to wrap in, four or five words a line.
+          <li key={row.id} className="py-2.5">
+            <div className="flex items-start justify-between gap-3">
+              <Link href={row.href} className="min-w-0 font-medium text-ink hover:underline">
                 {say(row.label)}
               </Link>
-              <p className="text-sm text-ink-muted">{say(row.reason)}</p>
+              <span className={`badge ${TONE_CLASS[row.tone]} mt-0.5 shrink-0`}>{t(`tone.${row.tone}`)}</span>
             </div>
+            <p className="mt-0.5 text-sm text-ink-muted">{say(row.reason)}</p>
           </li>
         ))}
       </ul>

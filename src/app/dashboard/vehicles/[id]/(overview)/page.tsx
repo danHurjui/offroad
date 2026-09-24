@@ -122,6 +122,52 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
   const completedCount = tasks.filter((t) => t.status === completeStatus).length
   const plannedCount = tasks.length - completedCount
 
+  // Every section a vehicle has, grouped by what it is for. The visibility
+  // rules are the ones each link has always had — who may see costs, which
+  // mode, owner vs collaborator vs driver — only the layout changed.
+  const base = `/dashboard/vehicles/${vehicle.id}`
+  const costsVisible = !hidesCosts(vehicle)
+  type SectionLink = { href: string; label: string; count?: number; external?: boolean }
+  const when = (condition: boolean, link: SectionLink): SectionLink[] => (condition ? [link] : [])
+  const sectionGroups: { key: 'records' | 'planning' | 'share'; links: SectionLink[] }[] = [
+    {
+      key: 'records',
+      links: [
+        ...when(isOwner, { href: `${base}/documents`, label: t('documents'), count: documentsNeedingAttention }),
+        { href: `${base}/service-book`, label: t('serviceBook') },
+        { href: `${base}/photos`, label: t('photos') },
+        { href: `${base}/fuel`, label: t('fuel') },
+        ...when(vehicle.projectType !== 'RESTORATION', { href: `${base}/tyres`, label: t('tyres') }),
+        { href: `${base}/expenses`, label: t('expenses') },
+        { href: `${base}/accidents`, label: t('accidents') },
+        ...when(isOwner || vehicle.access === 'driver', { href: `${base}/trips`, label: t('trips') }),
+        ...when(isOwner && Boolean(vehicle.organizationId), { href: `${base}/drivers`, label: t('drivers') }),
+        ...when(vehicle.projectType === 'RESTORATION', { href: `${base}/found-state`, label: t('foundState') }),
+        ...when(isOwner && vehicle.projectType === 'OFFROAD', { href: `${base}/trail-log`, label: t('trailLog') }),
+      ],
+    },
+    {
+      key: 'planning',
+      links: [
+        ...when(isOwner, { href: `${base}/wishlist`, label: config.wishlistLabel }),
+        ...when(costsVisible, { href: `${base}/costs`, label: t('costs') }),
+        ...when(costsVisible, { href: `${base}/analytics`, label: t('analytics') }),
+        ...when(isOwner && vehicle.projectType === 'RESTORATION', { href: `${base}/vin-decoder`, label: t('vinDecoder') }),
+      ],
+    },
+    {
+      key: 'share',
+      links: [
+        ...when(isOwner, { href: `${base}/passport`, label: t('passport') }),
+        ...when(isOwner, { href: `${base}/collaborators`, label: t('collaborators') }),
+        ...when(isOwner, { href: `${base}/export`, label: t('exportPdf') }),
+        ...when(isOwner && vehicle.projectType !== 'DAILY_DRIVER', { href: `${base}/card`, label: t('shareCard') }),
+        ...when(!isOwner, { href: `${base}/job-report`, label: t('jobReport') }),
+        ...when(Boolean(publicUrl), { href: publicUrl ?? '', label: t('viewPublicPage'), external: true }),
+      ],
+    },
+  ]
+
   const grouped = new Map<string, typeof tasks>()
   for (const category of config.categories) grouped.set(category.value, [])
   for (const task of tasks) {
@@ -133,6 +179,12 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
     const bLatest = b[1][0]?.updatedAt?.getTime() ?? 0
     return bLatest - aLatest
   })
+  // Categories with work in them get their own list; the empty ones are
+  // one row of shortcuts rather than a card each. A new off-road build has
+  // nine categories, so the old layout was nine identical empty boxes to
+  // scroll past before anything that had actually been logged.
+  const filledGroups = sortedGroups.filter(([, categoryTasks]) => categoryTasks.length > 0)
+  const emptyCategories = sortedGroups.filter(([, categoryTasks]) => categoryTasks.length === 0).map(([value]) => value)
 
   return (
     <div>
@@ -146,16 +198,20 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       {vehicle.access === 'driver' && (
         <DriverPanel vehicleId={vehicle.id} projectType={vehicle.projectType} driverUserId={session.user.id} />
       )}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <span className="badge badge-brand">{config.label}</span>
-          {originalityScore !== undefined && (
-            <span className="ml-2">
-              <OriginalityBadge score={originalityScore} />
-            </span>
-          )}
-          <h1 className="mt-2 text-2xl font-bold text-ink">{config.screenTitle}</h1>
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-ink-muted">
+      {/* The title and the one thing people come here to do share a row;
+          everything else is a section link, grouped below. These used to be
+          seventeen equal-weight buttons in a flex row beside the title,
+          which on a desktop squeezed "2007 Suzuki Grand Vitara" into a
+          column one word wide, and on a phone stacked into a wall of
+          buttons with the primary action at the bottom of it. */}
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="badge badge-brand">{config.label}</span>
+            {originalityScore !== undefined && <OriginalityBadge score={originalityScore} />}
+          </div>
+          <h1 className="mt-2 break-words text-2xl font-bold text-ink sm:text-3xl">{config.screenTitle}</h1>
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-ink-muted">
             <span>
               {vehicle.year} {vehicle.make} {vehicle.model}
               {vehicle.generation ? ` (${vehicle.generation})` : ''}
@@ -164,117 +220,51 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           </p>
           <RegistrationSummary vehicle={vehicle} />
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href={`/dashboard/vehicles/${vehicle.id}/photos`} className="btn-secondary">
-            {t('photos')}
-          </Link>
-          <Link href={`/dashboard/vehicles/${vehicle.id}/fuel`} className="btn-secondary">
-            {t('fuel')}
-          </Link>
-          {vehicle.projectType !== 'RESTORATION' && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/tyres`} className="btn-secondary">
-              {t('tyres')}
-            </Link>
-          )}
-          <Link href={`/dashboard/vehicles/${vehicle.id}/accidents`} className="btn-secondary">
-            {t('accidents')}
-          </Link>
-          {(isOwner || vehicle.access === 'driver') && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/trips`} className="btn-secondary">
-              {t('trips')}
-            </Link>
-          )}
-          {isOwner && vehicle.organizationId && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/drivers`} className="btn-secondary">
-              {t('drivers')}
-            </Link>
-          )}
-          {isOwner && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/wishlist`} className="btn-secondary">
-              {config.wishlistLabel}
-            </Link>
-          )}
-          {isOwner && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/documents`} className="btn-secondary relative">
-              {t('documents')}
-              {documentsNeedingAttention > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">
-                  {documentsNeedingAttention}
-                </span>
-              )}
-            </Link>
-          )}
-          <Link href={`/dashboard/vehicles/${vehicle.id}/service-book`} className="btn-secondary">
-            {t('serviceBook')}
-          </Link>
-          <Link href={`/dashboard/vehicles/${vehicle.id}/expenses`} className="btn-secondary">
-            {t('expenses')}
-          </Link>
-          {!hidesCosts(vehicle) && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/costs`} className="btn-secondary">
-              {t('costs')}
-            </Link>
-          )}
-          {!hidesCosts(vehicle) && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/analytics`} className="btn-secondary">
-              {t('analytics')}
-            </Link>
-          )}
-          {vehicle.projectType === 'RESTORATION' && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/found-state`} className="btn-secondary">
-              {t('foundState')}
-            </Link>
-          )}
-          {isOwner && vehicle.projectType === 'RESTORATION' && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/vin-decoder`} className="btn-secondary">
-              {t('vinDecoder')}
-            </Link>
-          )}
-          {isOwner && vehicle.projectType === 'OFFROAD' && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/trail-log`} className="btn-secondary">
-              {t('trailLog')}
-            </Link>
-          )}
-          {isOwner && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/passport`} className="btn-secondary">
-              {t('passport')}
-            </Link>
-          )}
-          {isOwner && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/collaborators`} className="btn-secondary">
-              {t('collaborators')}
-            </Link>
-          )}
-          {isOwner && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/export`} className="btn-secondary">
-              {t('exportPdf')}
-            </Link>
-          )}
-          {isOwner && vehicle.projectType !== 'DAILY_DRIVER' && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/card`} className="btn-secondary">
-              {t('shareCard')}
-            </Link>
-          )}
-          {!isOwner && (
-            <Link href={`/dashboard/vehicles/${vehicle.id}/job-report`} className="btn-secondary">
-              {t('jobReport')}
-            </Link>
-          )}
+        <div className="flex shrink-0 gap-2">
           {isOwner && (
             <Link href={`/dashboard/vehicles/${vehicle.id}/edit`} className="btn-secondary">
               {t('settings')}
             </Link>
           )}
-          {publicUrl && (
-            <Link href={publicUrl} target="_blank" rel="noreferrer" className="btn-secondary">
-              {t('viewPublicPage')} ↗
-            </Link>
-          )}
-          <Link href={`/dashboard/vehicles/${vehicle.id}/tasks/new`} className="btn-primary">
+          <Link href={`/dashboard/vehicles/${vehicle.id}/tasks/new`} className="btn-primary flex-1 sm:flex-none">
             {config.addTaskCta}
           </Link>
         </div>
       </div>
+
+      <nav aria-label={t('sectionsNav')} className="mb-6 space-y-3 sm:space-y-2">
+        {sectionGroups
+          .filter((group) => group.links.length > 0)
+          .map((group) => (
+            <div key={group.key} className="sm:flex sm:items-start sm:gap-3">
+              <h2 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint sm:mb-0 sm:w-36 sm:shrink-0 sm:pt-2">
+                {t(`sectionGroup.${group.key}`)}
+              </h2>
+              <ul className="scroll-row min-w-0">
+                {group.links.map((link) => (
+                  <li key={link.href} className="shrink-0">
+                    <Link
+                      href={link.href}
+                      className="chip"
+                      {...(link.external ? { target: '_blank', rel: 'noreferrer' } : {})}
+                    >
+                      {link.label}
+                      {link.external && <span aria-hidden>↗</span>}
+                      {link.count ? (
+                        <span
+                          className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-semibold text-white"
+                          aria-label={t('needsAttentionCount', { count: link.count })}
+                        >
+                          {link.count}
+                        </span>
+                      ) : null}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+      </nav>
 
       {!isOwner && (
         <div className="card mb-6 border-surface-border bg-surface-subtle p-4 text-sm text-ink-muted">
@@ -296,7 +286,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         isOwner && (
           <Link
             href={`/dashboard/vehicles/${vehicle.id}/edit`}
-            className="card mb-6 flex h-24 items-center justify-center text-sm text-ink-faint hover:text-brand-600 dark:hover:text-brand-300"
+            className="card mb-6 flex h-16 items-center justify-center text-sm text-ink-faint hover:text-brand-600 dark:hover:text-brand-300"
           >
             + {tCover('addFromVehicle')}
           </Link>
@@ -315,7 +305,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       )}
 
       {vehicle.projectType === 'RESTORATION' && !foundState && (
-        <div className="card mb-6 flex items-center justify-between gap-4 note p-4">
+        <div className="card mb-6 flex flex-col gap-3 note p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <p className="text-sm text-ink">
             {t('foundStatePrompt')}
           </p>
@@ -342,7 +332,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         )}
       </div>
 
-      <div className="mb-6 grid grid-cols-3 gap-3">
+      <div className="mb-6 grid grid-cols-3 gap-2 sm:gap-3">
         <StatCard
           label={t('totalSpent')}
           value={
@@ -374,71 +364,81 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       )}
 
       <div className="space-y-6">
-        {sortedGroups.map(([categoryValue, categoryTasks]) => (
+        {filledGroups.map(([categoryValue, categoryTasks]) => (
           <div key={categoryValue}>
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-ink-muted">
               {labelFor(config.categories, categoryValue)}
             </h2>
-            {categoryTasks.length === 0 ? (
+            {/* The same prefilled link stays at the foot of a category that
+                already has entries. It used to render only while the
+                category was empty, which left no way to log a second job
+                under it — a daily driver gets its brakes done more than
+                once, and the header's + button starts with no category
+                chosen. */}
+            <div className="card divide-y divide-surface-border">
+              {categoryTasks.map((task) => (
+                // Hidden while its deletion waits out the undo window
+                // (RL-034) — the task page sent the owner back here.
+                <HideWhilePending key={task.id} pendingKey={`task:${task.id}`}>
+                  <Link
+                    href={`/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`}
+                    className="flex items-center justify-between gap-3 p-4 hover:bg-surface-muted"
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
+                      {task.workType === 'WORKSHOP' && <span title={t('workshopTask')}>🔧</span>}
+                      {/* addedByUserId is null once the account that added
+                          the task is deleted — the work stays in the log,
+                          the attribution doesn't. */}
+                      {task.addedByUserId !== vehicle.ownerId && (
+                        <AddedByBadge
+                          name={task.addedBy?.displayName ?? null}
+                          removed={
+                            task.addedByUserId === null ||
+                            removedCollaboratorUserIds.has(task.addedByUserId)
+                          }
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <div className="break-words font-medium text-ink">{task.name}</div>
+                        <div className="text-xs text-ink-faint">
+                          {new Date(task.date).toLocaleDateString('ro-RO')}
+                        </div>
+                      </div>
+                    </div>
+                    <span className={`${statusBadgeClass(config.statusTags, task.status)} shrink-0`}>
+                      {labelFor(config.statusTags, task.status)}
+                    </span>
+                  </Link>
+                </HideWhilePending>
+              ))}
               <Link
                 href={`/dashboard/vehicles/${vehicle.id}/tasks/new?category=${categoryValue}`}
-                className="card block p-4 text-sm text-ink-faint hover:text-brand-600 dark:hover:text-brand-300"
+                className="block p-4 text-sm text-ink-faint hover:bg-surface-muted hover:text-brand-600 dark:hover:text-brand-300"
               >
                 {t('addInCategory', { cta: config.addTaskCta })}
               </Link>
-            ) : (
-              /* The same prefilled link stays at the foot of a category that
-                 already has entries. It used to render only while the
-                 category was empty, which left no way to log a second job
-                 under it — a daily driver gets its brakes done more than
-                 once, and the header's + button starts with no category
-                 chosen. */
-              <div className="card divide-y divide-surface-border">
-                {categoryTasks.map((task) => (
-                  // Hidden while its deletion waits out the undo window
-                  // (RL-034) — the task page sent the owner back here.
-                  <HideWhilePending key={task.id} pendingKey={`task:${task.id}`}>
-                    <Link
-                      href={`/dashboard/vehicles/${vehicle.id}/tasks/${task.id}`}
-                      className="flex items-center justify-between gap-3 p-4 hover:bg-surface-muted"
-                    >
-                      <div className="flex items-center gap-2">
-                        {task.workType === 'WORKSHOP' && <span title={t('workshopTask')}>🔧</span>}
-                        {/* addedByUserId is null once the account that added
-                            the task is deleted — the work stays in the log,
-                            the attribution doesn't. */}
-                        {task.addedByUserId !== vehicle.ownerId && (
-                          <AddedByBadge
-                            name={task.addedBy?.displayName ?? null}
-                            removed={
-                              task.addedByUserId === null ||
-                              removedCollaboratorUserIds.has(task.addedByUserId)
-                            }
-                          />
-                        )}
-                        <div>
-                          <div className="font-medium text-ink">{task.name}</div>
-                          <div className="text-xs text-ink-faint">
-                            {new Date(task.date).toLocaleDateString('ro-RO')}
-                          </div>
-                        </div>
-                      </div>
-                      <span className={statusBadgeClass(config.statusTags, task.status)}>
-                        {labelFor(config.statusTags, task.status)}
-                      </span>
-                    </Link>
-                  </HideWhilePending>
-                ))}
-                <Link
-                  href={`/dashboard/vehicles/${vehicle.id}/tasks/new?category=${categoryValue}`}
-                  className="block p-4 text-sm text-ink-faint hover:bg-surface-muted hover:text-brand-600 dark:hover:text-brand-300"
-                >
-                  {t('addInCategory', { cta: config.addTaskCta })}
-                </Link>
-              </div>
-            )}
+            </div>
           </div>
         ))}
+
+        {emptyCategories.length > 0 && (
+          <section className="card p-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
+              {filledGroups.length > 0 ? t('otherCategories') : t('startInCategory')}
+            </h2>
+            <p className="mb-3 mt-1 text-sm text-ink-faint">{t('otherCategoriesHint')}</p>
+            <ul className="flex flex-wrap gap-2">
+              {emptyCategories.map((categoryValue) => (
+                <li key={categoryValue}>
+                  <Link href={`/dashboard/vehicles/${vehicle.id}/tasks/new?category=${categoryValue}`} className="chip">
+                    <span aria-hidden className="text-brand-600 dark:text-brand-300">+</span>
+                    {labelFor(config.categories, categoryValue)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </div>
   )
@@ -479,9 +479,9 @@ async function AddedByBadge({ name, removed }: { name: string | null; removed: b
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="card p-4">
+    <div className="card min-w-0 p-3 sm:p-4">
       <div className="text-xs text-ink-faint">{label}</div>
-      <div className="text-lg font-semibold text-ink">{value}</div>
+      <div className="break-words text-base font-semibold tabular-nums text-ink sm:text-lg">{value}</div>
     </div>
   )
 }

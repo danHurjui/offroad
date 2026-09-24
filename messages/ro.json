@@ -77,7 +77,13 @@
     "skipToContent": "Sari la conținut",
     "previous": "← Anterior",
     "next": "Următor →",
-    "pageOf": "Pagina {page} din {total}"
+    "pageOf": "Pagina {page} din {total}",
+    "showPassword": "Arată",
+    "hidePassword": "Ascunde",
+    "showPasswordAria": "Arată parola",
+    "hidePasswordAria": "Ascunde parola",
+    "backToHome": "← Pagina principală RigLog",
+    "filters": "Filtre"
   },
   "cover": {
     "label": "Fotografie de copertă",
@@ -490,7 +496,17 @@
     "serviceBook": "Carte de service",
     "passport": "Pașaport",
     "drivers": "Șoferi",
-    "trips": "Deplasări"
+    "trips": "Deplasări",
+    "sectionsNav": "Secțiunile acestui vehicul",
+    "sectionGroup": {
+      "records": "Evidențe",
+      "planning": "Planuri și bani",
+      "share": "Partajare și export"
+    },
+    "needsAttentionCount": "{count, plural, one {# necesită atenție} few {# necesită atenție} other {# necesită atenție}}",
+    "otherCategories": "Alte categorii",
+    "startInCategory": "Începe într-o categorie",
+    "otherCategoriesHint": "Nimic înregistrat aici încă. Alege una ca să începi acolo."
   },
   "home": {
     "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
@@ -1778,7 +1794,11 @@
     "cardFailed": "Nu am putut genera cardul",
     "pdfFailed": "Nu am putut genera PDF-ul",
     "shareUnsupported": "Distribuirea nu este acceptată pe acest dispozitiv — folosește Descarcă.",
-    "originalityHelp": "Scorul de originalitate = piese originale OEM / toate lucrările finalizate. Util pentru cumpărători și pentru juriile de concurs — o măsură aproximativă a cât din mașină mai este de fabrică."
+    "originalityHelp": "Scorul de originalitate = piese originale OEM / toate lucrările finalizate. Util pentru cumpărători și pentru juriile de concurs — o măsură aproximativă a cât din mașină mai este de fabrică.",
+    "themeLight": "Luminoasă",
+    "themeDark": "Întunecată",
+    "themeSystem": "Sistem",
+    "themeCycle": "Temă: {current}. Treci la {next}."
   },
   "email": {
     "passwordReset": {

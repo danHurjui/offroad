@@ -104,7 +104,7 @@ export default async function GarageAnalyticsPage({ searchParams }: { searchPara
               <Link
                 key={r}
                 href={`/dashboard/analytics?range=${r}`}
-                className={`badge ${range === r ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}
+                className={`chip ${range === r ? 'chip-on' : ''}`} aria-current={range === r ? 'true' : undefined}
               >
                 {t(`range.${r}`)}
               </Link>
