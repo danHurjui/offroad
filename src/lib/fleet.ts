@@ -28,6 +28,8 @@ export interface FleetVehicle {
   make: string
   model: string
   plate: string | null
+  /** The talon's fuel type, shown beside the vehicle; never changes a count. */
+  fuelType?: string | null
 }
 
 export interface FleetDocument {
@@ -128,6 +130,8 @@ export interface FleetCostRow {
   perMonth: number
   /** How many things its total does not know (the report's coverage list). */
   gaps: number
+  /** Fuel and charging in the period (the `energy` category), so vehicles on different powertrains compare. */
+  energy: number
 }
 
 export interface FleetCost {
@@ -167,6 +171,7 @@ export function fleetCost(inputs: OwnershipInput[], range: DateRange): FleetCost
       months,
       perMonth: round2(report.runningTotal / months),
       gaps: report.coverage.length,
+      energy: report.categories.find((c) => c.category === 'energy')?.total ?? 0,
     }
   })
 

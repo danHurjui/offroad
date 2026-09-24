@@ -2,6 +2,7 @@
 
 import { isComplete, mergeProposals, parseFuelReceipt, type OcrLine, type ReceiptProposal } from './receiptParse'
 import { isInvoiceComplete, mergeInvoiceProposals, parseInvoice, type InvoiceProposal } from './invoiceParse'
+import { isTalonComplete, mergeTalonProposals, parseTalon, type TalonProposal } from './talonParse'
 import { prepareReceiptPixels, toGrey } from './receiptImage'
 import type { PSM as PageSegMode } from 'tesseract.js'
 
@@ -122,4 +123,13 @@ export function scanFuelReceipt(file: File, onProgress?: (progress: ScanProgress
 /** A service invoice → a workshop job (RL-048 slice 2). */
 export function scanInvoice(file: File, onProgress?: (progress: ScanProgress) => void): Promise<InvoiceProposal> {
   return scan(file, { parse: (lines) => parseInvoice(lines), complete: isInvoiceComplete, merge: mergeInvoiceProposals }, onProgress)
+}
+
+/**
+ * A registration certificate (talon) → the vehicle's identity fields. The
+ * photo is read here and discarded: it carries the holder's name, address
+ * and personal number, and nothing uploads it.
+ */
+export function scanTalon(file: File, onProgress?: (progress: ScanProgress) => void): Promise<TalonProposal> {
+  return scan(file, { parse: (lines) => parseTalon(lines), complete: isTalonComplete, merge: mergeTalonProposals }, onProgress)
 }

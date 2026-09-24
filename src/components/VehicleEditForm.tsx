@@ -7,6 +7,8 @@ import AutocompleteInput from './AutocompleteInput'
 import CoverPhotoField, { type CoverCandidate } from './CoverPhotoField'
 import FormError from './FormError'
 import RegistrationFields, { registrationValuesFrom, type RegistrationValues } from './RegistrationFields'
+import TalonScan from './TalonScan'
+import type { TalonProposal } from '@/lib/talonParse'
 import ValuesFields, { valuesFrom, valuesPayload, type ValuesValues } from './ValuesFields'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
@@ -62,11 +64,16 @@ export default function VehicleEditForm({
   vehicle,
   coverCandidates = [],
   sites = [],
+  canScan = false,
+  offerScanUpgrade = false,
 }: {
   vehicle: Vehicle
   coverCandidates?: CoverCandidate[]
   /** #103: the organisation's sites, for a company vehicle; empty otherwise. */
   sites?: SiteOption[]
+  /** Scanning the talon is a paid feature on the vehicle's plan, like the receipt scanner. */
+  canScan?: boolean
+  offerScanUpgrade?: boolean
 }) {
   const t = useTranslations('vehicleEdit')
   const tc = useTranslations('common')
@@ -100,6 +107,31 @@ export default function VehicleEditForm({
   const [coverUrl, setCoverUrl] = useState(vehicle.coverPhotoUrl)
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [removingCover, setRemovingCover] = useState(false)
+
+  /**
+   * What the talon scan read goes into the fields; what it could not read
+   * clearly leaves the field as it was (the scan lists it), since this form
+   * edits values the owner may already have typed correctly.
+   */
+  function applyTalon(p: TalonProposal) {
+    const read = <T,>(f: { value: T | null; state: string }) => (f.state === 'read' && f.value !== null ? f.value : null)
+    setForm((current) => ({
+      ...current,
+      make: read(p.make) ?? current.make,
+      model: read(p.model) ?? current.model,
+      vin: read(p.vin) ?? current.vin,
+    }))
+    setRegistration((current) => ({
+      ...current,
+      plate: read(p.plate) ?? current.plate,
+      firstRegistrationDate: read(p.firstRegistrationDate) ?? current.firstRegistrationDate,
+      fuelType: read(p.fuelType) ?? current.fuelType,
+      engineCapacityCc: read(p.engineCapacityCc)?.toString() ?? current.engineCapacityCc,
+      powerKw: read(p.powerKw)?.toString() ?? current.powerKw,
+      colour: read(p.colour) ?? current.colour,
+      seats: read(p.seats)?.toString() ?? current.seats,
+    }))
+  }
 
   async function onRemoveCover() {
     setError(null)
@@ -166,6 +198,7 @@ export default function VehicleEditForm({
 
   return (
     <div className="space-y-6">
+      <TalonScan canScan={canScan} offerUpgrade={offerScanUpgrade} onProposal={applyTalon} />
       <form onSubmit={onSubmit} className="card space-y-4 p-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>

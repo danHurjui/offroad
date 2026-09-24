@@ -3381,7 +3381,8 @@
       "caption": "Costul fiecărui vehicul în perioadă",
       "gaps": "{count, plural, one {# gol} few {# goluri} other {# de goluri}}",
       "noCosts": "Niciun cost înregistrat în această perioadă.",
-      "footnote": "Costul de exploatare nu include prețul de achiziție, care nu este un cost lunar. Pe vehicul pe lună împarte costul de exploatare la lunile în care fiecare vehicul a fost deținut în perioadă. Cifrele fiecărui vehicul sunt cele de pe propria lui pagină de costuri."
+      "footnote": "Costul de exploatare nu include prețul de achiziție, care nu este un cost lunar. Pe vehicul pe lună împarte costul de exploatare la lunile în care fiecare vehicul a fost deținut în perioadă. Cifrele fiecărui vehicul sunt cele de pe propria lui pagină de costuri.",
+      "energy": "Combustibil și încărcare"
     },
     "tripsOpen": "Deplasări"
   },
@@ -3756,5 +3757,29 @@
     "warrantyUntilValue": "până pe {date}",
     "warrantyKmValue": "{km} km",
     "whicheverFirst": "sau"
+  },
+  "talonScan": {
+    "scan": "Scanează talonul",
+    "help": "Fotografiază certificatul de înmatriculare (talonul). E citit pe telefonul tău și nu e încărcat nicăieri — are pe el numele și adresa ta, care nu sunt citite. Câmpurile se completează ca să le verifici înainte să salvezi.",
+    "scanning": "Se citește talonul… {percent}%",
+    "scanningAgain": "Încă o privire… {percent}%",
+    "filled": "Completate: {fields}.",
+    "unsure": "Nu s-au putut citi clar, au rămas cum erau: {fields}.",
+    "hybrid": "Talonul menționează și combustibil, și electricitate. Alege tu Hibrid sau Hibrid plug-in — talonul nu spune care, și doar un plug-in primește jurnalul de încărcări.",
+    "check": "Verifică fiecare câmp cu talonul înainte să salvezi.",
+    "failed": "Talonul nu a putut fi citit. Încearcă o poză mai clară, în lumină bună, sau completează câmpurile de mână.",
+    "upgrade": "Scanează talonul în loc să-l tastezi — cu Personal",
+    "field": {
+      "plate": "număr de înmatriculare",
+      "firstRegistrationDate": "prima înmatriculare",
+      "make": "marcă",
+      "model": "model",
+      "vin": "VIN",
+      "engineCapacityCc": "capacitate cilindrică",
+      "powerKw": "putere",
+      "fuelType": "combustibil",
+      "colour": "culoare",
+      "seats": "locuri"
+    }
   }
 }

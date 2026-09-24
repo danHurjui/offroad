@@ -3381,7 +3381,8 @@
       "caption": "Cost per vehicle in the period",
       "gaps": "{count, plural, one {# gap} other {# gaps}}",
       "noCosts": "No costs recorded in this period.",
-      "footnote": "Running cost leaves out the purchase price, which isn’t a monthly cost. Per vehicle per month divides the running cost by the months each vehicle was owned in the period. Each vehicle’s figures are the ones on its own costs page."
+      "footnote": "Running cost leaves out the purchase price, which isn’t a monthly cost. Per vehicle per month divides the running cost by the months each vehicle was owned in the period. Each vehicle’s figures are the ones on its own costs page.",
+      "energy": "Fuel & charging"
     },
     "tripsOpen": "Trips"
   },
@@ -3756,5 +3757,29 @@
     "warrantyUntilValue": "until {date}",
     "warrantyKmValue": "{km} km",
     "whicheverFirst": "or"
+  },
+  "talonScan": {
+    "scan": "Scan the talon",
+    "help": "Take a photo of the registration certificate (talon). It is read on your phone and never uploaded — it carries your name and address, which are not read. The fields are filled in for you to check before saving.",
+    "scanning": "Reading the talon… {percent}%",
+    "scanningAgain": "Taking a second look… {percent}%",
+    "filled": "Filled in: {fields}.",
+    "unsure": "Couldn’t read clearly, left as they were: {fields}.",
+    "hybrid": "The talon names both fuel and electricity. Choose Hybrid or Plug-in hybrid yourself — the talon doesn’t say which, and only a plug-in gets the charging log.",
+    "check": "Check each field against the talon before saving.",
+    "failed": "Couldn’t read this talon. Try a sharper photo in good light, or type the fields in.",
+    "upgrade": "Scan the talon instead of typing it — with Personal",
+    "field": {
+      "plate": "plate",
+      "firstRegistrationDate": "first registration",
+      "make": "make",
+      "model": "model",
+      "vin": "VIN",
+      "engineCapacityCc": "engine capacity",
+      "powerKw": "power",
+      "fuelType": "fuel",
+      "colour": "colour",
+      "seats": "seats"
+    }
   }
 }

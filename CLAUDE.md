@@ -952,6 +952,29 @@ attached to the job as its receipt once the job is saved.
   figures and the split falls back to unsure — safe, but that is the next
   thing to improve with real photos.
 
+**The talon** (`talonParse.ts`, on the vehicle edit page) proposes the
+identity fields from a Romanian registration certificate, found by their
+EU codes (A plate, B first registration, D.1/D.3 make/model, E VIN,
+P.1–P.3 engine/power/fuel, R colour, S.1 seats) — each value cut at the
+next code, since the card's two columns come back as one row.
+- **The holder (C.1/C.2 — name, address, personal number) is never read,
+  and the photo is never uploaded**; `TalonScan` sends nothing (a test).
+- **No year is proposed**: B is the first registration, which for an
+  import is years after the model year.
+- **A hybrid is not picked**: "BENZINA/ELECTRIC" is printed for a hybrid
+  and a plug-in alike, and only a plug-in gets the charging log, so the
+  fuel is left empty with its own note.
+- A VIN is repaired only for the letters ISO 3779 forbids (O/Q→0, I→1);
+  a plate found without its A must start with a real county code.
+- On the edit form a field it could not read keeps its value (it may
+  already be right); what was read overwrites, and the note lists both.
+  Same plan gate as the receipt scanner.
+- Bench: 6 renders (one/two columns, tilt, dim, shadow, blur) of a talon
+  laid out like the real card: 53/60 fields right, none wrong. Sparse
+  mode drops the single-letter codes, so A/B/R come from the second look.
+  Real, laminated talons are the open question — add a failing one's OCR
+  lines as a test case.
+
 ### Car Health (`src/lib/vehicleHealth.ts`, RL-046 — slice 4) and tyres (`src/lib/tyres.ts`)
 `computeHealth()` is pure and returns rows (documents per type, service,
 tyres, open jobs) plus **one** next action; `VehicleHealthPanel` renders it
@@ -1249,7 +1272,9 @@ the function the documents board and the reminder cron use.
   organisation, and a report narrowed to a site names it in its filename
   and on every PDF page.
 
-**Fleet cost** (slice 2, `/fleet/costs`, same roles): `fleetCost()` is
+**Fleet cost** (slice 2, `/fleet/costs`, same roles; each row shows the
+vehicle's fuel type and its fuel-and-charging total, so powertrains
+compare): `fleetCost()` is
 `ownershipReport()` per vehicle, added up — a vehicle's line is the total on
 its own costs page. Both pages load through `loadOwnershipInputs()`
 (`src/lib/ownershipRecords.ts`: six batched queries for any number of
