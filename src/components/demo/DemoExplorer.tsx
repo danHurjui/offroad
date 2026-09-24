@@ -3,14 +3,23 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { DEMO_CHAPTERS, DEMO_SECTIONS, chapterValues, type DemoChapter, type DemoTier } from '@/lib/demoTour'
+import {
+  DEMO_CHAPTERS,
+  DEMO_SECTIONS,
+  DEMO_TIERS,
+  TIER_BADGE,
+  TIER_LABEL_KEY,
+  chapterValues,
+  type DemoChapter,
+  type DemoTier,
+} from '@/lib/demoTour'
 import { PROJECT_TYPES, type ProjectType } from '@/lib/projectType'
 import { useAllVocabulary } from '@/lib/vocabulary'
 
 /**
  * The tour, as something to move around in rather than scroll past.
  *
- * Twenty-six features is too many for one page of prose — the reader who
+ * Forty-two features is too many for one page of prose — the reader who
  * wants to know whether it handles their ITP should not have to walk
  * through the trail log to find out. So the sections become categories
  * you pick between, each category is a list you pick from, and the panel
@@ -20,7 +29,7 @@ import { useAllVocabulary } from '@/lib/vocabulary'
  *
  * Each chapter's panel is in the HTML from the first response, with
  * `hidden` on the ones not being shown. The alternative — mounting the
- * selected panel only — would leave twenty-five of the twenty-six
+ * selected panel only — would leave forty-one of the forty-two
  * features out of the page a crawler reads and out of the reader's
  * Ctrl+F. The previews are small and static, so the cost of having them
  * all there is a slightly larger document, once.
@@ -123,8 +132,8 @@ export default function DemoExplorer({ previews }: { previews: Record<string, Re
     chapter.modes ? t('onlyIn', { modes: chapter.modes.map((m) => vocabulary[m].label).join(' · ') }) : null
 
   const tierBadge = (chapter: DemoChapter) => (
-    <span className={`badge ${chapter.tier === 'pro' ? 'badge-brand' : 'badge-neutral'}`}>
-      {t(chapter.tier === 'pro' ? 'tierPro' : 'tierFree')}
+    <span className={`badge ${TIER_BADGE[chapter.tier]}`}>
+      {t(TIER_LABEL_KEY[chapter.tier])}
     </span>
   )
 
@@ -138,8 +147,8 @@ export default function DemoExplorer({ previews }: { previews: Record<string, Re
   return (
     <div>
       {/*
-        Without JavaScript the picker cannot pick, and twenty-five of the
-        twenty-six panels would stay `hidden` — one feature instead of a
+        Without JavaScript the picker cannot pick, and forty-one of the
+        forty-two panels would stay `hidden` — one feature instead of a
         tour. So a no-script reader gets the plain version: the controls
         that do nothing are taken away, and every panel is shown, stacked.
         It is the page this used to be before the explorer, which is a
@@ -188,7 +197,7 @@ export default function DemoExplorer({ previews }: { previews: Record<string, Re
       <div data-demo-controls className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
         <div role="group" aria-label={t('filters.plan')} className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('filters.plan')}</span>
-          {(['all', 'free', 'pro'] as TierFilter[]).map((value) => (
+          {(['all', ...DEMO_TIERS] as TierFilter[]).map((value) => (
             <button
               key={value}
               type="button"
@@ -196,7 +205,7 @@ export default function DemoExplorer({ previews }: { previews: Record<string, Re
               onClick={() => setTier(value)}
               className={chip(tier === value)}
             >
-              {value === 'all' ? t('filters.all') : t(value === 'pro' ? 'tierPro' : 'tierFree')}
+              {value === 'all' ? t('filters.all') : t(TIER_LABEL_KEY[value])}
             </button>
           ))}
         </div>
@@ -252,7 +261,7 @@ export default function DemoExplorer({ previews }: { previews: Record<string, Re
 
         {/*
           Every panel is here; all but one are `hidden`. See the note at
-          the top — this is what keeps the other twenty-five features in
+          the top — this is what keeps the other forty-one features in
           the page for a crawler and for the reader's own find-in-page.
         */}
         <div aria-live="polite" className="min-w-0">

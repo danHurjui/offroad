@@ -494,7 +494,7 @@
   "home": {
     "metaTitle": "Car build, restoration and repair log — RigLog",
     "heroTitle": "Every bolt, every lei, every photo — in one place.",
-    "heroBody": "RigLog is a build tracker for off-road rigs, a restoration journal for classics, and a repair log for the car you drive every day. Keep the history your vehicle deserves.",
+    "heroBody": "RigLog is a build tracker for off-road rigs, a restoration journal for classics, a repair log for the car you drive every day — and a fleet log for the vans your company runs. Keep the history your vehicle deserves.",
     "ctaStart": "Start logging — free",
     "ctaBrowse": "Browse public builds",
     "noCard": "One vehicle free, forever. No card needed to start.",
@@ -567,12 +567,24 @@
         "body": "Invite a mechanic or specialist to log their own work. They see the build, not your costs, if you would rather keep those private."
       },
       "receipts": {
-        "title": "Receipts and PDF export",
-        "body": "Attach receipts to any job, then export the whole history as a PDF — useful when the car changes hands."
+        "title": "Receipts, scanned",
+        "body": "Photograph a fuel receipt or a service invoice and the form fills itself in, read on your phone. Attach receipts to any job, then export the whole history as a PDF."
       },
       "privacy": {
         "title": "Share it, or do not",
         "body": "Every project is private by default. Publish it when you want a public page, a shareable card, and a spot in the community feed."
+      },
+      "fuel": {
+        "title": "Fuel and real consumption",
+        "body": "Every fill-up, with consumption measured between two full tanks — what the car actually used, never an estimate."
+      },
+      "health": {
+        "title": "Car Health at a glance",
+        "body": "Documents about to expire, the next service, worn or old tyres and jobs still due, with the one thing to do next."
+      },
+      "passport": {
+        "title": "A passport for the buyer",
+        "body": "Share the service book, documents and recorded damage as a link or PDF when you sell — honest about being the owner’s own record."
       }
     },
     "metaDescription": "Log every modification, restoration stage and repair on your vehicle: costs, photos, receipts and reminders for insurance and inspection, all in one place. Free to start.",
@@ -580,11 +592,25 @@
     "personal": "Personal",
     "personalFrom": "{price} RON",
     "personalVehicles": "Up to {count, plural, one {# vehicle} other {# vehicles}}, unlimited photos",
-    "personalAlsoAvailable": "Also {annual} RON a year, or {lifetime} RON once for good."
+    "personalAlsoAvailable": "Also {annual} RON a year, or {lifetime} RON once for good.",
+    "recordsEyebrow": "The whole car",
+    "recordsTitle": "Not just the jobs — everything the car collects",
+    "recordsBody": "Plate and talon, odometer, fuel, tyres, damage and the total cost of owning it, all on the same vehicle. Most of it fills itself in from what you already log.",
+    "recordsCta": "See the car records",
+    "businessEyebrow": "For companies",
+    "businessTitle": "Run the company’s vehicles in the same app",
+    "businessBody": "An organisation owns its vehicles; its people have roles; everything a fleet manager chases is on one screen.",
+    "businessPoint": {
+      "compliance": "Every ITP, RCA, CASCO and rovinietă across the fleet, off-the-road first",
+      "drivers": "Drivers with their own simple screen, and km and photos at every handover",
+      "trips": "Business and personal trips, checked against the odometer",
+      "reports": "Jobs and costs as spreadsheets, and a PDF summary for the accountant"
+    },
+    "businessCta": "See the fleet features"
   },
   "demo": {
     "metaTitle": "Every feature, with sample screens — RigLog",
-    "metaDescription": "See what RigLog does before signing up: jobs with costs, before-and-after photos, receipts, document reminders, PDF reports and spend analysis. Real screens, no account needed.",
+    "metaDescription": "See what RigLog does before signing up: jobs with costs, photos, receipts read from a photo, fuel and real consumption, document reminders, a vehicle passport for selling, and fleet tools for companies. Sample screens, no account needed.",
     "heroTitle": "Everything RigLog does, before you sign up",
     "heroBody": "A walk through every feature — {count} of them — with sample screens from the app itself. Pick a category, filter by plan, and open whichever one you came for.",
     "heroNote": "The screens below use made-up data. Your own log is yours alone.",
@@ -624,6 +650,16 @@
         "eyebrow": "The app itself",
         "title": "Small things that add up",
         "body": "RigLog is a web app that installs like a native one, speaks Romanian and English, and hands your data back whenever you ask for it."
+      },
+      "records": {
+        "eyebrow": "Car records",
+        "title": "Everything a car on the road collects",
+        "body": "The plate and the talon, the odometer, every fill-up, the tyres, what it all costs, and the history a buyer will ask for. Most of it fills itself in from what you already log."
+      },
+      "business": {
+        "eyebrow": "For companies",
+        "title": "A fleet, run from one screen",
+        "body": "An organisation owns its vehicles, its people have roles, and the documents, costs, drivers and trips of every van are in one place — with the files the accountant asks for at the end of the month."
       }
     },
     "chapter": {
@@ -730,6 +766,70 @@
       "yourData": {
         "title": "Your data, on request",
         "body": "Download everything RigLog holds about you as JSON, or delete the account and take the photos with it. Both are buttons in settings, not an email to support."
+      },
+      "identity": {
+        "title": "Plate and registration",
+        "body": "The plate and what the talon says — fuel, gearbox, engine, power, first registration — kept with the vehicle. The plate is searchable in your garage and never shown on a public page."
+      },
+      "odometer": {
+        "title": "Odometer history",
+        "body": "Readings arrive on their own: with a job, at a fill-up, at a driver handover. Each has to sit between the ones before and after it, and a replaced gauge or a correction is kept as a marked exception instead of breaking the history."
+      },
+      "fuel": {
+        "title": "Fuel log and real consumption",
+        "body": "Log litres and what you paid; the price per litre works itself out. Consumption is measured only between two full tanks, with partial fills counted in between — so the figure is what the car used, never an estimate."
+      },
+      "receiptScan": {
+        "title": "Scan the receipt",
+        "body": "Photograph a fuel receipt or a workshop invoice and the form fills itself: date, litres, total, or parts and labour. It is read on your phone — the photo is never sent anywhere to be read — and anything read uncertainly is flagged for you to type."
+      },
+      "health": {
+        "title": "Car Health",
+        "body": "One panel for what needs doing: documents about to expire, the next service by km or by date, tyres getting thin or old, jobs still due — and the one thing to do next. It never gives the car a score, and nothing recorded is shown as unknown, not as fine."
+      },
+      "tyres": {
+        "title": "Tyre sets",
+        "body": "Summer and winter sets, which one is on the car, the tread depth with the day it was measured, and the year on the sidewall. Car Health warns before the tread reaches the legal minimum or the tyres get too old."
+      },
+      "ownership": {
+        "title": "Cost of ownership",
+        "body": "The purchase, fuel, jobs, insurance, ITP, tyres, tax and tolls added up into one total, with what a km really costs. The total is free; the breakdown and cost per km come with Personal. What the total is missing is listed, not hidden."
+      },
+      "serviceBook": {
+        "title": "Service book",
+        "body": "Every finished job in order, with the km and who did it — built from the jobs you already logged, never typed twice. A job entered months later, or after the gauge was replaced, is marked on its row. Reading is free; the PDF comes with Personal."
+      },
+      "passport": {
+        "title": "Vehicle passport for a buyer",
+        "body": "Share a link or a PDF of the car’s history when you sell it. It says in its heading what it is — the owner’s own records, not a history report — lists every year with no records, and says “none recorded” rather than “no accidents”. Plate and VIN stay off unless you choose them."
+      },
+      "accidents": {
+        "title": "Accidents and damage",
+        "body": "Record damage honestly: what happened, when, how it was paid for and when it was repaired, with photos. The photos stay private; a passport counts them but never shows them."
+      },
+      "organization": {
+        "title": "An organisation with roles",
+        "body": "Create the company once, with its CUI, and invite people as owner, fleet manager, mechanic or driver. Managers run the vehicles, a mechanic logs the work, a driver sees only the vehicle assigned to them — and never what it costs."
+      },
+      "fleetBoard": {
+        "title": "Fleet compliance",
+        "body": "Every vehicle against every document a roadside check asks for — ITP, RCA, CASCO, rovinietă, first-aid kit, extinguisher — with the days left on each. Anything off the road today comes first, and the managers get the reminder emails."
+      },
+      "fleetCosts": {
+        "title": "Fleet cost",
+        "body": "What the fleet costs to run, per month and per vehicle per month, from each vehicle’s own cost record. A vehicle whose record has gaps is marked, so a total never looks more complete than it is."
+      },
+      "drivers": {
+        "title": "Drivers and handovers",
+        "body": "Assign a driver to a vehicle and keep the history. The driver gets a simple screen: report a defect, log fuel or a toll, record km. Each handover records the km and photos of the vehicle’s condition at both ends."
+      },
+      "trips": {
+        "title": "Trips and the odometer",
+        "body": "Business and personal trips with the km at each end, checked against the odometer: every stretch no trip covers is listed, not smoothed over. Exported as a spreadsheet for the accountant. Also on a personal vehicle with Personal."
+      },
+      "fleetReports": {
+        "title": "Reports for the accountant",
+        "body": "For any period: every job and every cost as a spreadsheet Excel opens correctly under Romanian settings, with the driver assigned that day, and a PDF summary of what the fleet spent and which documents expired or were renewed."
       }
     },
     "sample": {
@@ -876,6 +976,88 @@
       "data": {
         "exportNote": "Profile, vehicles, jobs, costs, documents — as JSON.",
         "deleteNote": "Deletes the account, and the photos with it."
+      },
+      "identity": {
+        "vehicle": "Dacia Duster 1.5 dCi",
+        "colour": "Grey",
+        "plateAlt": "A Romanian licence plate",
+        "carAlt": "The vehicle, drawn from the side",
+        "note": "Visible to you and anyone you invite to the vehicle. Never on a public page."
+      },
+      "odometer": {
+        "gaugeAlt": "An odometer showing the current reading"
+      },
+      "fuel": {
+        "chartAlt": "Consumption for each stretch between two full tanks",
+        "note": "Measured only between two full tanks. The partial fill in between adds its litres to the next stretch."
+      },
+      "scan": {
+        "title": "Read from the photo",
+        "station": "Benzinăria Exemplu",
+        "receiptAlt": "A photographed fuel receipt, with the figures that were read boxed",
+        "privacy": "Read on the phone itself. The photo is not sent anywhere to be read."
+      },
+      "health": {
+        "service": "Service",
+        "brakes": "Front brake pads"
+      },
+      "tyres": {
+        "winter": "Winter set",
+        "summer": "Summer set"
+      },
+      "ownership": {
+        "chartAlt": "The total, split by what it was spent on"
+      },
+      "serviceBook": {
+        "brakes": "Front brake pads and discs",
+        "service": "Service: oil and filters",
+        "clutch": "Clutch kit",
+        "wipers": "Wiper blades"
+      },
+      "passport": {
+        "ownedSince": "Owned since",
+        "latestKm": "Latest km",
+        "jobs": "Jobs",
+        "gap": "No records from {from} to {to}.",
+        "link": "Share link",
+        "withdraw": "Withdraw link",
+        "show": {
+          "plate": "Show the plate",
+          "vin": "Show the VIN",
+          "costs": "Show costs"
+        },
+        "on": "On",
+        "off": "Off"
+      },
+      "accident": {
+        "carAlt": "The car from above, with the damaged rear left corner marked",
+        "title": "Rear left bumper",
+        "description": "Reversed into a bollard in a car park. Bumper cracked, parking sensor replaced."
+      },
+      "org": {
+        "name": "Exemplu Logistic SRL",
+        "person": {
+          "a": "Ana Ionescu",
+          "b": "Radu Pop",
+          "c": "Service Auto Exemplu",
+          "d": "Mihai Stan",
+          "e": "Elena Dobre"
+        },
+        "note": "Only the owners see members’ email addresses and the billing."
+      },
+      "fleetCost": {
+        "chartAlt": "Running cost per month over the last six months"
+      },
+      "drivers": {
+        "photosNote": "Front, back and both sides, taken at the handover."
+      },
+      "trips": {
+        "chartAlt": "The month’s odometer km split into business, personal and not in any trip"
+      },
+      "reports": {
+        "fuel": "Fuel",
+        "service": "Jobs and service",
+        "note": "The raw file: every field quoted, “;” between columns, the Romanian decimal comma."
       }
     },
     "categories": "Categories",
@@ -919,9 +1101,18 @@
       "leave": {
         "q": "What if I want to leave?",
         "a": "Download everything RigLog holds about you as JSON, or delete the account and take the photos with it. Both are buttons in settings, not an email to support."
+      },
+      "sell": {
+        "q": "Can I show a buyer the car’s history?",
+        "a": "Yes. The vehicle passport is a link or a PDF with the service book, documents, tyres and any damage you recorded. It says plainly that it is the owner’s own record rather than a history report, and you can withdraw the link at any time."
+      },
+      "company": {
+        "q": "Does it work for a company fleet?",
+        "a": "Yes. An organisation holds its own vehicles, with roles for managers, mechanics and drivers, a compliance board for every document, drivers and handovers, trips, and reports for the accountant. Company plans are priced by the number of vehicles."
       }
     },
-    "breadcrumb": "Features"
+    "breadcrumb": "Features",
+    "tierBusiness": "Company plan"
   },
   "task": {
     "name": "Name",

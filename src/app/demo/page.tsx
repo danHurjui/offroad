@@ -4,7 +4,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { appUrlForMetadata } from '@/lib/appUrl'
 import { publicPageMetadata } from '@/lib/pageMetadata'
 import { breadcrumbJsonLd, softwareApplicationJsonLd } from '@/lib/structuredData'
-import { DEMO_FAQ_IDS, DEMO_SECTIONS } from '@/lib/demoTour'
+import { DEMO_FAQ_IDS, DEMO_SECTIONS, TIER_LABEL_KEY } from '@/lib/demoTour'
 import { FREE_TIER } from '@/lib/pro'
 import { formatPlanPrice, LADDER } from '@/lib/plans'
 import JsonLd from '@/components/JsonLd'
@@ -39,6 +39,26 @@ import {
   VinPreview,
   WishlistPreview,
 } from '@/components/demo/previews'
+import {
+  AccidentsPreview,
+  FuelPreview,
+  HealthPreview,
+  IdentityPreview,
+  OdometerPreview,
+  OwnershipPreview,
+  PassportPreview,
+  ReceiptScanPreview,
+  ServiceBookPreview,
+  TyresPreview,
+} from '@/components/demo/recordPreviews'
+import {
+  DriversPreview,
+  FleetBoardPreview,
+  FleetCostsPreview,
+  FleetReportsPreview,
+  OrganizationPreview,
+  TripsPreview,
+} from '@/components/demo/fleetPreviews'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('demo')
@@ -122,6 +142,22 @@ export default async function DemoPage() {
     originality: screen('originality', <OriginalityPreview />),
     vinDecoder: screen('vinDecoder', <VinPreview />),
     priceAlert: screen('priceAlert', <PriceAlertPreview />),
+    identity: screen('identity', <IdentityPreview />),
+    odometer: screen('odometer', <OdometerPreview />),
+    fuel: screen('fuel', <FuelPreview />),
+    receiptScan: screen('receiptScan', <ReceiptScanPreview />),
+    health: screen('health', <HealthPreview />),
+    tyres: screen('tyres', <TyresPreview />),
+    ownership: screen('ownership', <OwnershipPreview />),
+    serviceBook: screen('serviceBook', <ServiceBookPreview />),
+    passport: screen('passport', <PassportPreview />),
+    accidents: screen('accidents', <AccidentsPreview />),
+    organization: screen('organization', <OrganizationPreview />),
+    fleetBoard: screen('fleetBoard', <FleetBoardPreview />),
+    fleetCosts: screen('fleetCosts', <FleetCostsPreview />),
+    drivers: screen('drivers', <DriversPreview />),
+    trips: screen('trips', <TripsPreview />),
+    fleetReports: screen('fleetReports', <FleetReportsPreview />),
     publicBuild: screen('publicBuild', <PublicBuildPreview />),
     feed: screen('feed', <FeedPreview />),
     partsWanted: screen('partsWanted', <PartsWantedPreview />),
@@ -200,7 +236,7 @@ export default async function DemoPage() {
       {/*
         Every feature named in plain, always-visible text.
 
-        The explorer keeps twenty-five of its twenty-six panels `hidden`,
+        The explorer keeps forty-one of its forty-two panels `hidden`,
         and while Search does index hidden tab content it does not weigh
         it the same as what is on the page. This list costs a reader
         nothing — it is the index of a long page, which is useful on its
@@ -214,7 +250,7 @@ export default async function DemoPage() {
             {t('allFeatures')}
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-ink-muted">{t('allFeaturesBody')}</p>
-          <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {DEMO_SECTIONS.map((section) => (
               <div key={section.id}>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
@@ -230,7 +266,7 @@ export default async function DemoPage() {
                         {t(`chapter.${chapter.id}.title`)}
                       </a>{' '}
                       <span className="text-xs text-ink-faint">
-                        {t(chapter.tier === 'pro' ? 'tierPro' : 'tierFree')}
+                        {t(TIER_LABEL_KEY[chapter.tier])}
                       </span>
                     </li>
                   ))}

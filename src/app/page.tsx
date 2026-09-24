@@ -13,6 +13,9 @@ import JsonLd from '@/components/JsonLd'
 import CompanyPlans from '@/components/CompanyPlans'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
+import DemoScreen from '@/components/demo/DemoScreen'
+import { HealthPreview, ReceiptScanPreview } from '@/components/demo/recordPreviews'
+import { FleetBoardPreview } from '@/components/demo/fleetPreviews'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('home')
@@ -30,7 +33,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * `home.feature.<key>`, so adding a card is one entry here and one block
  * per language — and i18n.test.ts fails if a language is missing one.
  */
-const FEATURE_KEYS = ['costs', 'photos', 'documents', 'mechanic', 'receipts', 'privacy'] as const
+const FEATURE_KEYS = ['costs', 'photos', 'documents', 'fuel', 'health', 'receipts', 'mechanic', 'passport', 'privacy'] as const
+
+/** The fleet section's points, in order (`home.businessPoint.<key>`). */
+const BUSINESS_POINTS = ['compliance', 'drivers', 'trips', 'reports'] as const
 
 function Section({
   eyebrow,
@@ -161,7 +167,7 @@ export default async function Home() {
             </div>
           ))}
         </div>
-        {/* These six are the summary. /demo is the same list at length,
+        {/* These nine are the summary. /demo is the same list at length,
             with a sample screen against each one. */}
         <div className="mt-6">
           <Link href="/demo" className="btn-secondary">
@@ -169,6 +175,64 @@ export default async function Home() {
           </Link>
         </div>
       </Section>
+
+      {/*
+        The whole car, shown rather than listed: two of the tour's own
+        sample screens, in the same frame and with the same "sample data"
+        caption they carry on /demo — so the homepage cannot show a mock
+        the tour does not also label.
+      */}
+      <Section eyebrow={t('recordsEyebrow')} title={t('recordsTitle')}>
+        <p className="-mt-4 mb-8 max-w-2xl text-ink-muted">{t('recordsBody')}</p>
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2">
+          <DemoScreen label={td('chapter.health.title')}>
+            <HealthPreview />
+          </DemoScreen>
+          <DemoScreen label={td('chapter.receiptScan.title')}>
+            <ReceiptScanPreview />
+          </DemoScreen>
+        </div>
+        <div className="mt-6">
+          <Link href="/demo#records" className="btn-secondary">
+            {t('recordsCta')}
+          </Link>
+        </div>
+      </Section>
+
+      {/* For companies — the fleet half, before the pricing that sells it.
+          The board gets the full width: it is a vehicles × documents grid,
+          and squeezed into half a column it scrolls sideways. */}
+      <section className="border-y border-surface-border bg-surface">
+        <div className="mx-auto max-w-5xl px-4 py-14">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-8 md:grid-cols-2">
+            <div>
+              <div className="mb-2 text-sm font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-300">
+                {t('businessEyebrow')}
+              </div>
+              <h2 className="text-2xl font-bold text-ink sm:text-3xl">{t('businessTitle')}</h2>
+              <p className="mt-3 text-ink-muted">{t('businessBody')}</p>
+              <Link href="/demo#business" className="btn-secondary mt-6">
+                {t('businessCta')}
+              </Link>
+            </div>
+            <ul className="space-y-2.5 self-center text-sm text-ink">
+              {BUSINESS_POINTS.map((key) => (
+                <li key={key} className="flex gap-2">
+                  <svg viewBox="0 0 20 20" aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-brand-600 dark:text-brand-300" fill="currentColor">
+                    <path d="M8.1 13.6 4.5 10l-1.4 1.4 5 5 9-9-1.4-1.4z" />
+                  </svg>
+                  {t(`businessPoint.${key}`)}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="mt-10">
+            <DemoScreen label={td('chapter.fleetBoard.title')}>
+              <FleetBoardPreview />
+            </DemoScreen>
+          </div>
+        </div>
+      </section>
 
       {/* Pricing — every figure from the ladder (src/lib/plans.ts) */}
       <Section eyebrow={t('pricingEyebrow')} title={t('pricingTitle')}>

@@ -494,7 +494,7 @@
   "home": {
     "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
     "heroTitle": "Fiecare șurub, fiecare leu, fiecare poză — într-un singur loc.",
-    "heroBody": "RigLog e jurnal de build pentru mașini de off-road, jurnal de restaurare pentru clasice și carnet de reparații pentru mașina cu care mergi zilnic. Păstrează-i istoricul pe care îl merită.",
+    "heroBody": "RigLog ține evidența build-urilor off-road, e jurnal de restaurare pentru clasice, jurnal de reparații pentru mașina de zi cu zi — și jurnal de flotă pentru dubele firmei tale. Păstrează istoricul pe care vehiculul tău îl merită.",
     "ctaStart": "Începe gratuit",
     "ctaBrowse": "Vezi proiecte publice",
     "noCard": "Un vehicul gratuit, pentru totdeauna. Nu ai nevoie de card ca să începi.",
@@ -567,12 +567,24 @@
         "body": "Invită un mecanic sau un specialist să-și înregistreze propria muncă. Vede proiectul, nu și costurile tale, dacă preferi să le ții private."
       },
       "receipts": {
-        "title": "Bonuri și export PDF",
-        "body": "Atașează bonuri la orice lucrare, apoi exportă tot istoricul ca PDF — util când mașina își schimbă proprietarul."
+        "title": "Bonuri, scanate",
+        "body": "Fotografiezi bonul de benzinărie sau factura de service și formularul se completează singur, citit pe telefon. Atașezi bonuri la orice lucrare, apoi exporți tot istoricul ca PDF."
       },
       "privacy": {
         "title": "Publici sau nu",
         "body": "Fiecare proiect e privat implicit. Îl publici când vrei o pagină publică, un card de partajat și un loc în fluxul comunității."
+      },
+      "fuel": {
+        "title": "Alimentări și consum real",
+        "body": "Fiecare alimentare, cu consumul măsurat între două plinuri — cât a consumat de fapt mașina, niciodată o estimare."
+      },
+      "health": {
+        "title": "Starea mașinii dintr-o privire",
+        "body": "Documente care expiră, următoarea revizie, anvelope uzate sau vechi și lucrări scadente, cu singurul lucru de făcut acum."
+      },
+      "passport": {
+        "title": "Un pașaport pentru cumpărător",
+        "body": "Când vinzi, trimiți cartea de service, documentele și daunele notate ca link sau PDF — spunând cinstit că e evidența proprie a proprietarului."
       }
     },
     "metaDescription": "Notează fiecare modificare, etapă de restaurare și reparație a vehiculului tău: costuri, poze, bonuri și memento-uri pentru ITP și RCA, într-un singur loc. Gratuit la început.",
@@ -580,11 +592,25 @@
     "personal": "Personal",
     "personalFrom": "{price} RON",
     "personalVehicles": "Până la {count, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}, poze nelimitate",
-    "personalAlsoAvailable": "Sau {annual} RON pe an, ori {lifetime} RON o singură dată, pentru totdeauna."
+    "personalAlsoAvailable": "Sau {annual} RON pe an, ori {lifetime} RON o singură dată, pentru totdeauna.",
+    "recordsEyebrow": "Toată mașina",
+    "recordsTitle": "Nu doar lucrările — tot ce adună mașina",
+    "recordsBody": "Număr și talon, kilometraj, combustibil, anvelope, daune și costul total al mașinii, toate pe același vehicul. Mare parte se completează singur din ce notezi oricum.",
+    "recordsCta": "Vezi dosarul mașinii",
+    "businessEyebrow": "Pentru firme",
+    "businessTitle": "Vehiculele firmei, în aceeași aplicație",
+    "businessBody": "Organizația își deține vehiculele, oamenii ei au roluri, iar tot ce urmărește un manager de flotă e pe un singur ecran.",
+    "businessPoint": {
+      "compliance": "Fiecare ITP, RCA, CASCO și rovinietă din flotă, cu ce nu poate circula primul",
+      "drivers": "Șoferi cu ecranul lor simplu, cu km și poze la fiecare predare",
+      "trips": "Curse de serviciu și personale, verificate față de kilometraj",
+      "reports": "Lucrări și costuri ca tabele, plus un PDF cu rezumatul pentru contabil"
+    },
+    "businessCta": "Vezi funcțiile pentru flote"
   },
   "demo": {
     "metaTitle": "Toate funcțiile, cu ecrane de exemplu — RigLog",
-    "metaDescription": "Vezi ce face RigLog înainte să-ți faci cont: lucrări cu costuri, poze înainte și după, bonuri, memento-uri pentru ITP și RCA, rapoarte PDF și analiza cheltuielilor. Ecrane reale, fără cont.",
+    "metaDescription": "Vezi ce face RigLog înainte să-ți faci cont: lucrări cu costuri, poze, bonuri citite din poză, alimentări și consum real, memento-uri pentru ITP și RCA, pașaportul mașinii pentru vânzare și unelte de flotă pentru firme. Ecrane de probă, fără cont.",
     "heroTitle": "Tot ce face RigLog, înainte să-ți faci cont",
     "heroBody": "Un tur prin fiecare funcție — {count} la număr — cu ecrane de exemplu din aplicație. Alegi o categorie, filtrezi după plan și deschizi exact ce te interesează.",
     "heroNote": "Ecranele de mai jos folosesc date inventate. Jurnalul tău rămâne doar al tău.",
@@ -624,6 +650,16 @@
         "eyebrow": "Aplicația în sine",
         "title": "Lucruri mici care contează",
         "body": "RigLog e o aplicație web care se instalează ca una nativă, vorbește română și engleză și îți dă datele înapoi oricând le ceri."
+      },
+      "records": {
+        "eyebrow": "Dosarul mașinii",
+        "title": "Tot ce adună o mașină de drum",
+        "body": "Numărul și talonul, kilometrajul, fiecare alimentare, anvelopele, cât te costă totul și istoricul pe care ți-l va cere un cumpărător. Mare parte se completează singur din ce notezi oricum."
+      },
+      "business": {
+        "eyebrow": "Pentru firme",
+        "title": "O flotă, condusă dintr-un singur ecran",
+        "body": "Organizația își deține vehiculele, oamenii ei au roluri, iar documentele, costurile, șoferii și cursele fiecărei dube stau într-un singur loc — cu fișierele pe care le cere contabilul la final de lună."
       }
     },
     "chapter": {
@@ -730,6 +766,70 @@
       "yourData": {
         "title": "Datele tale, la cerere",
         "body": "Descarci ca JSON tot ce ține RigLog despre tine sau ștergi contul și duci pozele odată cu el. Amândouă sunt butoane în setări, nu un mail către suport."
+      },
+      "identity": {
+        "title": "Număr și talon",
+        "body": "Numărul de înmatriculare și ce scrie în talon — combustibil, cutie, motor, putere, prima înmatriculare — ținute lângă vehicul. Numărul se poate căuta în garaj și nu apare niciodată pe o pagină publică."
+      },
+      "odometer": {
+        "title": "Istoricul kilometrajului",
+        "body": "Citirile vin singure: cu o lucrare, la alimentare, la predarea între șoferi. Fiecare trebuie să stea între cea dinainte și cea de după, iar un bord înlocuit sau o corectură rămân ca excepție marcată, fără să strice istoricul."
+      },
+      "fuel": {
+        "title": "Alimentări și consum real",
+        "body": "Notezi litrii și cât ai plătit; prețul pe litru iese singur. Consumul se măsoară doar între două plinuri, cu alimentările parțiale adunate la mijloc — deci cifra e cât a consumat mașina, niciodată o estimare."
+      },
+      "receiptScan": {
+        "title": "Scanezi bonul",
+        "body": "Fotografiezi bonul de la benzinărie sau factura de la service și formularul se completează singur: data, litrii, totalul sau piesele și manopera. Se citește pe telefon — poza nu e trimisă nicăieri ca să fie citită — iar ce e citit nesigur e marcat ca să-l scrii tu."
+      },
+      "health": {
+        "title": "Starea mașinii",
+        "body": "Un singur panou pentru ce e de făcut: documente care expiră, următoarea revizie după km sau după dată, anvelope uzate sau prea vechi, lucrări încă scadente — și singurul lucru de făcut acum. Nu dă niciodată o notă mașinii, iar ce nu e înregistrat apare ca necunoscut, nu ca în regulă."
+      },
+      "tyres": {
+        "title": "Seturi de anvelope",
+        "body": "Setul de vară și cel de iarnă, care e pe mașină, adâncimea profilului cu ziua în care a fost măsurată și anul de pe flanc. Starea mașinii te avertizează înainte ca profilul să ajungă la minimul legal sau anvelopele să fie prea vechi."
+      },
+      "ownership": {
+        "title": "Costul total al mașinii",
+        "body": "Cumpărarea, combustibilul, lucrările, asigurările, ITP-ul, anvelopele, taxele și rovinietele adunate într-un singur total, cu cât costă de fapt un kilometru. Totalul e gratuit; defalcarea și costul pe km vin cu Personal. Ce lipsește din total e listat, nu ascuns."
+      },
+      "serviceBook": {
+        "title": "Cartea de service",
+        "body": "Fiecare lucrare terminată, în ordine, cu km și cine a făcut-o — construită din lucrările pe care le-ai notat deja, nu scrisă de două ori. O lucrare trecută după luni de zile sau după înlocuirea bordului e marcată pe rândul ei. Citirea e gratuită; PDF-ul vine cu Personal."
+      },
+      "passport": {
+        "title": "Pașaportul mașinii, pentru cumpărător",
+        "body": "Când vinzi, trimiți un link sau un PDF cu istoricul mașinii. Spune din titlu ce este — evidența proprie a proprietarului, nu un raport de istoric — listează fiecare an fără înregistrări și scrie „nimic înregistrat”, nu „fără accidente”. Numărul și seria de șasiu rămân ascunse dacă nu le alegi tu."
+      },
+      "accidents": {
+        "title": "Accidente și daune",
+        "body": "Notezi onest daunele: ce s-a întâmplat, când, cum s-a plătit și când s-a reparat, cu poze. Pozele rămân private; pașaportul le numără, dar nu le arată niciodată."
+      },
+      "organization": {
+        "title": "O organizație, cu roluri",
+        "body": "Creezi firma o singură dată, cu CUI-ul ei, și inviți oameni ca proprietar, manager de flotă, mecanic sau șofer. Managerii conduc vehiculele, mecanicul notează lucrările, iar șoferul vede doar vehiculul pe care îl are în grijă — și niciodată cât costă."
+      },
+      "fleetBoard": {
+        "title": "Conformitatea flotei",
+        "body": "Fiecare vehicul față de fiecare document cerut la un control în trafic — ITP, RCA, CASCO, rovinietă, trusă medicală, stingător — cu zilele rămase la fiecare. Ce nu poate circula azi apare primul, iar managerii primesc memento-urile pe mail."
+      },
+      "fleetCosts": {
+        "title": "Costul flotei",
+        "body": "Cât costă flota pe lună și pe vehicul pe lună, din evidența de costuri a fiecărui vehicul. Un vehicul cu goluri în evidență e marcat, ca totalul să nu pară niciodată mai complet decât este."
+      },
+      "drivers": {
+        "title": "Șoferi și predări",
+        "body": "Atribui un șofer unui vehicul și păstrezi istoricul. Șoferul are un ecran simplu: raportează un defect, notează alimentarea sau o taxă, trece kilometrii. La fiecare predare se trec km și poze cu starea vehiculului, la ambele capete."
+      },
+      "trips": {
+        "title": "Curse și kilometraj",
+        "body": "Curse de serviciu și personale, cu km la fiecare capăt, verificate față de kilometraj: fiecare porțiune pe care n-o acoperă nicio cursă e listată, nu netezită. Se exportă ca tabel pentru contabil. Merge și pe un vehicul personal, cu Personal."
+      },
+      "fleetReports": {
+        "title": "Rapoarte pentru contabil",
+        "body": "Pentru orice perioadă: fiecare lucrare și fiecare cost într-un tabel pe care Excel îl deschide corect cu setări românești, cu șoferul din ziua respectivă, plus un PDF cu ce a cheltuit flota și ce documente au expirat sau au fost reînnoite."
       }
     },
     "sample": {
@@ -876,6 +976,88 @@
       "data": {
         "exportNote": "Profil, vehicule, lucrări, costuri, documente — ca JSON.",
         "deleteNote": "Șterge contul, și pozele odată cu el."
+      },
+      "identity": {
+        "vehicle": "Dacia Duster 1.5 dCi",
+        "colour": "Gri",
+        "plateAlt": "Un număr de înmatriculare românesc",
+        "carAlt": "Vehiculul, desenat din lateral",
+        "note": "Vizibil pentru tine și pentru cei pe care îi inviți la vehicul. Niciodată pe o pagină publică."
+      },
+      "odometer": {
+        "gaugeAlt": "Un kilometraj care arată citirea curentă"
+      },
+      "fuel": {
+        "chartAlt": "Consumul pe fiecare porțiune dintre două plinuri",
+        "note": "Măsurat doar între două plinuri. Alimentarea parțială de la mijloc își adaugă litrii la porțiunea următoare."
+      },
+      "scan": {
+        "title": "Citit din poză",
+        "station": "Benzinăria Exemplu",
+        "receiptAlt": "Un bon de benzinărie fotografiat, cu cifrele citite încadrate",
+        "privacy": "Citit chiar pe telefon. Poza nu e trimisă nicăieri ca să fie citită."
+      },
+      "health": {
+        "service": "Revizie",
+        "brakes": "Plăcuțe de frână față"
+      },
+      "tyres": {
+        "winter": "Setul de iarnă",
+        "summer": "Setul de vară"
+      },
+      "ownership": {
+        "chartAlt": "Totalul, împărțit pe ce s-a cheltuit"
+      },
+      "serviceBook": {
+        "brakes": "Plăcuțe și discuri de frână față",
+        "service": "Revizie: ulei și filtre",
+        "clutch": "Kit ambreiaj",
+        "wipers": "Lamele ștergătoare"
+      },
+      "passport": {
+        "ownedSince": "Deținută din",
+        "latestKm": "Ultimii km",
+        "jobs": "Lucrări",
+        "gap": "Nicio înregistrare între {from} și {to}.",
+        "link": "Link de partajare",
+        "withdraw": "Retrage linkul",
+        "show": {
+          "plate": "Arată numărul",
+          "vin": "Arată seria de șasiu",
+          "costs": "Arată costurile"
+        },
+        "on": "Da",
+        "off": "Nu"
+      },
+      "accident": {
+        "carAlt": "Mașina văzută de sus, cu colțul din spate stânga marcat ca avariat",
+        "title": "Bara spate stânga",
+        "description": "Lovită cu spatele de un stâlpișor într-o parcare. Bara fisurată, senzorul de parcare înlocuit."
+      },
+      "org": {
+        "name": "Exemplu Logistic SRL",
+        "person": {
+          "a": "Ana Ionescu",
+          "b": "Radu Pop",
+          "c": "Service Auto Exemplu",
+          "d": "Mihai Stan",
+          "e": "Elena Dobre"
+        },
+        "note": "Doar proprietarii văd adresele de mail ale membrilor și facturarea."
+      },
+      "fleetCost": {
+        "chartAlt": "Costul de funcționare pe lună, în ultimele șase luni"
+      },
+      "drivers": {
+        "photosNote": "Față, spate și ambele laterale, făcute la predare."
+      },
+      "trips": {
+        "chartAlt": "Kilometrii lunii, împărțiți în serviciu, personal și în afara vreunei curse"
+      },
+      "reports": {
+        "fuel": "Combustibil",
+        "service": "Lucrări și service",
+        "note": "Fișierul brut: fiecare câmp între ghilimele, „;” între coloane, virgula zecimală românească."
       }
     },
     "categories": "Categorii",
@@ -919,9 +1101,18 @@
       "leave": {
         "q": "Dacă vreau să plec?",
         "a": "Descarci ca JSON tot ce ține RigLog despre tine sau ștergi contul și duci pozele odată cu el. Amândouă sunt butoane în setări, nu un mail către suport."
+      },
+      "sell": {
+        "q": "Pot să-i arăt unui cumpărător istoricul mașinii?",
+        "a": "Da. Pașaportul mașinii e un link sau un PDF cu cartea de service, documentele, anvelopele și orice daună pe care ai notat-o. Spune clar că e evidența proprie a proprietarului, nu un raport de istoric, iar linkul îl poți retrage oricând."
+      },
+      "company": {
+        "q": "Merge pentru flota unei firme?",
+        "a": "Da. O organizație își ține propriile vehicule, cu roluri pentru manageri, mecanici și șoferi, un tablou de conformitate pentru toate documentele, șoferi și predări, curse și rapoarte pentru contabil. Planurile de firmă au prețul după numărul de vehicule."
       }
     },
-    "breadcrumb": "Funcții"
+    "breadcrumb": "Funcții",
+    "tierBusiness": "Plan de firmă"
   },
   "task": {
     "name": "Denumire",
