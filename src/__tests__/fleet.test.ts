@@ -87,9 +87,11 @@ describe('fleetCost', () => {
       financeMonthlyRon: null,
       financeStartDate: null,
       financeEndDate: null,
+      fuelType: null,
     },
     tasks: [],
     fuel: [],
+    charges: [],
     documents: [],
     tyreSets: [],
     expenses: [],
@@ -107,6 +109,18 @@ describe('fleetCost', () => {
       ownershipReport(b, '12m').runningTotal,
     ])
     expect(cost.runningTotal).toBe(500)
+  })
+
+  // RL-055: an EV's charging is in its own page's total, so it is in the fleet's.
+  it('adds up EVs with their charging, each still its own costs page', () => {
+    const van = base('van', { fuel: [fill('f1', '2026-08-10T00:00:00Z', 300)] })
+    const ev = base('ev', {
+      vehicle: { ...base('ev').vehicle, fuelType: 'ELECTRIC' },
+      charges: [{ id: 'c1', date: new Date('2026-08-11T00:00:00Z'), totalRon: 120, network: null, totalFromTariff: false }],
+    })
+    const cost = fleetCost([van, ev], '12m')
+    expect(cost.rows.map((r) => r.runningTotal)).toEqual([ownershipReport(van, '12m').runningTotal, ownershipReport(ev, '12m').runningTotal])
+    expect(cost.runningTotal).toBe(420)
   })
 
   it('leaves the purchase out of running cost and the trend, but not the total', () => {

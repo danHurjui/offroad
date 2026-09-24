@@ -2998,6 +2998,8 @@
       "kmWindow": "Distanța e cunoscută doar între {from} și {to} ({days} din {periodDays} zile), deci costul pe km acoperă doar acest interval.",
       "noFuel": "Nu e înregistrat niciun combustibil.",
       "fuelSince": "Combustibilul e înregistrat doar de pe {date}.",
+      "noCharging": "Nicio încărcare înregistrată.",
+      "chargingSince": "Încărcarea e înregistrată doar de pe {date}.",
       "documentsWithoutPrice": "{count, plural, one {# document nu are} few {# documente nu au} other {# de documente nu au}} preț.",
       "creditAndPurchase": "Se numără și prețul de cumpărare, și ratele creditului. Dacă mașina a fost plătită din credit, trece la prețul de cumpărare doar avansul.",
       "financeIncomplete": "Finanțarea e setată, dar fără rată lunară sau dată a primei rate, așa că nu se numără nicio rată."
@@ -3016,7 +3018,7 @@
     "category": {
       "purchase": "Cumpărare",
       "finance": "Rate",
-      "fuel": "Combustibil",
+      "energy": "Combustibil și încărcare",
       "work": "Lucrări și service",
       "insurance": "Asigurări",
       "inspection": "Inspecție (ITP)",
@@ -3030,6 +3032,8 @@
     "source": {
       "task": "Lucrare",
       "fuel": "Alimentare",
+      "charge": "Încărcare",
+      "chargeTariff": "Încărcare (calculată din tariful de acasă)",
       "purchase": "Cumpărare"
     },
     "finance": {
@@ -3529,7 +3533,11 @@
     "gapOverlap": "{km} km numărați de două ori {where} — o deplasare pornește sub km la care s-a încheiat cea dinainte",
     "gapUnknown": "Necunoscut {where}: contorul a fost înlocuit sau corectat între timp",
     "withoutDistance": "{count, plural, one {# deplasare nu are} few {# deplasări nu au} other {# de deplasări nu au}} distanță: o citire de km a fost ștearsă între timp.",
-    "fuelSplit": "Carburant luna aceasta: {fuel}, adică {perKm} pe km de contor. Împărțit după distanță: serviciu {business}, personal {personal}, în afara deplasărilor {unlogged}. E o repartizare după km, nu cât a consumat fiecare deplasare.",
+    "energySplit": {
+      "fuel": "Carburant luna aceasta: {energy}, adică {perKm} pe km de contor. Împărțit după distanță: serviciu {business}, personal {personal}, în afara deplasărilor {unlogged}. E o repartizare după km, nu cât a consumat fiecare deplasare.",
+      "charging": "Încărcare luna aceasta: {energy}, adică {perKm} pe km de contor. Împărțit după distanță: serviciu {business}, personal {personal}, în afara deplasărilor {unlogged}. E o repartizare după km, nu cât a consumat fiecare deplasare.",
+      "both": "Carburant și încărcare luna aceasta: {energy}, adică {perKm} pe km de contor. Împărțit după distanță: serviciu {business}, personal {personal}, în afara deplasărilor {unlogged}. E o repartizare după km, nu cât a consumat fiecare deplasare."
+    },
     "empty": "Nicio deplasare luna aceasta.",
     "kmRange": "{start} → {end} km",
     "readingGone": "o citire de km a fost ștearsă",

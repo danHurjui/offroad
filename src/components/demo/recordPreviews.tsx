@@ -422,7 +422,7 @@ export async function OwnershipPreview() {
 
   const parts = [
     { key: 'purchase', amount: 52_000, tone: 'bg-brand-700 dark:bg-brand-300' },
-    { key: 'fuel', amount: 9_860, tone: 'bg-brand-500 dark:bg-brand-400' },
+    { key: 'energy', amount: 9_860, tone: 'bg-brand-500 dark:bg-brand-400' },
     { key: 'work', amount: 6_420, tone: 'bg-brand-400 dark:bg-brand-500' },
     { key: 'insurance', amount: 3_150, tone: 'bg-brand-300 dark:bg-brand-600' },
     { key: 'tyres', amount: 2_300, tone: 'bg-brand-200 dark:bg-brand-700' },

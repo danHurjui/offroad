@@ -32,13 +32,14 @@
 
 import { taskTotalCost, rangeCutoff, type CostTaskLike, type DateRange } from './analytics'
 import { distanceCovered, dayKey, startOfDayUtc, type ReadingLike } from './odometer'
+import { powertrainOf, takesCharge, takesFuel } from './powertrain'
 import { COST_CATEGORIES, isExpenseKind, isFinanceType, type CostCategory, type ExpenseKind, type FinanceType } from './costKinds'
 
 export { COST_CATEGORIES, EXPENSE_KINDS, FINANCE_TYPES, isExpenseKind, isFinanceType } from './costKinds'
 export type { CostCategory, ExpenseKind, FinanceType } from './costKinds'
 
 /** Where a cost line came from — and where it links to. */
-export type CostSource = 'task' | 'fuel' | 'document' | 'tyreSet' | 'expense' | 'purchase' | 'finance'
+export type CostSource = 'task' | 'fuel' | 'charge' | 'document' | 'tyreSet' | 'expense' | 'purchase' | 'finance'
 
 /**
  * Every money column in `prisma/schema.prisma`, and what this module does
@@ -50,9 +51,7 @@ export const MONEY_COLUMNS: Record<string, CostSource | { excluded: string }> = 
   'Task.partsCostRon': 'task',
   'Task.labourCostRon': 'task',
   'FuelEntry.totalRon': 'fuel',
-  // RL-053 records charges; RL-055 (#123) adds them to the total, with the
-  // "Fuel & charging" category. Until then the costs page leaves them out.
-  'ChargeEntry.totalRon': { excluded: 'not yet counted: charging joins the cost of ownership in RL-055 (#123)' },
+  'ChargeEntry.totalRon': 'charge',
   'Document.costRon': 'document',
   'TyreSet.costRon': 'tyreSet',
   'VehicleExpense.amountRon': 'expense',
@@ -152,9 +151,13 @@ export interface OwnershipInput {
     financeMonthlyRon: number | null
     financeStartDate: Date | null
     financeEndDate: Date | null
+    /** Decides which energy log's gaps are reported (RL-055). */
+    fuelType: string | null
   }
   tasks: Array<CostTaskLike & { id: string; name: string }>
   fuel: Array<{ id: string; date: Date; totalRon: number; station: string | null }>
+  /** RL-053 charges. A free one (0) is a record, not a cost line. */
+  charges: Array<{ id: string; date: Date; totalRon: number; network: string | null; totalFromTariff: boolean }>
   documents: Array<{ id: string; type: string; costRon: number | null; paidAt: Date | null; createdAt: Date }>
   tyreSets: Array<{ id: string; season: string; label: string | null; costRon: number | null; purchasedAt: Date | null; fittedAt: Date | null; createdAt: Date }>
   expenses: Array<{ id: string; date: Date; kind: string; amountRon: number; note: string | null }>
@@ -201,7 +204,23 @@ export function costLines(input: OwnershipInput): CostLine[] {
   }
   for (const entry of input.fuel) {
     if (entry.totalRon > 0) {
-      lines.push({ source: 'fuel', id: entry.id, date: entry.date, amount: entry.totalRon, category: 'fuel', text: entry.station, labelKey: 'source.fuel', href: `${base}/fuel` })
+      lines.push({ source: 'fuel', id: entry.id, date: entry.date, amount: entry.totalRon, category: 'energy', text: entry.station, labelKey: 'source.fuel', href: `${base}/fuel` })
+    }
+  }
+  for (const charge of input.charges) {
+    if (charge.totalRon > 0) {
+      lines.push({
+        source: 'charge',
+        id: charge.id,
+        date: charge.date,
+        amount: charge.totalRon,
+        category: 'energy',
+        text: charge.network,
+        // A total worked out from the owner's home tariff says so wherever
+        // it is listed — it was never a price paid at a till.
+        labelKey: charge.totalFromTariff ? 'source.chargeTariff' : 'source.charge',
+        href: `${base}/charging`,
+      })
     }
   }
   for (const doc of input.documents) {
@@ -366,12 +385,29 @@ export function ownershipReport(input: OwnershipInput, range: DateRange): Owners
     })
   }
   if (input.projectType !== 'RESTORATION') {
-    const fuel = lines.filter((l) => l.source === 'fuel')
-    if (fuel.length === 0) {
-      coverage.push({ key: 'coverage.noFuel' })
-    } else {
-      const first = fuel[fuel.length - 1].date
-      if (days(from, first) > 31) coverage.push({ key: 'coverage.fuelSince', values: { date: dayKey(first) } })
+    // RL-055: the gaps follow what the vehicle runs on. An EV with no
+    // charging recorded is a gap, never a zero; a plug-in hybrid can have
+    // either log missing, or both. No fuel type keeps the fuel check alone.
+    const powertrain = powertrainOf(input.vehicle.fuelType)
+    if (takesFuel(powertrain)) {
+      const fuel = lines.filter((l) => l.source === 'fuel')
+      if (fuel.length === 0) {
+        coverage.push({ key: 'coverage.noFuel' })
+      } else {
+        const first = fuel[fuel.length - 1].date
+        if (days(from, first) > 31) coverage.push({ key: 'coverage.fuelSince', values: { date: dayKey(first) } })
+      }
+    }
+    if (takesCharge(powertrain)) {
+      // Every charge counts as a record here, free ones too: free charging
+      // is charging that was logged, not a hole in the log.
+      const charged = input.charges.filter((c) => c.date >= from && c.date <= to).map((c) => c.date.getTime())
+      if (charged.length === 0) {
+        coverage.push({ key: 'coverage.noCharging' })
+      } else {
+        const first = new Date(Math.min(...charged))
+        if (days(from, first) > 31) coverage.push({ key: 'coverage.chargingSince', values: { date: dayKey(first) } })
+      }
     }
   }
   const unpriced = input.documents.filter((d) => d.costRon == null).length

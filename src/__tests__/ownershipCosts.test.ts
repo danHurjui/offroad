@@ -32,10 +32,12 @@ function input(overrides: Partial<OwnershipInput> = {}, vehicle: Partial<Ownersh
       financeMonthlyRon: null,
       financeStartDate: null,
       financeEndDate: null,
+      fuelType: null,
       ...vehicle,
     },
     tasks: [],
     fuel: [],
+    charges: [],
     documents: [],
     tyreSets: [],
     expenses: [],
@@ -74,6 +76,7 @@ describe('every money column is decided about', () => {
         {
           tasks: [{ id: 't', name: 'Revizie', category: 'SERVICING', date: day('2026-01-10'), workType: 'DIY', costRon: 300, partsCostRon: null, labourCostRon: null }],
           fuel: [{ id: 'f', date: day('2026-02-01'), totalRon: 350, station: null }],
+          charges: [{ id: 'c', date: day('2026-02-02'), totalRon: 90, network: 'Ionity', totalFromTariff: false }],
           documents: [{ id: 'd', type: 'RCA', costRon: 900, paidAt: day('2026-03-01'), createdAt: day('2026-03-01') }],
           tyreSets: [{ id: 's', season: 'WINTER', label: null, costRon: 1600, purchasedAt: day('2025-11-01'), fittedAt: null, createdAt: day('2025-11-01') }],
           expenses: [{ id: 'e', date: day('2026-04-01'), kind: 'TAX', amountRon: 120, note: null }],
@@ -311,5 +314,75 @@ describe('safe to import from a client component', () => {
   it.each(['src/lib/ownershipCosts.ts', 'src/lib/costKinds.ts', 'src/lib/tyres.ts'])('%s imports nothing server-only', (file) => {
     const source = fs.readFileSync(path.join(process.cwd(), file), 'utf8')
     expect(source).not.toMatch(/from '\.\/(amounts|apiError|prisma)'|next\/server|next\/headers/)
+  })
+})
+
+/** RL-055 (#123): charging is a running cost, and its gaps follow the powertrain. */
+describe('charging in the cost of ownership', () => {
+  const charge = (id: string, date: string, totalRon: number, totalFromTariff = false) => ({ id, date: day(date), totalRon, network: 'Ionity', totalFromTariff })
+  const fuel = (id: string, date: string, totalRon: number) => ({ id, date: day(date), totalRon, station: null })
+  const keys = (report: ReturnType<typeof ownershipReport>) => report.coverage.map((c) => c.key)
+
+  it('is a line of its own, in "Fuel & charging" with fuel, linking to the charging log', () => {
+    const lines = costLines(input({ charges: [charge('c', '2026-05-01', 90)], fuel: [fuel('f', '2026-05-02', 300)] }))
+    expect(lines.find((l) => l.source === 'charge')).toMatchObject({
+      amount: 90, category: 'energy', text: 'Ionity', labelKey: 'source.charge', href: '/dashboard/vehicles/v1/charging',
+    })
+    const report = ownershipReport(input({ charges: [charge('c', '2026-05-01', 90)], fuel: [fuel('f', '2026-05-02', 300)] }), 'all')
+    expect(report.categories.find((c) => c.category === 'energy')).toEqual({ category: 'energy', total: 390, count: 2 })
+  })
+
+  it('says so when the total came from the home tariff', () => {
+    const [line] = costLines(input({ charges: [charge('c', '2026-05-01', 36, true)] }))
+    expect(line.labelKey).toBe('source.chargeTariff')
+  })
+
+  it('counts a free charge as 0 — a record, never a cost line and never a gap', () => {
+    const report = ownershipReport(input({ charges: [charge('c', '2026-09-01', 0)] }, { fuelType: 'ELECTRIC', purchaseDate: day('2026-09-01'), purchasePriceRon: 1 }), 'all')
+    expect(report.lines.some((l) => l.source === 'charge')).toBe(false)
+    expect(keys(report)).not.toContain('coverage.noCharging')
+  })
+
+  it('an EV with no charging recorded lists the gap, and never asks for fuel', () => {
+    const report = ownershipReport(input({}, { fuelType: 'ELECTRIC' }), 'all')
+    expect(keys(report)).toContain('coverage.noCharging')
+    expect(keys(report)).not.toContain('coverage.noFuel')
+  })
+
+  it('names when charging only covers part of the period', () => {
+    const report = ownershipReport(
+      input({ charges: [charge('c', '2026-07-01', 50)] }, { fuelType: 'ELECTRIC', purchaseDate: day('2024-01-01'), purchasePriceRon: 1 }),
+      'all'
+    )
+    expect(report.coverage).toContainEqual({ key: 'coverage.chargingSince', values: { date: '2026-07-01' } })
+  })
+
+  it('a plug-in hybrid reports either log missing, or both', () => {
+    const phev = { fuelType: 'PLUGIN_HYBRID' }
+    expect(keys(ownershipReport(input({}, phev), 'all'))).toEqual(expect.arrayContaining(['coverage.noFuel', 'coverage.noCharging']))
+    const fuelOnly = keys(ownershipReport(input({ fuel: [fuel('f', '2026-09-01', 100)] }, { ...phev, purchaseDate: day('2026-09-01'), purchasePriceRon: 1 }), 'all'))
+    expect(fuelOnly).toContain('coverage.noCharging')
+    expect(fuelOnly).not.toContain('coverage.noFuel')
+  })
+
+  it('a combustion vehicle, and one with no fuel type, never mention charging', () => {
+    for (const fuelType of ['DIESEL', 'HYBRID', null]) {
+      expect(keys(ownershipReport(input({}, { fuelType }), 'all'))).toEqual(['coverage.noPurchase', 'coverage.noFuel'])
+    }
+  })
+
+  it('cost per km counts fuel and charging paid inside the stretch', () => {
+    const report = ownershipReport(
+      input(
+        {
+          readings: [reading('a', 10_000, '2026-06-01'), reading('b', 11_000, '2026-08-01')],
+          fuel: [fuel('f', '2026-07-01', 150)],
+          charges: [charge('c', '2026-07-02', 50), charge('late', '2026-08-01', 999)],
+        },
+        { fuelType: 'PLUGIN_HYBRID' }
+      ),
+      'all'
+    )
+    expect(report.perKm).toMatchObject({ km: 1000, costs: 200, value: 0.2 })
   })
 })

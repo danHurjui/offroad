@@ -62,9 +62,11 @@ const ownership = (vehicleId: string): OwnershipInput => ({
     financeMonthlyRon: null,
     financeStartDate: null,
     financeEndDate: null,
+    fuelType: null,
   },
   tasks: [],
   fuel: [{ id: 'f1', date: d('2026-03-12'), totalRon: 14999.5, station: 'OMV' }],
+  charges: [],
   documents: [],
   tyreSets: [],
   expenses: [],
@@ -204,7 +206,7 @@ describe('the cost CSV', () => {
   it('lists each cost with the driver that day, amounts the Romanian way', async () => {
     const text = await (await costsGet(req(MARCH, 'costs'), params)).text()
     const [, row] = text.replace(/^\uFEFF/, '').trim().split('\r\n')
-    expect(row).toBe('"2019 Dacia Dokker";"CJ 10 ABC";"12.03.2026";"Combustibil";"Alimentare";"OMV";"14.999,50";"Ana Pop"')
+    expect(row).toBe('"2019 Dacia Dokker";"CJ 10 ABC";"12.03.2026";"Combustibil și încărcare";"Alimentare";"OMV";"14.999,50";"Ana Pop"')
   })
 })
 

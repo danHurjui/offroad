@@ -198,8 +198,11 @@ export function reconcileMonth(trips: TripLike[], readings: ReadingLike[], month
   }
 }
 
-export interface FuelSplit {
+export interface EnergySplit {
   fuelRon: number
+  chargeRon: number
+  /** Fuel and charging together — what moving the vehicle cost this month. */
+  energyRon: number
   perKm: number
   business: number
   personal: number
@@ -207,18 +210,22 @@ export interface FuelSplit {
 }
 
 /**
- * The month's fuel, divided by distance: what it cost per km the odometer
- * covered, times the business, personal and unlogged km. An allocation by
- * distance, labelled as one — never a measurement of what each trip burnt.
- * Null without an odometer figure for the month.
+ * The month's fuel and charging (RL-055), divided by distance: what it
+ * cost per km the odometer covered, times the business, personal and
+ * unlogged km. An allocation by distance, labelled as one — never a
+ * measurement of what each trip used. Null without an odometer figure for
+ * the month, or with nothing paid for energy.
  */
-export function fuelSplit(fuelRon: number, reconciliation: MonthReconciliation): FuelSplit | null {
+export function energySplit(fuelRon: number, chargeRon: number, reconciliation: MonthReconciliation): EnergySplit | null {
   const { odometer } = reconciliation
-  if (!odometer || odometer.km <= 0 || fuelRon <= 0) return null
-  const perKm = fuelRon / odometer.km
+  const energyRon = fuelRon + chargeRon
+  if (!odometer || odometer.km <= 0 || energyRon <= 0) return null
+  const perKm = energyRon / odometer.km
   const round2 = (n: number) => Math.round(n * 100) / 100
   return {
     fuelRon: round2(fuelRon),
+    chargeRon: round2(chargeRon),
+    energyRon: round2(energyRon),
     perKm,
     business: round2(perKm * reconciliation.business),
     personal: round2(perKm * reconciliation.personal),
