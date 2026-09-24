@@ -2583,7 +2583,22 @@
     "searchLabel": "Caută în vehiculele tale",
     "searchPlaceholder": "Număr, marcă sau model",
     "searchNone": "Niciun vehicul nu corespunde cu „{q}”.",
-    "searchClear": "Șterge"
+    "searchClear": "Șterge",
+    "batteryHeading": "Baterie și încărcare",
+    "batteryCapacityKwh": "Capacitate utilă baterie (kWh)",
+    "batteryCapacityHelp": "Valoarea utilă din fișa tehnică, nu cea brută.",
+    "maxAcKw": "Încărcare AC maximă (kW)",
+    "maxDcKw": "Încărcare DC maximă (kW)",
+    "connectorTypes": "Conectori de încărcare",
+    "connector": {
+      "TYPE_2": "Type 2",
+      "CCS2": "CCS2",
+      "CHADEMO": "CHAdeMO",
+      "TYPE_1": "Type 1",
+      "SCHUKO": "Priză casnică",
+      "OTHER": "Altul"
+    },
+    "summaryBattery": "baterie {kwh} kWh"
   },
   "odometer": {
     "title": "Kilometraj",

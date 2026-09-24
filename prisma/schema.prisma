@@ -435,6 +435,15 @@ model Vehicle {
   powerKw                    Int?
   colour                     String?
   seats                      Int?
+  /// RL-052: what a vehicle that plugs in can take (src/lib/powertrain.ts
+  /// decides when these apply). Usable capacity, as a spec sheet quotes it;
+  /// a Float rather than a Decimal because it is a specification, not
+  /// money, and a Decimal would reach every JSON response as a string.
+  batteryCapacityKwh         Float?
+  /// CONNECTOR_TYPES codes, in catalogue order, each at most once.
+  connectorTypes             String[]    @default([])
+  maxAcKw                    Int?
+  maxDcKw                    Int?
   /// RL-050 values and finance, RL-045 slice 5 (src/lib/ownershipCosts.ts).
   /// The purchase lives here for every mode, a restoration's acquisition
   /// included — its intake form reads and writes these (#105).

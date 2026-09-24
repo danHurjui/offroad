@@ -2583,7 +2583,22 @@
     "searchLabel": "Search your vehicles",
     "searchPlaceholder": "Plate, make or model",
     "searchNone": "No vehicle matches “{q}”.",
-    "searchClear": "Clear"
+    "searchClear": "Clear",
+    "batteryHeading": "Battery and charging",
+    "batteryCapacityKwh": "Usable battery capacity (kWh)",
+    "batteryCapacityHelp": "The usable figure from the spec sheet, not the gross one.",
+    "maxAcKw": "Max AC charging (kW)",
+    "maxDcKw": "Max DC charging (kW)",
+    "connectorTypes": "Charging connectors",
+    "connector": {
+      "TYPE_2": "Type 2",
+      "CCS2": "CCS2",
+      "CHADEMO": "CHAdeMO",
+      "TYPE_1": "Type 1",
+      "SCHUKO": "Household socket",
+      "OTHER": "Other"
+    },
+    "summaryBattery": "{kwh} kWh battery"
   },
   "odometer": {
     "title": "Odometer",

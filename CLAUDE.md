@@ -748,6 +748,18 @@ like the raw VIN it is **never rendered on a public surface**;
 that line. When testing that by hand, don't use `B 123 ABC` — it is the
 input placeholder and ships in every page's catalogue payload.
 
+### Powertrain (`src/lib/powertrain.ts`, RL-052 — #120, electric work #119)
+`fuelType` is the talon's label; **`powertrainOf(fuelType)` is the only
+thing that turns it into behaviour** — `takesFuel()`, `takesCharge()`,
+`hasEngine()`. A regular `HYBRID` takes fuel only; a `PLUGIN_HYBRID`
+takes both; no fuel type (most vehicles) is `UNKNOWN`, which takes fuel,
+so nothing changed for anyone who never filled it in.
+`powertrain.test.ts` fails on any `fuelType ===`/`!==` a literal outside
+that module. Battery capacity (usable, a `Float` — a spec, not money),
+connectors and max AC/DC power are profile fields shown only when
+`takesCharge()`; like engine capacity for an EV they are **hidden, never
+cleared**, so a wrong fuel type picked and corrected loses nothing.
+
 ### Odometer history (`src/lib/odometer.ts`, `odometerRecords.ts`, RL-044 — slice 2)
 **Current mileage is derived from the newest `OdometerReading`, never
 stored on `Vehicle`** (a test reads the schema for that). Readings stay in
