@@ -55,11 +55,13 @@ export default function CookieNotice() {
       // nothing, so it must not interrupt whatever the visitor is doing.
       role="region"
       aria-label={t('region')}
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-surface-border bg-surface/95 p-4 backdrop-blur"
-      style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 0px))' }}
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-surface-border bg-surface/95 px-4 py-3 shadow-panel backdrop-blur sm:py-4"
+      style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-ink-muted">
+      {/* Text and button side by side at every width: stacked, it took a
+          fifth of a phone screen to say something that needs no answer. */}
+      <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+        <p className="text-xs leading-snug text-ink-muted sm:text-sm">
           {t.rich('body', {
             list: (chunks) => (
               <Link href="/cookies" className="text-brand-600 dark:text-brand-300 hover:underline">
@@ -68,7 +70,7 @@ export default function CookieNotice() {
             ),
           })}
         </p>
-        <button type="button" onClick={dismiss} className="btn-secondary shrink-0 self-start sm:self-auto">
+        <button type="button" onClick={dismiss} className="btn-secondary shrink-0">
           {t('gotIt')}
         </button>
       </div>

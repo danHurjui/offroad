@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { applyTheme, readStoredTheme, type ThemePreference } from '@/lib/theme'
 
-const OPTIONS: { value: ThemePreference; label: string; icon: string }[] = [
-  { value: 'light', label: 'Light', icon: '☀' },
-  { value: 'dark', label: 'Dark', icon: '☾' },
-  { value: 'system', label: 'System', icon: '◐' },
+const OPTIONS: { value: ThemePreference; labelKey: 'themeLight' | 'themeDark' | 'themeSystem'; icon: string }[] = [
+  { value: 'light', labelKey: 'themeLight', icon: '☀' },
+  { value: 'dark', labelKey: 'themeDark', icon: '☾' },
+  { value: 'system', labelKey: 'themeSystem', icon: '◐' },
 ]
 
 /**
@@ -41,7 +41,7 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
   }
 
   if (!mounted) {
-    return <div className={compact ? 'h-8 w-8' : 'h-8 w-24'} aria-hidden />
+    return <div className={compact ? 'h-10 w-10 sm:h-8 sm:w-8' : 'h-8 w-24'} aria-hidden />
   }
 
   if (compact) {
@@ -52,9 +52,9 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
       <button
         type="button"
         onClick={() => choose(next.value)}
-        title={`Theme: ${current.label} — switch to ${next.label}`}
-        aria-label={`Theme: ${current.label}. Switch to ${next.label}.`}
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+        title={t('themeCycle', { current: t(current.labelKey), next: t(next.labelKey) })}
+        aria-label={t('themeCycle', { current: t(current.labelKey), next: t(next.labelKey) })}
+        className="flex h-10 w-10 items-center sm:h-8 sm:w-8 justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
       >
         <span aria-hidden>{current.icon}</span>
       </button>
@@ -70,7 +70,7 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
           role="radio"
           aria-checked={preference === option.value}
           onClick={() => choose(option.value)}
-          className={`rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
+          className={`min-h-9 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 ${
             preference === option.value
               ? 'bg-brand-500 text-white'
               : 'text-ink-muted hover:bg-surface-subtle hover:text-ink'
@@ -79,7 +79,7 @@ export default function ThemeToggle({ compact = false }: { compact?: boolean }) 
           <span aria-hidden className="mr-1.5">
             {option.icon}
           </span>
-          {option.label}
+          {t(option.labelKey)}
         </button>
       ))}
     </div>

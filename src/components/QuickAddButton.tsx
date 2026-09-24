@@ -26,7 +26,7 @@ export default function QuickAddButton() {
       href={href}
       title={`${label} (n)`}
       aria-label={label}
-      className="flex h-8 w-8 items-center justify-center rounded-lg text-lg leading-none text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+      className="flex h-10 w-10 items-center justify-center rounded-lg text-lg leading-none sm:h-8 sm:w-8 text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
     >
       <span aria-hidden>+</span>
     </Link>

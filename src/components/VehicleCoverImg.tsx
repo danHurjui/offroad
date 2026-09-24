@@ -1,4 +1,5 @@
 import { getTranslations } from 'next-intl/server'
+import { LogoMark } from './Logo'
 
 // Uploaded photos are only ever served through /api/uploads/[...path]
 // (access-checked), never a static /uploads rewrite — see CLAUDE.md.
@@ -12,7 +13,10 @@ export default async function VehicleCoverImg({
   const t = await getTranslations('misc')
   if (!url) {
     return (
-      <div className="flex h-40 items-center justify-center bg-surface-subtle text-sm text-ink-faint">
+      // Shorter than a photo on a phone, where the garage is one column and
+      // a 160px grey slab per vehicle was most of the screen saying nothing.
+      <div className="flex h-24 flex-col items-center justify-center gap-1 bg-gradient-to-br from-surface-subtle to-surface-muted text-xs text-ink-faint sm:h-40">
+        <LogoMark className="h-8 w-8 opacity-40" />
         {t('noCoverPhoto')}
       </div>
     )

@@ -714,7 +714,19 @@ missed. They live inside `@layer components` and must stay there:
 layer**, with no warning and no build error, so the `dark:` half of every
 badge compiled to nothing and the theme looked finished while every badge
 still rendered its light palette. `globalsCss.test.ts` pins that, and
-checks `:root` and `.dark` define the same variables. Recharts can't see CSS variables (it writes literal SVG colour
+checks `:root` and `.dark` define the same variables.
+
+**Touch sizes live in the component classes, not at call sites.** Below
+`sm`, `.btn` and `.input` are at least 44px tall and `.input` is 16px
+text — iOS Safari zooms the whole page into any focused field smaller
+than that, and leaves it zoomed. From `sm` up they drop back to 36px and
+`text-sm`. A filter or section link is a **`.chip`** (`.chip-on` when
+selected), never a `.badge`: a badge is a label, and filter links styled
+as badges were ~22px tall on a phone. A row of chips that would wrap into
+a wall on a phone goes in **`.scroll-row`**, which scrolls sideways below
+`sm` and wraps above it. The vehicle page's section links use both, in
+three labelled groups beside the title's one primary action.
+`globalsCss.test.ts` pins the sizes. Recharts can't see CSS variables (it writes literal SVG colour
 props), so charts call `useChartTheme()`, which watches the class on
 `<html>`.
 

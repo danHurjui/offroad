@@ -56,9 +56,9 @@ export default function LoginPage() {
   return (
     <AuthShell>
       <div className="card w-full max-w-sm p-6">
-        {/* The product name is not translated — it is the brand. */}
-        <h1 className="mb-1 text-2xl font-bold text-ink">RigLog</h1>
-        <p className="mb-6 text-sm text-ink-muted">{t('subtitle')}</p>
+        {/* The brand is the logo above the card (AuthShell), so the heading
+            says what this screen is for rather than repeating the name. */}
+        <h1 className="mb-6 text-2xl font-bold text-ink">{t('subtitle')}</h1>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div>

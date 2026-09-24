@@ -66,27 +66,27 @@ export default async function PhotosTimelinePage({
       </Link>
       <h1 className="mb-4 text-2xl font-bold text-ink">{t('title')}</h1>
 
-      <div className="mb-6 flex flex-wrap gap-2 text-sm">
-        <Link href={filterUrl({ photoType: undefined })} className={`badge ${!searchParams.photoType ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
+      <div className="scroll-row mb-4">
+        <Link href={filterUrl({ photoType: undefined })} className={`chip ${!searchParams.photoType ? 'chip-on' : ''}`} aria-current={!searchParams.photoType ? 'true' : undefined}>
           {t('allTypes')}
         </Link>
         {config.photoTypes.map((t) => (
-          <Link key={t.value} href={filterUrl({ photoType: t.value })} className={`badge ${searchParams.photoType === t.value ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
+          <Link key={t.value} href={filterUrl({ photoType: t.value })} className={`chip ${searchParams.photoType === t.value ? 'chip-on' : ''}`} aria-current={searchParams.photoType === t.value ? 'true' : undefined}>
             {t.label}
           </Link>
         ))}
       </div>
 
-      <div className="mb-6 flex flex-wrap gap-2 text-sm">
-        <Link href={filterUrl({ category: undefined })} className={`badge ${!searchParams.category ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
+      <div className="scroll-row mb-4">
+        <Link href={filterUrl({ category: undefined })} className={`chip ${!searchParams.category ? 'chip-on' : ''}`} aria-current={!searchParams.category ? 'true' : undefined}>
           {t('allCategories')}
         </Link>
         {config.categories.map((c) => (
-          <Link key={c.value} href={filterUrl({ category: c.value })} className={`badge ${searchParams.category === c.value ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
+          <Link key={c.value} href={filterUrl({ category: c.value })} className={`chip ${searchParams.category === c.value ? 'chip-on' : ''}`} aria-current={searchParams.category === c.value ? 'true' : undefined}>
             {c.label}
           </Link>
         ))}
-        <Link href={filterUrl({ order: order === 'asc' ? undefined : 'oldest' })} className="badge bg-surface-subtle text-ink-muted">
+        <Link href={filterUrl({ order: order === 'asc' ? undefined : 'oldest' })} className="chip">
           {order === 'asc' ? t('newestFirst') : t('oldestFirst')}
         </Link>
       </div>

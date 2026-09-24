@@ -116,10 +116,10 @@ async function ReportPanel({
     <div className="card p-5">
       {collaboratorName && <p className="mb-3 text-sm text-ink-muted">{t('collaborator', { name: collaboratorName })}</p>}
       <div className="mb-4 flex flex-wrap gap-2 text-sm">
-        <Link href={`${baseHref}&range=30d`} className={`badge ${range === '30d' ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
+        <Link href={`${baseHref}&range=30d`} className={`chip ${range === '30d' ? 'chip-on' : ''}`} aria-current={range === '30d' ? 'true' : undefined}>
           {t('last30Days')}
         </Link>
-        <Link href={`${baseHref}&range=all`} className={`badge ${range === 'all' ? 'bg-brand-500 text-white' : 'bg-surface-subtle text-ink-muted'}`}>
+        <Link href={`${baseHref}&range=all`} className={`chip ${range === 'all' ? 'chip-on' : ''}`} aria-current={range === 'all' ? 'true' : undefined}>
           {t('allTime')}
         </Link>
       </div>

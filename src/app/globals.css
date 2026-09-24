@@ -71,8 +71,11 @@ body {
  * — so anyone with "reduce motion" switched on got none of them.
  */
 @layer components {
+  /* Below `sm` every control is at least 44px tall — the touch-target
+     minimum (Apple HIG / WCAG 2.5.5). Above it, pointer precision lets
+     them sit at their natural 36px so dense desktop screens stay dense. */
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex min-h-11 items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed sm:min-h-9;
     /* Every interactive control gets a visible keyboard focus ring — the
        shortcuts make tabbing a primary way to move around. */
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface;
@@ -89,8 +92,24 @@ body {
   .card {
     @apply rounded-xl border border-surface-border bg-surface shadow-card;
   }
+  /* 16px on phones is not a style choice: iOS Safari zooms the whole page
+     into any focused field whose text is smaller, and leaves it zoomed
+     after the keyboard closes. From `sm` up there is no such zoom. */
   .input {
-    @apply w-full rounded-lg border border-surface-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200;
+    @apply min-h-11 w-full rounded-lg border border-surface-border bg-surface px-3 py-2 text-base text-ink placeholder:text-ink-faint focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-200 sm:min-h-9 sm:text-sm;
+  }
+  textarea.input {
+    @apply min-h-24;
+  }
+
+  /* Every bare file picker (receipts, photos, cover, avatar…) gets the
+     secondary-button look instead of the browser's grey default, and can
+     no longer push its filename past the edge of a phone screen. */
+  input[type='file'] {
+    @apply max-w-full text-sm text-ink-muted;
+  }
+  input[type='file']::file-selector-button {
+    @apply mr-3 min-h-11 cursor-pointer rounded-lg border-0 bg-surface-subtle px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface-border sm:min-h-9;
   }
   /* Invalid fields are marked for screen readers via aria-invalid; mirror
      that visually rather than relying on a separate class staying in sync. */
@@ -102,6 +121,34 @@ body {
   }
   .badge {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  /* A filter or a section link: a badge's shape, but something you press,
+     so it gets a real tap height, a hover and a focus ring. A badge is a
+     label; styling a link as one made filters ~22px tall on a phone. */
+  .chip {
+    @apply inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-surface-border bg-surface px-3 text-sm text-ink-muted transition-colors hover:border-brand-400 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 sm:min-h-8;
+  }
+  .chip-on {
+    @apply border-brand-500 bg-brand-500 text-white hover:border-brand-600 hover:bg-brand-600 hover:text-white dark:border-brand-400 dark:bg-brand-400/25 dark:text-brand-100;
+  }
+
+  /* A row that scrolls sideways on a phone instead of wrapping into a
+     wall, with the scrollbar hidden and a fade on the trailing edge so
+     it reads as "there is more this way". Wraps normally from `sm`. */
+  .scroll-row {
+    @apply -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  }
+  .scroll-row::-webkit-scrollbar {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .scroll-row {
+      mask-image: none;
+    }
   }
 
   /*

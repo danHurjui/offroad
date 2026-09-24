@@ -58,7 +58,7 @@ export default function LanguageToggle({ compact = false }: { compact?: boolean 
         disabled={pending}
         title={failed ? t('failed') : t('switchTo', { language: LOCALE_NAMES[next] })}
         aria-label={t('switchTo', { language: LOCALE_NAMES[next] })}
-        className="flex h-8 min-w-8 items-center justify-center rounded-lg px-1.5 text-xs font-semibold text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 disabled:opacity-50"
+        className="flex h-10 min-w-10 items-center justify-center rounded-lg px-1.5 text-xs sm:h-8 sm:min-w-8 font-semibold text-ink-muted transition-colors hover:bg-surface-subtle hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 disabled:opacity-50"
       >
         {LOCALE_SHORT[active]}
       </button>

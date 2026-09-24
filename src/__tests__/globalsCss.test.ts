@@ -116,3 +116,33 @@ describe('the two theme palettes', () => {
     expect(r + g + b).toBeLessThan(120)
   })
 })
+
+/**
+ * Touch ergonomics. Both rules are invisible on a desktop, which is where
+ * the screens get built, so they are pinned here rather than left to be
+ * "tidied" back to text-sm.
+ */
+describe('touch ergonomics', () => {
+  // Looked up inside the layer: `.btn {` also opens the reduced-motion
+  // transition rule near the top of the file.
+  function rule(selector: string): string {
+    const layer = componentsLayer() ?? ''
+    const start = layer.indexOf(`  ${selector} {`)
+    expect(start).toBeGreaterThan(-1)
+    return layer.slice(start, layer.indexOf('}', start))
+  }
+
+  it('keeps form fields at 16px below sm, or iOS Safari zooms the page on focus', () => {
+    const input = rule('.input')
+    // text-base unprefixed (phones), and the smaller size only from sm up.
+    expect(input).toMatch(/\stext-base\s/)
+    expect(input).not.toMatch(/(^|\s)text-(xs|sm)\s/)
+    expect(input).toMatch(/\ssm:text-sm/)
+  })
+
+  it('gives buttons, fields and chips a 44px/36px minimum height on phones', () => {
+    expect(rule('.btn')).toMatch(/\smin-h-11\s/)
+    expect(rule('.input')).toMatch(/\smin-h-11\s/)
+    expect(rule('.chip')).toMatch(/\smin-h-9\s/)
+  })
+})
