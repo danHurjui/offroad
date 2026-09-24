@@ -7,7 +7,8 @@
 export const COST_CATEGORIES = [
   'purchase',
   'finance',
-  'fuel',
+  // RL-055: fuel and charging together — what it cost to move the vehicle.
+  'energy',
   'work',
   'insurance',
   'inspection',

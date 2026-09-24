@@ -16,11 +16,12 @@ type OwnershipVehicle = Pick<
   | 'financeMonthlyRon'
   | 'financeStartDate'
   | 'financeEndDate'
+  | 'fuelType'
 >
 
 /**
  * The rows `ownershipReport()` needs, for one vehicle or a whole fleet, in
- * six batched queries whatever the count — never a query per vehicle. The
+ * seven batched queries whatever the count — never a query per vehicle. The
  * vehicle cost page and the fleet cost page (RL-039) both load through
  * here, so they cannot add up different things. Decimals are converted
  * here (pitfall #5); the caller has already checked access.
@@ -31,12 +32,16 @@ export async function loadOwnershipInputs(vehicles: OwnershipVehicle[], now: Dat
   if (ids.length === 0) return inputs
   const where = { vehicleId: { in: ids } }
 
-  const [tasks, fuel, documents, tyreSets, expenses, readings] = await Promise.all([
+  const [tasks, fuel, charges, documents, tyreSets, expenses, readings] = await Promise.all([
     prisma.task.findMany({
       where,
       select: { id: true, vehicleId: true, name: true, category: true, date: true, workType: true, costRon: true, partsCostRon: true, labourCostRon: true },
     }),
     prisma.fuelEntry.findMany({ where, select: { id: true, vehicleId: true, date: true, totalRon: true, station: true } }),
+    prisma.chargeEntry.findMany({
+      where,
+      select: { id: true, vehicleId: true, date: true, totalRon: true, network: true, totalFromTariff: true },
+    }),
     prisma.document.findMany({ where, select: { id: true, vehicleId: true, type: true, costRon: true, paidAt: true, createdAt: true } }),
     prisma.tyreSet.findMany({
       where,
@@ -62,6 +67,7 @@ export async function loadOwnershipInputs(vehicles: OwnershipVehicle[], now: Dat
         financeMonthlyRon: toNumberOrNull(v.financeMonthlyRon),
         financeStartDate: v.financeStartDate,
         financeEndDate: v.financeEndDate,
+        fuelType: v.fuelType,
       },
       tasks: mine(tasks).map((task) => ({
         ...task,
@@ -70,6 +76,7 @@ export async function loadOwnershipInputs(vehicles: OwnershipVehicle[], now: Dat
         labourCostRon: toNumberOrNull(task.labourCostRon),
       })),
       fuel: mine(fuel).map((f) => ({ ...f, totalRon: toNumberOrNull(f.totalRon) ?? 0 })),
+      charges: mine(charges).map((c) => ({ ...c, totalRon: toNumberOrNull(c.totalRon) ?? 0 })),
       documents: mine(documents).map((d) => ({ ...d, costRon: toNumberOrNull(d.costRon) })),
       tyreSets: mine(tyreSets).map((s) => ({ ...s, costRon: toNumberOrNull(s.costRon) })),
       expenses: mine(expenses).map((e) => ({ ...e, amountRon: toNumberOrNull(e.amountRon) ?? 0 })),

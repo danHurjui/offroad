@@ -2998,6 +2998,8 @@
       "kmWindow": "Distance is only known from {from} to {to} ({days} of {periodDays} days), so cost per km only covers that stretch.",
       "noFuel": "No fuel recorded.",
       "fuelSince": "Fuel is only recorded from {date}.",
+      "noCharging": "No charging recorded.",
+      "chargingSince": "Charging is only recorded from {date}.",
       "documentsWithoutPrice": "{count, plural, one {# document has} other {# documents have}} no price.",
       "creditAndPurchase": "Both a purchase price and loan payments are counted. If the loan paid for the car, set the purchase price to your down payment.",
       "financeIncomplete": "Finance is set, but without a monthly payment or first payment date, so no payments are counted."
@@ -3016,7 +3018,7 @@
     "category": {
       "purchase": "Purchase",
       "finance": "Finance payments",
-      "fuel": "Fuel",
+      "energy": "Fuel & charging",
       "work": "Jobs and service",
       "insurance": "Insurance",
       "inspection": "Inspection (ITP)",
@@ -3030,6 +3032,8 @@
     "source": {
       "task": "Job",
       "fuel": "Fill-up",
+      "charge": "Charge",
+      "chargeTariff": "Charge (priced from your home tariff)",
       "purchase": "Purchase"
     },
     "finance": {
@@ -3529,7 +3533,11 @@
     "gapOverlap": "{km} km counted twice {where} — a trip starts below where the previous one ended",
     "gapUnknown": "Unknown {where}: the odometer was replaced or corrected in between",
     "withoutDistance": "{count, plural, one {# trip has} other {# trips have}} no distance: a km reading was deleted since.",
-    "fuelSplit": "Fuel this month: {fuel}, {perKm} per km on the odometer. Divided by distance: business {business}, personal {personal}, not in a trip {unlogged}. This is an allocation by km, not what each trip burnt.",
+    "energySplit": {
+      "fuel": "Fuel this month: {energy}, {perKm} per km on the odometer. Divided by distance: business {business}, personal {personal}, not in a trip {unlogged}. This is an allocation by km, not what each trip burnt.",
+      "charging": "Charging this month: {energy}, {perKm} per km on the odometer. Divided by distance: business {business}, personal {personal}, not in a trip {unlogged}. This is an allocation by km, not what each trip used.",
+      "both": "Fuel and charging this month: {energy}, {perKm} per km on the odometer. Divided by distance: business {business}, personal {personal}, not in a trip {unlogged}. This is an allocation by km, not what each trip used."
+    },
     "empty": "No trips this month.",
     "kmRange": "{start} → {end} km",
     "readingGone": "a km reading was deleted",

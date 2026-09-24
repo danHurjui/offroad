@@ -127,12 +127,14 @@ const input = (vehicleId: string, over: Partial<OwnershipInput> = {}): Ownership
     financeMonthlyRon: null,
     financeStartDate: null,
     financeEndDate: null,
+    fuelType: null,
   },
   tasks: [{ id: 't1', name: 'Revizie', category: 'SERVICE', date: d('2026-03-05'), workType: 'WORKSHOP', costRon: null, partsCostRon: 400, labourCostRon: 250.5 }],
   fuel: [
     { id: 'f1', date: d('2026-03-31'), totalRon: 300, station: 'OMV' },
     { id: 'f2', date: d('2026-04-01'), totalRon: 999, station: 'OMV' },
   ],
+  charges: [],
   documents: [],
   tyreSets: [],
   expenses: [],
@@ -159,7 +161,7 @@ describe('costRows and spendSummary', () => {
     ])
     expect(spend.total).toBe(51_901)
     expect(spend.running).toBe(1901)
-    expect(Object.fromEntries(spend.categories.map((c) => [c.category, c.total]))).toEqual({ purchase: 50_000, fuel: 600, work: 1301 })
+    expect(Object.fromEntries(spend.categories.map((c) => [c.category, c.total]))).toEqual({ purchase: 50_000, energy: 600, work: 1301 })
   })
 })
 

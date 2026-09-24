@@ -9,20 +9,22 @@ import { ownershipReport, type CostCategory, type CostLine, type Message } from 
 import { loadOwnershipInputs } from '@/lib/ownershipRecords'
 import { vehicleHasPro } from '@/lib/entitlement'
 import { formatAmount, formatRon } from '@/lib/money'
+import { powertrainOf, takesFuel } from '@/lib/powertrain'
 
 const RANGES: DateRange[] = ['3m', '12m', 'all']
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 const DATE_VALUES = new Set(['date', 'from', 'to'])
 
 /** Where to record each kind of cost, for the "nothing recorded" list. */
-function addHref(vehicleId: string, category: CostCategory, isOwner: boolean): string | null {
+function addHref(vehicleId: string, category: CostCategory, isOwner: boolean, fuelType: string | null): string | null {
   const base = `/dashboard/vehicles/${vehicleId}`
   switch (category) {
     case 'purchase':
     case 'finance':
       return isOwner ? `${base}/edit#values` : null
-    case 'fuel':
-      return `${base}/fuel`
+    case 'energy':
+      // An EV has no fuel log to add to; a plug-in hybrid starts at fuel.
+      return takesFuel(powertrainOf(fuelType)) ? `${base}/fuel` : `${base}/charging`
     case 'work':
       return `${base}/tasks/new`
     case 'insurance':
@@ -227,7 +229,7 @@ export default async function OwnershipCostsPage({
             <p className="mt-3 text-sm text-ink-muted">
               {t('nothingRecorded')}{' '}
               {missing.map((c, i) => {
-                const href = addHref(vehicle.id, c.category, isOwner)
+                const href = addHref(vehicle.id, c.category, isOwner, vehicle.fuelType)
                 return (
                   <span key={c.category}>
                     {i > 0 && ', '}

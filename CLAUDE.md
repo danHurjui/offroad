@@ -778,8 +778,18 @@ amount. Three differences, each deliberate:
   shown as a price paid. The total is stored, so a later tariff rewrites
   nothing. The tariff is hidden with the vehicle's other costs.
 The vehicle page and `DriverPanel` link Fuel on `takesFuel()` and Charging
-on `takesCharge()`. `ChargeEntry.totalRon` is not yet in the cost of
-ownership — RL-055 (#123) adds it, and `MONEY_COLUMNS` says so.
+on `takesCharge()`.
+
+**In the cost of ownership (RL-055 — #123)** a charge is its own
+`CostSource` (`'charge'`), and fuel and charging share one category,
+**`energy`** ("Fuel & charging") — categories are computed, never stored,
+so the old `fuel` category was a rename, not a migration. A free charge is
+a record, not a cost line; a tariff-priced one is labelled
+`source.chargeTariff` wherever it is listed. **Coverage follows the
+powertrain**: `takesFuel()` reports missing fuel, `takesCharge()` missing
+charging (free charges count as recorded), so an EV with no charging is a
+listed gap, never a zero, and a plug-in hybrid can report either or both.
+The fleet cost page, CSV and PDF read the same lines, so they follow.
 
 ### Odometer history (`src/lib/odometer.ts`, `odometerRecords.ts`, RL-044 — slice 2)
 **Current mileage is derived from the newest `OdometerReading`, never
@@ -1258,7 +1268,8 @@ and shown rather than read as zero.
   last) is listed with its km, an overlap as a negative, and a replaced or
   corrected odometer in between as unknown. A driver's view reconciles
   nothing — other people's trips fill their gaps.
-- **Fuel by distance** (`fuelSplit()`): the month's fuel over odometer km,
+- **Energy by distance** (`energySplit()`): the month's fuel and charging
+  (RL-055) over odometer km,
   times business/personal/unlogged km — labelled as an allocation, never a
   measurement, and only for someone who sees costs.
 - **Not a foaie de parcurs.** What ANAF requires on one was not

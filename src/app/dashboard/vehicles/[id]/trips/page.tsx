@@ -6,7 +6,7 @@ import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { currentReading } from '@/lib/odometer'
 import { loadReadings } from '@/lib/odometerRecords'
-import { currentMonth, fuelSplit, parseMonth, reconcileMonth, shiftMonth, sortTrips, tripDistance } from '@/lib/trips'
+import { currentMonth, energySplit, parseMonth, reconcileMonth, shiftMonth, sortTrips, tripDistance } from '@/lib/trips'
 import { loadMonthTrips, tripGate } from '@/lib/tripRecords'
 import { formatRon } from '@/lib/money'
 import TripForm from '@/components/TripForm'
@@ -50,7 +50,7 @@ export default async function TripsPage({ params, searchParams }: Params) {
 
   const manager = vehicle.access === 'owner'
   const month = parseMonth(searchParams.month) ?? currentMonth()
-  const [trips, readings, members, fuel] = await Promise.all([
+  const [trips, readings, members, fuel, charging] = await Promise.all([
     loadMonthTrips({ vehicleIds: [vehicle.id], month, ...(manager ? {} : { driverUserId: session.user.id }) }),
     loadReadings(vehicle.id),
     manager && vehicle.organizationId
@@ -63,10 +63,17 @@ export default async function TripsPage({ params, searchParams }: Params) {
     manager && !hidesCosts(vehicle)
       ? prisma.fuelEntry.aggregate({ where: { vehicleId: vehicle.id, date: { gte: month.from, lt: month.end } }, _sum: { totalRon: true } })
       : Promise.resolve(null),
+    // RL-055: charging is energy too, or an EV's split would always be empty.
+    manager && !hidesCosts(vehicle)
+      ? prisma.chargeEntry.aggregate({ where: { vehicleId: vehicle.id, date: { gte: month.from, lt: month.end } }, _sum: { totalRon: true } })
+      : Promise.resolve(null),
   ])
   const sorted = sortTrips(trips)
   const reconciliation = manager ? reconcileMonth(trips, readings, month) : null
-  const split = reconciliation && fuel ? fuelSplit(fuel._sum.totalRon?.toNumber() ?? 0, reconciliation) : null
+  const split =
+    reconciliation && fuel && charging
+      ? energySplit(fuel._sum.totalRon?.toNumber() ?? 0, charging._sum.totalRon?.toNumber() ?? 0, reconciliation)
+      : null
   const byId = new Map(sorted.map((trip) => [trip.id, trip]))
   const tripLabel = (id: string | null) => {
     const trip = id ? byId.get(id) : null
@@ -151,8 +158,8 @@ export default async function TripsPage({ params, searchParams }: Params) {
           {reconciliation.withoutDistance > 0 && <p className="text-ink-muted">{t('withoutDistance', { count: reconciliation.withoutDistance })}</p>}
           {split && (
             <p className="text-ink-muted">
-              {t('fuelSplit', {
-                fuel: formatRon(split.fuelRon),
+              {t(split.chargeRon === 0 ? 'energySplit.fuel' : split.fuelRon === 0 ? 'energySplit.charging' : 'energySplit.both', {
+                energy: formatRon(split.energyRon),
                 perKm: formatRon(split.perKm),
                 business: formatRon(split.business),
                 personal: formatRon(split.personal),

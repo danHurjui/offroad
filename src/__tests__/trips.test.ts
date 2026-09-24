@@ -1,6 +1,6 @@
 import {
   currentMonth,
-  fuelSplit,
+  energySplit,
   parseMonth,
   parseTripText,
   reconcileMonth,
@@ -118,16 +118,32 @@ describe('reconcileMonth — the gap is shown, not smoothed', () => {
   })
 })
 
-describe('fuelSplit — an allocation by distance, labelled as one', () => {
-  it('divides the month’s fuel by odometer km', () => {
+describe('energySplit — an allocation by distance, labelled as one', () => {
+  const month = () => {
     const a = trip('2026-03-02', 1000, 1300)
     const b = trip('2026-03-05', 1300, 1400, 'PERSONAL')
-    const r = reconcileMonth([a, b], [reading('2026-03-01', 1000), reading('2026-03-31', 1500)], MARCH)
-    expect(fuelSplit(400, r)).toEqual({ fuelRon: 400, perKm: 0.8, business: 240, personal: 80, unlogged: 80 })
+    return reconcileMonth([a, b], [reading('2026-03-01', 1000), reading('2026-03-31', 1500)], MARCH)
+  }
+
+  it('divides the month’s fuel by odometer km', () => {
+    expect(energySplit(400, 0, month())).toEqual({
+      fuelRon: 400, chargeRon: 0, energyRon: 400, perKm: 0.8, business: 240, personal: 80, unlogged: 80,
+    })
   })
 
-  it('offers nothing without an odometer figure or fuel', () => {
-    const r = reconcileMonth([], [], MARCH)
-    expect(fuelSplit(400, r)).toBeNull()
+  // RL-055: an EV's month is charging alone, and still splits.
+  it('divides the month’s charging the same way', () => {
+    expect(energySplit(0, 150, month())).toEqual({
+      fuelRon: 0, chargeRon: 150, energyRon: 150, perKm: 0.3, business: 90, personal: 30, unlogged: 30,
+    })
+  })
+
+  it('adds fuel and charging for a plug-in hybrid', () => {
+    expect(energySplit(300, 100, month())).toMatchObject({ energyRon: 400, perKm: 0.8, business: 240, personal: 80, unlogged: 80 })
+  })
+
+  it('offers nothing without an odometer figure or anything paid', () => {
+    expect(energySplit(400, 50, reconcileMonth([], [], MARCH))).toBeNull()
+    expect(energySplit(0, 0, month())).toBeNull()
   })
 })

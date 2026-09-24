@@ -1,6 +1,6 @@
 jest.mock('@/lib/prisma', () => {
   const m = () => ({ findMany: jest.fn().mockResolvedValue([]) })
-  return { prisma: { task: m(), fuelEntry: m(), document: m(), tyreSet: m(), vehicleExpense: m(), odometerReading: m() } }
+  return { prisma: { task: m(), fuelEntry: m(), chargeEntry: m(), document: m(), tyreSet: m(), vehicleExpense: m(), odometerReading: m() } }
 })
 
 import { Prisma } from '@prisma/client'
@@ -19,15 +19,16 @@ const vehicle = (id: string) => ({
   financeMonthlyRon: null,
   financeStartDate: null,
   financeEndDate: null,
+  fuelType: null,
 })
-const models = ['task', 'fuelEntry', 'document', 'tyreSet', 'vehicleExpense', 'odometerReading'] as const
+const models = ['task', 'fuelEntry', 'chargeEntry', 'document', 'tyreSet', 'vehicleExpense', 'odometerReading'] as const
 const findMany = (model: (typeof models)[number]) => (prisma[model] as unknown as { findMany: jest.Mock }).findMany
 
 describe('loadOwnershipInputs', () => {
   beforeEach(() => jest.clearAllMocks())
 
   /** A fleet page must not become a query per vehicle. */
-  it('six queries for any number of vehicles', async () => {
+  it('seven queries for any number of vehicles', async () => {
     await loadOwnershipInputs([vehicle('a'), vehicle('b'), vehicle('c')], new Date())
     for (const model of models) {
       expect(findMany(model)).toHaveBeenCalledTimes(1)
