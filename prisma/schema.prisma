@@ -431,10 +431,8 @@ model Vehicle {
   colour                     String?
   seats                      Int?
   /// RL-050 values and finance, RL-045 slice 5 (src/lib/ownershipCosts.ts).
-  /// The purchase lives here for every mode; a restoration's FoundState
-  /// acquisitionDate/purchasePriceRon are mirrored both ways until a later
-  /// release drops FoundState's copy (never rename and change behaviour in
-  /// the same release).
+  /// The purchase lives here for every mode, a restoration's acquisition
+  /// included — its intake form reads and writes these (#105).
   purchaseDate               DateTime?
   purchasePriceRon           Decimal?    @db.Decimal(10, 2)
   /// The owner's own estimate, dated. RigLog never computes a value — it
@@ -565,8 +563,11 @@ model TaskPhoto {
 model FoundState {
   id               String   @id @default(cuid())
   vehicleId        String   @unique
-  acquisitionDate  DateTime
-  purchasePriceRon Decimal? @db.Decimal(10, 2)
+  /// #105: the acquisition date and price paid live on Vehicle
+  /// (purchaseDate / purchasePriceRon) only. The two FoundState columns
+  /// still exist in the database, nullable and unread, until the next
+  /// release drops them — a column dropped in the release that stops
+  /// reading it breaks the previous deployment while it is still serving.
   odometer         Int?
   knownHistory     String?
   conditionRating  Int?

@@ -99,7 +99,7 @@ describe('the vehicle’s own money', () => {
     }
   })
 
-  it('PATCH saves values and finance, and a restoration’s intake keeps its copy in step', async () => {
+  it('PATCH saves values and finance, on the vehicle only (#105)', async () => {
     ;(prisma.vehicle.findUnique as jest.Mock).mockResolvedValue({
       id: 'v1', ownerId: 'owner', projectType: 'RESTORATION', slug: 's', ...MONEY, currentValueRon: null,
     })
@@ -110,10 +110,22 @@ describe('the vehicle’s own money', () => {
       where: { id: 'v1' },
       data: expect.objectContaining({ purchasePriceRon: 12000, purchaseDate: new Date('2024-05-01T00:00:00Z'), currentValueRon: 15000, currentValueAt: expect.any(Date) }),
     })
-    expect(prisma.foundState.updateMany).toHaveBeenCalledWith({
-      where: { vehicleId: 'v1' },
-      data: { purchasePriceRon: 12000, acquisitionDate: new Date('2024-05-01T00:00:00Z') },
+    expect(prisma.foundState.updateMany).not.toHaveBeenCalled()
+  })
+
+  it('PATCH will not clear a restoration’s purchase date once it has an intake, which reads it', async () => {
+    ;(prisma.vehicle.findUnique as jest.Mock).mockResolvedValue({
+      id: 'v1', ownerId: 'owner', projectType: 'RESTORATION', slug: 's', ...MONEY, currentValueRon: null,
     })
+    ;(prisma.foundState.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'fs1' })
+    const res = await vehiclePatch(req({ purchaseDate: '' }), { params: { id: 'v1' } })
+    expect(res.status).toBe(400)
+    expect((await res.json()).code).toBe('acquisitionDateRequired')
+    expect(prisma.vehicle.update).not.toHaveBeenCalled()
+
+    ;(prisma.foundState.findUnique as jest.Mock).mockResolvedValueOnce(null)
+    ;(prisma.vehicle.update as jest.Mock).mockResolvedValue({ id: 'v1', ...MONEY })
+    expect((await vehiclePatch(req({ purchaseDate: '' }), { params: { id: 'v1' } })).status).toBe(200)
   })
 
   it('PATCH refuses a contract that ends before it starts', async () => {

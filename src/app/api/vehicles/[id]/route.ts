@@ -145,21 +145,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       await ensureUsername(vehicle.ownerId)
     }
 
-    // A restoration's intake still carries its own copy of the purchase
-    // (FoundState, until a later release drops it), so the two are kept
-    // in step. Its acquisition date is required, so a cleared purchase
-    // date leaves it alone.
-    const mirror: Record<string, unknown> = {}
-    if (values.data.purchasePriceRon !== undefined) mirror.purchasePriceRon = values.data.purchasePriceRon
-    if (values.data.purchaseDate) mirror.acquisitionDate = values.data.purchaseDate
-    const updated =
-      vehicle.projectType === 'RESTORATION' && Object.keys(mirror).length > 0
-        ? await prisma.$transaction(async (tx) => {
-            const row = await tx.vehicle.update({ where: { id: vehicle.id }, data })
-            await tx.foundState.updateMany({ where: { vehicleId: vehicle.id }, data: mirror })
-            return row
-          })
-        : await prisma.vehicle.update({ where: { id: vehicle.id }, data })
+    // #105: a restoration's intake reads its acquisition date from here,
+    // and the intake requires one — so once there is an intake, the date
+    // can be changed but not cleared.
+    if (values.data.purchaseDate === null && vehicle.projectType === 'RESTORATION') {
+      const intake = await prisma.foundState.findUnique({ where: { vehicleId: vehicle.id }, select: { id: true } })
+      if (intake) return await apiError('acquisitionDateRequired', 400)
+    }
+    const updated = await prisma.vehicle.update({ where: { id: vehicle.id }, data })
     return NextResponse.json(serializeVehicle(updated))
   } catch {
     return await apiError('internalError', 500)

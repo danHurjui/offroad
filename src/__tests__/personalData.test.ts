@@ -276,7 +276,7 @@ describe('collectUserData', () => {
               labourCostRon: null,
             },
           ],
-          foundState: { purchasePriceRon: new Prisma.Decimal('8000') },
+          foundState: { odometer: 98000 },
           wishlistItems: [
             {
               id: 'w1',
@@ -304,7 +304,8 @@ describe('collectUserData', () => {
     expect(vehicle.tasks[0].costRon).toBe(150)
     expect(vehicle.tasks[0].partsCostRon).toBe(100.5)
     expect(vehicle.tasks[0].labourCostRon).toBeNull()
-    expect(vehicle.foundState.purchasePriceRon).toBe(8000)
+    // #105: the purchase is on the vehicle (below), not repeated in the intake.
+    expect(vehicle.foundState).toEqual({ odometer: 98000 })
     expect(vehicle.wishlistItems[0].estimatedCostRon).toBe(250.25)
     expect(vehicle.wishlistItems[0].targetPriceRon).toBeNull()
     expect(vehicle.wishlistItems[0].priceHistory[0].priceRon).toBe(199.99)

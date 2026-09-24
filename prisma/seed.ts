@@ -64,14 +64,14 @@ async function main() {
       make: 'Dacia',
       model: '1310',
       year: 1985,
+      purchaseDate: new Date('2025-01-10'),
+      purchasePriceRon: 1500,
     },
   })
 
   await prisma.foundState.create({
     data: {
       vehicleId: restoration.id,
-      acquisitionDate: new Date('2025-01-10'),
-      purchasePriceRon: 1500,
       odometer: 98000,
       knownHistory: 'Barn find, sat for 15 years. Runs but needs full restoration.',
       conditionRating: 2,

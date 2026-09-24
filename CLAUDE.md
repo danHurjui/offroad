@@ -895,9 +895,15 @@ about it there**.
 - **Cost per km** counts only the stretch the odometer covers inside the
   period (`distanceCovered()`), with only the running costs paid inside it
   (purchase excluded). `coverage` lists every gap instead of hiding it.
-- **The purchase lives on `Vehicle` for every mode.** FoundState's
-  `acquisitionDate`/`purchasePriceRon` are mirrored both ways (vehicle
-  PATCH ↔ found-state PUT) until a later release drops FoundState's copy.
+- **The purchase lives on `Vehicle` for every mode**, a restoration's
+  included: the intake form reads and writes `purchaseDate`/
+  `purchasePriceRon` there (answering under its old names,
+  `acquisitionDate`/`purchasePriceRon`), and nothing else holds a copy
+  (#105). Once a restoration has an intake, its purchase date can be
+  changed but not cleared — the intake requires one. FoundState's two old
+  columns are still in the database, nullable and unread, until the next
+  release drops them: dropping a column in the release that stops reading
+  it breaks the previous deployment while it is still serving.
 - **A document is renewed in place**, so a renewal moves the old period's
   price into a `VehicleExpense` (same category) before the new one is set —
   otherwise last year's premium would vanish from the total.

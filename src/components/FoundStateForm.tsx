@@ -12,7 +12,7 @@ interface FoundStatePhoto {
 }
 
 interface Initial {
-  acquisitionDate: string
+  acquisitionDate: string | null
   purchasePriceRon: number | null
   odometer: number | null
   knownHistory: string | null

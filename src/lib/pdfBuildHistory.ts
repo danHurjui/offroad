@@ -65,7 +65,7 @@ export interface PdfTaskCategory {
 }
 
 export interface PdfFoundState {
-  acquisitionDate: Date
+  acquisitionDate: Date | null
   purchasePriceRon: number | null
   odometer: number | null
   knownHistory: string | null
@@ -351,7 +351,7 @@ export function buildVehicleHistoryDocDefinition(input: VehicleHistoryPdfInput):
   if (input.foundState) {
     const fs = input.foundState
     content.push(sectionHeader(strings.foundState))
-    const rows: [string, string][] = [[strings.acquired, DATE(fs.acquisitionDate)]]
+    const rows: [string, string][] = fs.acquisitionDate ? [[strings.acquired, DATE(fs.acquisitionDate)]] : []
     if (fs.purchasePriceRon != null) rows.push([strings.purchasePrice, RON(fs.purchasePriceRon)])
     if (fs.odometer != null) rows.push([strings.odometer, `${fs.odometer.toLocaleString('ro-RO')} km`])
     if (fs.conditionRating != null) rows.push([strings.condition, `${fs.conditionRating}/5`])
