@@ -294,6 +294,7 @@ export default function SettingsForm({ profile, allowance }: { profile: Profile;
           {t('enablePush')}
         </button>
         {pushStatus && <p className="text-sm text-ink-muted">{pushStatus}</p>}
+        <p className="text-xs text-ink-faint">{t('pushReminders')}</p>
       </div>
 
       <div className="card p-6">
