@@ -11,6 +11,7 @@ export default function UpgradePlanCard({
   period,
   description,
   highlight,
+  onSale,
 }: {
   plan: PersonalPlanId
   title: string
@@ -18,6 +19,8 @@ export default function UpgradePlanCard({
   period: string
   description: string
   highlight?: boolean
+  /** False while payments are held off: the price is shown, with no button that can only fail. */
+  onSale: boolean
 }) {
   const t = useTranslations('upgrade')
   const [loading, setLoading] = useState(false)
@@ -49,9 +52,13 @@ export default function UpgradePlanCard({
         <span className="text-sm text-ink-muted">{period}</span>
       </p>
       <p className="mt-2 flex-1 text-sm text-ink-muted">{description}</p>
-      <button type="button" className="btn-primary mt-4" onClick={onChoose} disabled={loading}>
-        {loading ? t('redirecting') : t('choose')}
-      </button>
+      {onSale ? (
+        <button type="button" className="btn-primary mt-4" onClick={onChoose} disabled={loading}>
+          {loading ? t('redirecting') : t('choose')}
+        </button>
+      ) : (
+        <p className="mt-4 rounded-lg bg-surface-subtle px-3 py-2 text-center text-sm text-ink-muted">{t('comingSoon')}</p>
+      )}
       {error && <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
     </div>
   )

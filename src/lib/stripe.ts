@@ -145,10 +145,44 @@ export function orgPlanForPriceId(priceId: string | null | undefined): OrgPlanId
   return null
 }
 
-/** Whether every company Price is configured, i.e. organisations can be sold to. */
-export function isOrgBillingConfigured(): boolean {
+/**
+ * Whether payments can be both taken and settled: a usable secret key and
+ * the webhook's signing secret. Without the second, Checkout opens and
+ * charges the card, and the webhook then rejects the event that would have
+ * granted what was bought — so a missing webhook secret closes sales too.
+ *
+ * With either missing, the screens that sell say "not on sale yet"
+ * instead of offering a button that can only fail. Payments are held off
+ * deliberately until the operator's legal entity exists (#96/#97), so
+ * this is the expected state for a while, not a fault to bump into.
+ */
+export function isCheckoutReady(): boolean {
+  if (!process.env.STRIPE_WEBHOOK_SECRET?.trim()) return false
   try {
     getStripe()
+    return true
+  } catch (e) {
+    if (e instanceof StripeConfigError) return false
+    throw e
+  }
+}
+
+/** Whether Personal can be bought on this plan: checkout ready and its Price configured. */
+export function isPersonalPlanOnSale(plan: PersonalPlanId): boolean {
+  if (!isCheckoutReady()) return false
+  try {
+    priceIdFor(plan)
+    return true
+  } catch (e) {
+    if (e instanceof StripeConfigError) return false
+    throw e
+  }
+}
+
+/** Whether every company Price is configured, i.e. organisations can be sold to. */
+export function isOrgBillingConfigured(): boolean {
+  if (!isCheckoutReady()) return false
+  try {
     for (const plan of ORG_PLAN_IDS) orgPriceIdFor(plan)
     return true
   } catch (e) {
