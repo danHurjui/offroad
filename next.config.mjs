@@ -56,7 +56,15 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 const scriptSrc = [
   "'self'",
-  "'unsafe-inline'", // TODO: replace with per-request nonce (tracked as follow-up)
+  // 'unsafe-inline' is kept deliberately (#115). Dropping it in the App
+  // Router means a per-request nonce set from middleware, which Next only
+  // honours by opting every page out of static rendering — and this app
+  // keeps its marketing/auth/public pages static on purpose (see
+  // src/i18n/config.ts and "There is no middleware" in CLAUDE.md). The
+  // nonce migration is tracked as a follow-up on #115; the rest of the CSP
+  // (no wildcard connect-src, object-src 'none', base-uri/form-action
+  // 'self') is tightened below so this is not the only line of defence.
+  "'unsafe-inline'",
   ...(isDev ? ["'unsafe-eval'"] : []), // Next.js HMR needs unsafe-eval in dev only
   // RL-048: the receipt reader compiles its WebAssembly engine in the
   // browser. This allows compiling WebAssembly only — not eval of JS.
@@ -70,10 +78,17 @@ const scriptSrc = [
   'https://challenges.cloudflare.com',
 ].join(' ');
 
+// Every browser fetch/XHR/websocket the app makes is same-origin (the API,
+// the OCR models under /ocr, feedback and push subscription all POST to
+// /api). Google OAuth is a full-page redirect to accounts.google.com, which
+// navigation — not connect-src — governs, but it is kept here for the token
+// endpoints the sign-in flow can call. Turnstile talks to Cloudflare from
+// inside its own iframe (frame-src), not from this document. So the broad
+// `https:` wildcard was allowing exfiltration to any host for no functional
+// gain (#115) — narrowed to the origins actually used.
 const connectSrc = [
   "'self'",
   'https://accounts.google.com',
-  'https:',
 ].join(' ');
 
 const csp = [
@@ -88,6 +103,15 @@ const csp = [
   `connect-src ${connectSrc}`,
   "frame-src 'self' https://accounts.google.com https://challenges.cloudflare.com",
   "frame-ancestors 'none'",
+  // Nothing here embeds a plugin; a stray <object>/<embed> is only ever an
+  // injection vector (#115).
+  "object-src 'none'",
+  // Lock the document base so an injected <base> can't repoint every
+  // relative script/style/link at an attacker's origin (#115).
+  "base-uri 'self'",
+  // Forms only ever post back to this origin (auth, the feedback board,
+  // Stripe checkout is a redirect, not a form post to Stripe).
+  "form-action 'self'",
 ].join('; ');
 
 const nextConfig = {

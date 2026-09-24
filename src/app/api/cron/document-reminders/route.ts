@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { prisma } from '@/lib/prisma'
@@ -26,10 +27,24 @@ import { sendPushNotification } from '@/lib/webpush'
  * that has already marked the thresholds, so it can never be a second send
  * path with its own idea of what is due. Without VAPID keys it does nothing.
  */
+/**
+ * Constant-time secret check. A plain `!==` short-circuits on the first
+ * differing byte, which leaks the secret to a timing oracle one byte at a
+ * time (#116). Length-guard first because timingSafeEqual throws on a
+ * length mismatch, and compare as bytes so an equal-length wrong secret
+ * still takes the same time.
+ */
+function secretMatches(presented: string | null | undefined, expected: string | undefined): boolean {
+  if (!presented || !expected) return false
+  const a = Buffer.from(presented)
+  const b = Buffer.from(expected)
+  return a.length === b.length && timingSafeEqual(a, b)
+}
+
 async function handle(req: NextRequest) {
   const bearer = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   const secret = bearer ?? req.headers.get('x-cron-secret')
-  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
+  if (!secretMatches(secret, process.env.CRON_SECRET)) {
     return await apiError('unauthorized', 401)
   }
 
