@@ -2160,7 +2160,9 @@
     "orgComped": "This organisation is free with no vehicle cap; there is nothing to buy.",
     "orgHasSubscription": "Cancel the organisation’s plan in the billing portal first — deleting it would leave the card being charged.",
     "orgPayingAccount": "Deleting your account would also delete {names}, which still pays for a plan. Cancel it in that organisation’s billing portal first.",
-    "subscriptionCancelFailed": "Your Personal subscription could not be cancelled just now, so your account was not deleted and nothing was changed. Try again in a moment, or cancel the plan from Manage billing first."
+    "subscriptionCancelFailed": "Your Personal subscription could not be cancelled just now, so your account was not deleted and nothing was changed. Try again in a moment, or cancel the plan from Manage billing first.",
+    "adminOrgFieldsLimited": "Only `comped` can be changed here",
+    "orgCompWhilePaying": "This organisation pays for a plan. Cancel it in the organisation’s billing portal before comping it, or the card keeps being charged."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2245,7 +2247,7 @@
     "orgBetaOff": "Stop new organisations",
     "orgBetaBadge": "Organisations beta",
     "organizations": "Organisations",
-    "organizationsIntro": "Every organisation in the closed beta: who owns it and how big it is. Read-only — being an admin gives no access to a company’s vehicles or records.",
+    "organizationsIntro": "Every organisation: who owns it, how big it is and what it pays. You can make one free (no charge, no vehicle cap) or end that; nothing else here changes an organisation, and being an admin gives no access to a company’s vehicles or records.",
     "searchOrganizations": "Search by name or CUI",
     "noOrganizations": "No organisations yet.",
     "orgCreated": "created {date}",
@@ -2254,7 +2256,13 @@
     "orgBetaAccountsHelp": "They can create an organisation. Switch it on or off on each account’s page. Admins can always create one.",
     "orgBetaNone": "No account has it switched on yet.",
     "statOrganizations": "Organisations",
-    "grandfatheredBadge": "Kept Pro · no vehicle cap"
+    "grandfatheredBadge": "Kept Pro · no vehicle cap",
+    "orgComped": "Free · no vehicle cap",
+    "orgPlanBadge": "{plan} · up to {limit} vehicles",
+    "orgNoPlan": "No plan",
+    "orgCompOn": "Make free",
+    "orgCompOff": "End free",
+    "orgCompOffConfirm": "End free use for {name}? It keeps any plan it pays for. With none, all its vehicles become read-only (nothing is deleted) until it buys one."
   },
   "verifyEmail": {
     "bannerTitle": "Confirm your email address",
@@ -3244,7 +3252,7 @@
     "intro": "The organisation pays for its own plan, with its own card and invoices. Only owners see this page.",
     "planTitle": "Plan",
     "billingLink": "Plan and billing",
-    "comped": "Free, with no vehicle cap — kept from the closed beta.",
+    "comped": "Free, with no vehicle cap.",
     "onPlan": "{plan}, billed {period}.",
     "noPlan": "No plan yet. The organisation can invite people, but holds vehicles only on a plan.",
     "vehiclesUncapped": "{count, plural, one {# vehicle} other {# vehicles}}, no cap.",

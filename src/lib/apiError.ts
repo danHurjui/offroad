@@ -77,6 +77,8 @@ export type ApiErrorKey =
   | 'orgHasSubscription'
   | 'orgPayingAccount'
   | 'subscriptionCancelFailed'
+  | 'adminOrgFieldsLimited'
+  | 'orgCompWhilePaying'
   | 'foundStatePhotoLimit'
   | 'fuelLitresInvalid'
   | 'fuelOwnOnly'

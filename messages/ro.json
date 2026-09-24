@@ -2160,7 +2160,9 @@
     "orgComped": "Această organizație e gratuită, fără limită de vehicule; nu e nimic de cumpărat.",
     "orgHasSubscription": "Anulează mai întâi planul organizației din portalul de facturare — ștergerea ar lăsa cardul să fie taxat în continuare.",
     "orgPayingAccount": "Ștergerea contului ar șterge și {names}, care plătește încă un plan. Anulează-l mai întâi din portalul de facturare al organizației.",
-    "subscriptionCancelFailed": "Abonamentul Personal nu a putut fi anulat acum, așa că nu ți-am șters contul și nu s-a schimbat nimic. Încearcă din nou peste puțin timp sau anulează mai întâi planul din Gestionează facturarea."
+    "subscriptionCancelFailed": "Abonamentul Personal nu a putut fi anulat acum, așa că nu ți-am șters contul și nu s-a schimbat nimic. Încearcă din nou peste puțin timp sau anulează mai întâi planul din Gestionează facturarea.",
+    "adminOrgFieldsLimited": "Aici se poate schimba doar `comped`",
+    "orgCompWhilePaying": "Organizația plătește un plan. Anulează-l din portalul de facturare al organizației înainte să o faci gratuită, altfel cardul este taxat în continuare."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2245,7 +2247,7 @@
     "orgBetaOff": "Oprește organizațiile noi",
     "orgBetaBadge": "Beta organizații",
     "organizations": "Organizații",
-    "organizationsIntro": "Toate organizațiile din beta închisă: cine le deține și cât de mari sunt. Doar citire — a fi admin nu dă acces la vehiculele sau înregistrările unei firme.",
+    "organizationsIntro": "Toate organizațiile: cine le deține, cât de mari sunt și ce plătesc. Poți face una gratuită (fără plată, fără limită de vehicule) sau poți încheia asta; nimic altceva de aici nu schimbă o organizație, iar a fi admin nu dă acces la vehiculele sau înregistrările unei firme.",
     "searchOrganizations": "Caută după nume sau CUI",
     "noOrganizations": "Nicio organizație încă.",
     "orgCreated": "creată pe {date}",
@@ -2254,7 +2256,13 @@
     "orgBetaAccountsHelp": "Pot crea o organizație. Se activează sau dezactivează din pagina fiecărui cont. Adminii pot crea oricând una.",
     "orgBetaNone": "Niciun cont nu o are activată încă.",
     "statOrganizations": "Organizații",
-    "grandfatheredBadge": "Pro păstrat · fără limită de vehicule"
+    "grandfatheredBadge": "Pro păstrat · fără limită de vehicule",
+    "orgComped": "Gratuită · fără limită de vehicule",
+    "orgPlanBadge": "{plan} · până la {limit} vehicule",
+    "orgNoPlan": "Fără plan",
+    "orgCompOn": "Fă gratuită",
+    "orgCompOff": "Încheie gratuitatea",
+    "orgCompOffConfirm": "Închei folosirea gratuită pentru {name}? Păstrează orice plan plătește. Fără plan, toate vehiculele ei devin doar pentru citire (nu se șterge nimic) până cumpără unul."
   },
   "verifyEmail": {
     "bannerTitle": "Confirmă-ți adresa de e-mail",
@@ -3244,7 +3252,7 @@
     "intro": "Organizația își plătește propriul plan, cu cardul și facturile ei. Doar proprietarii văd această pagină.",
     "planTitle": "Plan",
     "billingLink": "Plan și facturare",
-    "comped": "Gratuit, fără limită de vehicule — păstrat din beta-ul închis.",
+    "comped": "Gratuit, fără limită de vehicule.",
     "onPlan": "{plan}, facturat {period}.",
     "noPlan": "Încă niciun plan. Organizația poate invita oameni, dar poate ține vehicule doar cu un plan.",
     "vehiclesUncapped": "{count, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}, fără limită.",
