@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { tripGate } from '@/lib/tripRecords'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /**
  * RL-051: remove a trip, and the two readings written with it — they were
@@ -17,6 +18,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   const { session } = auth
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
   if ((await tripGate(vehicle)) === 'forbidden') return await apiError('notFound', 404)
 
   const trip = await prisma.trip.findUnique({

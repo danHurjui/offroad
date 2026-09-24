@@ -6,6 +6,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { saveUpload, deleteUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 import { readFormData } from '@/lib/requestBody'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-013: optional scan/photo attachment per document.
 export async function POST(req: NextRequest, { params }: { params: { id: string; docId: string } }) {
@@ -15,6 +16,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const document = await prisma.document.findUnique({ where: { id: params.docId } })
   if (!document || document.vehicleId !== vehicle.id) return await apiError('notFound', 404)

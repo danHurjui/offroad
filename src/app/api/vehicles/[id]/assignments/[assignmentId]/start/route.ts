@@ -7,6 +7,7 @@ import { readJsonBody } from '@/lib/requestBody'
 import { parseKm } from '@/lib/odometer'
 import { ReadingConflict, conflictResponse } from '@/lib/odometerRecords'
 import { writeHandoverReading } from '@/lib/assignmentRecords'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 class NotOpen extends Error {}
 
@@ -22,6 +23,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   const { session } = auth
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const assignment = await prisma.vehicleAssignment.findUnique({ where: { id: params.assignmentId } })
   if (!assignment || assignment.vehicleId !== vehicle.id) return await apiError('notFound', 404)

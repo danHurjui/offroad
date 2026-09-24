@@ -5,6 +5,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { PROJECT_TYPE_CONFIG, isValidTaskVocabulary } from '@/lib/projectType'
 import { serializeTask, toNumberOrNull } from '@/lib/serialize'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /**
  * RL-011/012 "Mark as installed" / "Mark as fitted" — converts a wishlist
@@ -29,6 +30,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const item = await prisma.wishlistItem.findUnique({ where: { id: params.itemId } })
   if (!item || item.vehicleId !== vehicle.id) return await apiError('notFound', 404)

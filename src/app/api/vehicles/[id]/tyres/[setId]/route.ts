@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { readJsonBody } from '@/lib/requestBody'
 import { parseTyreSet } from '@/lib/tyres'
 import { toNumberOrNull } from '@/lib/serialize'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /** Owner: any set. Collaborator: the sets they added (pitfall #4). */
 async function load(vehicleId: string, setId: string, userId: string) {
@@ -24,6 +25,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!auth.ok) return auth.error
   const loaded = await load(params.id, params.setId, auth.session.user.id)
   if (!loaded.ok) return loaded.error
+  const readOnly = await refuseIfReadOnly(loaded.vehicle)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error
@@ -48,6 +51,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!auth.ok) return auth.error
   const loaded = await load(params.id, params.setId, auth.session.user.id)
   if (!loaded.ok) return loaded.error
+  const readOnly = await refuseIfReadOnly(loaded.vehicle)
+  if (readOnly) return readOnly
   try {
     await prisma.tyreSet.delete({ where: { id: loaded.set.id } })
     return NextResponse.json({ ok: true })

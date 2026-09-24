@@ -8,6 +8,7 @@ import { toNumberOrNull } from '@/lib/serialize'
 import { decidePriceAlert, notifyPriceAlert } from '@/lib/priceAlert'
 import { readJsonBody } from '@/lib/requestBody'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 async function loadItem(vehicleId: string, itemId: string) {
   const item = await prisma.wishlistItem.findUnique({ where: { id: itemId } })
@@ -44,6 +45,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
   if (!hasPro(owner)) {

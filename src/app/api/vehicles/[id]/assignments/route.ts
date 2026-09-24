@@ -9,6 +9,7 @@ import { ASSIGNMENT_NOTE_MAX } from '@/lib/assignments'
 import { writeHandoverReading } from '@/lib/assignmentRecords'
 import { parseKm } from '@/lib/odometer'
 import { ReadingConflict, conflictResponse } from '@/lib/odometerRecords'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 type Params = { params: { id: string } }
 
@@ -43,6 +44,8 @@ export async function POST(req: NextRequest, { params }: Params) {
   const { session } = auth
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
   if (!vehicle.organizationId) return await apiError('vehicleNotCompany', 400)
 
   const parsed = await readJsonBody(req)

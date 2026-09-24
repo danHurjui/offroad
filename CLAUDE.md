@@ -1414,6 +1414,25 @@ in `stripe.ts` takes its prices from `LADDER`; tests hold that).
   `PRO_SELECT`, wherever the allowance is read.
 - The upgrade page never sells somebody what they hold: an account with
   Personal (or grandfathered) sees what it has and the company plans.
+- **Over the allowance is read-only, never deleted** (slice 2). When an
+  account holds more personal vehicles than its plan covers — a plan
+  lapsed, or a comp ended — `overLimitIds()` keeps the **oldest** `limit`
+  editable and the rest read-only. Nothing is stored: it is worked out
+  from the plan and the vehicles on every write, so choosing a plan,
+  deleting a vehicle or moving one into an organisation undoes it at once.
+  `refuseIfReadOnly()` (`vehicleAllowance.ts`) runs after the access check
+  in **every** write under `/api/vehicles/[id]`, for collaborators too (it
+  is the vehicle that is read-only). The ways out stay open: deleting the
+  vehicle, moving it in or out of an organisation, withdrawing a passport
+  link, removing a collaborator, and a PATCH whose only change is
+  `isPublic: false` — privacy is never behind a plan. `readOnly.test.ts`
+  walks the route tree and fails on a write handler that neither calls the
+  gate nor is on that list. Reading and exporting are never gated.
+- **Said before, not after**: settings lists the vehicles that would turn
+  read-only if a paid plan ended, above the button that opens the Stripe
+  portal where it is cancelled; the vehicle page and garage card say it
+  once it happens; `/terms` (`losingPro`) says it too. Route tests that
+  mock Prisma narrowly stub `refuseIfReadOnly` and point here.
 
 ## What's not built yet
 

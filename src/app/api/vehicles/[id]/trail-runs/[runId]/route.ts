@@ -5,6 +5,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { serializeTrailRun } from '@/lib/serialize'
 import { deleteUpload } from '@/lib/storage'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 async function loadRun(vehicleId: string, runId: string) {
   const run = await prisma.trailRun.findUnique({ where: { id: runId }, include: { waypoints: true } })
@@ -33,6 +34,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const run = await loadRun(params.id, params.runId)
   if (!run) return await apiError('notFound', 404)

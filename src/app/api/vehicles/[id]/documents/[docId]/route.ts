@@ -8,6 +8,7 @@ import { readJsonBody } from '@/lib/requestBody'
 import { clearedReminderFields } from '@/lib/documents'
 import { archivedDocumentCost, parseCostPaid } from '@/lib/ownershipCosts'
 import { serializeDocument, toNumberOrNull } from '@/lib/serialize'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 async function loadDocument(vehicleId: string, docId: string) {
   const document = await prisma.document.findUnique({ where: { id: docId } })
@@ -41,6 +42,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const document = await loadDocument(params.id, params.docId)
   if (!document) return await apiError('notFound', 404)
@@ -100,6 +103,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const document = await loadDocument(params.id, params.docId)
   if (!document) return await apiError('notFound', 404)

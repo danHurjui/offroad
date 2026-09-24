@@ -6,6 +6,7 @@ import { readFormData } from '@/lib/requestBody'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES } from '@/lib/storage'
 import { ACCIDENT_PHOTO_LIMIT, ACCIDENT_PHOTO_TYPES } from '@/lib/accidents'
 import { loadAccident } from '../../load'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /**
  * A photo of the damage or the repair. The key is stored, never a URL, and
@@ -20,6 +21,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   if (!auth.ok) return auth.error
   const loaded = await loadAccident(params.id, params.accidentId, auth.session.user.id)
   if (!loaded.ok) return loaded.error
+  const readOnly = await refuseIfReadOnly(loaded.vehicle)
+  if (readOnly) return readOnly
   const { vehicle, accident } = loaded
 
   if (accident.photos.length >= ACCIDENT_PHOTO_LIMIT) {

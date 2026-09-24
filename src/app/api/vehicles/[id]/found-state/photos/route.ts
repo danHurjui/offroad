@@ -5,6 +5,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleAccess } from '@/lib/access'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 import { readFormData } from '@/lib/requestBody'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 const MAX_FOUND_STATE_PHOTOS = 20 // RL-008
 
@@ -15,6 +16,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
   if (vehicle.projectType !== 'RESTORATION') {
     return await apiError('foundStateRestorationOnly', 400)
   }

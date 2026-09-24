@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { readJsonBody } from '@/lib/requestBody'
 import { NOTE_MAX_LENGTH, checkReading, currentReading, isOverrideReason, parseKm, startOfDayUtc } from '@/lib/odometer'
 import { conflictResponse, futureResponse, isFutureDay, loadReadings } from '@/lib/odometerRecords'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /**
  * RL-044: a vehicle's odometer history. Owner and active collaborators
@@ -33,6 +34,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { session } = auth
   const vehicle = await requireVehicleAccess(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error

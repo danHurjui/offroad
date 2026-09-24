@@ -7,6 +7,7 @@ import { requireVehicleOwner } from '@/lib/access'
 import { decodeVin, type DecodedVin } from '@/lib/vinDecoder'
 import { readJsonBody } from '@/lib/requestBody'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 function toJsonInput(decoded: DecodedVin): Prisma.InputJsonValue {
   return decoded as unknown as Prisma.InputJsonValue
@@ -38,6 +39,8 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
 
   const { vehicle, error } = await loadRestorationOwnerVehicle(params.id, session.user.id)
   if (error) return error
+  const readOnly = await refuseIfReadOnly(vehicle!)
+  if (readOnly) return readOnly
 
   if (!vehicle!.vin) {
     return await apiError('noVinOnFile', 400)
@@ -63,6 +66,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const { vehicle, error } = await loadRestorationOwnerVehicle(params.id, session.user.id)
   if (error) return error
+  const readOnly = await refuseIfReadOnly(vehicle!)
+  if (readOnly) return readOnly
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error

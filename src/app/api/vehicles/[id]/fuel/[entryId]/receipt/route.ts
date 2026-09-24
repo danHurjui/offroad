@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { readFormData } from '@/lib/requestBody'
 import { saveUpload, deleteUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 import { serializeFuelEntry } from '@/lib/serialize'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 /**
  * A fill-up's receipt: a photo or PDF, one per entry, the same rules as a
@@ -33,6 +34,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
   if (!auth.ok) return auth.error
   const loaded = await load(params.id, params.entryId, auth.session.user.id)
   if (!loaded.ok) return loaded.error
+  const readOnly = await refuseIfReadOnly(loaded.vehicle)
+  if (readOnly) return readOnly
   const { vehicle, entry } = loaded
 
   const parsedForm = await readFormData(req)
@@ -65,6 +68,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   if (!auth.ok) return auth.error
   const loaded = await load(params.id, params.entryId, auth.session.user.id)
   if (!loaded.ok) return loaded.error
+  const readOnly = await refuseIfReadOnly(loaded.vehicle)
+  if (readOnly) return readOnly
   const { entry } = loaded
   if (!entry.receiptUrl) return NextResponse.json({ ok: true })
 

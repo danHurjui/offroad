@@ -5,6 +5,7 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 import { readFormData } from '@/lib/requestBody'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-027: attach a photo to a waypoint after the run is saved — photos
 // are captured live during recording but uploaded here as a separate
@@ -20,6 +21,8 @@ export async function POST(
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const waypoint = await prisma.trailWaypoint.findUnique({ where: { id: params.waypointId } })
   if (!waypoint || waypoint.trailRunId !== params.runId) {

@@ -7,6 +7,7 @@ import { requireVehicleOwner } from '@/lib/access'
 import { generateInviteToken, inviteAcceptUrl } from '@/lib/collaborators'
 import { sendEmail, collaboratorInviteEmail, inviteeLocale } from '@/lib/email'
 import { appUrlForNotification } from '@/lib/appUrl'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 // RL-030: resend/refresh a still-pending invite — regenerates the token and
 // resets invitedAt so a stale 7-day-old link doesn't expire on the invitee
@@ -18,6 +19,8 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
+  const readOnly = await refuseIfReadOnly(vehicle)
+  if (readOnly) return readOnly
 
   const collaborator = await prisma.projectCollaborator.findUnique({ where: { id: params.collabId } })
   if (!collaborator || collaborator.vehicleId !== vehicle.id) {

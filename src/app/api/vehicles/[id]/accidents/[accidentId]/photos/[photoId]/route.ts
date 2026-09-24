@@ -4,12 +4,15 @@ import { requireSession } from '@/lib/authz'
 import { prisma } from '@/lib/prisma'
 import { deleteUpload } from '@/lib/storage'
 import { loadAccident } from '../../../load'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string; accidentId: string; photoId: string } }) {
   const auth = await requireSession()
   if (!auth.ok) return auth.error
   const loaded = await loadAccident(params.id, params.accidentId, auth.session.user.id)
   if (!loaded.ok) return loaded.error
+  const readOnly = await refuseIfReadOnly(loaded.vehicle)
+  if (readOnly) return readOnly
   const photo = loaded.accident.photos.find((p) => p.id === params.photoId)
   if (!photo) return await apiError('notFound', 404)
 

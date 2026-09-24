@@ -1,3 +1,9 @@
+// RL-042: the read-only gate reads the owner's plan and vehicles, which
+// these mocks do not model; readOnly.test.ts tests it on its own.
+jest.mock('@/lib/vehicleAllowance', () => ({
+  ...jest.requireActual('@/lib/vehicleAllowance'),
+  refuseIfReadOnly: jest.fn(async () => null),
+}))
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
 jest.mock('@/lib/auth', () => ({ authOptions: {} }))
 jest.mock('@/lib/prisma', () => ({

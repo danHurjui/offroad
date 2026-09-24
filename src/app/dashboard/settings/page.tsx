@@ -11,6 +11,7 @@ import InstallAppButton from '@/components/InstallAppButton'
 import VerifyEmailResend from '@/components/VerifyEmailResend'
 import AppVersion from '@/components/AppVersion'
 import { isEmailVerified, isVerificationEnforced } from '@/lib/emailVerification'
+import { LADDER, overLimitIds, vehicleLimit } from '@/lib/plans'
 
 export default async function SettingsPage() {
   const t = await getTranslations('settings')
@@ -60,6 +61,23 @@ export default async function SettingsPage() {
         dateStyle: 'long',
       }).format(user.emailVerifiedAt)
     : ''
+
+  // RL-042: which personal vehicles are read-only now, and which would be
+  // if a paid plan ended — said here, before the Stripe portal where a
+  // subscription is cancelled, not after.
+  const personal = await prisma.vehicle.findMany({
+    where: { ownerId: user.id, organizationId: null },
+    select: { id: true, createdAt: true, year: true, make: true, model: true },
+  })
+  const label = (id: string) => {
+    const v = personal.find((x) => x.id === id)!
+    return `${v.year} ${v.make} ${v.model}`
+  }
+  const allowance = {
+    readOnlyNow: overLimitIds(personal, vehicleLimit(user)).map(label),
+    ifPlanEnds: overLimitIds(personal, LADDER.FREE.vehicles).map(label),
+    freeVehicles: LADDER.FREE.vehicles,
+  }
 
   return (
     <div className="mx-auto max-w-xl">
@@ -131,7 +149,7 @@ export default async function SettingsPage() {
         </section>
       )}
 
-      <SettingsForm profile={user} />
+      <SettingsForm profile={user} allowance={allowance} />
 
       {/* Below the profile form, above nothing — it belongs next to the
           delete-account button it is the counterpart to. */}
