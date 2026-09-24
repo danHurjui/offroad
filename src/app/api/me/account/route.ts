@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { collectStorageKeys, deleteStoredFiles } from '@/lib/personalData'
 import { organizationsOnAccountDeletion } from '@/lib/organizations'
+import { cancelPersonalSubscriptions } from '@/lib/accountBilling'
+import { describeStripeFailure } from '@/lib/stripe'
 
 /**
  * RL-009 / GDPR Art. 17: account deletion.
@@ -29,6 +31,10 @@ import { organizationsOnAccountDeletion } from '@/lib/organizations'
  * Company vehicles are the organisation's: the ones this account is the
  * record for pass to another owner there, and an organisation that goes
  * with the account takes its vehicles and their files.
+ *
+ * RL-042: the account's own Personal subscription is cancelled first
+ * (`cancelPersonalSubscriptions()`); a paying organisation is refused
+ * instead, because it is the company's to cancel, not this person's.
  */
 export async function DELETE() {
   const auth = await requireSession()
@@ -57,6 +63,23 @@ export async function DELETE() {
       })
       if (paying.length > 0) {
         return await apiErrorWith('orgPayingAccount', { names: paying.map((o) => o.name).join(', ') }, 409, { organizations: paying })
+      }
+    }
+
+    // The account's own Personal subscription is cancelled before anything
+    // is deleted: afterwards there is nobody left to sign in and cancel it,
+    // and Stripe would go on charging the card. If Stripe cannot be
+    // reached, nothing is deleted and the person is told why.
+    const billing = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { stripeCustomerId: true, stripeSubscriptionId: true },
+    })
+    if (billing) {
+      try {
+        await cancelPersonalSubscriptions(billing)
+      } catch (e) {
+        console.error('[billing] Could not cancel subscriptions before deleting an account:', describeStripeFailure(e).summary)
+        return await apiError('subscriptionCancelFailed', 503)
       }
     }
 

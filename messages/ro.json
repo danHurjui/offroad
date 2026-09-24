@@ -47,7 +47,7 @@
     "pushUnsupported": "Notificările push nu sunt acceptate pe acest dispozitiv sau browser.",
     "pushNotConfigured": "Notificările push nu sunt încă configurate pe acest server.",
     "dangerZone": "Zonă periculoasă",
-    "deleteHelp": "Îți șterge contul și fiecare vehicul, lucrare, document și poză pe care le deții — inclusiv fișierele încărcate, nu doar înregistrările care trimit la ele. Evidența donațiilor se păstrează pentru contabilitate, cu contul tău desprins de ele. Operațiunea nu poate fi anulată, așa că descarcă-ți datele înainte dacă vrei o copie.",
+    "deleteHelp": "Îți șterge contul și fiecare vehicul, lucrare, document și poză pe care le deții — inclusiv fișierele încărcate, nu doar înregistrările care trimit la ele. Evidența donațiilor se păstrează pentru contabilitate, cu contul tău desprins de ele. Un abonament Personal se anulează în același moment, deci nu se mai încasează nimic; partea din perioadă deja plătită nu se rambursează automat — cere-o dacă o vrei înapoi. Operațiunea nu poate fi anulată, așa că descarcă-ți datele înainte dacă vrei o copie.",
     "deleteAccount": "Șterge contul",
     "confirmDelete": "Ștergi contul și toate vehiculele, lucrările și pozele? Operațiunea nu poate fi anulată.",
     "confirmDeleteAgain": "Este definitiv. Ești absolut sigur?",
@@ -2159,7 +2159,8 @@
     "orgAlreadySubscribed": "Organizația are deja un plan. Îl schimbi din portalul de facturare.",
     "orgComped": "Această organizație e gratuită, fără limită de vehicule; nu e nimic de cumpărat.",
     "orgHasSubscription": "Anulează mai întâi planul organizației din portalul de facturare — ștergerea ar lăsa cardul să fie taxat în continuare.",
-    "orgPayingAccount": "Ștergerea contului ar șterge și {names}, care plătește încă un plan. Anulează-l mai întâi din portalul de facturare al organizației."
+    "orgPayingAccount": "Ștergerea contului ar șterge și {names}, care plătește încă un plan. Anulează-l mai întâi din portalul de facturare al organizației.",
+    "subscriptionCancelFailed": "Abonamentul Personal nu a putut fi anulat acum, așa că nu ți-am șters contul și nu s-a schimbat nimic. Încearcă din nou peste puțin timp sau anulează mai întâi planul din Gestionează facturarea."
   },
   "admin": {
     "aria": "RigLog administrare",
