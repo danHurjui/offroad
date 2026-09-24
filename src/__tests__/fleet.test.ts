@@ -123,6 +123,27 @@ describe('fleetCost', () => {
     expect(cost.runningTotal).toBe(420)
   })
 
+  // Vehicles on different powertrains compare on what their energy cost.
+  it('gives each vehicle its fuel-and-charging total, from its own report', () => {
+    const van = base('van', { fuel: [fill('f1', '2026-08-10T00:00:00Z', 300)] })
+    const ev = base('ev', {
+      vehicle: { ...base('ev').vehicle, fuelType: 'ELECTRIC' },
+      charges: [{ id: 'c1', date: new Date('2026-08-11T00:00:00Z'), totalRon: 120, network: null, totalFromTariff: false }],
+    })
+    const cost = fleetCost([van, ev], '12m')
+    expect(cost.rows.map((r) => r.energy)).toEqual([300, 120])
+    const energy = ownershipReport(ev, '12m').categories.find((c) => c.category === 'energy')?.total
+    expect(cost.rows[1].energy).toBe(energy)
+  })
+
+  it('the cost page and the board show each vehicle’s fuel type', () => {
+    const costs = fs.readFileSync(path.join(process.cwd(), 'src/app/dashboard/organizations/[orgId]/fleet/costs/page.tsx'), 'utf8')
+    expect(costs).toContain('tp(`fuel.${v.fuelType}`)')
+    expect(costs).toContain('money(row.energy)')
+    const board = fs.readFileSync(path.join(process.cwd(), 'src/app/dashboard/organizations/[orgId]/fleet/page.tsx'), 'utf8')
+    expect(board).toMatch(/fuelType: true/)
+  })
+
   it('leaves the purchase out of running cost and the trend, but not the total', () => {
     const a = base('a', {
       vehicle: { ...base('a').vehicle, purchasePriceRon: 50000, purchaseDate: new Date('2026-06-01T00:00:00Z') },

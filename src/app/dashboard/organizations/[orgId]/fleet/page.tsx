@@ -26,6 +26,7 @@ export default async function FleetPage({ params, searchParams }: Params) {
   const td = await getTranslations('documents')
   const tc = await getTranslations('common')
   const tr = await getTranslations('fleetReport')
+  const tp = await getTranslations('vehicleProfile')
   const session = await requireSessionOrRedirect()
   const membership = await prisma.organizationMember.findUnique({
     where: { organizationId_userId: { organizationId: params.orgId, userId: session.user.id } },
@@ -39,7 +40,7 @@ export default async function FleetPage({ params, searchParams }: Params) {
   const site = pickSite(sites, searchParams.site)
   const vehicles = await prisma.vehicle.findMany({
     where: { organizationId: org.id, ...siteVehicleWhere(site) },
-    select: { id: true, year: true, make: true, model: true, plate: true },
+    select: { id: true, year: true, make: true, model: true, plate: true, fuelType: true },
     orderBy: { createdAt: 'asc' },
   })
   const selected = vehicles.find((v) => v.id === searchParams.vehicle) ?? null
@@ -142,6 +143,7 @@ export default async function FleetPage({ params, searchParams }: Params) {
                     </Link>
                     <div className="text-xs text-ink-muted">
                       {row.vehicle.year} {row.vehicle.make} {row.vehicle.model}
+                      {row.vehicle.fuelType && <span className="ml-1">· {tp(`fuel.${row.vehicle.fuelType}`)}</span>}
                       {row.historic && <span className="ml-1">· {t('historic')}</span>}
                     </div>
                     {row.expired.length > 0 && <span className="badge badge-danger mt-1">{t('offRoadBadge')}</span>}

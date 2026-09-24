@@ -29,6 +29,7 @@ export default async function FleetCostsPage({ params, searchParams }: Params) {
   const tc = await getTranslations('common')
   const to = await getTranslations('organizations')
   const tr = await getTranslations('fleetReport')
+  const tp = await getTranslations('vehicleProfile')
   const session = await requireSessionOrRedirect()
   const membership = await prisma.organizationMember.findUnique({
     where: { organizationId_userId: { organizationId: params.orgId, userId: session.user.id } },
@@ -109,11 +110,13 @@ export default async function FleetCostsPage({ params, searchParams }: Params) {
         <p className="card p-4 text-sm text-ink-faint">{to('noVehicles')}</p>
       ) : (
         <div className="card overflow-x-auto">
-          <table className="w-full min-w-[32rem] text-sm">
+          <table className="w-full min-w-[44rem] text-sm">
             <caption className="sr-only">{t('caption')}</caption>
             <thead>
               <tr className="border-b border-surface-border text-left text-xs uppercase tracking-wide text-ink-faint">
                 <th scope="col" className="p-3">{tf('vehicle')}</th>
+                <th scope="col" className="p-3">{tp('fuelType')}</th>
+                <th scope="col" className="p-3 text-right">{t('energy')}</th>
                 <th scope="col" className="p-3 text-right">{t('running')}</th>
                 <th scope="col" className="p-3 text-right">{t('perMonth')}</th>
                 <th scope="col" className="p-3 text-right">{t('total')}</th>
@@ -131,6 +134,9 @@ export default async function FleetCostsPage({ params, searchParams }: Params) {
                       <div className="text-xs text-ink-muted">{v.year} {v.make} {v.model}</div>
                       {row.gaps > 0 && <span className="badge badge-warn mt-1">{t('gaps', { count: row.gaps })}</span>}
                     </th>
+                    {/* The talon's fuel type, as the vehicle's own profile labels it. */}
+                    <td className="p-3">{v.fuelType ? tp(`fuel.${v.fuelType}`) : <span className="text-ink-faint">{tp('notSet')}</span>}</td>
+                    <td className="p-3 text-right">{money(row.energy)}</td>
                     <td className="p-3 text-right">{money(row.runningTotal)}</td>
                     <td className="p-3 text-right">{money(row.perMonth)}</td>
                     <td className="p-3 text-right">{money(row.total)}</td>
