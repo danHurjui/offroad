@@ -856,6 +856,16 @@ re-derived. Rules that are load-bearing, and tested:
   and one after it; otherwise it falls back to time. The 15,000 km / 1 year
   interval is an assumption and every message says so. The service
   category per mode is `config.serviceCategory` (null for restoration).
+- **The owner can set their own interval** (#104,
+  `Vehicle.serviceIntervalKm`/`serviceIntervalMonths`, on the edit form).
+  Its messages state that figure and never say "assuming". Set only one
+  half and the other is **not** filled in from the default — that would
+  state something the owner never said; a distance-only interval with no
+  measurable distance is `none`. Months count on the calendar. Overdue
+  names only what has run out, not the half still to go.
+- Every quoted key in the module must exist in both catalogues; the test
+  collects every quoted `area.`/`service.`/`nextAction.`… string, not only
+  `key: '…'`, since a key picked by a ternary once shipped missing.
 - Every message key the module emits must exist in both catalogues (test).
 
 `TyreSet` is a set, not a tyre; at most one per vehicle is fitted (fitting

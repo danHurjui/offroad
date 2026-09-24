@@ -1201,6 +1201,10 @@
     "urlOnSave": "The public URL will be assigned when you save.",
     "hidePublicCost": "Hide total cost from the public page",
     "hideCostsFromCollaborators": "Hide cost totals from collaborators",
+    "serviceInterval": "Service interval",
+    "serviceIntervalHelp": "How often this vehicle is due a service, for Car health. Fill in either or both; leave both empty to use 15,000 km or a year, which Car health then says is an assumption.",
+    "serviceIntervalKm": "Every (km)",
+    "serviceIntervalMonths": "Every (months)",
     "saveFailed": "Could not save changes",
     "saveChanges": "Save changes",
     "dangerZone": "Danger zone",
@@ -2678,7 +2682,16 @@
       "due": "Next in about {km} km or {days, plural, one {# day} other {# days}}, whichever comes first (assuming every 15,000 km or a year).",
       "overdue": "Overdue by {km} km or {days, plural, one {# day} other {# days}} (assuming every 15,000 km or a year).",
       "dueTime": "Next within {days, plural, one {# day} other {# days}} (assuming once a year). Record the odometer with the service to track distance too.",
-      "overdueTime": "Overdue by {days, plural, one {# day} other {# days}} (assuming once a year)."
+      "overdueTime": "Overdue by {days, plural, one {# day} other {# days}} (assuming once a year).",
+      "overdueKm": "Overdue by {km} km (assuming every 15,000 km or a year).",
+      "ownDue": "Next in about {km} km or {days, plural, one {# day} other {# days}}, whichever comes first (your interval: every {intervalKm, number} km or {months, plural, one {month} other {# months}}).",
+      "ownOverdue": "Overdue by {km} km or {days, plural, one {# day} other {# days}} (your interval: every {intervalKm, number} km or {months, plural, one {month} other {# months}}).",
+      "ownDueKm": "Next in about {km} km (your interval: every {intervalKm, number} km).",
+      "ownOverdueKm": "Overdue by {km} km (your interval: every {intervalKm, number} km).",
+      "ownDueTime": "Next within {days, plural, one {# day} other {# days}} (your interval: every {months, plural, one {month} other {# months}}).",
+      "ownOverdueTime": "Overdue by {days, plural, one {# day} other {# days}} (your interval: every {months, plural, one {month} other {# months}}).",
+      "ownDueTimeKmUnknown": "Next within {days, plural, one {# day} other {# days}} (your interval: every {intervalKm, number} km or {months, plural, one {month} other {# months}}). Record the odometer with the service to track distance too.",
+      "ownNoDistance": "Your interval is every {intervalKm, number} km. Record the odometer on the service day and again since, to know how far there is to go."
     },
     "tyres": {
       "none": "Nothing recorded — add the tyres on the car to have tread and age watched.",
@@ -2701,6 +2714,7 @@
     "nextAction": {
       "addDocuments": "Add the vehicle’s documents",
       "logService": "Log the last service",
+      "recordKm": "Record the odometer",
       "bookService": "Book a service",
       "renew": "Renew the {type}",
       "addTyres": "Add the tyres on the car",

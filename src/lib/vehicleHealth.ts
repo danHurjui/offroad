@@ -66,6 +66,57 @@ export interface HealthReport {
  */
 export const SERVICE_INTERVAL_KM = 15_000
 export const SERVICE_INTERVAL_DAYS = 365
+
+/**
+ * #104: the owner's own interval, when they have given one. Either half
+ * may be set alone — long-life oil by distance only, an off-road rig by
+ * season only — and **the half they left empty is not filled in from the
+ * default**: mixing the owner's figure with an assumption would state
+ * something they never said. Only with neither set is the default used.
+ */
+export const SERVICE_INTERVAL_RANGES = {
+  serviceIntervalKm: { min: 500, max: 100_000 },
+  serviceIntervalMonths: { min: 1, max: 60 },
+} as const
+export type ServiceIntervalField = keyof typeof SERVICE_INTERVAL_RANGES
+
+export interface ServiceInterval {
+  km: number | null
+  months: number | null
+}
+
+export type ServiceIntervalParse =
+  | { ok: true; data: Partial<Record<ServiceIntervalField, number | null>> }
+  | { ok: false; field: ServiceIntervalField }
+
+/**
+ * Reads the two interval fields out of a request body. Only fields sent are
+ * returned; an empty string or null clears one.
+ */
+export function parseServiceInterval(body: Record<string, unknown>): ServiceIntervalParse {
+  const data: Partial<Record<ServiceIntervalField, number | null>> = {}
+  for (const field of Object.keys(SERVICE_INTERVAL_RANGES) as ServiceIntervalField[]) {
+    const value = body[field]
+    if (value === undefined) continue
+    if (value === null || (typeof value === 'string' && value.trim() === '')) {
+      data[field] = null
+      continue
+    }
+    const n = Number(value)
+    const range = SERVICE_INTERVAL_RANGES[field]
+    if (!Number.isInteger(n) || n < range.min || n > range.max) return { ok: false, field }
+    data[field] = n
+  }
+  return { ok: true, data }
+}
+
+/** The same day of the month, `months` later — the last day when that month is shorter. */
+function addMonthsUtc(date: Date, months: number): Date {
+  const y = date.getUTCFullYear()
+  const m = date.getUTCMonth() + months
+  const lastDay = new Date(Date.UTC(y, m + 1, 0)).getUTCDate()
+  return new Date(Date.UTC(y, m, Math.min(date.getUTCDate(), lastDay)))
+}
 const SERVICE_WARN_KM = 1_500
 const SERVICE_WARN_DAYS = 30
 
@@ -84,6 +135,8 @@ export interface HealthInput {
   tasks: { id: string; name: string; category: string; status: string; date: Date }[]
   readings: (ReadingLike & { readAt: Date })[]
   tyreSets: { id: string; isFitted: boolean; treadDepthMm: number | null; dotYear: number | null; fittedAt: Date | null; fittedKm: number | null }[]
+  /** #104: the owner's interval; absent or both null means the default. */
+  serviceInterval?: ServiceInterval
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -159,8 +212,17 @@ export function computeHealth(input: HealthInput): HealthReport {
         action: { key: 'nextAction.logService' },
       })
     } else {
-      const daysSince = Math.floor((input.now.getTime() - last.date.getTime()) / DAY_MS)
-      const daysLeft = SERVICE_INTERVAL_DAYS - daysSince
+      const own = input.serviceInterval && (input.serviceInterval.km !== null || input.serviceInterval.months !== null)
+        ? input.serviceInterval
+        : null
+      const intervalKm = own ? own.km : SERVICE_INTERVAL_KM
+      const lastDay = Date.UTC(last.date.getUTCFullYear(), last.date.getUTCMonth(), last.date.getUTCDate())
+      const today = Date.UTC(input.now.getUTCFullYear(), input.now.getUTCMonth(), input.now.getUTCDate())
+      const daysLeft = !own
+        ? SERVICE_INTERVAL_DAYS - Math.floor((input.now.getTime() - last.date.getTime()) / DAY_MS)
+        : own.months !== null
+          ? Math.round((addMonthsUtc(new Date(lastDay), own.months).getTime() - today) / DAY_MS)
+          : null
       // Distance since the service, across any gauge swap, from the
       // readings on or after its day (its own reading included).
       // Only measurable with a reading on the service day and one after
@@ -172,26 +234,35 @@ export function computeHealth(input: HealthInput): HealthReport {
         readingsSince.some((r) => r.readAt.toISOString().slice(0, 10) === sinceDay) &&
         readingsSince.some((r) => r.readAt.toISOString().slice(0, 10) > sinceDay)
       const kmSince = hasDistance ? distanceCovered(readingsSince) : null
-      const kmLeft = kmSince === null ? null : SERVICE_INTERVAL_KM - kmSince
-      const overdue = daysLeft <= 0 || (kmLeft !== null && kmLeft <= 0)
-      const soon = daysLeft <= SERVICE_WARN_DAYS || (kmLeft !== null && kmLeft <= SERVICE_WARN_KM)
-      rows.push({
-        area: 'service',
-        id: 'service',
-        label: { key: 'area.service' },
-        tone: overdue ? 'danger' : soon ? 'warn' : 'ok',
-        reason:
-          kmLeft === null
-            ? { key: overdue ? 'service.overdueTime' : 'service.dueTime', values: { days: Math.abs(daysLeft) } }
-            : {
-                key: overdue ? 'service.overdue' : 'service.due',
-                values: { km: Math.abs(kmLeft), days: Math.abs(daysLeft) },
-              },
-        href: `${base}/tasks/new?category=${config.serviceCategory}`,
-        // Whichever runs out first sets the urgency; ~40 km a day to compare them.
-        urgency: Math.min(daysLeft, kmLeft === null ? Infinity : kmLeft / 40),
-        action: { key: 'nextAction.bookService' },
-      })
+      const kmLeft = kmSince === null || intervalKm === null ? null : intervalKm - kmSince
+      if (daysLeft === null && kmLeft === null) {
+        // The owner's interval is by distance only, and the distance since
+        // the service cannot be measured yet. Unknown, never fine.
+        rows.push({
+          area: 'service',
+          id: 'service',
+          label: { key: 'area.service' },
+          tone: 'none',
+          reason: { key: 'service.ownNoDistance', values: { intervalKm: intervalKm ?? 0 } },
+          href: `${base}/odometer`,
+          urgency: 0,
+          action: { key: 'nextAction.recordKm' },
+        })
+      } else {
+        const overdue = (daysLeft !== null && daysLeft <= 0) || (kmLeft !== null && kmLeft <= 0)
+        const soon = (daysLeft !== null && daysLeft <= SERVICE_WARN_DAYS) || (kmLeft !== null && kmLeft <= SERVICE_WARN_KM)
+        rows.push({
+          area: 'service',
+          id: 'service',
+          label: { key: 'area.service' },
+          tone: overdue ? 'danger' : soon ? 'warn' : 'ok',
+          reason: own ? ownServiceReason(daysLeft, kmLeft, own) : defaultServiceReason(daysLeft!, kmLeft),
+          href: `${base}/tasks/new?category=${config.serviceCategory}`,
+          // Whichever runs out first sets the urgency; ~40 km a day to compare them.
+          urgency: Math.min(daysLeft ?? Infinity, kmLeft === null ? Infinity : kmLeft / 40),
+          action: { key: 'nextAction.bookService' },
+        })
+      }
     }
   }
 
@@ -245,7 +316,7 @@ export function computeHealth(input: HealthInput): HealthReport {
         reason,
         href: `${base}/tyres`,
         urgency,
-        action: { key: tone === 'none' ? 'next.measureTread' : 'next.tyres' },
+        action: tone === 'none' ? { key: 'nextAction.measureTread' } : { key: 'nextAction.tyres' },
       })
     }
   }
@@ -303,6 +374,44 @@ export function computeHealth(input: HealthInput): HealthReport {
   }
 
   return { rows, next: nextAction(rows) }
+}
+
+/**
+ * The service row's reason with the owner's own interval: it states their
+ * figure, never "assuming". At least one of `daysLeft`/`kmLeft` is set.
+ */
+function ownServiceReason(daysLeft: number | null, kmLeft: number | null, own: ServiceInterval): Message {
+  const intervalKm = own.km ?? 0
+  const months = own.months ?? 0
+  const kmOver = kmLeft !== null && kmLeft <= 0
+  const timeOver = daysLeft !== null && daysLeft <= 0
+  // Overdue names only what has run out: "overdue by 3 days or 2,000 km"
+  // when the 2,000 km are still to go would read as twice as late.
+  if (kmOver && timeOver) {
+    return { key: 'service.ownOverdue', values: { km: -kmLeft!, days: -daysLeft!, intervalKm, months } }
+  }
+  if (kmOver) return { key: 'service.ownOverdueKm', values: { km: -kmLeft!, intervalKm } }
+  if (timeOver) return { key: 'service.ownOverdueTime', values: { days: -daysLeft!, months } }
+  if (daysLeft !== null && kmLeft !== null) {
+    return { key: 'service.ownDue', values: { km: kmLeft, days: daysLeft, intervalKm, months } }
+  }
+  if (kmLeft !== null) return { key: 'service.ownDueKm', values: { km: kmLeft, intervalKm } }
+  // By time. When the owner also gave a distance it cannot be measured
+  // yet, and the message says how to fix that rather than dropping it.
+  return own.km !== null
+    ? { key: 'service.ownDueTimeKmUnknown', values: { days: daysLeft!, intervalKm, months } }
+    : { key: 'service.ownDueTime', values: { days: daysLeft!, months } }
+}
+
+/** The same, with the default interval — every message says it is assumed. */
+function defaultServiceReason(daysLeft: number, kmLeft: number | null): Message {
+  const kmOver = kmLeft !== null && kmLeft <= 0
+  const timeOver = daysLeft <= 0
+  if (kmOver && timeOver) return { key: 'service.overdue', values: { km: -kmLeft!, days: -daysLeft } }
+  if (kmOver) return { key: 'service.overdueKm', values: { km: -kmLeft! } }
+  if (timeOver) return { key: 'service.overdueTime', values: { days: -daysLeft } }
+  if (kmLeft === null) return { key: 'service.dueTime', values: { days: daysLeft } }
+  return { key: 'service.due', values: { km: kmLeft, days: daysLeft } }
 }
 
 /**

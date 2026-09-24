@@ -11,6 +11,7 @@ import { readJsonBody } from '@/lib/requestBody'
 import { collectStorageKeys, deleteStoredFiles } from '@/lib/personalData'
 import { parseProfile } from '@/lib/vehicleProfile'
 import { parseValues } from '@/lib/ownershipCosts'
+import { parseServiceInterval } from '@/lib/vehicleHealth'
 import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 
 const CURRENT_YEAR_PLUS_ONE = new Date().getFullYear() + 1
@@ -107,6 +108,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     })
     if (!values.ok) return await apiErrorWith('valuesFieldInvalid', { field: values.field }, 400)
     Object.assign(data, values.data)
+
+    // #104: the owner's own service interval for Car Health.
+    const interval = parseServiceInterval(body)
+    if (!interval.ok) return await apiErrorWith('profileFieldInvalid', { field: interval.field }, 400)
+    Object.assign(data, interval.data)
 
     // Publishing is the one field on this route that reaches strangers:
     // it puts the build, its photos and (unless hidden) its costs on the

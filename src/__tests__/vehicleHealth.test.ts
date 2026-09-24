@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { computeHealth, nextAction, type HealthInput } from '@/lib/vehicleHealth'
+import { computeHealth, nextAction, parseServiceInterval, type HealthInput } from '@/lib/vehicleHealth'
 
 const NOW = new Date('2026-09-23T12:00:00Z')
 const day = (d: string) => new Date(`${d}T00:00:00Z`)
@@ -121,6 +121,82 @@ describe('service', () => {
   })
 })
 
+describe('service interval set by the owner (#104)', () => {
+  const service = (date: string) => ({ id: 's1', name: 'Revizie', category: 'SERVICING', status: 'DONE', date: day(date) })
+  const readings = (from: number, to: number) => [
+    { id: 'r1', km: from, readAt: day('2026-03-01'), isOverride: false },
+    { id: 'r2', km: to, readAt: day('2026-09-20'), isOverride: false },
+  ]
+  const health = (o: Partial<HealthInput>) => row(computeHealth(input({ tasks: [service('2026-03-01')], ...o })), 'service')
+
+  it('states the owner’s figure, never the assumption', () => {
+    const r = health({ readings: readings(100_000, 104_000), serviceInterval: { km: 10_000, months: 12 } })
+    expect(r).toMatchObject({
+      tone: 'ok',
+      reason: { key: 'service.ownDue', values: { km: 6_000, intervalKm: 10_000, months: 12 } },
+    })
+  })
+
+  it('counts months on the calendar from the service day', () => {
+    // 1 March + 6 months = 1 September, 22 days before NOW.
+    const r = health({ serviceInterval: { km: null, months: 6 } })
+    expect(r).toMatchObject({ tone: 'danger', reason: { key: 'service.ownOverdueTime', values: { days: 22, months: 6 } } })
+  })
+
+  it('does not fill the half the owner left empty from the default', () => {
+    // Distance only: 7 months on is past the default year? No — but it would
+    // be past a made-up time limit; nothing about time may be said.
+    const r = health({ readings: readings(100_000, 120_000), serviceInterval: { km: 30_000, months: null } })
+    expect(r).toMatchObject({ tone: 'ok', reason: { key: 'service.ownDueKm', values: { km: 10_000, intervalKm: 30_000 } } })
+    expect(r.reason.values).not.toHaveProperty('days')
+  })
+
+  it('is unknown, not fine, when a distance-only interval cannot be measured', () => {
+    const r = health({ serviceInterval: { km: 30_000, months: null } })
+    expect(r).toMatchObject({ tone: 'none', reason: { key: 'service.ownNoDistance' }, action: { key: 'nextAction.recordKm' } })
+    expect(r.href).toMatch(/\/odometer$/)
+  })
+
+  it('names the distance it cannot measure yet when the interval has both', () => {
+    const r = health({ serviceInterval: { km: 10_000, months: 12 } })
+    expect(r.reason).toMatchObject({ key: 'service.ownDueTimeKmUnknown', values: { intervalKm: 10_000, months: 12 } })
+  })
+
+  it('names only what has run out when it is overdue', () => {
+    const r = health({ readings: readings(100_000, 111_000), serviceInterval: { km: 10_000, months: 12 } })
+    expect(r).toMatchObject({ tone: 'danger', reason: { key: 'service.ownOverdueKm', values: { km: 1_000 } } })
+  })
+
+  it('falls back to the default, said to be assumed, with nothing set', () => {
+    expect(health({ serviceInterval: { km: null, months: null } }).reason.key).toBe('service.dueTime')
+    expect(health({ readings: readings(100_000, 116_000) }).reason).toMatchObject({ key: 'service.overdueKm', values: { km: 1_000 } })
+  })
+
+  it('gives a restoration no service row whatever is set', () => {
+    const ids = computeHealth(input({ projectType: 'RESTORATION', serviceInterval: { km: 5_000, months: 6 } })).rows.map((r) => r.id)
+    expect(ids).not.toContain('service')
+  })
+})
+
+describe('parseServiceInterval', () => {
+  it('reads only the fields sent, and clears on empty', () => {
+    expect(parseServiceInterval({})).toEqual({ ok: true, data: {} })
+    expect(parseServiceInterval({ serviceIntervalKm: '10000', serviceIntervalMonths: '' })).toEqual({
+      ok: true,
+      data: { serviceIntervalKm: 10_000, serviceIntervalMonths: null },
+    })
+  })
+
+  it.each([
+    [{ serviceIntervalKm: 100 }, 'serviceIntervalKm'],
+    [{ serviceIntervalKm: 12_500.5 }, 'serviceIntervalKm'],
+    [{ serviceIntervalMonths: 0 }, 'serviceIntervalMonths'],
+    [{ serviceIntervalMonths: 'soon' }, 'serviceIntervalMonths'],
+  ])('refuses %j', (body, field) => {
+    expect(parseServiceInterval(body)).toEqual({ ok: false, field })
+  })
+})
+
 describe('tyres', () => {
   const set = (o: Partial<HealthInput['tyreSets'][number]>) => ({
     id: 't', isFitted: true, treadDepthMm: null, dotYear: null, fittedAt: null, fittedKm: null, ...o,
@@ -197,7 +273,13 @@ describe('it is never a rating', () => {
 
 describe('every message it can produce is translated', () => {
   const source = fs.readFileSync(path.join(process.cwd(), 'src/lib/vehicleHealth.ts'), 'utf8')
-  const keys = Array.from(source.matchAll(/key: '([a-zA-Z.]+)'/g), (m) => m[1])
+  // Every quoted string that looks like a key, not only `key: '…'` — a key
+  // picked by a ternary was invisible to that, which is how the tyre row
+  // shipped `next.tyres`, a key neither catalogue has.
+  const keys = Array.from(
+    source.matchAll(/'((?:area|doc|documents|service|tyres|jobs|next|nextAction)\.[a-zA-Z.]+)'/g),
+    (m) => m[1]
+  )
   const lookup = (obj: unknown, dotted: string) =>
     dotted.split('.').reduce<unknown>((acc, k) => (acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[k] : undefined), obj)
 
@@ -209,4 +291,5 @@ describe('every message it can produce is translated', () => {
       expect(typeof lookup(catalogue, `doc.${type}`)).toBe('string')
     }
   })
+
 })
