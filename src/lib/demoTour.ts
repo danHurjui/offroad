@@ -22,13 +22,29 @@ import type { ProjectType } from './projectType'
 /**
  * Which plan a feature belongs to.
  *
- * Only two values, because the app only has two answers — `hasPro()` is
- * either true or it isn't. Where the boundary runs *through* a feature
- * (posting a parts request needs Pro, replying to one doesn't) the body
- * text says so; inventing a third tier here would put that nuance in a
- * badge, which is where nobody reads it.
+ * Three values, because the app has three answers: free, the account's
+ * own paid plan (`hasPro()`, sold as Personal — the id kept its old name),
+ * and a company plan (`orgHasPaidFeatures()`, RL-042). Where the boundary
+ * runs *through* a feature (posting a parts request needs Personal,
+ * replying to one doesn't; the cost total is free, its breakdown is not)
+ * the body text says so; a finer badge would put that nuance where nobody
+ * reads it.
  */
-export type DemoTier = 'free' | 'pro'
+export type DemoTier = 'free' | 'pro' | 'business'
+
+export const DEMO_TIERS: DemoTier[] = ['free', 'pro', 'business']
+
+/** The badge's label (`demo.<key>`) and its palette, per tier. */
+export const TIER_LABEL_KEY: Record<DemoTier, 'tierFree' | 'tierPro' | 'tierBusiness'> = {
+  free: 'tierFree',
+  pro: 'tierPro',
+  business: 'tierBusiness',
+}
+export const TIER_BADGE: Record<DemoTier, string> = {
+  free: 'badge-neutral',
+  pro: 'badge-brand',
+  business: 'badge-info',
+}
 
 export interface DemoChapter {
   /** Message key root: `demo.chapter.<id>.title` / `.body`. */
@@ -85,6 +101,34 @@ export const DEMO_SECTIONS: DemoSection[] = [
       { id: 'originality', tier: 'pro', modes: ['RESTORATION'] },
       { id: 'vinDecoder', tier: 'pro', modes: ['RESTORATION'] },
       { id: 'priceAlert', tier: 'pro' },
+    ],
+  },
+  {
+    // Phase 5 (#49): the records a car on the road accumulates.
+    id: 'records',
+    chapters: [
+      { id: 'identity', tier: 'free' },
+      { id: 'odometer', tier: 'free' },
+      { id: 'fuel', tier: 'free' },
+      { id: 'receiptScan', tier: 'pro' },
+      { id: 'health', tier: 'free' },
+      { id: 'tyres', tier: 'free', modes: ['OFFROAD', 'DAILY_DRIVER'] },
+      { id: 'ownership', tier: 'free' },
+      { id: 'serviceBook', tier: 'free' },
+      { id: 'passport', tier: 'pro' },
+      { id: 'accidents', tier: 'free' },
+    ],
+  },
+  {
+    // RL-038–042: organisations and their fleets, on a company plan.
+    id: 'business',
+    chapters: [
+      { id: 'organization', tier: 'business' },
+      { id: 'fleetBoard', tier: 'business' },
+      { id: 'fleetCosts', tier: 'business' },
+      { id: 'drivers', tier: 'business' },
+      { id: 'trips', tier: 'business' },
+      { id: 'fleetReports', tier: 'business' },
     ],
   },
   {
@@ -152,5 +196,7 @@ export const DEMO_FAQ_IDS = [
   'mechanic',
   'private',
   'daily',
+  'sell',
+  'company',
   'leave',
 ] as const

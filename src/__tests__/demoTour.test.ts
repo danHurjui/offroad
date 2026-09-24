@@ -79,6 +79,25 @@ describe('the tour catalogue', () => {
   })
 })
 
+describe('the tour page', () => {
+  const page = fs.readFileSync(path.join(process.cwd(), 'src', 'app', 'demo', 'page.tsx'), 'utf8')
+
+  /**
+   * A chapter without a sample screen renders as a heading and a
+   * paragraph beside forty-odd that have pictures — it reads as a
+   * feature nobody could show. Every chapter gets a `screen(...)` entry,
+   * which is also what puts the "sample data" caption on it.
+   */
+  it('gives every chapter a framed sample screen', () => {
+    for (const chapter of DEMO_CHAPTERS) {
+      expect({ chapter: chapter.id, framed: page.includes(`${chapter.id}: screen('${chapter.id}',`) }).toEqual({
+        chapter: chapter.id,
+        framed: true,
+      })
+    }
+  })
+})
+
 describe.each(LOCALES)('the tour text in %s', (locale) => {
   const demo = CATALOGUES[locale].demo
 

@@ -429,13 +429,13 @@ click a feature, and its panel appears beside the list. Three things about
 it are load-bearing rather than decorative.
 
 **Every panel is in the first response, with `hidden` on all but one.**
-Mounting only the selected one would leave twenty-five of the twenty-six
+Mounting only the selected one would leave all but one of the
 features out of the page a crawler reads and out of the reader's Ctrl+F.
 
 **Every feature is also named in plain, always-visible text**, in the
 index at the foot of the page. Search does index hidden tab content but
 does not weigh it the same as what is on the page, and the explorer hides
-twenty-five of its twenty-six panels — so the index is what puts every
+all but one of its panels — so the index is what puts every
 feature name in the document unhidden. Its anchors open the matching
 feature, via the hashchange handling below.
 
@@ -451,6 +451,22 @@ navigation, so a mount-only read would ignore a link from one part of the
 tour to another. `replaceState` keeps the address bar on the open feature
 without filling the back button, and does not fire `hashchange`, so the
 two do not fight.
+
+Since phase 5 and the fleet work it has six categories: the log, With
+Personal, **Car records** (identity, odometer, fuel, receipt scan, Car
+Health, tyres, cost of ownership, service book, passport, accidents),
+**For companies** (organisation, fleet compliance and cost, drivers,
+trips, reports), community and the app. A chapter's tier is one of three
+— `free`, `pro` (sold as Personal) or `business` (a company plan) — and
+`TIER_LABEL_KEY` / `TIER_BADGE` in `demoTour.ts` say how each is shown.
+Those previews live in `recordPreviews.tsx` and `fleetPreviews.tsx`, with
+the drawn pictures (car from the side and above, a fuel receipt, a file)
+in `pictures.tsx`; several run the real function — `computeHealth()`,
+`fuelSummary()`, `complianceBoard()`, `reconcileMonth()` — over invented
+records dated relative to today. Plates on the tour use `00`, which is
+never issued. The homepage reuses three of them (Car Health, the receipt
+scan, fleet compliance) inside the same `DemoScreen` frame, so it cannot
+show a mock the tour does not also label.
 
 It is mock-ups rather than a shared demo account on purpose: an account
 anyone can open is writable by everyone who finds it, needs seeding and
