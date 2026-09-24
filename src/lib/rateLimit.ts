@@ -119,6 +119,8 @@ export const RATE_LIMITS = {
    * a time, which is the plan the account is not paying for.
    */
   editableChoice: { limit: 5, windowSeconds: 24 * 60 * 60 },
+  /** #103: creating, renaming and deleting an organisation's sites. Per user id. */
+  orgSite: { limit: 60, windowSeconds: 60 * 60 },
 } as const satisfies Record<string, RateLimitRule>
 
 export type RateLimitName = keyof typeof RATE_LIMITS

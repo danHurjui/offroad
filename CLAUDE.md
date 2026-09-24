@@ -1132,7 +1132,20 @@ the function the documents board and the reminder cron use.
   thresholds are marked once per document before sending, so nobody gets a
   duplicate, and one recipient's failed send is caught so the next still
   gets theirs.
-- No site/depot filter: organisations have no depots yet.
+- **Sites** (#103, `OrganizationSite`, `src/lib/sites.ts`): named depots
+  an OWNER/FLEET_MANAGER creates, renames and deletes on the organisation
+  page (`/api/organizations/[orgId]/sites`, rate-limited `orgSite`). A
+  company vehicle is at one site or none (`Vehicle.siteId`, set on its
+  edit page through the vehicle PATCH — only a site of *its own*
+  organisation, checked there, since a single-column FK cannot). Deleting
+  a site unassigns its vehicles (`SetNull`) and never deletes them; moving
+  a vehicle out of (or into) an organisation clears it. A site grants and
+  hides nothing — access is still the role. The compliance, cost, trips
+  and reports pages take `site` and narrow on the server with
+  `siteVehicleWhere()`, still every vehicle within it; the report routes
+  (`loadReport()` and the trip sheet) 404 a site from another
+  organisation, and a report narrowed to a site names it in its filename
+  and on every PDF page.
 
 **Fleet cost** (slice 2, `/fleet/costs`, same roles): `fleetCost()` is
 `ownershipReport()` per vehicle, added up — a vehicle's line is the total on

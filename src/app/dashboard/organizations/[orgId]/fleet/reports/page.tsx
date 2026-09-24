@@ -6,8 +6,11 @@ import { prisma } from '@/lib/prisma'
 import { accessForRole } from '@/lib/access'
 import { dayKey, defaultReportPeriod, parseReportPeriod, REPORT_MAX_DAYS } from '@/lib/fleetReport'
 import FormError from '@/components/FormError'
+import { pickSite, siteVehicleWhere } from '@/lib/sites'
+import { loadSites } from '@/lib/siteRecords'
+import SiteFilterSelect from '@/components/SiteFilterSelect'
 
-type Params = { params: { orgId: string }; searchParams: { from?: string; to?: string; vehicle?: string } }
+type Params = { params: { orgId: string }; searchParams: { from?: string; to?: string; vehicle?: string; site?: string } }
 
 // RL-041: the fleet's files for an accountant — the jobs and the costs as
 // CSV, the period's summary as PDF. The form is a GET to this page, so it
@@ -25,8 +28,11 @@ export default async function FleetReportsPage({ params, searchParams }: Params)
   if (!membership || accessForRole(membership.role) !== 'owner') notFound()
   const org = membership.organization
 
+  // #103: the routes narrow to the site again, and 404 one that is not this organisation's.
+  const sites = await loadSites(org.id)
+  const site = pickSite(sites, searchParams.site)
   const vehicles = await prisma.vehicle.findMany({
-    where: { organizationId: org.id },
+    where: { organizationId: org.id, ...siteVehicleWhere(site) },
     orderBy: { createdAt: 'asc' },
     select: { id: true, year: true, make: true, model: true, plate: true },
   })
@@ -38,7 +44,12 @@ export default async function FleetReportsPage({ params, searchParams }: Params)
   const from = asked ? searchParams.from ?? '' : dayKey(fallback.from)
   const to = asked ? searchParams.to ?? '' : dayKey(fallback.to)
 
-  const query = new URLSearchParams({ from, to, ...(selected ? { vehicle: selected.id } : {}) }).toString()
+  const query = new URLSearchParams({
+    from,
+    to,
+    ...(site ? { site: site.id } : {}),
+    ...(selected ? { vehicle: selected.id } : {}),
+  }).toString()
   const base = `/api/organizations/${org.id}/reports`
   const files = [
     { href: `${base}/summary?${query}`, title: t('files.summary'), description: t('files.summaryHelp') },
@@ -81,6 +92,7 @@ export default async function FleetReportsPage({ params, searchParams }: Params)
             />
           </div>
         </div>
+        <SiteFilterSelect id="report-site" sites={sites} selected={site} label={tf('filterSite')} allLabel={tf('allSites')} />
         {vehicles.length > 1 && (
           <div className="min-w-0">
             <label className="label" htmlFor="report-vehicle">{tf('filterVehicle')}</label>

@@ -6,11 +6,14 @@ import { prisma } from '@/lib/prisma'
 import { accessForRole } from '@/lib/access'
 import { currentMonth, parseMonth, shiftMonth, sortTrips, tripDistance } from '@/lib/trips'
 import { loadMonthTrips } from '@/lib/tripRecords'
+import { pickSite, siteVehicleWhere } from '@/lib/sites'
+import { loadSites } from '@/lib/siteRecords'
+import SiteFilterSelect from '@/components/SiteFilterSelect'
 
 const km = (n: number) => n.toLocaleString('ro-RO')
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 
-type Params = { params: { orgId: string }; searchParams: { month?: string; driver?: string } }
+type Params = { params: { orgId: string }; searchParams: { month?: string; driver?: string; site?: string } }
 
 // RL-051: a month's trips across the fleet, per driver — the driver's
 // monthly sheet. For OWNER and FLEET_MANAGER, like the rest of the fleet
@@ -29,8 +32,11 @@ export default async function FleetTripsPage({ params, searchParams }: Params) {
   const org = membership.organization
 
   const month = parseMonth(searchParams.month) ?? currentMonth()
+  // #103: a site narrows the sheet to trips on its vehicles.
+  const sites = await loadSites(org.id)
+  const site = pickSite(sites, searchParams.site)
   const [vehicles, members] = await Promise.all([
-    prisma.vehicle.findMany({ where: { organizationId: org.id }, select: { id: true, year: true, make: true, model: true, plate: true } }),
+    prisma.vehicle.findMany({ where: { organizationId: org.id, ...siteVehicleWhere(site) }, select: { id: true, year: true, make: true, model: true, plate: true } }),
     prisma.organizationMember.findMany({
       where: { organizationId: org.id },
       select: { user: { select: { id: true, displayName: true } } },
@@ -54,8 +60,9 @@ export default async function FleetTripsPage({ params, searchParams }: Params) {
   }
 
   const monthName = new Intl.DateTimeFormat('ro-RO', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(month.from)
-  const query = (key: string) => `?month=${key}${driver ? `&driver=${driver.id}` : ''}`
-  const exportHref = `/api/organizations/${org.id}/reports/trips?month=${month.key}${driver ? `&driver=${driver.id}` : ''}`
+  const filters = `${driver ? `&driver=${driver.id}` : ''}${site ? `&site=${site.id}` : ''}`
+  const query = (key: string) => `?month=${key}${filters}`
+  const exportHref = `/api/organizations/${org.id}/reports/trips?month=${month.key}${filters}`
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -68,6 +75,7 @@ export default async function FleetTripsPage({ params, searchParams }: Params) {
 
       <form method="get" className="mb-4 flex flex-wrap items-end gap-2">
         <input type="hidden" name="month" value={month.key} />
+        <SiteFilterSelect id="trips-site" sites={sites} selected={site} label={tf('filterSite')} allLabel={tf('allSites')} />
         <div className="min-w-0">
           <label className="label" htmlFor="trips-driver">{t('driver')}</label>
           <select id="trips-driver" name="driver" className="input" defaultValue={driver?.id ?? ''}>

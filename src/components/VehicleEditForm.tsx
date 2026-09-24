@@ -12,6 +12,7 @@ import { compressImageIfNeeded } from '@/lib/compressImage'
 import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
 import { PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
 import { SERVICE_INTERVAL_RANGES } from '@/lib/vehicleHealth'
+import type { SiteOption } from '@/lib/sites'
 
 interface Vehicle {
   id: string
@@ -50,14 +51,18 @@ interface Vehicle {
   financeEndDate: string | null
   serviceIntervalKm: number | null
   serviceIntervalMonths: number | null
+  siteId: string | null
 }
 
 export default function VehicleEditForm({
   vehicle,
   coverCandidates = [],
+  sites = [],
 }: {
   vehicle: Vehicle
   coverCandidates?: CoverCandidate[]
+  /** #103: the organisation's sites, for a company vehicle; empty otherwise. */
+  sites?: SiteOption[]
 }) {
   const t = useTranslations('vehicleEdit')
   const tc = useTranslations('common')
@@ -80,6 +85,7 @@ export default function VehicleEditForm({
   const hasServiceRow = PROJECT_TYPE_CONFIG[vehicle.projectType].serviceCategory !== null
   const [registration, setRegistration] = useState<RegistrationValues>(() => registrationValuesFrom(vehicle))
   const [values, setValues] = useState<ValuesValues>(() => valuesFrom(vehicle))
+  const [siteId, setSiteId] = useState(vehicle.siteId ?? '')
   const publicUrl = vehicle.ownerUsername && vehicle.slug ? `/builds/${vehicle.ownerUsername}/${vehicle.slug}` : null
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -112,7 +118,13 @@ export default function VehicleEditForm({
     const res = await fetch(`/api/vehicles/${vehicle.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, ...registration, ...valuesPayload(values), year: Number(form.year) }),
+      body: JSON.stringify({
+        ...form,
+        ...registration,
+        ...valuesPayload(values),
+        ...(sites.length > 0 ? { siteId: siteId || null } : {}),
+        year: Number(form.year),
+      }),
     })
     if (!res.ok) {
       setLoading(false)
@@ -284,6 +296,18 @@ export default function VehicleEditForm({
           disabled={loading}
           photos={coverCandidates}
         />
+
+        {sites.length > 0 && (
+          <div>
+            <label className="label" htmlFor="siteId">{t('site')}</label>
+            <select id="siteId" name="siteId" className="input" value={siteId} onChange={(e) => setSiteId(e.target.value)}>
+              <option value="">{t('noSite')}</option>
+              {sites.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {vehicle.companyName ? (
           <p className="text-xs text-ink-muted">{t('companyNotPublic', { name: vehicle.companyName })}</p>

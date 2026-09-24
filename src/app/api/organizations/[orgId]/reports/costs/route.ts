@@ -19,7 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: { orgId: strin
   if (!auth.ok) return auth.error
   const loaded = await loadReport(params.orgId, auth.session.user.id, req.nextUrl.searchParams)
   if (!loaded.ok) return loaded.error
-  const { organization, period, vehicles, assignments } = loaded.report
+  const { organization, period, site, vehicles, assignments } = loaded.report
 
   try {
     const locale = localeFromRequest()
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest, { params }: { params: { orgId: strin
       })
     )
     const one = req.nextUrl.searchParams.get('vehicle') ? vehicles[0] : null
-    const parts = ['Costs', organization.name, ...(one ? [one.plate ?? `${one.make} ${one.model}`] : [])]
+    const parts = ['Costs', organization.name, ...(site ? [site.name] : []), ...(one ? [one.plate ?? `${one.make} ${one.model}`] : [])]
     return reportResponse(csv, 'text/csv; charset=utf-8', reportFilename(parts, period, 'csv'))
   } catch (e) {
     console.error('Fleet cost report failed:', e)

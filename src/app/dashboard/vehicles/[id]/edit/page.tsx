@@ -6,6 +6,7 @@ import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
+import { loadSites } from '@/lib/siteRecords'
 import VehicleEditForm from '@/components/VehicleEditForm'
 import MoveToOrganization from '@/components/MoveToOrganization'
 import MoveOutOfOrganization from '@/components/MoveOutOfOrganization'
@@ -21,7 +22,7 @@ export default async function EditVehiclePage({ params }: { params: { id: string
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { username: true } })
   // RL-038: a company vehicle names its organisation; a personal one can be
   // moved into one where this account manages vehicles.
-  const [company, destinations] = await Promise.all([
+  const [company, destinations, sites] = await Promise.all([
     vehicle.organizationId
       ? prisma.organization.findUnique({ where: { id: vehicle.organizationId }, select: { name: true } })
       : Promise.resolve(null),
@@ -32,6 +33,8 @@ export default async function EditVehiclePage({ params }: { params: { id: string
           select: { organization: { select: { id: true, name: true } } },
           orderBy: { createdAt: 'asc' },
         }),
+    // #103: a company vehicle can be put at one of its organisation's sites.
+    vehicle.organizationId ? loadSites(vehicle.organizationId) : Promise.resolve([]),
   ])
   const config = await getVocabulary(vehicle.projectType)
 
@@ -96,7 +99,9 @@ export default async function EditVehiclePage({ params }: { params: { id: string
           financeEndDate: vehicle.financeEndDate?.toISOString() ?? null,
           serviceIntervalKm: vehicle.serviceIntervalKm,
           serviceIntervalMonths: vehicle.serviceIntervalMonths,
+          siteId: vehicle.siteId,
         }}
+        sites={sites}
         coverCandidates={coverCandidates}
       />
       {company && <MoveOutOfOrganization vehicleId={vehicle.id} organizationName={company.name} />}
