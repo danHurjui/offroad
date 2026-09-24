@@ -39,30 +39,30 @@ describe('Stripe configuration errors name the variable and the fix', () => {
 
   describe('the price ids', () => {
     it('says which variable is unset', () => {
-      delete process.env.STRIPE_PRICE_ANNUAL
-      expect(() => priceIdFor('ANNUAL')).toThrow(/STRIPE_PRICE_ANNUAL is not set/)
+      delete process.env.STRIPE_PRICE_PERSONAL_ANNUAL
+      expect(() => priceIdFor('PERSONAL_ANNUAL')).toThrow(/STRIPE_PRICE_PERSONAL_ANNUAL is not set/)
     })
 
     it('recognises a product id pasted in place of a price id', () => {
-      process.env.STRIPE_PRICE_MONTHLY = 'prod_QxYz123'
-      expect(() => priceIdFor('MONTHLY')).toThrow(/STRIPE_PRICE_MONTHLY/)
-      expect(() => priceIdFor('MONTHLY')).toThrow(/product id/)
-      expect(() => priceIdFor('MONTHLY')).toThrow(/price_/)
+      process.env.STRIPE_PRICE_PERSONAL_MONTHLY = 'prod_QxYz123'
+      expect(() => priceIdFor('PERSONAL_MONTHLY')).toThrow(/STRIPE_PRICE_PERSONAL_MONTHLY/)
+      expect(() => priceIdFor('PERSONAL_MONTHLY')).toThrow(/product id/)
+      expect(() => priceIdFor('PERSONAL_MONTHLY')).toThrow(/price_/)
     })
 
     it('recognises a payment link', () => {
-      process.env.STRIPE_PRICE_LIFETIME = 'https://buy.stripe.com/test_abc'
-      expect(() => priceIdFor('LIFETIME')).toThrow(/URL/)
+      process.env.STRIPE_PRICE_PERSONAL_LIFETIME = 'https://buy.stripe.com/test_abc'
+      expect(() => priceIdFor('PERSONAL_LIFETIME')).toThrow(/URL/)
     })
 
     it('names the value when it is something else entirely', () => {
-      process.env.STRIPE_PRICE_MONTHLY = 'RON 14.99'
-      expect(() => priceIdFor('MONTHLY')).toThrow(/RON 14\.99/)
+      process.env.STRIPE_PRICE_PERSONAL_MONTHLY = 'RON 14.99'
+      expect(() => priceIdFor('PERSONAL_MONTHLY')).toThrow(/RON 14\.99/)
     })
 
     it('accepts a real price id, trimming a stray copy-paste space', () => {
-      process.env.STRIPE_PRICE_MONTHLY = ' price_1QabcDEF '
-      expect(priceIdFor('MONTHLY')).toBe('price_1QabcDEF')
+      process.env.STRIPE_PRICE_PERSONAL_MONTHLY = ' price_1QabcDEF '
+      expect(priceIdFor('PERSONAL_MONTHLY')).toBe('price_1QabcDEF')
     })
   })
 

@@ -211,7 +211,7 @@ describe('vehicle routes', () => {
   })
 
   it('POST accepts the plate at creation', async () => {
-    mockUserFind.mockResolvedValue({ isPro: true, isProComped: false })
+    mockUserFind.mockResolvedValue({ isPro: true, isProComped: false, proPlan: 'MONTHLY', grandfatheredAt: new Date('2026-10-03') })
     mockFindFirst.mockResolvedValue(null)
     mockCreate.mockImplementation(({ data }) => Promise.resolve({ id: 'new', ...data }))
     const res = await POST({

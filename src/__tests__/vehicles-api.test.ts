@@ -83,10 +83,36 @@ describe('POST /api/vehicles', () => {
     expect(mockCreate).not.toHaveBeenCalled()
   })
 
-  it('allows a second vehicle for Pro users', async () => {
+  it('allows a second and third vehicle on Personal', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
-    mockUserFindUnique.mockResolvedValue({ isPro: true })
-    mockCreate.mockResolvedValue({ id: 'v2' })
+    mockUserFindUnique.mockResolvedValue({ isPro: true, isProComped: false, proPlan: 'PERSONAL_MONTHLY', grandfatheredAt: null })
+    mockCount.mockResolvedValue(2)
+    mockCreate.mockResolvedValue({ id: 'v3' })
+    const res = await POST(makePostReq({ projectType: 'OFFROAD', make: 'Jeep', model: 'TJ', year: 2000 }))
+    expect(res.status).toBe(201)
+  })
+
+  it('refuses a fourth vehicle on Personal, naming its allowance', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockUserFindUnique.mockResolvedValue({ isPro: true, isProComped: false, proPlan: 'PERSONAL_MONTHLY', grandfatheredAt: null })
+    mockCount.mockResolvedValue(3)
+    const res = await POST(makePostReq({ projectType: 'OFFROAD', make: 'Jeep', model: 'TJ', year: 2000 }))
+    const data = await res.json()
+    expect(res.status).toBe(403)
+    expect(data.code).toBe('UPGRADE_REQUIRED')
+    expect(data.error).toMatch(/3/)
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
+  // RL-042: everyone who held Pro before the ladder keeps it uncapped.
+  it.each([
+    ['a legacy subscriber', { isPro: true, isProComped: false, proPlan: 'MONTHLY' }],
+    ['a founding member', { isPro: false, isProComped: true, proPlan: null }],
+  ])('never counts vehicles for %s', async (_label, flags) => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1' } })
+    mockUserFindUnique.mockResolvedValue({ ...flags, grandfatheredAt: new Date('2026-10-03') })
+    mockCount.mockResolvedValue(40)
+    mockCreate.mockResolvedValue({ id: 'v41' })
     const res = await POST(makePostReq({ projectType: 'OFFROAD', make: 'Jeep', model: 'TJ', year: 2000 }))
     expect(res.status).toBe(201)
     expect(mockCount).not.toHaveBeenCalled()

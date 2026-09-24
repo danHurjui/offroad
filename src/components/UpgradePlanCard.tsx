@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import type { PersonalPlanId } from '@/lib/plans'
 
 export default function UpgradePlanCard({
   plan,
@@ -11,7 +12,7 @@ export default function UpgradePlanCard({
   description,
   highlight,
 }: {
-  plan: 'MONTHLY' | 'ANNUAL' | 'LIFETIME'
+  plan: PersonalPlanId
   title: string
   price: string
   period: string

@@ -118,12 +118,12 @@ describe.each(LOCALES)('the tour text in %s', (locale) => {
   })
 
   /**
-   * Prices belong to PRO_PLANS, which is where the checkout reads them
+   * Prices belong to the ladder (LADDER), which is where the checkout reads them
    * from. A number written into the marketing copy survives a price
    * change, and a tour quoting a price the checkout no longer charges is
    * the one kind of drift here that costs somebody money.
    */
-  it('quotes no price it did not get from PRO_PLANS', () => {
+  it('quotes no price it did not get from the ladder', () => {
     const strings: [string, string][] = []
     const walk = (value: unknown, dotted: string) => {
       if (typeof value === 'string') strings.push([dotted, value])

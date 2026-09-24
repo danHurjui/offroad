@@ -9,7 +9,7 @@ import {
 } from '@/lib/structuredData'
 import { DEMO_FAQ_IDS } from '@/lib/demoTour'
 import { LOCALES } from '@/i18n/config'
-import { PRO_PLANS } from '@/lib/stripe'
+import { PERSONAL_PLANS } from '@/lib/stripe'
 
 /**
  * Structured data is the one thing on these pages written for a machine,
@@ -55,8 +55,8 @@ describe('the software description', () => {
 
   it('quotes every plan at the price the checkout charges', () => {
     const offers = jsonLd.offers as { name: string; price: number; priceCurrency: string }[]
-    for (const [plan, config] of Object.entries(PRO_PLANS)) {
-      const offer = offers.find((o) => o.name === `Pro ${config.label}`)
+    for (const [plan, config] of Object.entries(PERSONAL_PLANS)) {
+      const offer = offers.find((o) => o.name === `Personal ${config.label}`)
       expect({ plan, price: offer?.price }).toEqual({ plan, price: config.priceRon })
     }
   })

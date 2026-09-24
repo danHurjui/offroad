@@ -358,7 +358,7 @@ narrowed rather than a page competing with its own parent.
 
 `structuredData.ts` is the JSON-LD. `SoftwareApplication` (on `/` and
 `/demo`, under one shared `@id`, so the two pages describe one product
-rather than two) carries the offers, built from `PRO_PLANS` — the same
+rather than two) carries the offers, built from `PERSONAL_PLANS` — the same
 table the checkout charges against — with the free tier listed first,
 because software shown at a price while a free tier exists reads as
 paid-only. `WebSite` carries the search box, pointed at `/community`
@@ -413,7 +413,7 @@ the homepage, the feature tour (`/demo`), the feedback board (`/tickets`)
 and the donate page. They
 share `PublicHeader`/`PublicFooter` (distinct from `Nav.tsx`, which is the
 in-app header) — `PublicHeader` swaps its CTA to "Dashboard" when a session
-exists. Marketing copy pulls prices from `PRO_PLANS` and mode names from
+exists. Marketing copy pulls prices from `LADDER` (`src/lib/plans.ts`) and mode names from
 `PROJECT_TYPE_CONFIG` rather than restating them, so it can't drift.
 
 **The feature tour** (`/demo`, `src/lib/demoTour.ts`) is the long version
@@ -462,7 +462,7 @@ A tour rots quietly — nothing breaks when it goes stale — so the three
 things that drift are not written in it. The vocabulary comes from
 `PROJECT_TYPE_CONFIG` through `getAllVocabulary()` (`DemoModeSwitcher` is
 the interactive proof of it), the free-tier numbers from `FREE_TIER` via
-`chapterValues()`, and the prices from `PRO_PLANS`. Several previews go
+`chapterValues()`, and the prices from `LADDER`. Several previews go
 further and run the real thing rather than describing it: `VinPreview`
 calls `decodeVin()` on a well-formed UU1 chassis number (the local
 Dacia/Renault-Romania path, so no network), `ShortcutsPreview` reads
@@ -471,7 +471,7 @@ condition vocabulary, `RoadmapPreview` the real ticket statuses and their
 palette, `InstallPreview` and `DataRightsPreview` the app's own strings. `demoTour.test.ts`
 holds the rest: both languages cover every chapter, no chapter asks for a
 placeholder the page doesn't pass, no string quotes a RON price that
-didn't come from `PRO_PLANS`, and **no chapter links anywhere behind a
+didn't come from the ladder, and **no chapter links anywhere behind a
 session** — a "see it live" pointing into `/dashboard` answers with the
 login screen, and looks fine to whoever added it.
 
@@ -506,7 +506,7 @@ must not consume one of the hundred public founding-member slots.
 ### Donations (`src/lib/donations.ts`, `/donate`)
 One-off Stripe Checkout, deliberately **not** behind `requireSession()` —
 donating needs no account, and a session only attributes the row for the
-public supporters list. Unlike `PRO_PLANS`, donations use inline
+public supporters list. Unlike `PERSONAL_PLANS`, donations use inline
 `price_data` rather than configured Price IDs, so the supporter picks the
 amount and **no extra Stripe dashboard setup is needed** beyond the
 existing `STRIPE_SECRET_KEY`. Amounts are held in **bani** (integer minor
@@ -1379,6 +1379,42 @@ otherwise only surfaces as the unique constraint firing partway through
 somebody else's signup, after the landing page has been advertising
 places that were already gone.
 
+### The pricing ladder (`src/lib/plans.ts`, RL-042 — #54)
+**Free** (1 vehicle) → **Personal** (3 vehicles, 9,90/month, 99/year or
+299 once) → **Pro** (10, 29,90) → **Business** (50, 99) → **Fleet** (fixed
+steps: 100/250/500 vehicles at 199/349/499). Annual is ten months; only
+Personal has Lifetime. Every price and allowance is in `LADDER`, and
+everything that quotes one reads it — the homepage, `/demo`, `/terms`,
+the upgrade page, the structured data, and the checkout (`PERSONAL_PLANS`
+in `stripe.ts` takes its prices from `LADDER`; tests hold that).
+- **Names.** "Pro" now means only the 10-vehicle company rung. The paid
+  plan for one person is **Personal**, and that is what `hasPro()`
+  answers — the function kept its name, the product did not. Copy says
+  "comes with Personal", never "a Pro feature".
+- **Pro, Business and Fleet are shown, not sold** (`onSale: false`):
+  organisations are still the closed beta, and their billing is slice 3.
+- **The retired plans** (`MONTHLY`/`ANNUAL`/`LIFETIME`) stay in the
+  `ProPlan` enum for the people who hold them and have no entry in
+  `PERSONAL_PLANS`, so the checkout refuses them; the webhook still accepts
+  them (`isStoredPlanId`), for a checkout opened before the change.
+- **Grandfathering.** The migration stamped `User.grandfatheredAt` on
+  everyone holding `isPro` or `isProComped` that day, and nothing else
+  writes it (a test greps for that). `isGrandfathered()` is that stamp
+  *plus* still holding the old entitlement — a comp, or a paying plan that
+  is not `PERSONAL_*` — and it means **Personal with no vehicle cap**.
+  Someone who cancelled and later buys Personal gets today's Personal.
+  `plans.test.ts` walks every group that held Pro and fails if any is
+  capped. A comp granted *after* the ladder, and a founding member who
+  joins after it, is Personal with its 3 vehicles — the copy promises
+  "Personal free for life".
+- **The allowance** is `vehicleLimit()` (null = no cap), applied by
+  `refuseOverVehicleLimit()` (`vehicleAllowance.ts`) in both places a
+  personal vehicle appears: creating one and moving one out of an
+  organisation. Company vehicles never count. Select `PLAN_SELECT`, not
+  `PRO_SELECT`, wherever the allowance is read.
+- The upgrade page never sells somebody what they hold: an account with
+  Personal (or grandfathered) sees what it has and the company plans.
+
 ## What's not built yet
 
 Phase 1 (core log) is implemented: auth, vehicle CRUD, dashboard, task CRUD,
@@ -1407,7 +1443,8 @@ Phase 2 is fully implemented:
 - RL-017 Stripe Pro subscription (`src/lib/stripe.ts`,
   `/api/billing/checkout`, `/api/billing/portal`,
   `/api/webhooks/stripe`, `/dashboard/upgrade`) — Monthly/Annual/Lifetime,
-  webhook is the only writer of `User.isPro`
+  webhook is the only writer of `User.isPro`. Since RL-042 what it sells
+  is Personal; see "The pricing ladder".
 
 Phase 3 is fully implemented:
 - RL-018 public project profile (`/builds/[username]/[slug]`,

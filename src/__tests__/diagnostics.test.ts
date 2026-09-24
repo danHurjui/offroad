@@ -55,8 +55,8 @@ describe('configurationGroups', () => {
 
   it('does not run two sentences together when a message lacks a full stop', () => {
     process.env.STRIPE_SECRET_KEY = 'sk_live_51abcdef'
-    delete process.env.STRIPE_PRICE_ANNUAL
-    const found = check(configurationGroups(), 'price-STRIPE_PRICE_ANNUAL')
+    delete process.env.STRIPE_PRICE_PERSONAL_ANNUAL
+    const found = check(configurationGroups(), 'price-STRIPE_PRICE_PERSONAL_ANNUAL')
     expect(found?.detail).toMatch(/is not set\. Donations are unaffected/)
   })
 
@@ -112,9 +112,9 @@ describe('stripePricesCheck', () => {
     jest.resetModules()
     jest.clearAllMocks()
     process.env.STRIPE_SECRET_KEY = 'sk_test_51abcdef'
-    process.env.STRIPE_PRICE_MONTHLY = 'price_monthly'
-    process.env.STRIPE_PRICE_ANNUAL = 'price_annual'
-    process.env.STRIPE_PRICE_LIFETIME = 'price_lifetime'
+    process.env.STRIPE_PRICE_PERSONAL_MONTHLY = 'price_monthly'
+    process.env.STRIPE_PRICE_PERSONAL_ANNUAL = 'price_annual'
+    process.env.STRIPE_PRICE_PERSONAL_LIFETIME = 'price_lifetime'
   })
 
   /** Re-imports the module with getStripe() stubbed, since it holds no client. */
@@ -143,7 +143,7 @@ describe('stripePricesCheck', () => {
     const { stripePricesCheck } = await load()
     const result = await stripePricesCheck()
     expect(result?.status).toBe('fail')
-    expect(result?.variables).toEqual(['STRIPE_PRICE_ANNUAL'])
+    expect(result?.variables).toEqual(['STRIPE_PRICE_PERSONAL_ANNUAL'])
     expect(result?.detail).toMatch(/test mode/)
   })
 
@@ -163,9 +163,9 @@ describe('stripePricesCheck', () => {
   })
 
   it('stays quiet when there is nothing configured to check', async () => {
-    delete process.env.STRIPE_PRICE_MONTHLY
-    delete process.env.STRIPE_PRICE_ANNUAL
-    delete process.env.STRIPE_PRICE_LIFETIME
+    delete process.env.STRIPE_PRICE_PERSONAL_MONTHLY
+    delete process.env.STRIPE_PRICE_PERSONAL_ANNUAL
+    delete process.env.STRIPE_PRICE_PERSONAL_LIFETIME
     const { stripePricesCheck } = await load()
     // The shape checks already report an unset price; a second row saying
     // the same thing reads as a second problem.

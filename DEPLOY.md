@@ -68,7 +68,7 @@ Project Settings → Environment Variables:
 | `EMAIL_FROM` | e.g. `RigLog <no-reply@yourdomain.com>`. Must be a sender you have **verified with whichever provider you use** — on Brevo that can be a single address (a Gmail, say); on Resend it must be a domain. The default is `no-reply@riglog.ro`, which will fail unless you own and have verified that domain. |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Optional — Google OAuth login |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Optional — the bot check on sign-up, log-in and password reset. Free, from [dash.cloudflare.com](https://dash.cloudflare.com) → Turnstile. **Set both or neither** (see step 6.9). The site key is read at build time, so changing it needs a redeploy, not just a variable change. |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_ANNUAL`, `STRIPE_PRICE_LIFETIME` | Optional — Pro upgrade (RL-017). Without `STRIPE_SECRET_KEY`, `/dashboard/upgrade` checkout requests fail with a 500; the rest of the app works fine without it. See step 6.5 below. |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PERSONAL_MONTHLY`, `STRIPE_PRICE_PERSONAL_ANNUAL`, `STRIPE_PRICE_PERSONAL_LIFETIME` | Optional — the Personal plan (RL-017, RL-042). Without `STRIPE_SECRET_KEY`, `/dashboard/upgrade` checkout requests fail with a 500; the rest of the app works fine without it. See step 6.5 below. |
 
 `BLOB_READ_WRITE_TOKEN` is already set from step 2.
 
@@ -119,13 +119,25 @@ sends an `Authorization: Bearer $CRON_SECRET` header automatically since
 `src/app/api/cron/document-reminders/route.ts`). Hobby plan cron jobs are
 limited to once a day, which this already respects.
 
-## 6.5 Configure Stripe (optional — Pro upgrade)
+## 6.5 Configure Stripe (optional — the Personal plan)
 
 1. In the Stripe dashboard (live mode, or test mode while trying this out),
-   create three Prices with currency `RON`: Monthly (14.99, recurring),
-   Annual (99, recurring), Lifetime (299, one-time). Copy each Price ID
-   into `STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_ANNUAL` /
-   `STRIPE_PRICE_LIFETIME`.
+   create a **Personal** product with three Prices, currency `RON`, at the
+   figures in `LADDER.PERSONAL` (`src/lib/plans.ts`): Monthly (9.90,
+   recurring), Annual (99, recurring), Lifetime (299, one-time). Copy each
+   Price ID into `STRIPE_PRICE_PERSONAL_MONTHLY` /
+   `STRIPE_PRICE_PERSONAL_ANNUAL` / `STRIPE_PRICE_PERSONAL_LIFETIME`.
+
+   **Upgrading from the Pro plans (RL-042, #54).** The old
+   `STRIPE_PRICE_MONTHLY` / `_ANNUAL` / `_LIFETIME` variables are no longer
+   read and can be removed. **Do not archive or delete those Prices in
+   Stripe**: the subscriptions already on them keep renewing at their
+   original price, and the webhook still settles them. Nothing needs
+   migrating in Stripe — the database migration marks every account that
+   held Pro as grandfathered (Personal, no vehicle cap). Whether Managed
+   Payments applies to the Personal Prices is the same decision as before:
+   set a tax code on the product if it is on. The company plans (Pro,
+   Business, Fleet) have no Prices yet; they are shown, not sold.
 2. Copy your Secret key into `STRIPE_SECRET_KEY`.
 3. Developers → Webhooks → Add endpoint:
    `https://<your-domain>/api/webhooks/stripe`, events
@@ -437,7 +449,7 @@ To go live:
 1. Turn off the test-mode toggle in the Stripe dashboard, then copy
    Developers → API keys → **Secret key** (`sk_live_…`). It only exists
    once the account is activated.
-2. Replace the three `STRIPE_PRICE_*` ids at the same time. **A Price
+2. Replace the three `STRIPE_PRICE_PERSONAL_*` ids at the same time. **A Price
    created in test mode does not exist in live mode** — same-looking id,
    different object space — so leaving them alone breaks Pro checkout with
    "No such price" the moment the key changes. `/admin/diagnostics` checks
@@ -478,7 +490,7 @@ because its own configuration is wrong — retrying will never help. The
 cause is on `/admin/diagnostics`, and in the runtime log on a line
 beginning `[billing]` or `[donation]`. Look for one of:
 
-- `STRIPE_PRICE_MONTHLY holds a product id (prod_…)` — the Price id lives
+- `STRIPE_PRICE_PERSONAL_MONTHLY holds a product id (prod_…)` — the Price id lives
   *under* the product in the catalogue, and starts with `price_`. Pasting
   the product id, or the payment-link URL from the same page, is the usual
   slip.

@@ -4,12 +4,13 @@ import { publicPageMetadata } from '@/lib/pageMetadata'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { PROJECT_TYPES } from '@/lib/projectType'
 import { getAllVocabulary } from '@/lib/vocabulary'
-import { PRO_PLANS } from '@/lib/stripe'
+import { formatPlanPrice, LADDER } from '@/lib/plans'
 import { foundingMemberStatus } from '@/lib/foundingMembers'
 import { appUrlForMetadata } from '@/lib/appUrl'
 import { DEMO_SECTIONS } from '@/lib/demoTour'
 import { softwareApplicationJsonLd, webSiteJsonLd } from '@/lib/structuredData'
 import JsonLd from '@/components/JsonLd'
+import CompanyPlans from '@/components/CompanyPlans'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 
@@ -169,9 +170,9 @@ export default async function Home() {
         </div>
       </Section>
 
-      {/* Pricing */}
+      {/* Pricing — every figure from the ladder (src/lib/plans.ts) */}
       <Section eyebrow={t('pricingEyebrow')} title={t('pricingTitle')}>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-3">
           <div className="card p-6">
             <h3 className="text-lg font-semibold text-ink">{t('free')}</h3>
             <p className="mt-1 text-2xl font-bold text-ink">{t('freePrice')}</p>
@@ -187,22 +188,22 @@ export default async function Home() {
             </Link>
           </div>
           <div className="card border-brand-200 p-6">
-            <h3 className="text-lg font-semibold text-ink">{t('pro')}</h3>
+            <h3 className="text-lg font-semibold text-ink">{t('personal')}</h3>
             <p className="mt-1 text-2xl font-bold text-ink">
-              {t('proFrom', { price: PRO_PLANS.MONTHLY.priceRon })}
+              {t('personalFrom', { price: formatPlanPrice(LADDER.PERSONAL.monthlyRon, locale) })}
               <span className="text-base font-normal text-ink-muted">{t('perMonth')}</span>
             </p>
             <ul className="mt-4 space-y-2 text-sm text-ink-muted">
-              <li>{t('proVehicles')}</li>
+              <li>{t('personalVehicles', { count: LADDER.PERSONAL.vehicles })}</li>
               <li>{t('proAnalytics')}</li>
               <li>{t('proPdf')}</li>
               <li>{t('proCards')}</li>
               <li>{t('proExtras')}</li>
             </ul>
             <p className="mt-4 text-xs text-ink-faint">
-              {t('proAlsoAvailable', {
-                annual: PRO_PLANS.ANNUAL.priceRon,
-                lifetime: PRO_PLANS.LIFETIME.priceRon,
+              {t('personalAlsoAvailable', {
+                annual: formatPlanPrice(LADDER.PERSONAL.annualRon, locale),
+                lifetime: formatPlanPrice(LADDER.PERSONAL.lifetimeRon ?? 0, locale),
               })}
               {founding.open && (
                 <>
@@ -215,6 +216,7 @@ export default async function Home() {
               {t('startFree')}
             </Link>
           </div>
+          <CompanyPlans />
         </div>
       </Section>
 

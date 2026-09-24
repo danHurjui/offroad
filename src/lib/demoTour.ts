@@ -12,7 +12,7 @@ import type { ProjectType } from './projectType'
  * drifts out of date quietly — it describes features rather than using
  * them — so the parts that *can* be checked mechanically are kept in
  * TypeScript where `demoTour.test.ts` can reach them, and the numbers it
- * quotes (`FREE_TIER`, `PRO_PLANS`) are read from their own modules at
+ * quotes (`FREE_TIER`, `LADDER`) are read from their own modules at
  * render time rather than written into the catalogue.
  *
  * Adding a chapter is one entry here plus one block per language; the
@@ -142,10 +142,8 @@ export function chapterValues(chapterId: string): Record<string, string | number
  * "îmi aduce aminte de ITP" is asking to be sold to, and the page should
  * answer in the words they used.
  *
- * Only `free` interpolates anything, and the page supplies it: the price
- * belongs to `PRO_PLANS`, which lives in `src/lib/stripe.ts` and must not
- * be imported from here — `DemoExplorer` is a Client Component and pulls
- * this module into the browser bundle with it.
+ * Only `free` interpolates anything, and the page supplies it from the
+ * ladder (`LADDER`, `src/lib/plans.ts`), so no price is written here.
  */
 export const DEMO_FAQ_IDS = [
   'free',

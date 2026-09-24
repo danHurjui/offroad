@@ -1,4 +1,5 @@
-import { PRO_PLANS, type ProPlanId } from './stripe'
+import { PERSONAL_PLANS } from './stripe'
+import { PERSONAL_PLAN_IDS } from './plans'
 import { DONATION_CURRENCY } from './donations'
 
 /**
@@ -30,7 +31,7 @@ import { DONATION_CURRENCY } from './donations'
  * Structured data must describe what is genuinely on the page — Google's
  * spam policy treats a mismatch as a manual-action offence, and it is
  * dishonest besides. So every value below is derived from the same
- * modules the page renders from (`PRO_PLANS`, the tour catalogue) rather
+ * modules the page renders from (`PERSONAL_PLANS`, the tour catalogue) rather
  * than written out again, and nothing is claimed that a reader could not
  * verify on the page itself. No `aggregateRating`: there are no reviews,
  * and inventing one is the single most common way sites earn a penalty.
@@ -66,11 +67,7 @@ interface SiteFacts {
  * so it carries no billing period while the other two do.
  */
 function offers() {
-  const period: Record<ProPlanId, string | undefined> = {
-    MONTHLY: 'P1M',
-    ANNUAL: 'P1Y',
-    LIFETIME: undefined,
-  }
+  const period = { month: 'P1M', year: 'P1Y' } as const
 
   return [
     {
@@ -79,13 +76,16 @@ function offers() {
       price: 0,
       priceCurrency: DONATION_CURRENCY.toUpperCase(),
     },
-    ...(Object.keys(PRO_PLANS) as ProPlanId[]).map((plan) => ({
-      '@type': 'Offer',
-      name: `Pro ${PRO_PLANS[plan].label}`,
-      price: PRO_PLANS[plan].priceRon,
-      priceCurrency: DONATION_CURRENCY.toUpperCase(),
-      ...(period[plan] ? { billingDuration: period[plan] } : {}),
-    })),
+    ...PERSONAL_PLAN_IDS.map((plan) => {
+      const { label, priceRon, period: every } = PERSONAL_PLANS[plan]
+      return {
+        '@type': 'Offer',
+        name: `Personal ${label}`,
+        price: priceRon,
+        priceCurrency: DONATION_CURRENCY.toUpperCase(),
+        ...(every ? { billingDuration: period[every] } : {}),
+      }
+    }),
   ]
 }
 

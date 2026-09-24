@@ -1,4 +1,5 @@
 import Stripe from 'stripe'
+import { LADDER, PERSONAL_PLAN_IDS, type PersonalPlanId } from './plans'
 
 /**
  * RL-017: single Stripe client + plan config. Three purchase options per
@@ -84,20 +85,41 @@ export function isStripeTestMode(): boolean {
   return key.startsWith('sk_test_') || key.startsWith('rk_test_')
 }
 
-export type ProPlanId = 'MONTHLY' | 'ANNUAL' | 'LIFETIME'
-
-export const PRO_PLANS: Record<ProPlanId, { label: string; priceRon: number; mode: 'subscription' | 'payment'; envVar: string }> = {
-  MONTHLY: { label: 'Monthly', priceRon: 14.99, mode: 'subscription', envVar: 'STRIPE_PRICE_MONTHLY' },
-  ANNUAL: { label: 'Annual', priceRon: 99, mode: 'subscription', envVar: 'STRIPE_PRICE_ANNUAL' },
-  LIFETIME: { label: 'Lifetime', priceRon: 299, mode: 'payment', envVar: 'STRIPE_PRICE_LIFETIME' },
+/**
+ * RL-042 (#54): what the checkout sells — Personal, monthly, annual or
+ * once. Prices come from the ladder (src/lib/plans.ts); the plans sold
+ * before it (MONTHLY/ANNUAL/LIFETIME) are no longer on sale and have no
+ * entry here, so nothing can open a checkout for one.
+ */
+export const PERSONAL_PLANS: Record<
+  PersonalPlanId,
+  { label: string; priceRon: number; mode: 'subscription' | 'payment'; envVar: string; period: 'month' | 'year' | null }
+> = {
+  PERSONAL_MONTHLY: {
+    label: 'Monthly',
+    priceRon: LADDER.PERSONAL.monthlyRon,
+    mode: 'subscription',
+    envVar: 'STRIPE_PRICE_PERSONAL_MONTHLY',
+    period: 'month',
+  },
+  PERSONAL_ANNUAL: {
+    label: 'Annual',
+    priceRon: LADDER.PERSONAL.annualRon,
+    mode: 'subscription',
+    envVar: 'STRIPE_PRICE_PERSONAL_ANNUAL',
+    period: 'year',
+  },
+  PERSONAL_LIFETIME: {
+    label: 'Lifetime',
+    priceRon: LADDER.PERSONAL.lifetimeRon ?? 0,
+    mode: 'payment',
+    envVar: 'STRIPE_PRICE_PERSONAL_LIFETIME',
+    period: null,
+  },
 }
 
-export function isProPlanId(value: unknown): value is ProPlanId {
-  return value === 'MONTHLY' || value === 'ANNUAL' || value === 'LIFETIME'
-}
-
-export function priceIdFor(plan: ProPlanId): string {
-  const { envVar } = PRO_PLANS[plan]
+export function priceIdFor(plan: PersonalPlanId): string {
+  const { envVar } = PERSONAL_PLANS[plan]
   const priceId = process.env[envVar]?.trim()
   if (!priceId) throw new StripeConfigError(envVar, `${envVar} is not set`)
 
@@ -313,7 +335,7 @@ export function stripeConfigProblems(): StripeConfigProblem[] {
   }
 
   collect('payments', () => getStripe())
-  for (const plan of Object.keys(PRO_PLANS) as ProPlanId[]) {
+  for (const plan of PERSONAL_PLAN_IDS) {
     collect('pro', () => priceIdFor(plan))
   }
 

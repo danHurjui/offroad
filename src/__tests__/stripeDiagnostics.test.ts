@@ -127,9 +127,9 @@ describe('describeStripeFailure separates our fault from Stripe\'s', () => {
 describe('stripeConfigProblems reports every fault at once', () => {
   beforeEach(() => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_51abcdef'
-    process.env.STRIPE_PRICE_MONTHLY = 'price_monthly'
-    process.env.STRIPE_PRICE_ANNUAL = 'price_annual'
-    process.env.STRIPE_PRICE_LIFETIME = 'price_lifetime'
+    process.env.STRIPE_PRICE_PERSONAL_MONTHLY = 'price_monthly'
+    process.env.STRIPE_PRICE_PERSONAL_ANNUAL = 'price_annual'
+    process.env.STRIPE_PRICE_PERSONAL_LIFETIME = 'price_lifetime'
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_abc'
   })
 
@@ -148,19 +148,19 @@ describe('stripeConfigProblems reports every fault at once', () => {
     // Donations build price_data inline, so a missing Price id cannot
     // affect them — saying otherwise would send the operator hunting in
     // the wrong place.
-    process.env.STRIPE_PRICE_ANNUAL = 'prod_Abc123'
+    process.env.STRIPE_PRICE_PERSONAL_ANNUAL = 'prod_Abc123'
     const problems = stripeConfigProblems()
     expect(problems).toEqual([
-      expect.objectContaining({ variable: 'STRIPE_PRICE_ANNUAL', affects: 'pro' }),
+      expect.objectContaining({ variable: 'STRIPE_PRICE_PERSONAL_ANNUAL', affects: 'pro' }),
     ])
   })
 
   it('reports each broken price separately rather than stopping at the first', () => {
-    process.env.STRIPE_PRICE_MONTHLY = 'prod_Abc'
-    delete process.env.STRIPE_PRICE_LIFETIME
+    process.env.STRIPE_PRICE_PERSONAL_MONTHLY = 'prod_Abc'
+    delete process.env.STRIPE_PRICE_PERSONAL_LIFETIME
     expect(stripeConfigProblems().map((p) => p.variable)).toEqual([
-      'STRIPE_PRICE_MONTHLY',
-      'STRIPE_PRICE_LIFETIME',
+      'STRIPE_PRICE_PERSONAL_MONTHLY',
+      'STRIPE_PRICE_PERSONAL_LIFETIME',
     ])
   })
 

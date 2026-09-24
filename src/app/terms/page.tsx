@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { getTranslations } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 import LegalTranslationNote from '@/components/LegalTranslationNote'
@@ -14,7 +14,7 @@ import {
   WITHDRAWAL_PERIOD_DAYS,
 } from '@/lib/legal'
 import { FREE_TIER, FOUNDING_MEMBER_LIMIT } from '@/lib/pro'
-import { PRO_PLANS } from '@/lib/stripe'
+import { formatPlanPrice, LADDER } from '@/lib/plans'
 import { MAX_UPLOAD_BYTES } from '@/lib/storage'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -65,7 +65,7 @@ function bold(chunks: React.ReactNode) {
 /**
  * Readable with no session, like /privacy and /cookies, and built the same
  * way: the numbers come from the code that enforces them (FREE_TIER,
- * PRO_PLANS, MAX_UPLOAD_BYTES, WITHDRAWAL_PERIOD_DAYS) rather than being
+ * LADDER, MAX_UPLOAD_BYTES, WITHDRAWAL_PERIOD_DAYS) rather than being
  * retyped, so the terms cannot promise one thing while the app does
  * another. Interpolating them into the catalogue's sentences keeps that
  * true in both languages.
@@ -74,6 +74,8 @@ export default async function TermsPage() {
   const t = await getTranslations('legalPages.terms')
   const tp = await getTranslations('legalPages')
   const tl = await getTranslations('legal')
+  const locale = await getLocale()
+  const price = (ron: number) => formatPlanPrice(ron, locale)
 
   return (
     <div className="min-h-screen bg-background">
@@ -126,11 +128,24 @@ export default async function TermsPage() {
           <p>
             <strong className="text-ink">{t('proTerm')}</strong>{' '}
             {t('pro', {
-              monthly: PRO_PLANS.MONTHLY.priceRon,
-              annual: PRO_PLANS.ANNUAL.priceRon,
-              lifetime: PRO_PLANS.LIFETIME.priceRon,
+              vehicles: LADDER.PERSONAL.vehicles,
+              monthly: price(LADDER.PERSONAL.monthlyRon),
+              annual: price(LADDER.PERSONAL.annualRon),
+              lifetime: price(LADDER.PERSONAL.lifetimeRon ?? 0),
             })}
           </p>
+          <p>
+            <strong className="text-ink">{t('companyTerm')}</strong>{' '}
+            {t('company', {
+              pro: price(LADDER.PRO.monthlyRon),
+              proVehicles: LADDER.PRO.vehicles,
+              business: price(LADDER.BUSINESS.monthlyRon),
+              businessVehicles: LADDER.BUSINESS.vehicles,
+              fleet: price(LADDER.FLEET.monthlyRon),
+              fleetVehicles: LADDER.FLEET.vehicles,
+            })}
+          </p>
+          <p>{t('grandfathered')}</p>
           <p>{t('uploadCap', { mb: MAX_UPLOAD_MB })}</p>
           <p>{t('tierChanges')}</p>
         </Section>
