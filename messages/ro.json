@@ -2694,7 +2694,13 @@
     "scanPro": "Scanează bonurile în loc să le scrii — cu Personal",
     "receiptAttached": "Atașat: {name}",
     "receiptRemove": "Elimină",
-    "scanningAgain": "Încă o citire, pentru verificare… {percent}%"
+    "scanningAgain": "Încă o citire, pentru verificare… {percent}%",
+    "combined": "Consum, toate modurile împreună",
+    "combinedValue": "{litres} l + {kwh} kWh /100 km",
+    "combinedCost": "Combustibil și încărcare: {price} pe km",
+    "combinedNotYet": "Apare după două plinuri cu kilometrajul la fiecare, când toate încărcările dintre ele au kWh.",
+    "combinedWhy": "Între două plinuri un hibrid plug-in merge și pe curent, deci litrii singuri ar subestima motorul. Aici sunt combustibilul și energia încărcată pe aceiași kilometri, numărate doar unde ambele jurnale sunt complete.",
+    "combinedSince": "{litres} l + {kwh} kWh /100 km de la ultimul plin"
   },
   "charging": {
     "pageTitle": "Jurnal de încărcare",
@@ -2728,6 +2734,8 @@
     "socTo": "După (%)",
     "socHelp": "Cum îl arată mașina. Încărcarea până la același nivel de fiecare dată e ce permite, mai târziu, măsurarea consumului.",
     "socRange": "baterie {from}% → {to}%",
+    "socToOnly": "baterie la {to}%",
+    "socFromOnly": "baterie de la {from}%",
     "receipt": "Bon (opțional)",
     "receiptAttached": "Atașat: {name}",
     "receiptRemove": "Elimină",
@@ -2751,7 +2759,16 @@
     "remove": "Elimină",
     "deleted": "Am eliminat încărcarea din {date}.",
     "deleteFailed": "Nu am putut elimina încărcarea.",
-    "notPlugIn": "Tipul de combustibil al acestui vehicul nu se încarcă la priză. Încărcările deja înregistrate rămân aici; schimbă tipul de combustibil în setările vehiculului dacă e greșit."
+    "notPlugIn": "Tipul de combustibil al acestui vehicul nu se încarcă la priză. Încărcările deja înregistrate rămân aici; schimbă tipul de combustibil în setările vehiculului dacă e greșit.",
+    "consumption": "Consum la priză",
+    "consumptionValue": "{value} kWh/100 km",
+    "consumptionMeasured": "Măsurat pe {km} km, {intervals, plural, one {# interval} few {# intervale} other {# de intervale}}",
+    "consumptionLast": "Ultimul interval: {value} kWh/100 km",
+    "consumptionNotYet": "Apare după două încărcări până la același nivel al bateriei (80% și 80% merge, nu doar 100%), cu kWh și kilometrajul la fiecare, și cu kWh ai fiecărei încărcări dintre ele.",
+    "atThePlug": "„La priză” e energia livrată de stație, cu pierderile de încărcare incluse, deci e mai mare decât cifra de pe afișajul mașinii. Intervalele cu o încărcare fără kWh, fără kilometraj sau cu un bord înlocuit sunt lăsate deoparte, nu ghicite.",
+    "consumptionSince": "{value} kWh/100 km de la ultima încărcare la {level}%",
+    "pluginHybridConsumption": "Un hibrid plug-in folosește combustibil și curent pe aceiași kilometri, deci kWh/100 km singur n-ar însemna ce pare. Jurnalul de alimentare le arată împreună.",
+    "pluginHybridConsumptionLink": "Vezi în jurnalul de alimentare"
   },
   "health": {
     "title": "Starea mașinii",

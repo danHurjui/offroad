@@ -5,7 +5,9 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
-import { chargeSummary } from '@/lib/charging'
+import { chargeIntervals, chargeSummary, type ChargeMeasurable } from '@/lib/charging'
+import { summarize } from '@/lib/consumption'
+import { dayKey } from '@/lib/odometer'
 import { serializeChargeEntry, toNumberOrNull } from '@/lib/serialize'
 import ChargeQuickAdd from '@/components/ChargeQuickAdd'
 import HomeTariffForm from '@/components/HomeTariffForm'
@@ -28,13 +30,26 @@ export default async function ChargingPage({ params }: { params: { id: string } 
   const hideSpend = hidesCosts(vehicle)
   const tariff = toNumberOrNull(vehicle.homeTariffRonPerKwh)
 
-  const rows = await prisma.chargeEntry.findMany({
-    where: { vehicleId: vehicle.id },
-    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-    include: { odometerReading: { select: { km: true } } },
-  })
+  const [rows, overrides] = await Promise.all([
+    prisma.chargeEntry.findMany({
+      where: { vehicleId: vehicle.id },
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      include: { odometerReading: { select: { km: true } } },
+    }),
+    prisma.odometerReading.findMany({ where: { vehicleId: vehicle.id, isOverride: true }, select: { readAt: true } }),
+  ])
   const entries = rows.map(serializeChargeEntry)
   const summary = chargeSummary(entries)
+  // RL-054: kWh/100 km only for a vehicle that runs on electricity alone.
+  // A plug-in hybrid also burnt fuel over the same km, so its figure is the
+  // combined one on the fuel page, never kWh/100 km on its own here.
+  const powertrain = powertrainOf(vehicle.fuelType)
+  const measurable: ChargeMeasurable[] = entries.map((e) => ({
+    id: e.id, date: e.date, km: e.km, createdAt: e.createdAt, kwh: e.kwh, totalRon: e.totalRon, socTo: e.socTo,
+  }))
+  const intervals = powertrain === 'ELECTRIC' ? chargeIntervals(measurable, overrides.map((o) => dayKey(o.readAt))) : []
+  const consumption = summarize(intervals)
+  const byEnd = new Map(intervals.map((i) => [i.endId, i]))
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -45,7 +60,7 @@ export default async function ChargingPage({ params }: { params: { id: string } 
 
       {/* Hidden, never cleared: a fuel type corrected after charges were
           logged keeps them, and says why the page is still here. */}
-      {!takesCharge(powertrainOf(vehicle.fuelType)) && (
+      {!takesCharge(powertrain) && (
         <p className="note mb-6 rounded-lg border p-3 text-sm text-ink">{t('notPlugIn')}</p>
       )}
 
@@ -70,6 +85,34 @@ export default async function ChargingPage({ params }: { params: { id: string } 
           )}
         </div>
       </div>
+
+      {powertrain === 'ELECTRIC' && (
+        <div className="card mb-6 p-4">
+          <div className="text-xs text-ink-faint">{t('consumption')}</div>
+          {consumption.averagePer100Km !== null ? (
+            <>
+              <div className="text-2xl font-semibold text-ink">{t('consumptionValue', { value: num(consumption.averagePer100Km) })}</div>
+              <div className="text-sm text-ink-muted">
+                {t('consumptionMeasured', { km: num(consumption.measuredKm, 0), intervals: consumption.intervals })}
+              </div>
+              {consumption.lastPer100Km !== null && (
+                <div className="text-sm text-ink-muted">{t('consumptionLast', { value: num(consumption.lastPer100Km) })}</div>
+              )}
+            </>
+          ) : (
+            <div className="text-sm text-ink-muted">{t('consumptionNotYet')}</div>
+          )}
+          <p className="mt-2 text-xs text-ink-faint">{t('atThePlug')}</p>
+        </div>
+      )}
+      {powertrain === 'PLUGIN_HYBRID' && (
+        <p className="note mb-6 rounded-lg border p-3 text-sm text-ink">
+          {t('pluginHybridConsumption')}{' '}
+          <Link href={`/dashboard/vehicles/${vehicle.id}/fuel`} className="font-medium text-brand-600 hover:underline dark:text-brand-300">
+            {t('pluginHybridConsumptionLink')}
+          </Link>
+        </p>
+      )}
 
       <div className="card mb-6 p-4">
         <ChargeQuickAdd vehicleId={vehicle.id} hasHomeTariff={tariff !== null} />
@@ -105,9 +148,15 @@ export default async function ChargingPage({ params }: { params: { id: string } 
                     {fmtDate(e.date)}
                     {e.km !== null && ` · ${num(e.km, 0)} km`}
                     {e.network && ` · ${e.network}`}
-                    {(e.socFrom !== null || e.socTo !== null) &&
-                      ` · ${t('socRange', { from: e.socFrom ?? '?', to: e.socTo ?? '?' })}`}
+                    {e.socFrom !== null && e.socTo !== null && ` · ${t('socRange', { from: e.socFrom, to: e.socTo })}`}
+                    {e.socFrom === null && e.socTo !== null && ` · ${t('socToOnly', { to: e.socTo })}`}
+                    {e.socFrom !== null && e.socTo === null && ` · ${t('socFromOnly', { from: e.socFrom })}`}
                   </div>
+                  {byEnd.has(e.id) && (
+                    <div className="mt-1 text-sm text-ink">
+                      {t('consumptionSince', { value: num(byEnd.get(e.id)!.per100Km), level: e.socTo ?? 0 })}
+                    </div>
+                  )}
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
                   {e.receiptUrl && (
