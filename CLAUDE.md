@@ -459,7 +459,9 @@ is a link people share; changing only the fragment is a same-document
 navigation, so a mount-only read would ignore a link from one part of the
 tour to another. `replaceState` keeps the address bar on the open feature
 without filling the back button, and does not fire `hashchange`, so the
-two do not fight.
+two do not fight. The writer waits for the arrival read (`hashRead`, #106): under
+development StrictMode effects run twice, and a writer that went first
+replaced `#passport` with the first feature before the second read.
 
 Since phase 5 and the fleet work it has six categories: the log, With
 Personal, **Car records** (identity, odometer, fuel, receipt scan, Car
