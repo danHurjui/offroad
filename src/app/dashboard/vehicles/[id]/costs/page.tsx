@@ -3,12 +3,11 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess, hidesCosts } from '@/lib/access'
-import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { isDateRange, type DateRange } from '@/lib/analytics'
 import { ownershipReport, type CostCategory, type CostLine, type Message } from '@/lib/ownershipCosts'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
 import { loadOwnershipInputs } from '@/lib/ownershipRecords'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 const RANGES: DateRange[] = ['3m', '12m', 'all']
 const money = (n: number) => n.toLocaleString('ro-RO', { maximumFractionDigits: 2 })
@@ -78,8 +77,7 @@ export default async function OwnershipCostsPage({
   }
 
   // Pro is the owner's subscription, as on the analytics page.
-  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
-  const isPro = hasPro(owner)
+  const isPro = await vehicleHasPro(vehicle)
   const range: DateRange = isPro && isDateRange(searchParams.range) ? searchParams.range : 'all'
 
   // The same loader as the fleet cost page (RL-039), so the two add up

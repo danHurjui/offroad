@@ -8,9 +8,9 @@ import { getVocabulary } from '@/lib/vocabulary'
 import { consumptionIntervals, fuelSummary, type FuelLike } from '@/lib/fuel'
 import { dayKey } from '@/lib/odometer'
 import { serializeFuelEntry } from '@/lib/serialize'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
 import FuelQuickAdd from '@/components/FuelQuickAdd'
 import { FuelRow, RemoveFuelButton } from '@/components/FuelEntryRemove'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 const num = (n: number, digits = 2) => n.toLocaleString('ro-RO', { maximumFractionDigits: digits })
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
@@ -31,16 +31,15 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
   // RL-048: scanning is Pro — the plan of the vehicle's account of record,
   // like every other Pro feature on a vehicle, so a driver or mechanic on a
   // Pro vehicle can scan too.
-  const [rows, overrides, planOwner] = await Promise.all([
+  const [rows, overrides, canScan] = await Promise.all([
     prisma.fuelEntry.findMany({
       where: { vehicleId: vehicle.id },
       orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
       include: { odometerReading: { select: { km: true } } },
     }),
     prisma.odometerReading.findMany({ where: { vehicleId: vehicle.id, isOverride: true }, select: { readAt: true } }),
-    prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } }),
+    vehicleHasPro(vehicle),
   ])
-  const canScan = hasPro(planOwner)
   const entries = rows.map(serializeFuelEntry)
   const fuelLike: FuelLike[] = entries.map((e) => ({
     id: e.id,

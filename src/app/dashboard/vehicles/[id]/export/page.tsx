@@ -8,7 +8,7 @@ import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
 import ExportPdfButton from '@/components/ExportPdfButton'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-014: build history PDF export. Free owners see this same page (it IS
 // the "preview of the first page" the ticket asks for — real data, just no
@@ -21,8 +21,7 @@ export default async function ExportPdfPage({ params }: { params: { id: string }
   const t = await getTranslations('exportPdf')
   const tc = await getTranslations('common')
   const config = await getVocabulary(vehicle.projectType)
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
-  const isPro = hasPro(owner)
+  const isPro = await vehicleHasPro(vehicle)
 
   const tasks = await prisma.task.findMany({
     where: { vehicleId: vehicle.id },

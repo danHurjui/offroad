@@ -13,7 +13,7 @@ import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { toNumberOrNull } from '@/lib/serialize'
 import { resolveImageDataUri } from '@/lib/pdf'
 import { CARD_WIDTH, CARD_HEIGHT, CARD_FONTS, CARD_COLORS, CardFooter, publicCardUrl } from '@/lib/card'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-020: off-road "build card" — 1200x630 PNG for sharing. Owner-only,
 // Pro-gated. next/og's ImageResponse (Satori under the hood) renders fast
@@ -30,8 +30,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
 
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT, username: true } })
-  if (!owner || !hasPro(owner)) {
+  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { username: true } })
+  if (!owner || !(await vehicleHasPro(vehicle))) {
     return await apiError('proShareCards', 403, { code: 'UPGRADE_REQUIRED' })
   }
 

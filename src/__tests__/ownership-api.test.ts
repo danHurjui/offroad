@@ -130,8 +130,9 @@ describe('the cost of ownership screen', () => {
     expect(page).toMatch(/if \(hidesCosts\(vehicle\)\)/)
   })
 
-  it('gates the breakdown on the owner’s Pro, not the viewer’s', () => {
-    expect(page).toMatch(/where: \{ id: vehicle\.ownerId \}, select: \{ \.\.\.PRO_SELECT \}/)
+  it('gates the breakdown on the vehicle’s plan, not the viewer’s', () => {
+    expect(page).toMatch(/vehicleHasPro\(vehicle\)/)
+    expect(page).not.toMatch(/PRO_SELECT/)
   })
 
   it('is never linked from a public surface', () => {

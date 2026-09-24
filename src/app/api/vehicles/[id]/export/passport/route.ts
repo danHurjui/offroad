@@ -11,7 +11,7 @@ import { renderPdf, pdfFilename } from '@/lib/pdf'
 import { buildPassportDocDefinition } from '@/lib/pdfPassport'
 import { loadPassport } from '@/lib/passportRecords'
 import type { ServiceRow } from '@/lib/serviceBook'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-049: the passport as a dated PDF snapshot. Owner only and Pro. It
 // carries the same choices (plate, VIN, costs) as the live link, or the
@@ -25,8 +25,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
 
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
-  if (!hasPro(owner)) return await apiError('proPassport', 403, { code: 'UPGRADE_REQUIRED' })
+  if (!(await vehicleHasPro(vehicle))) return await apiError('proPassport', 403, { code: 'UPGRADE_REQUIRED' })
 
   try {
     const locale = localeFromRequest()

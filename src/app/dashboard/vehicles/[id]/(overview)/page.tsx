@@ -16,9 +16,9 @@ import { PlateBadge, RegistrationSummary } from '@/components/VehicleIdentity'
 import OdometerQuickAdd from '@/components/OdometerQuickAdd'
 import VehicleHealthPanel from '@/components/VehicleHealthPanel'
 import { computeHealth } from '@/lib/vehicleHealth'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
 import DriverPanel from '@/components/DriverPanel'
 import ReadOnlyVehicleNotice from '@/components/ReadOnlyVehicleNotice'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-003: project dashboard — build overview screen.
 export default async function VehicleDashboardPage({ params }: { params: { id: string } }) {
@@ -74,12 +74,9 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
     readings,
     tyreSets: tyreSets.map((set) => ({ ...set, treadDepthMm: toNumberOrNull(set.treadDepthMm) })),
   })
-  // RL-019: Pro-gated, restoration only — the vehicle owner's isPro (a
+  // RL-019: Pro-gated, restoration only — the vehicle's plan (a
   // collaborator's own tier is irrelevant, same as everywhere else).
-  const owner =
-    vehicle.projectType === 'RESTORATION'
-      ? await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
-      : null
+  const restorationPro = vehicle.projectType === 'RESTORATION' && (await vehicleHasPro(vehicle))
   // The page anyone else sees. Only reachable from the edit form until
   // now, and only as unlinked text — so an owner could publish a build and
   // never see what had been published.
@@ -90,7 +87,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
     publicOwner?.username && vehicle.slug ? `/builds/${publicOwner.username}/${vehicle.slug}` : null
 
   const originalityScore =
-    vehicle.projectType === 'RESTORATION' && hasPro(owner) ? computeOriginalityScore(tasks, completeStatus) : undefined
+    restorationPro ? computeOriginalityScore(tasks, completeStatus) : undefined
   // RL-032: "removed collaborator" tag — a task can outlive the
   // collaborator who logged it once the owner revokes their access. A
   // user with any ACTIVE row (re-invited after removal) is not tagged.

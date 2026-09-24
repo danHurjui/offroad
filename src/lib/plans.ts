@@ -156,6 +156,15 @@ export function orgVehicleLimit(org: OrgPlanStatusLike | null | undefined): numb
   return isOrgPlanId(org.plan) ? ORG_PLANS[org.plan].vehicles : 0
 }
 
+/**
+ * RL-042 slice 3b: whether an organisation's vehicles get the paid
+ * features — while it is comped (the closed beta) or holds a plan. Every
+ * company plan includes everything Personal does.
+ */
+export function orgHasPaidFeatures(org: OrgPlanStatusLike | null | undefined): boolean {
+  return !!org && (org.compedAt !== null || isOrgPlanId(org.plan))
+}
+
 // ─── Grandfathering ─────────────────────────────────────────────────────
 
 /** What `vehicleLimit()` reads. Select it whole, like PRO_SELECT. */

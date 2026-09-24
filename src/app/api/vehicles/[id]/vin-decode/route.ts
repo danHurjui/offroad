@@ -6,8 +6,8 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { decodeVin, type DecodedVin } from '@/lib/vinDecoder'
 import { readJsonBody } from '@/lib/requestBody'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
 import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 function toJsonInput(decoded: DecodedVin): Prisma.InputJsonValue {
   return decoded as unknown as Prisma.InputJsonValue
@@ -19,8 +19,7 @@ async function loadRestorationOwnerVehicle(vehicleId: string, userId: string) {
   if (vehicle.projectType !== 'RESTORATION') {
     return { error: await apiError('vinRestorationOnly', 400) }
   }
-  const owner = await prisma.user.findUnique({ where: { id: userId }, select: { ...PRO_SELECT } })
-  if (!hasPro(owner)) {
+  if (!(await vehicleHasPro(vehicle))) {
     return {
       error: await apiError('proVinDecoder', 403, { code: 'UPGRADE_REQUIRED' }),
     }

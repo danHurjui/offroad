@@ -7,16 +7,9 @@ import { prisma } from '@/lib/prisma'
 import { labelFor } from '@/lib/projectType'
 import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
-import {
-  isDateRange,
-  rangeCutoff,
-  spendByCategory,
-  cumulativeSpendByMonth,
-  summarizeCosts,
-  type DateRange,
-} from '@/lib/analytics'
+import { isDateRange, rangeCutoff, spendByCategory, cumulativeSpendByMonth, summarizeCosts, type DateRange } from '@/lib/analytics'
 import CostAnalyticsCharts from '@/components/CostAnalyticsCharts'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 /** Ordered for the filter row; the words come from the catalogue. */
 const RANGES: DateRange[] = ['3m', '12m', 'all']
@@ -42,8 +35,7 @@ export default async function CostAnalyticsPage({
   const config = await getVocabulary(vehicle.projectType)
   // Pro is the vehicle owner's subscription, not the viewer's — a
   // collaborator's own isPro is irrelevant to what they see here.
-  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
-  const isPro = hasPro(owner)
+  const isPro = await vehicleHasPro(vehicle)
 
   if (hidesCosts(vehicle)) {
     return (

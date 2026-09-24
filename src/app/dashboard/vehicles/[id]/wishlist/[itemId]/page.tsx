@@ -8,7 +8,7 @@ import { labelFor } from '@/lib/projectType'
 import { getVocabulary } from '@/lib/vocabulary'
 import { serializeWishlistItem, serializeWishlistPriceEntry } from '@/lib/serialize'
 import WishlistPriceAlert from '@/components/WishlistPriceAlert'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-026: wishlist/parts-hunt item detail — price alert target + history
 // chart. Pro-gated; the base item fields (name/category/status/...) stay
@@ -23,8 +23,7 @@ export default async function WishlistItemDetailPage({ params }: { params: { id:
   const item = await prisma.wishlistItem.findUnique({ where: { id: params.itemId } })
   if (!item || item.vehicleId !== vehicle.id) notFound()
 
-  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
-  const isPro = hasPro(owner)
+  const isPro = await vehicleHasPro(vehicle)
 
   const config = await getVocabulary(vehicle.projectType)
   const priceHistory = isPro

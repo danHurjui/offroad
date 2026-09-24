@@ -5,11 +5,11 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
 import { loadPassport } from '@/lib/passportRecords'
 import PassportDocument from '@/components/PassportDocument'
 import PassportShare from '@/components/PassportShare'
 import ExportPdfButton from '@/components/ExportPdfButton'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-049: the owner's passport screen — the exact document a buyer would
 // read (with the live link's choices), plus sharing and the PDF. Owner
@@ -22,11 +22,10 @@ export default async function PassportPage({ params }: { params: { id: string } 
   if (!vehicle) notFound()
   const config = await getVocabulary(vehicle.projectType)
 
-  const [owner, active] = await Promise.all([
-    prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } }),
+  const [isPro, active] = await Promise.all([
+    vehicleHasPro(vehicle),
     prisma.passportLink.findFirst({ where: { vehicleId: vehicle.id, revokedAt: null }, orderBy: { createdAt: 'desc' } }),
   ])
-  const isPro = hasPro(owner)
   const options = active ?? { showPlate: false, showVin: false, showCosts: true }
   const now = new Date()
   const view = await loadPassport(vehicle, options, now)

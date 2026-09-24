@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import { translator } from '@/i18n/translator'
 import { localeFromRequest } from '@/i18n/requestLocale'
-import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { labelFor } from '@/lib/projectType'
@@ -11,7 +10,7 @@ import { renderPdf, pdfFilename } from '@/lib/pdf'
 import { buildServiceBookDocDefinition } from '@/lib/pdfServiceBook'
 import { loadServiceBook } from '@/lib/serviceBookRecords'
 import type { ServiceRow } from '@/lib/serviceBook'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-047: the service book as a PDF. Owner only and Pro, consistent with
 // RL-014's export; reading the book on screen stays free.
@@ -25,8 +24,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle) return await apiError('notFound', 404)
 
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
-  if (!hasPro(owner)) return await apiError('proServiceBookExport', 403, { code: 'UPGRADE_REQUIRED' })
+  if (!(await vehicleHasPro(vehicle))) return await apiError('proServiceBookExport', 403, { code: 'UPGRADE_REQUIRED' })
 
   try {
     const locale = localeFromRequest()

@@ -743,9 +743,9 @@ Tesseract.js (Apache-2.0), **run in the browser**, on the fuel form (a fuel
 receipt) and the new-job form (a service invoice). The
 photo is read on the device and never sent anywhere to be read, so there is
 no OCR sub-processor and no per-scan cost; the model is cached in IndexedDB
-(listed in `LOCAL_STORAGE_ENTRIES`). It is Pro — the account of record's
-plan, like every Pro feature on a vehicle — and a UI gate only, since there
-is nothing on the server to meter.
+(listed in `LOCAL_STORAGE_ENTRIES`). It is a paid feature — the vehicle's
+plan (`vehicleHasPro()`), like every paid feature on a vehicle — and a UI
+gate only, since there is nothing on the server to meter.
 - **Every file is served from this site.** `scripts/copy-ocr-assets.js`
   (postinstall and `vercel-build`) copies the worker, the three LSTM cores
   and the Romanian `best_int` model into `public/ocr` (gitignored).
@@ -959,8 +959,9 @@ per person per organisation — a DB constraint — with a role: `OWNER`,
 A vehicle with `organizationId` is the company's: OWNER/FLEET_MANAGER get
 `owner` access, MECHANIC/DRIVER get `collaborator`, and an outside
 collaborator invited to it keeps `collaborator`. Its **`ownerId` is only the
-account of record** (storage prefix, whose plan Pro features read) and
-grants nothing — a mover who is later removed or demoted loses access
+account of record** (storage prefix only — paid features on a company
+vehicle follow the organisation's plan, `vehicleHasPro()`) and grants
+nothing — a mover who is later removed or demoted loses access
 like anyone else. `vehicleAccess.test.ts` is the whole table, test-first,
 plus a grep that fails on any `ownerId` comparison with the caller outside
 `access.ts`. Membership is read per request, so removal is immediate.
@@ -1470,8 +1471,16 @@ invoices are the company's. `plan` is written only by the webhook, like
 - **An organisation that pays cannot be deleted** (409 `orgHasSubscription`),
   nor an account that would take one with it (`orgPayingAccount`) — cancel
   in its portal first, or Stripe keeps charging a company nobody can reach.
-- Paid features on a company vehicle still read the account of record's
-  plan; resolving them through the organisation's plan is the next change.
+- **Paid features follow the organisation** (slice 3b): `vehicleHasPro()`
+  (`src/lib/entitlement.ts`) is the one question every gate on a vehicle
+  asks — a personal vehicle's owner's plan, a company vehicle's
+  organisation's plan (`orgHasPaidFeatures()`: comped or any company plan),
+  never the caller's and never the account of record's. So a paying
+  organisation gets every feature on every company vehicle whoever moved it
+  in, a manager's own Personal unlocks nothing for a company that does not
+  pay, and a collaborator uploading photos gets the vehicle's allowance, not
+  their own. `entitlement.test.ts` fails on any file under the vehicle
+  routes or screens that reads `PRO_SELECT`/`hasPro()` itself.
 
 ## What's not built yet
 
