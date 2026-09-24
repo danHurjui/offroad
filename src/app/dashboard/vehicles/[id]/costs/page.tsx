@@ -8,9 +8,9 @@ import { isDateRange, type DateRange } from '@/lib/analytics'
 import { ownershipReport, type CostCategory, type CostLine, type Message } from '@/lib/ownershipCosts'
 import { loadOwnershipInputs } from '@/lib/ownershipRecords'
 import { vehicleHasPro } from '@/lib/entitlement'
+import { formatAmount, formatRon } from '@/lib/money'
 
 const RANGES: DateRange[] = ['3m', '12m', 'all']
-const money = (n: number) => n.toLocaleString('ro-RO', { maximumFractionDigits: 2 })
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 const DATE_VALUES = new Set(['date', 'from', 'to'])
 
@@ -128,9 +128,9 @@ export default async function OwnershipCostsPage({
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="card p-4">
           <div className="text-xs text-ink-faint">{t('total')}</div>
-          <div className="text-2xl font-semibold text-ink">{money(report.total)} RON</div>
+          <div className="text-2xl font-semibold text-ink">{formatRon(report.total)}</div>
           {report.total !== report.runningTotal && (
-            <div className="text-sm text-ink-muted">{t('runningTotal', { amount: money(report.runningTotal) })}</div>
+            <div className="text-sm text-ink-muted">{t('runningTotal', { amount: formatAmount(report.runningTotal) })}</div>
           )}
         </div>
         {isPro ? (
@@ -141,7 +141,7 @@ export default async function OwnershipCostsPage({
                 <div className="text-2xl font-semibold text-ink">{t('perKmValue', { value: report.perKm.value.toLocaleString('ro-RO', { maximumFractionDigits: 2, minimumFractionDigits: 2 }) })}</div>
                 <div className="text-sm text-ink-muted">
                   {t('perKmDetail', {
-                    costs: money(report.perKm.costs),
+                    costs: formatAmount(report.perKm.costs),
                     km: report.perKm.km.toLocaleString('ro-RO'),
                     from: fmtDate(report.perKm.from),
                     to: fmtDate(report.perKm.to),
@@ -171,13 +171,13 @@ export default async function OwnershipCostsPage({
         <h2 id="value-title" className="font-semibold text-ink">{t('value.title')}</h2>
         {value ? (
           <>
-            <p className="text-lg font-semibold text-ink">{money(value.currentValueRon)} RON</p>
+            <p className="text-lg font-semibold text-ink">{formatRon(value.currentValueRon)}</p>
             <p className="text-sm text-ink-muted">
               {value.at ? t('value.asOf', { date: fmtDate(value.at) }) : t('value.yours')}
               {value.purchasePriceRon != null &&
                 value.purchasePriceRon !== value.currentValueRon &&
                 ` · ${t(value.currentValueRon < value.purchasePriceRon ? 'value.below' : 'value.above', {
-                  amount: money(Math.abs(value.purchasePriceRon - value.currentValueRon)),
+                  amount: formatAmount(Math.abs(value.purchasePriceRon - value.currentValueRon)),
                 })}`}
             </p>
           </>
@@ -203,7 +203,7 @@ export default async function OwnershipCostsPage({
                   <summary className="flex cursor-pointer flex-wrap items-baseline justify-between gap-2">
                     <span className="font-medium text-ink">{t(`category.${c.category}`)}</span>
                     <span className="text-ink">
-                      {money(c.total)} RON <span className="text-sm text-ink-muted">· {t('entries', { count: c.count })}</span>
+                      {formatRon(c.total)} <span className="text-sm text-ink-muted">· {t('entries', { count: c.count })}</span>
                     </span>
                   </summary>
                   <ul className="mt-3 space-y-1 text-sm">
@@ -215,7 +215,7 @@ export default async function OwnershipCostsPage({
                             {fmtDate(l.date)} · {lineLabel(l)}
                             {l.text ? ` · ${l.text}` : ''}
                           </Link>
-                          <span className="text-ink">{money(l.amount)} RON</span>
+                          <span className="text-ink">{formatRon(l.amount)}</span>
                         </li>
                       ))}
                   </ul>

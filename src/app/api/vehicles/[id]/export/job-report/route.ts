@@ -10,6 +10,7 @@ import { translateConfig } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import { renderPdf, resolvePhotos, pdfFilename } from '@/lib/pdf'
 import { buildJobReportDocDefinition, type JobReportTask } from '@/lib/pdfJobReport'
+import { formatRon } from '@/lib/money'
 
 // RL-033: job report — always free, for any collaborator regardless of
 // tier (never paywalled — this is the workshop acquisition mechanic, see
@@ -93,7 +94,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     // rather than an account column — unlike an email, which is read by
     // its recipient.
     const tPdf = await translator(localeFromRequest(), 'pdf')
-    const money = (n: number) => `${n.toLocaleString('ro-RO')} RON`
+    const money = (n: number) => formatRon(n)
 
     const docDefinition = buildJobReportDocDefinition({
       strings: {

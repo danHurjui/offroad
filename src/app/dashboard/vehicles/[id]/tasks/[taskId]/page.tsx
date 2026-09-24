@@ -11,6 +11,7 @@ import TaskPhotos from '@/components/TaskPhotos'
 import TaskReceipt from '@/components/TaskReceipt'
 import DeleteTaskButton from '@/components/DeleteTaskButton'
 import TaskStatusControl from '@/components/TaskStatusControl'
+import { formatAmount, formatRon } from '@/lib/money'
 
 // RL-005: task detail view.
 export default async function TaskDetailPage({ params }: { params: { id: string; taskId: string } }) {
@@ -133,7 +134,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
           {showCosts && (
             <div>
               <dt className="text-ink-faint">{t('totalCostLabel')}</dt>
-              <dd className="font-semibold text-ink">{totalCost.toLocaleString('ro-RO')} RON</dd>
+              <dd className="font-semibold text-ink">{formatRon(totalCost)}</dd>
             </div>
           )}
           {task.workType === 'WORKSHOP' && (
@@ -145,7 +146,7 @@ export default async function TaskDetailPage({ params }: { params: { id: string;
               {showCosts && (
                 <div>
                   <dt className="text-ink-faint">{t('partsLabour')}</dt>
-                  <dd className="text-ink">{(partsCostRon ?? 0).toLocaleString('ro-RO')} / {(labourCostRon ?? 0).toLocaleString('ro-RO')} RON</dd>
+                  <dd className="text-ink">{formatAmount(partsCostRon ?? 0)} / {formatRon(labourCostRon ?? 0)}</dd>
                 </div>
               )}
             </>

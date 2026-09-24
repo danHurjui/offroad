@@ -1,7 +1,7 @@
 import {
   parseDonationBani,
   supporterName,
-  formatRon,
+  formatBani,
   baniToRon,
   MIN_DONATION_BANI,
   MAX_DONATION_BANI,
@@ -67,9 +67,10 @@ describe('supporterName', () => {
   })
 })
 
-describe('formatRon', () => {
+describe('formatBani', () => {
   it('renders bani as a RON amount', () => {
-    expect(formatRon(5000)).toMatch(/^50\s*RON$/)
-    expect(formatRon(1250)).toMatch(/12[.,]5\s*RON$/)
+    expect(formatBani(5000)).toBe('50 RON')
+    expect(formatBani(1250)).toBe('12,50 RON')
+    expect(formatBani(1_000_000)).toBe('10.000 RON')
   })
 })

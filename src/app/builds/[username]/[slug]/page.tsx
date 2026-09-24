@@ -14,6 +14,7 @@ import OriginalityBadge from '@/components/OriginalityBadge'
 import FollowButton from '@/components/FollowButton'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
 import { appUrlForMetadata } from '@/lib/appUrl'
+import { formatRon } from '@/lib/money'
 
 // cache() dedupes this within one request — generateMetadata and the page
 // component both need it, and without this they'd each hit the DB.
@@ -187,7 +188,7 @@ export default async function PublicVehiclePage({
               {!vehicle.hidePublicCost && (
                 <div>
                   <div className="text-xs text-ink-faint">{t('totalSpent')}</div>
-                  <div className="text-lg font-semibold text-ink">{totalSpent.toLocaleString('ro-RO')} RON</div>
+                  <div className="text-lg font-semibold text-ink">{formatRon(totalSpent)}</div>
                 </div>
               )}
               <div>

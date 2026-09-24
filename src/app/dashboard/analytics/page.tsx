@@ -11,6 +11,7 @@ import {
   type DateRange,
 } from '@/lib/analytics'
 import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { formatRon } from '@/lib/money'
 
 const RANGES: DateRange[] = ['3m', '12m', 'all']
 
@@ -91,7 +92,7 @@ export default async function GarageAnalyticsPage({ searchParams }: { searchPara
         <>
           <div className="card mb-4 p-4">
             <div className="text-xs text-ink-faint">{t('garageTotal')}</div>
-            <div className="text-2xl font-semibold text-ink">{summary.totalSpent.toLocaleString('ro-RO')} RON</div>
+            <div className="text-2xl font-semibold text-ink">{formatRon(summary.totalSpent)}</div>
             <div className="mt-1 text-xs text-ink-faint">{t('vehicleCount', { count: vehicles.length })}</div>
           </div>
           <div className="card note p-4 text-sm text-ink">{t('upgradePrompt')}</div>
@@ -113,19 +114,19 @@ export default async function GarageAnalyticsPage({ searchParams }: { searchPara
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="card p-4">
               <div className="text-xs text-ink-faint">{t('garageTotal')}</div>
-              <div className="text-lg font-semibold text-ink">{summary.totalSpent.toLocaleString('ro-RO')} RON</div>
+              <div className="text-lg font-semibold text-ink">{formatRon(summary.totalSpent)}</div>
             </div>
             <div className="card p-4">
               <div className="text-xs text-ink-faint">{t('averagePerMonth')}</div>
               <div className="text-lg font-semibold text-ink">
-                {Math.round(summary.avgPerMonth).toLocaleString('ro-RO')} RON
+                {formatRon(summary.avgPerMonth)}
               </div>
             </div>
             <div className="card p-4">
               <div className="text-xs text-ink-faint">{t('mostExpensive')}</div>
               <div className="truncate text-lg font-semibold text-ink" title={summary.mostExpensiveTask?.name}>
                 {summary.mostExpensiveTask
-                  ? `${summary.mostExpensiveTask.name} — ${summary.mostExpensiveTask.cost.toLocaleString('ro-RO')} RON`
+                  ? `${summary.mostExpensiveTask.name} — ${formatRon(summary.mostExpensiveTask.cost)}`
                   : '—'}
               </div>
             </div>
@@ -140,7 +141,7 @@ export default async function GarageAnalyticsPage({ searchParams }: { searchPara
                 className="flex items-center justify-between gap-3 p-4 hover:bg-surface-muted"
               >
                 <span className="min-w-0 truncate text-ink">{row.label}</span>
-                <span className="shrink-0 font-semibold text-ink">{row.total.toLocaleString('ro-RO')} RON</span>
+                <span className="shrink-0 font-semibold text-ink">{formatRon(row.total)}</span>
               </Link>
             ))}
           </div>

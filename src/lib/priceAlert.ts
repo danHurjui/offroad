@@ -4,6 +4,7 @@ import { translator } from '@/i18n/translator'
 import { sendEmail, priceAlertEmail, emailLocale } from '@/lib/email'
 import { sendPushNotification } from '@/lib/webpush'
 import { appUrlForNotification } from '@/lib/appUrl'
+import { formatAmount } from '@/lib/money'
 
 /**
  * RL-026: pure decision helper (same idempotency pattern as
@@ -88,8 +89,8 @@ export async function notifyPriceAlert(
         const result = await sendPushNotification(sub, {
           title: tPush('priceAlertTitle', { item: itemName }),
           body: tPush('priceAlertBody', {
-            price: priceRon.toLocaleString('ro-RO'),
-            target: targetPriceRon.toLocaleString('ro-RO'),
+            price: formatAmount(priceRon),
+            target: formatAmount(targetPriceRon),
           }),
           url: vehicleUrl,
         }).catch(() => 'skipped' as const)

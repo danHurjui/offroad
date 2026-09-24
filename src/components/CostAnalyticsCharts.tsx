@@ -13,9 +13,10 @@ import {
   CartesianGrid,
 } from 'recharts'
 import { useChartTheme } from './useChartTheme'
+import { formatRon } from '@/lib/money'
 
-function formatRon(value: unknown): string {
-  return `${Number(value).toLocaleString('ro-RO')} RON`
+function ronTooltip(value: unknown): string {
+  return formatRon(Number(value))
 }
 
 interface CategoryDatum {
@@ -61,7 +62,7 @@ export default function CostAnalyticsCharts({
                 <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} />
                 <XAxis dataKey="label" tick={{ fontSize: 11, fill: theme.axis }} interval={0} angle={-20} textAnchor="end" height={50} />
                 <YAxis tick={{ fontSize: 11, fill: theme.axis }} />
-                <Tooltip formatter={formatRon} contentStyle={tooltipStyle} itemStyle={{ color: theme.axis }} />
+                <Tooltip formatter={ronTooltip} contentStyle={tooltipStyle} itemStyle={{ color: theme.axis }} />
                 <Bar dataKey="total" fill={theme.accent} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -80,7 +81,7 @@ export default function CostAnalyticsCharts({
                 <CartesianGrid strokeDasharray="3 3" stroke={theme.grid} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: theme.axis }} />
                 <YAxis tick={{ fontSize: 11, fill: theme.axis }} />
-                <Tooltip formatter={formatRon} contentStyle={tooltipStyle} itemStyle={{ color: theme.axis }} />
+                <Tooltip formatter={ronTooltip} contentStyle={tooltipStyle} itemStyle={{ color: theme.axis }} />
                 <Line type="monotone" dataKey="cumulative" stroke={theme.accent} strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>

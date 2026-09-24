@@ -900,10 +900,11 @@ about it there**.
   `purchasePriceRon` there (answering under its old names,
   `acquisitionDate`/`purchasePriceRon`), and nothing else holds a copy
   (#105). Once a restoration has an intake, its purchase date can be
-  changed but not cleared — the intake requires one. FoundState's two old
-  columns are still in the database, nullable and unread, until the next
-  release drops them: dropping a column in the release that stops reading
-  it breaks the previous deployment while it is still serving.
+  changed but not cleared — the intake requires one. FoundState's old
+  columns were dropped a release *after* the code stopped reading them:
+  dropping a column in the release that stops reading it breaks the
+  previous deployment while it is still serving. Do the same for any
+  column you remove.
 - **A document is renewed in place**, so a renewal moves the old period's
   price into a `VehicleExpense` (same category) before the new one is set —
   otherwise last year's premium would vanish from the total.
@@ -1171,8 +1172,11 @@ RL-014 engine, `pdfFleetReport.ts`). All three go through `loadReport()`
   the figure alone (`14.999,50`) under a "(RON)" header, so the column
   still sums.
 - **`formatRon()`** (`src/lib/money.ts`) is the one way to write RON
-  (`14.999,50 RON`); the fleet pages and the service-book PDF use it, and
-  the rest of the app can move over as it is touched.
+  (`14.999,50 RON`), and `formatAmount()` the figure alone for a message
+  that prints "RON" itself (#105). `money.test.ts` fails on a hand-built
+  `${…} RON` or `{…} RON` anywhere else; the one exception is plan
+  prices, which go through `formatPlanPrice()` so 99 is not "99,00".
+  Donations hold bani and use `formatBani()`, which is built on it.
 - `fleetReport` is a server-only namespace (the page is a Server
   Component). Filenames are ASCII slugs — they go into a header.
 

@@ -9,6 +9,7 @@ import { useVocabulary, type VocabularyConfig } from '@/lib/vocabulary'
 import { tryFetch } from '@/lib/writeFeedback'
 import { HideWhilePending, useToast } from './Toaster'
 import { useFailureReason, useOptimisticWrite } from './useOptimisticWrite'
+import { formatRon } from '@/lib/money'
 
 interface WishlistItem {
   id: string
@@ -164,7 +165,7 @@ export default function WishlistBoard({
           <div className="text-xs text-ink-faint">
             {t('totalBudget', { list: config.wishlistLabel.toLowerCase() })}
           </div>
-          <div className="text-lg font-semibold text-ink">{totalBudget.toLocaleString('ro-RO')} RON</div>
+          <div className="text-lg font-semibold text-ink">{formatRon(totalBudget)}</div>
         </div>
         <div className="card p-4">
           <div className="mb-1 text-xs text-ink-faint">{t('byCategory')}</div>
@@ -175,7 +176,7 @@ export default function WishlistBoard({
               {Array.from(byCategory.entries()).map(([category, sum]) => (
                 <li key={category} className="flex justify-between">
                   <span className="text-ink-muted">{labelFor(config.categories, category)}</span>
-                  <span className="text-ink">{sum.toLocaleString('ro-RO')} RON</span>
+                  <span className="text-ink">{formatRon(sum)}</span>
                 </li>
               ))}
             </ul>
@@ -223,7 +224,7 @@ export default function WishlistBoard({
                   </div>
                   <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-ink-faint">
                     {item.category && <span>{labelFor(config.categories, item.category)}</span>}
-                    {item.estimatedCostRon != null && <span>{item.estimatedCostRon.toLocaleString('ro-RO')} RON</span>}
+                    {item.estimatedCostRon != null && <span>{formatRon(item.estimatedCostRon)}</span>}
                     {item.supplierUrl && (
                       <a href={item.supplierUrl} target="_blank" rel="noreferrer" className="text-brand-600 dark:text-brand-300 hover:underline">
                         {t('supplierLink')}

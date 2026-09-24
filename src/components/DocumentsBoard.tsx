@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { DOCUMENT_TYPE_OPTIONS, daysUntilMessage, getDocumentStatus, type DocumentStatus } from '@/lib/documents'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 import MoneyInput from './MoneyInput'
+import { formatAmount } from '@/lib/money'
 
 interface DocumentRow {
   id: string
@@ -192,7 +193,7 @@ export default function DocumentsBoard({ vehicleId, documents: initialDocuments 
                   <div className="text-xs text-ink-faint">
                     {doc.costRon != null
                       ? t('paid', {
-                          amount: doc.costRon.toLocaleString('ro-RO', { maximumFractionDigits: 2 }),
+                          amount: formatAmount(doc.costRon),
                           date: doc.paidAt ? new Date(doc.paidAt).toLocaleDateString('ro-RO', { timeZone: 'UTC' }) : '—',
                         })
                       : t('noPrice')}

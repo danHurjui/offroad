@@ -3,8 +3,9 @@
 import { useTranslations } from 'next-intl'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useChartTheme } from './useChartTheme'
+import { formatRon } from '@/lib/money'
 
-const formatRon = (value: unknown) => `${Number(value).toLocaleString('ro-RO')} RON`
+const ronTooltip = (value: unknown) => formatRon(Number(value))
 
 /**
  * RL-039: the fleet's running cost per month. Pre-aggregated on the server
@@ -23,7 +24,7 @@ export default function FleetCostChart({ data }: { data: Array<{ month: string; 
           <XAxis dataKey="month" tick={{ fontSize: 11, fill: theme.axis }} />
           <YAxis tick={{ fontSize: 11, fill: theme.axis }} />
           <Tooltip
-            formatter={formatRon}
+            formatter={ronTooltip}
             contentStyle={{ backgroundColor: theme.tooltipBg, border: `1px solid ${theme.tooltipBorder}`, borderRadius: 8, color: theme.axis }}
             itemStyle={{ color: theme.axis }}
           />

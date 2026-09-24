@@ -8,7 +8,9 @@ import {
   MIN_DONATION_BANI,
   MAX_DONATION_BANI,
   baniToRon,
+  formatBani,
 } from '@/lib/donations'
+import { formatAmount, formatRon } from '@/lib/money'
 
 export default function DonateForm({ signedIn }: { signedIn: boolean }) {
   const t = useTranslations('donate')
@@ -30,9 +32,7 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
     e.preventDefault()
     setError(null)
     if (!valid) {
-      setError(
-        `Enter an amount between ${baniToRon(MIN_DONATION_BANI)} and ${baniToRon(MAX_DONATION_BANI)} RON`
-      )
+      setError(t('amountRange', { min: formatBani(MIN_DONATION_BANI), max: formatBani(MAX_DONATION_BANI) }))
       return
     }
     setLoading(true)
@@ -73,7 +73,7 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
                 preset === value ? 'border-brand-500 bg-brand-50 dark:bg-brand-400/10 text-ink' : 'border-surface-border text-ink-muted'
               }`}
             >
-              {value} RON
+              {formatRon(value, 0)}
             </button>
           ))}
         </div>
@@ -136,7 +136,7 @@ export default function DonateForm({ signedIn }: { signedIn: boolean }) {
         {loading
           ? t('redirecting')
           : valid
-            ? t('donateAmount', { amount: amountRon })
+            ? t('donateAmount', { amount: formatAmount(amountRon, Number.isInteger(amountRon) ? 0 : 2) })
             : t('donateNoAmount')}
       </button>
 

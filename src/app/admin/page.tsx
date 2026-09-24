@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { TICKET_STATUSES, TICKET_STATUS_VALUES } from '@/lib/tickets'
-import { formatRon } from '@/lib/donations'
+import { formatBani } from '@/lib/donations'
 
 export const metadata: Metadata = { title: 'Admin — RigLog', robots: { index: false } }
 export const dynamic = 'force-dynamic'
@@ -57,7 +57,7 @@ export default async function AdminOverviewPage() {
         <Stat label={t('statOpenTickets')} value={openTickets} href="/admin/tickets?status=OPEN" />
         <Stat
           label={t('statDonated')}
-          value={donations._count === 0 ? '—' : formatRon(donations._sum.amountBani ?? 0)}
+          value={donations._count === 0 ? '—' : formatBani(donations._sum.amountBani ?? 0)}
         />
       </div>
 

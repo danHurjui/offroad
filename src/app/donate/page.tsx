@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { formatRon, supporterName } from '@/lib/donations'
+import { formatBani, supporterName } from '@/lib/donations'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 import DonateForm from '@/components/DonateForm'
@@ -120,7 +120,7 @@ export default async function DonatePage({
                 <h2 className="font-semibold text-ink">{t('supporters')}</h2>
                 {totals._count > 0 && (
                   <span className="text-sm text-ink-muted">
-                    {t('supporterCount', { count: totals._count, total: formatRon(totalBani) })}
+                    {t('supporterCount', { count: totals._count, total: formatBani(totalBani) })}
                   </span>
                 )}
               </div>
@@ -135,7 +135,7 @@ export default async function DonatePage({
                     <li key={d.id} className="py-3">
                       <div className="flex items-baseline justify-between gap-3">
                         <span className="font-medium text-ink">{supporterName(d)}</span>
-                        <span className="shrink-0 text-sm text-ink-muted">{formatRon(d.amountBani)}</span>
+                        <span className="shrink-0 text-sm text-ink-muted">{formatBani(d.amountBani)}</span>
                       </div>
                       {d.message && <p className="mt-1 text-sm text-ink-muted">{d.message}</p>}
                     </li>

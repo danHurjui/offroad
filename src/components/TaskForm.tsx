@@ -19,6 +19,7 @@ import MoneyInput from './MoneyInput'
 import { ScanButton, ScanFlag } from './ScanButton'
 import { useToast } from './Toaster'
 import { useFailureReason } from './useOptimisticWrite'
+import { formatRon } from '@/lib/money'
 
 interface InitialTask {
   id: string
@@ -439,7 +440,7 @@ export default function TaskForm({
       {costsHidden ? (
         <p className="text-xs text-ink-faint">{t('costsHiddenHint')}</p>
       ) : (
-        <p className="text-sm text-ink-muted">{t('totalCost')} <span className="font-semibold text-ink">{totalCost.toLocaleString('ro-RO')} RON</span></p>
+        <p className="text-sm text-ink-muted">{t('totalCost')} <span className="font-semibold text-ink">{formatRon(totalCost)}</span></p>
       )}
 
       <div>

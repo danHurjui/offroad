@@ -9,6 +9,7 @@ import { toNumberOrNull } from '@/lib/serialize'
 import { isTyreSeason } from '@/lib/tyres'
 import TyreSetForm from '@/components/TyreSetForm'
 import { TyreRow, TyreSetActions } from '@/components/TyreSetActions'
+import { formatAmount } from '@/lib/money'
 
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 
@@ -66,7 +67,7 @@ export default async function TyresPage({ params }: { params: { id: string } }) 
                       kmOn !== null && t('kmOn', { km: kmOn.toLocaleString('ro-RO') }),
                       showCosts && s.costRon !== null &&
                         t('bought', {
-                          amount: (toNumberOrNull(s.costRon) ?? 0).toLocaleString('ro-RO', { maximumFractionDigits: 2 }),
+                          amount: formatAmount(toNumberOrNull(s.costRon) ?? 0),
                           date: fmtDate(s.purchasedAt ?? s.createdAt),
                         }),
                     ]

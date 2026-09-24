@@ -19,6 +19,7 @@ import { computeHealth } from '@/lib/vehicleHealth'
 import DriverPanel from '@/components/DriverPanel'
 import ReadOnlyVehicleNotice from '@/components/ReadOnlyVehicleNotice'
 import { vehicleHasPro } from '@/lib/entitlement'
+import { formatRon } from '@/lib/money'
 
 // RL-003: project dashboard — build overview screen.
 export default async function VehicleDashboardPage({ params }: { params: { id: string } }) {
@@ -347,7 +348,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
           value={
             hidesCosts(vehicle)
               ? t('hidden')
-              : `${totalSpent.toLocaleString('ro-RO')} RON`
+              : formatRon(totalSpent)
           }
         />
         <StatCard

@@ -10,6 +10,7 @@ import { toNumberOrNull } from '@/lib/serialize'
 import { isDateRange, rangeCutoff, spendByCategory, cumulativeSpendByMonth, summarizeCosts, type DateRange } from '@/lib/analytics'
 import CostAnalyticsCharts from '@/components/CostAnalyticsCharts'
 import { vehicleHasPro } from '@/lib/entitlement'
+import { formatRon } from '@/lib/money'
 
 /** Ordered for the filter row; the words come from the catalogue. */
 const RANGES: DateRange[] = ['3m', '12m', 'all']
@@ -76,7 +77,7 @@ export default async function CostAnalyticsPage({
         <>
           <div className="card mb-4 p-4">
             <div className="text-xs text-ink-faint">{t('totalSpent')}</div>
-            <div className="text-2xl font-semibold text-ink">{summary.totalSpent.toLocaleString('ro-RO')} RON</div>
+            <div className="text-2xl font-semibold text-ink">{formatRon(summary.totalSpent)}</div>
           </div>
           <div className="card note p-4 text-sm text-ink">
             {t('upgradePrompt')}
@@ -99,17 +100,17 @@ export default async function CostAnalyticsPage({
           <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="card p-4">
               <div className="text-xs text-ink-faint">{t('totalSpent')}</div>
-              <div className="text-lg font-semibold text-ink">{summary.totalSpent.toLocaleString('ro-RO')} RON</div>
+              <div className="text-lg font-semibold text-ink">{formatRon(summary.totalSpent)}</div>
             </div>
             <div className="card p-4">
               <div className="text-xs text-ink-faint">{t('averagePerMonth')}</div>
-              <div className="text-lg font-semibold text-ink">{Math.round(summary.avgPerMonth).toLocaleString('ro-RO')} RON</div>
+              <div className="text-lg font-semibold text-ink">{formatRon(summary.avgPerMonth)}</div>
             </div>
             <div className="card p-4">
               <div className="text-xs text-ink-faint">{t('mostExpensive')}</div>
               <div className="truncate text-lg font-semibold text-ink" title={summary.mostExpensiveTask?.name}>
                 {summary.mostExpensiveTask
-                  ? `${summary.mostExpensiveTask.name} (${summary.mostExpensiveTask.cost.toLocaleString('ro-RO')} RON)`
+                  ? `${summary.mostExpensiveTask.name} (${formatRon(summary.mostExpensiveTask.cost)})`
                   : '—'}
               </div>
             </div>

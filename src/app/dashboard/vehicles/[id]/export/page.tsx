@@ -9,6 +9,7 @@ import { toNumberOrNull } from '@/lib/serialize'
 import VehicleCoverImg from '@/components/VehicleCoverImg'
 import ExportPdfButton from '@/components/ExportPdfButton'
 import { vehicleHasPro } from '@/lib/entitlement'
+import { formatAmount } from '@/lib/money'
 
 // RL-014: build history PDF export. Free owners see this same page (it IS
 // the "preview of the first page" the ticket asks for — real data, just no
@@ -55,7 +56,7 @@ export default async function ExportPdfPage({ params }: { params: { id: string }
             {t('summary', {
               progressLabel: config.progressLabel,
               progress: progressPct,
-              total: totalSpent.toLocaleString('ro-RO'),
+              total: formatAmount(totalSpent),
             })}
           </p>
           <p className="mt-2 text-xs text-ink-faint">

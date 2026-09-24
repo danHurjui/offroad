@@ -11,6 +11,7 @@ import { serializeFuelEntry } from '@/lib/serialize'
 import FuelQuickAdd from '@/components/FuelQuickAdd'
 import { FuelRow, RemoveFuelButton } from '@/components/FuelEntryRemove'
 import { vehicleHasPro } from '@/lib/entitlement'
+import { formatRon } from '@/lib/money'
 
 const num = (n: number, digits = 2) => n.toLocaleString('ro-RO', { maximumFractionDigits: digits })
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
@@ -80,7 +81,7 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
         </div>
         <div className="card p-4">
           <div className="text-xs text-ink-faint">{t('spent')}</div>
-          <div className="text-2xl font-semibold text-ink">{hideSpend ? t('hidden') : `${num(summary.totalRon)} RON`}</div>
+          <div className="text-2xl font-semibold text-ink">{hideSpend ? t('hidden') : formatRon(summary.totalRon)}</div>
           <div className="text-sm text-ink-muted">{t('litresTotal', { litres: num(summary.totalLitres), fills: summary.fills })}</div>
         </div>
       </div>
@@ -102,7 +103,7 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-semibold text-ink">{num(e.litres)} l</span>
-                      <span className="text-ink">· {num(e.totalRon)} RON</span>
+                      <span className="text-ink">· {formatRon(e.totalRon)}</span>
                       {e.pricePerLitre !== null && (
                         <span className="text-sm text-ink-muted">({t('perLitre', { price: num(e.pricePerLitre, 3) })})</span>
                       )}

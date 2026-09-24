@@ -130,7 +130,7 @@ describe('buildVehicleHistoryDocDefinition', () => {
   it('renders task cost formatted as RON', () => {
     const doc = buildVehicleHistoryDocDefinition(BASE_INPUT)
     const content = JSON.stringify(doc.content)
-    expect(content).toContain('3.500 RON')
+    expect(content).toContain('3.500,00 RON')
   })
 
   it('embeds up to the photos passed in as image nodes', () => {
@@ -211,13 +211,13 @@ describe('the expense report', () => {
   })
 
   it('totals the expenses', () => {
-    expect(render(INPUT)).toContain('8.300 RON')
+    expect(render(INPUT)).toContain('8.300,00 RON')
   })
 
   it('subtotals by category', () => {
     const content = render(INPUT)
-    expect(content).toContain('4.100 RON') // Recovery: 3500 + 600
-    expect(content).toContain('4.200 RON') // Suspension
+    expect(content).toContain('4.100,00 RON') // Recovery: 3500 + 600
+    expect(content).toContain('4.200,00 RON') // Suspension
   })
 
   it('says which jobs were workshop and which were DIY', () => {

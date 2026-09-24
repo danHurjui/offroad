@@ -13,6 +13,8 @@
  * an integer minor unit, and it keeps float rounding out of money maths.
  */
 
+import { formatRon } from './money'
+
 export const DONATION_CURRENCY = 'ron'
 
 /** Preset buttons, in RON. The custom field covers everything else. */
@@ -28,11 +30,9 @@ export function baniToRon(bani: number): number {
   return bani / 100
 }
 
-export function formatRon(bani: number): string {
-  return `${baniToRon(bani).toLocaleString('ro-RO', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  })} RON`
+/** An amount held in bani, written like every other RON amount — whole lei without bani. */
+export function formatBani(bani: number): string {
+  return formatRon(baniToRon(bani), bani % 100 === 0 ? 0 : 2)
 }
 
 /**
