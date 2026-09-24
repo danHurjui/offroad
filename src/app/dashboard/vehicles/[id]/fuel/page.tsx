@@ -6,8 +6,9 @@ import { requireVehicleAccess, hidesCosts } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { consumptionIntervals, fuelSummary, type FuelLike } from '@/lib/fuel'
+import { combinedIntervals, combinedSummary } from '@/lib/charging'
 import { dayKey } from '@/lib/odometer'
-import { serializeFuelEntry } from '@/lib/serialize'
+import { serializeFuelEntry, toNumberOrNull } from '@/lib/serialize'
 import FuelQuickAdd from '@/components/FuelQuickAdd'
 import { FuelRow, RemoveFuelButton } from '@/components/FuelEntryRemove'
 import { vehicleHasPro } from '@/lib/entitlement'
@@ -33,7 +34,12 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
   // RL-048: scanning is Pro — the plan of the vehicle's account of record,
   // like every other Pro feature on a vehicle, so a driver or mechanic on a
   // Pro vehicle can scan too.
-  const [rows, overrides, canScan] = await Promise.all([
+  // RL-054: a plug-in hybrid also drove on electricity between two full
+  // tanks, so l/100 km alone understates the engine. It gets litres and
+  // kWh together, only over stretches both logs cover — never a bare
+  // l/100 km (the owner's strict rule on #122).
+  const isPluginHybrid = powertrainOf(vehicle.fuelType) === 'PLUGIN_HYBRID'
+  const [rows, overrides, canScan, charges] = await Promise.all([
     prisma.fuelEntry.findMany({
       where: { vehicleId: vehicle.id },
       orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
@@ -41,6 +47,12 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
     }),
     prisma.odometerReading.findMany({ where: { vehicleId: vehicle.id, isOverride: true }, select: { readAt: true } }),
     vehicleHasPro(vehicle),
+    isPluginHybrid
+      ? prisma.chargeEntry.findMany({
+          where: { vehicleId: vehicle.id },
+          select: { id: true, date: true, kwh: true, totalRon: true, socTo: true, createdAt: true, odometerReading: { select: { km: true } } },
+        })
+      : Promise.resolve([]),
   ])
   const entries = rows.map(serializeFuelEntry)
   const fuelLike: FuelLike[] = entries.map((e) => ({
@@ -55,6 +67,18 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
   const overrideDays = overrides.map((o) => dayKey(o.readAt))
   const summary = fuelSummary(fuelLike, overrideDays)
   const byEnd = new Map(consumptionIntervals(fuelLike, overrideDays).map((i) => [i.endId, i]))
+  const combined = isPluginHybrid
+    ? combinedIntervals(
+        fuelLike,
+        charges.map((c) => ({
+          id: c.id, date: c.date, km: c.odometerReading?.km ?? null, createdAt: c.createdAt,
+          kwh: toNumberOrNull(c.kwh), totalRon: toNumberOrNull(c.totalRon) ?? 0, socTo: c.socTo,
+        })),
+        overrideDays
+      )
+    : []
+  const combinedTotal = combinedSummary(combined)
+  const combinedByEnd = new Map(combined.map((i) => [i.endId, i]))
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -73,20 +97,40 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
       )}
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="card p-4">
-          <div className="text-xs text-ink-faint">{t('average')}</div>
-          {summary.averageLitresPer100Km !== null ? (
-            <>
-              <div className="text-2xl font-semibold text-ink">{t('averageValue', { value: num(summary.averageLitresPer100Km) })}</div>
-              <div className="text-sm text-ink-muted">{t('measuredOver', { km: num(summary.measuredKm, 0) })}</div>
-              {summary.lastLitresPer100Km !== null && (
-                <div className="text-sm text-ink-muted">{t('last', { value: num(summary.lastLitresPer100Km) })}</div>
-              )}
-            </>
-          ) : (
-            <div className="text-sm text-ink-muted">{t('notYet')}</div>
-          )}
-        </div>
+        {isPluginHybrid ? (
+          <div className="card p-4">
+            <div className="text-xs text-ink-faint">{t('combined')}</div>
+            {combinedTotal ? (
+              <>
+                <div className="text-2xl font-semibold text-ink">
+                  {t('combinedValue', { litres: num(combinedTotal.litresPer100Km), kwh: num(combinedTotal.kwhPer100Km) })}
+                </div>
+                <div className="text-sm text-ink-muted">{t('measuredOver', { km: num(combinedTotal.measuredKm, 0) })}</div>
+                {!hideSpend && (
+                  <div className="text-sm text-ink-muted">{t('combinedCost', { price: formatRon(combinedTotal.ronPerKm) })}</div>
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-ink-muted">{t('combinedNotYet')}</div>
+            )}
+            <p className="mt-2 text-xs text-ink-faint">{t('combinedWhy')}</p>
+          </div>
+        ) : (
+          <div className="card p-4">
+            <div className="text-xs text-ink-faint">{t('average')}</div>
+            {summary.averageLitresPer100Km !== null ? (
+              <>
+                <div className="text-2xl font-semibold text-ink">{t('averageValue', { value: num(summary.averageLitresPer100Km) })}</div>
+                <div className="text-sm text-ink-muted">{t('measuredOver', { km: num(summary.measuredKm, 0) })}</div>
+                {summary.lastLitresPer100Km !== null && (
+                  <div className="text-sm text-ink-muted">{t('last', { value: num(summary.lastLitresPer100Km) })}</div>
+                )}
+              </>
+            ) : (
+              <div className="text-sm text-ink-muted">{t('notYet')}</div>
+            )}
+          </div>
+        )}
         <div className="card p-4">
           <div className="text-xs text-ink-faint">{t('spent')}</div>
           <div className="text-2xl font-semibold text-ink">{hideSpend ? t('hidden') : formatRon(summary.totalRon)}</div>
@@ -122,8 +166,16 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
                       {e.km !== null && ` · ${num(e.km, 0)} km`}
                       {e.station && ` · ${e.station}`}
                     </div>
-                    {interval && (
+                    {!isPluginHybrid && interval && (
                       <div className="mt-1 text-sm text-ink">{t('consumption', { value: num(interval.litresPer100Km) })}</div>
+                    )}
+                    {isPluginHybrid && combinedByEnd.has(e.id) && (
+                      <div className="mt-1 text-sm text-ink">
+                        {t('combinedSince', {
+                          litres: num(combinedByEnd.get(e.id)!.litresPer100Km),
+                          kwh: num(combinedByEnd.get(e.id)!.kwhPer100Km),
+                        })}
+                      </div>
                     )}
                   </div>
                   <div className="flex shrink-0 items-center gap-3">

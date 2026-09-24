@@ -20,6 +20,8 @@
  * weigh as much as a 900 km run.
  */
 
+import { measureIntervals } from './consumption'
+
 export const LITRES_MAX = 2000
 export const TOTAL_RON_MAX = 100_000
 export const STATION_MAX_LENGTH = 80
@@ -44,55 +46,17 @@ export interface Interval {
   litresPer100Km: number
 }
 
-function chronological(a: FuelLike, b: FuelLike): number {
-  const byDay = a.date.getTime() - b.date.getTime()
-  if (byDay !== 0) return byDay
-  // Same day: the km orders them if both have one, then entry order.
-  if (a.km !== null && b.km !== null && a.km !== b.km) return a.km - b.km
-  return (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0)
-}
-
 /**
- * Every measurable full-to-full interval, oldest first.
+ * Every measurable full-to-full interval, oldest first — the shared walk
+ * in `consumption.ts` with a full tank as the level (RL-054 generalised
+ * it, so the charging log is measured by exactly the same rules).
  * `overrideDays` are the ISO days of odometer overrides for the vehicle.
  */
 export function consumptionIntervals(entries: FuelLike[], overrideDays: string[] = []): Interval[] {
-  const sorted = [...entries].sort(chronological)
-  const intervals: Interval[] = []
-  let start: FuelLike | null = null
-  let litresSince = 0
-
-  for (const entry of sorted) {
-    if (!start) {
-      // Nothing before the first full tank can be measured.
-      if (entry.isFullTank) {
-        start = entry
-        litresSince = 0
-      }
-      continue
-    }
-    litresSince += entry.litres
-    if (!entry.isFullTank) continue
-
-    const from = start
-    const startDay = from.date.toISOString().slice(0, 10)
-    const endDay = entry.date.toISOString().slice(0, 10)
-    const crossesOverride = overrideDays.some((d) => d > startDay && d <= endDay)
-    if (from.km !== null && entry.km !== null && entry.km > from.km && !crossesOverride) {
-      const km = entry.km - from.km
-      intervals.push({
-        startId: from.id,
-        endId: entry.id,
-        litres: round2(litresSince),
-        km,
-        litresPer100Km: round2((litresSince / km) * 100),
-      })
-    }
-    // Every full tank is a fresh starting line, measurable or not.
-    start = entry
-    litresSince = 0
-  }
-  return intervals
+  return measureIntervals(
+    entries.map((e) => ({ id: e.id, date: e.date, km: e.km, createdAt: e.createdAt, amount: e.litres, level: e.isFullTank ? 'full' : null })),
+    overrideDays
+  ).map((i) => ({ startId: i.startId, endId: i.endId, litres: i.amount, km: i.km, litresPer100Km: i.per100Km }))
 }
 
 export interface FuelSummary {

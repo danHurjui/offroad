@@ -2694,7 +2694,13 @@
     "scanPro": "Scan receipts instead of typing them — with Personal",
     "receiptAttached": "Attached: {name}",
     "receiptRemove": "Remove",
-    "scanningAgain": "Taking a second look… {percent}%"
+    "scanningAgain": "Taking a second look… {percent}%",
+    "combined": "Consumption, all modes together",
+    "combinedValue": "{litres} l + {kwh} kWh /100 km",
+    "combinedCost": "Fuel and charging: {price} per km",
+    "combinedNotYet": "Appears after two full tanks with the odometer at each, when every charge between them has its kWh.",
+    "combinedWhy": "Between two full tanks a plug-in hybrid also drives on electricity, so litres alone would understate the engine. This is the fuel and the energy charged over the same km, counted only where both logs are complete.",
+    "combinedSince": "{litres} l + {kwh} kWh /100 km since the last full tank"
   },
   "charging": {
     "pageTitle": "Charging log",
@@ -2728,6 +2734,8 @@
     "socTo": "After (%)",
     "socHelp": "As the car shows it. Charging back to the same level each time is what lets consumption be measured later.",
     "socRange": "battery {from}% → {to}%",
+    "socToOnly": "battery to {to}%",
+    "socFromOnly": "battery from {from}%",
     "receipt": "Receipt (optional)",
     "receiptAttached": "Attached: {name}",
     "receiptRemove": "Remove",
@@ -2751,7 +2759,16 @@
     "remove": "Remove",
     "deleted": "Removed the charge from {date}.",
     "deleteFailed": "Couldn’t remove the charge.",
-    "notPlugIn": "This vehicle’s fuel type doesn’t plug in. Charges already recorded are kept here; change the fuel type in the vehicle settings if it’s wrong."
+    "notPlugIn": "This vehicle’s fuel type doesn’t plug in. Charges already recorded are kept here; change the fuel type in the vehicle settings if it’s wrong.",
+    "consumption": "Consumption at the plug",
+    "consumptionValue": "{value} kWh/100 km",
+    "consumptionMeasured": "Measured over {km} km, {intervals, plural, one {# stretch} other {# stretches}}",
+    "consumptionLast": "Last stretch: {value} kWh/100 km",
+    "consumptionNotYet": "Appears after two charges back to the same battery level (80% and 80% works, not only 100%), with the kWh and the odometer at each, and the kWh of every charge in between.",
+    "atThePlug": "“At the plug” is the energy the charger delivered, charging losses included, so it is higher than the figure on the car’s display. Stretches with a charge of unknown kWh, a missing odometer or a replaced gauge are left out rather than guessed.",
+    "consumptionSince": "{value} kWh/100 km since the last charge to {level}%",
+    "pluginHybridConsumption": "A plug-in hybrid uses fuel and electricity over the same km, so kWh/100 km on its own would not be what it claims. The fuel log shows both together.",
+    "pluginHybridConsumptionLink": "See it on the fuel log"
   },
   "health": {
     "title": "Car health",

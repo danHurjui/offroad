@@ -791,6 +791,27 @@ charging (free charges count as recorded), so an EV with no charging is a
 listed gap, never a zero, and a plug-in hybrid can report either or both.
 The fleet cost page, CSV and PDF read the same lines, so they follow.
 
+### Consumption (`src/lib/consumption.ts`, RL-054 — #122)
+**One interval walk for fuel and charging** (`measureIntervals()`), so the
+two cannot drift: fuel's level is "full tank", a charge's is its battery %
+after (`socTo`). An interval runs from an entry at a level to the next one
+back at **the same level** (80% → 80% counts, not only 100%); entries
+without a level, or at another level, only add their amount. On a close
+every open start is dropped, so intervals never overlap. An interval is
+dropped (and its end is the new start) when either end has no km, the km
+did not go up, an override falls inside it, or **any entry inside it has
+no amount** — a charge with no kWh makes the energy unknown.
+`fuel.test.ts` passes unchanged on it.
+- **kWh/100 km is "at the plug"** (delivered energy, losses included,
+  higher than the car's display, never mixed with it) and is shown for
+  `ELECTRIC` only.
+- **A plug-in hybrid never shows a bare l/100 km** — between two full
+  tanks it also drove on electricity. The fuel page shows
+  `combinedIntervals()`: litres *and* kWh per 100 km over a measured fuel
+  interval, **only when every charge inside it has kWh** (the owner chose
+  strict on #122), plus fuel and charging RON per km. A regular `HYBRID`
+  keeps l/100 km: it never plugs in.
+
 ### Odometer history (`src/lib/odometer.ts`, `odometerRecords.ts`, RL-044 — slice 2)
 **Current mileage is derived from the newest `OdometerReading`, never
 stored on `Vehicle`** (a test reads the schema for that). Readings stay in
