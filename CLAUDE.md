@@ -987,11 +987,13 @@ plus a grep that fails on any `ownerId` comparison with the caller outside
   Deleting an account hands company vehicles it is the record for to another
   OWNER there (slug cleared), and an organisation that goes with the
   account takes its vehicles and their files.
-- **Closed beta until the Business tier (#54):** creating one needs
-  `canCreateOrganization()` — `User.orgBetaAt`, set by an admin on
-  `/admin/users/[id]`, or being an admin — read from the database (not the
-  token), rate-limited per user id. Switching it off stops new
-  organisations only. The header's **Business** entry (`showsBusiness()`:
+- **Who can create one:** anyone, once organisation billing is configured
+  (all ten company Prices — `isOrgBillingConfigured()`); until then the
+  closed beta — `User.orgBetaAt`, set by an admin on `/admin/users/[id]`,
+  or being an admin — and a beta organisation is created comped.
+  `canCreateOrganization()` takes that flag rather than importing Stripe,
+  so the module stays client-safe. Read from the database (not the
+  token), rate-limited per user id. The header's **Business** entry (`showsBusiness()`:
   can create, or is a member) goes to `/dashboard/business`, which
   redirects to the one organisation's fleet board (its org page for a
   mechanic/driver) or to the list. `/admin/organizations` lists every
@@ -1391,8 +1393,9 @@ in `stripe.ts` takes its prices from `LADDER`; tests hold that).
   plan for one person is **Personal**, and that is what `hasPro()`
   answers — the function kept its name, the product did not. Copy says
   "comes with Personal", never "a Pro feature".
-- **Pro, Business and Fleet are shown, not sold** (`onSale: false`):
-  organisations are still the closed beta, and their billing is slice 3.
+- **Pro, Business and Fleet are sold to organisations** (slice 3,
+  `ORG_PLANS`: each rung monthly or annual, Fleet in its three steps, ten
+  `STRIPE_PRICE_ORG_*` Prices). See "Organisation billing" below.
 - **The retired plans** (`MONTHLY`/`ANNUAL`/`LIFETIME`) stay in the
   `ProPlan` enum for the people who hold them and have no entry in
   `PERSONAL_PLANS`, so the checkout refuses them; the webhook still accepts
@@ -1433,6 +1436,42 @@ in `stripe.ts` takes its prices from `LADDER`; tests hold that).
   portal where it is cancelled; the vehicle page and garage card say it
   once it happens; `/terms` (`losingPro`) says it too. Route tests that
   mock Prisma narrowly stub `refuseIfReadOnly` and point here.
+
+### Organisation billing (RL-042 slice 3 — #54)
+An organisation pays for its own plan with **its own Stripe customer**
+(`Organization.stripeCustomerId`), never a member's, so the card and
+invoices are the company's. `plan` is written only by the webhook, like
+`User.isPro`.
+- **OWNERs only** reach `/dashboard/organizations/[id]/billing`, the
+  checkout and the portal routes (404/403 for anyone else) — a fleet
+  manager runs the fleet and does not hold the card. The plan summary on
+  the organisation page is for everyone who manages vehicles.
+- **The webhook**: `checkout.session.completed` with `metadata.kind ===
+  'organization'` sets the plan and returns before the personal branch, so
+  it can never grant a member `isPro` (same shape as donations).
+  `customer.subscription.updated` follows a plan changed in the portal by
+  mapping its Price back (`orgPlanForPriceId()`; an unknown Price changes
+  nothing). `customer.subscription.deleted` clears the plan.
+  `invoice.payment_failed`/`succeeded` set and clear `paymentFailedAt` and
+  email each OWNER. All are set-to-value writes, so a redelivery is
+  harmless.
+- **Allowance** is `orgVehicleLimit()`: comped → no cap; a plan → its
+  vehicles; **no plan → none**. So an organisation can exist and invite
+  people before it pays, but a vehicle moves in only within the plan
+  (`refuseOverOrgVehicleLimit()`), and a **lapsed payment degrades to
+  read-only, never hidden**: every company vehicle stays readable
+  (documents, dates, history) and `refuseIfReadOnly()` refuses writes
+  (`ORG_PLAN_REQUIRED`) until a plan covers them. The oldest stay editable
+  when the plan covers only some. Company vehicles never follow the
+  account of record's plan for this.
+- **Comped** (`compedAt`): the migration stamped every organisation from the
+  closed beta, so none turned read-only the day billing shipped; and one a
+  beta account creates while billing is not configured.
+- **An organisation that pays cannot be deleted** (409 `orgHasSubscription`),
+  nor an account that would take one with it (`orgPayingAccount`) — cancel
+  in its portal first, or Stripe keeps charging a company nobody can reach.
+- Paid features on a company vehicle still read the account of record's
+  plan; resolving them through the organisation's plan is the next change.
 
 ## What's not built yet
 

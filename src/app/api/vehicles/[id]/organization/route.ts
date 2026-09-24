@@ -5,7 +5,7 @@ import { requireSession } from '@/lib/authz'
 import { accessForRole, requireVehicleOwner } from '@/lib/access'
 import { readJsonBody } from '@/lib/requestBody'
 import { endAssignmentsFor } from '@/lib/assignments'
-import { refuseOverVehicleLimit } from '@/lib/vehicleAllowance'
+import { refuseOverOrgVehicleLimit, refuseOverVehicleLimit } from '@/lib/vehicleAllowance'
 
 /**
  * RL-038: move a personal vehicle into an organisation. Only its owner, and
@@ -37,6 +37,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     select: { role: true },
   })
   if (!membership || accessForRole(membership.role) !== 'owner') return await apiError('orgMoveNotAllowed', 403)
+
+  // RL-042 slice 3: within the organisation's plan. Two moves at once can
+  // land one over it; that one is read-only, never lost.
+  const overLimit = await refuseOverOrgVehicleLimit(organizationId)
+  if (overLimit) return overLimit
 
   try {
     // Conditional on still being personal, so two moves at once cannot

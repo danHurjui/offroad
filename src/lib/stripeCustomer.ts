@@ -70,3 +70,16 @@ export async function forgetStripeCustomer(userId: string, customerId: string): 
   )
   await prisma.user.update({ where: { id: userId }, data: { stripeCustomerId: null } })
 }
+
+/**
+ * The same repair for an organisation's own customer (RL-042 slice 3).
+ * Conditional on the id still being the one Stripe refused, so a customer
+ * minted by a concurrent checkout is not thrown away.
+ */
+export async function forgetOrgStripeCustomer(organizationId: string, customerId: string): Promise<void> {
+  console.warn(
+    `[billing] Stripe does not recognise customer ${customerId} for organisation ${organizationId}. ` +
+      'Unlinking it so a new customer is created.'
+  )
+  await prisma.organization.updateMany({ where: { id: organizationId, stripeCustomerId: customerId }, data: { stripeCustomerId: null } })
+}

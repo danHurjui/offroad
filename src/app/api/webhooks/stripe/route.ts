@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { apiError } from '@/lib/apiError'
 import Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
-import { getStripe } from '@/lib/stripe'
-import { isStoredPlanId } from '@/lib/plans'
+import { getStripe, orgPlanForPriceId } from '@/lib/stripe'
+import { isOrgPlanId, isStoredPlanId } from '@/lib/plans'
 import { sendEmail, paymentFailedEmail, emailLocale } from '@/lib/email'
 import { appUrlForNotification } from '@/lib/appUrl'
 
@@ -14,6 +14,12 @@ import { appUrlForNotification } from '@/lib/appUrl'
  * guidance (a route handler's req.text() is the unparsed body, unlike
  * Pages API routes which need bodyParser disabled for this).
  */
+/** A Stripe reference that may arrive expanded or as a bare id. */
+function idOf(ref: string | { id: string } | null | undefined): string | null {
+  if (!ref) return null
+  return typeof ref === 'string' ? ref : ref.id
+}
+
 export async function POST(req: NextRequest) {
   const signature = req.headers.get('stripe-signature')
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -53,6 +59,25 @@ export async function POST(req: NextRequest) {
           break
         }
 
+        // RL-042 slice 3: a company plan, paid by an organisation. Also
+        // settled on its own and then done — it must never reach the
+        // personal branch below and grant a member `isPro`.
+        if (checkoutSession.metadata?.kind === 'organization') {
+          const orgId = checkoutSession.metadata.orgId
+          const orgPlan = checkoutSession.metadata.plan
+          if (!orgId || !isOrgPlanId(orgPlan)) break
+          await prisma.organization.updateMany({
+            where: { id: orgId },
+            data: {
+              plan: orgPlan,
+              stripeCustomerId: idOf(checkoutSession.customer) ?? undefined,
+              stripeSubscriptionId: idOf(checkoutSession.subscription) ?? undefined,
+              paymentFailedAt: null,
+            },
+          })
+          break
+        }
+
         const userId = checkoutSession.metadata?.userId
         const plan = checkoutSession.metadata?.plan
         // Any stored plan, legacy included: a checkout opened just before the
@@ -85,6 +110,26 @@ export async function POST(req: NextRequest) {
         const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
         if (!customerId) break
 
+        // An organisation's customer (slice 3): the banner on its billing
+        // page, and the same email to each OWNER — the people who hold the
+        // card. Access continues until Stripe gives up and deletes the
+        // subscription, same as a personal plan.
+        const org = await prisma.organization.findUnique({
+          where: { stripeCustomerId: customerId },
+          select: { id: true, members: { where: { role: 'OWNER' }, select: { user: { select: { email: true, locale: true } } } } },
+        })
+        if (org) {
+          await prisma.organization.update({ where: { id: org.id }, data: { paymentFailedAt: new Date() } })
+          const orgUrl = appUrlForNotification('the organisation payment-failed email')
+          if (orgUrl) {
+            for (const { user: owner } of org.members) {
+              const { subject, html } = await paymentFailedEmail(emailLocale(owner), `${orgUrl}/dashboard/organizations/${org.id}/billing`)
+              await sendEmail({ to: owner.email, subject, html }).catch((e) => console.error('[billing] payment-failed email failed:', e))
+            }
+          }
+          break
+        }
+
         const user = await prisma.user.update({
           where: { stripeCustomerId: customerId },
           data: { proPaymentFailedAt: new Date() },
@@ -111,6 +156,19 @@ export async function POST(req: NextRequest) {
         await prisma.user
           .update({ where: { stripeCustomerId: customerId }, data: { proPaymentFailedAt: null } })
           .catch(() => null)
+        await prisma.organization.updateMany({ where: { stripeCustomerId: customerId }, data: { paymentFailedAt: null } })
+        break
+      }
+
+      // RL-042 slice 3: a company plan changed in the billing portal (a
+      // bigger Fleet step, monthly to annual). The event names the new
+      // Price; `orgPlanForPriceId()` maps it back. A Price that is none of
+      // the configured ones changes nothing rather than guessing.
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription
+        const plan = orgPlanForPriceId(subscription.items?.data?.[0]?.price?.id)
+        if (!plan) break
+        await prisma.organization.updateMany({ where: { stripeSubscriptionId: subscription.id }, data: { plan } })
         break
       }
 
@@ -122,6 +180,11 @@ export async function POST(req: NextRequest) {
             data: { isPro: false, proPlan: null, stripeSubscriptionId: null },
           })
           .catch(() => null)
+        // An organisation's plan ends the same way. Its vehicles stay, read-only.
+        await prisma.organization.updateMany({
+          where: { stripeSubscriptionId: subscription.id },
+          data: { plan: null, stripeSubscriptionId: null },
+        })
         break
       }
 

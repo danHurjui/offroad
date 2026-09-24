@@ -4,7 +4,10 @@ import {
   describeStripeFailure,
   stripeConfigProblems,
   StripeConfigError,
+  isOrgBillingConfigured,
+  orgPlanForPriceId,
 } from '@/lib/stripe'
+import { ORG_PLAN_IDS, ORG_PLANS } from '@/lib/plans'
 import { isMissingCustomerError } from '@/lib/stripeCustomer'
 
 /**
@@ -131,6 +134,7 @@ describe('stripeConfigProblems reports every fault at once', () => {
     process.env.STRIPE_PRICE_PERSONAL_ANNUAL = 'price_annual'
     process.env.STRIPE_PRICE_PERSONAL_LIFETIME = 'price_lifetime'
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_abc'
+    for (const plan of ORG_PLAN_IDS) process.env[ORG_PLANS[plan].envVar] = `price_${plan.toLowerCase()}`
   })
 
   it('finds nothing when everything is set', () => {
@@ -162,6 +166,26 @@ describe('stripeConfigProblems reports every fault at once', () => {
       'STRIPE_PRICE_PERSONAL_MONTHLY',
       'STRIPE_PRICE_PERSONAL_LIFETIME',
     ])
+  })
+
+  // RL-042 slice 3: a missing company Price keeps organisations a closed
+  // beta; it breaks neither donations nor Personal.
+  it('marks a missing company price as affecting organisations only', () => {
+    delete process.env.STRIPE_PRICE_ORG_FLEET_250_ANNUAL
+    expect(stripeConfigProblems()).toEqual([
+      expect.objectContaining({ variable: 'STRIPE_PRICE_ORG_FLEET_250_ANNUAL', affects: 'organizations' }),
+    ])
+    expect(isOrgBillingConfigured()).toBe(false)
+  })
+
+  it('opens organisation billing only with every company price set', () => {
+    expect(isOrgBillingConfigured()).toBe(true)
+  })
+
+  it('maps a configured company price back to its plan, and nothing else', () => {
+    expect(orgPlanForPriceId('price_business_annual')).toBe('BUSINESS_ANNUAL')
+    expect(orgPlanForPriceId('price_personal_monthly')).toBeNull()
+    expect(orgPlanForPriceId(undefined)).toBeNull()
   })
 
   it('calls a missing webhook secret a settlement fault, not a checkout one', () => {

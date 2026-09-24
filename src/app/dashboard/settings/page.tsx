@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
 import { showsBusiness } from '@/lib/organizations'
+import { isOrgBillingConfigured } from '@/lib/stripe'
 import SettingsForm from '@/components/SettingsForm'
 import ThemeToggle from '@/components/ThemeToggle'
 import LanguageToggle from '@/components/LanguageToggle'
@@ -49,7 +50,7 @@ export default async function SettingsPage() {
   })
   // RL-038 closed beta: only accounts that can create one, or already
   // belong to one, are shown the way in.
-  const showOrganizations = showsBusiness(user, user._count.organizationMemberships)
+  const showOrganizations = showsBusiness(user, user._count.organizationMemberships, isOrgBillingConfigured())
 
   const verified = isEmailVerified(user)
   const enforced = isVerificationEnforced()

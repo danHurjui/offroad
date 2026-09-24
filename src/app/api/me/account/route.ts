@@ -47,6 +47,19 @@ export async function DELETE() {
       })
     }
 
+    // RL-042 slice 3: an organisation that would go with the account but
+    // still pays for a plan is cancelled first, or Stripe keeps charging a
+    // company nobody can reach any more.
+    if (orgs.solo.length > 0) {
+      const paying = await prisma.organization.findMany({
+        where: { id: { in: orgs.solo }, stripeSubscriptionId: { not: null } },
+        select: { id: true, name: true },
+      })
+      if (paying.length > 0) {
+        return await apiErrorWith('orgPayingAccount', { names: paying.map((o) => o.name).join(', ') }, 409, { organizations: paying })
+      }
+    }
+
     // Company vehicles this account is the record for, in organisations
     // that outlive it, pass to another OWNER there — otherwise the account's
     // cascade would take the company's vehicles with it. The slug is

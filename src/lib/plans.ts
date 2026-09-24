@@ -11,9 +11,8 @@ import { FREE_TIER, hasPro, type ProStatusLike } from './pro'
  * - **Free** and **Personal** are for one person's own vehicles. Personal
  *   is what `hasPro()` answers for: the paid features on personal vehicles.
  * - **Pro**, **Business** and **Fleet** are company plans — several users,
- *   drivers, trip sheets. They are shown but not sold yet: organisations
- *   are still the closed beta, and their billing is its own change.
- *   "Pro" means only this 10-vehicle company rung.
+ *   drivers, trip sheets — bought by an organisation (`ORG_PLANS`), never
+ *   by a person. "Pro" means only this 10-vehicle company rung.
  *
  * Pure and free of Stripe, so client components can import it.
  */
@@ -36,8 +35,6 @@ export interface Tier {
   lifetimeRon: number | null
   /** A company plan (several users) rather than one person's. */
   company: boolean
-  /** Whether it can be bought today. */
-  onSale: boolean
   /** Fleet is priced in steps by vehicle count; empty for the others. */
   steps: FleetStep[]
 }
@@ -50,10 +47,10 @@ export const FLEET_STEPS: FleetStep[] = [
 ]
 
 export const LADDER: Record<TierId, Tier> = {
-  FREE: { id: 'FREE', vehicles: FREE_TIER.vehicles, monthlyRon: 0, annualRon: 0, lifetimeRon: null, company: false, onSale: true, steps: [] },
-  PERSONAL: { id: 'PERSONAL', vehicles: 3, monthlyRon: 9.9, annualRon: 99, lifetimeRon: 299, company: false, onSale: true, steps: [] },
-  PRO: { id: 'PRO', vehicles: 10, monthlyRon: 29.9, annualRon: 299, lifetimeRon: null, company: true, onSale: false, steps: [] },
-  BUSINESS: { id: 'BUSINESS', vehicles: 50, monthlyRon: 99, annualRon: 990, lifetimeRon: null, company: true, onSale: false, steps: [] },
+  FREE: { id: 'FREE', vehicles: FREE_TIER.vehicles, monthlyRon: 0, annualRon: 0, lifetimeRon: null, company: false, steps: [] },
+  PERSONAL: { id: 'PERSONAL', vehicles: 3, monthlyRon: 9.9, annualRon: 99, lifetimeRon: 299, company: false, steps: [] },
+  PRO: { id: 'PRO', vehicles: 10, monthlyRon: 29.9, annualRon: 299, lifetimeRon: null, company: true, steps: [] },
+  BUSINESS: { id: 'BUSINESS', vehicles: 50, monthlyRon: 99, annualRon: 990, lifetimeRon: null, company: true, steps: [] },
   FLEET: {
     id: 'FLEET',
     vehicles: FLEET_STEPS[FLEET_STEPS.length - 1].vehicles,
@@ -61,7 +58,6 @@ export const LADDER: Record<TierId, Tier> = {
     annualRon: FLEET_STEPS[0].annualRon,
     lifetimeRon: null,
     company: true,
-    onSale: false,
     steps: FLEET_STEPS,
   },
 }
@@ -89,6 +85,75 @@ export function isPersonalPlanId(value: unknown): value is PersonalPlanId {
 
 export function isStoredPlanId(value: unknown): value is StoredPlanId {
   return isPersonalPlanId(value) || (LEGACY_PLAN_IDS as readonly unknown[]).includes(value)
+}
+
+// ─── Company plans (slice 3) ────────────────────────────────────────────
+
+/** What an organisation can buy: each company rung, monthly or annual; Fleet by step. */
+export const ORG_PLAN_IDS = [
+  'PRO_MONTHLY',
+  'PRO_ANNUAL',
+  'BUSINESS_MONTHLY',
+  'BUSINESS_ANNUAL',
+  'FLEET_100_MONTHLY',
+  'FLEET_100_ANNUAL',
+  'FLEET_250_MONTHLY',
+  'FLEET_250_ANNUAL',
+  'FLEET_500_MONTHLY',
+  'FLEET_500_ANNUAL',
+] as const
+export type OrgPlanId = (typeof ORG_PLAN_IDS)[number]
+
+export interface OrgPlan {
+  tier: 'PRO' | 'BUSINESS' | 'FLEET'
+  vehicles: number
+  period: 'month' | 'year'
+  priceRon: number
+  /** The environment variable holding its Stripe Price id. */
+  envVar: string
+}
+
+function orgPlan(id: OrgPlanId): OrgPlan {
+  const period = id.endsWith('_ANNUAL') ? 'year' : 'month'
+  const fleet = /^FLEET_(\d+)_/.exec(id)
+  const envVar = `STRIPE_PRICE_ORG_${id}`
+  if (fleet) {
+    const step = FLEET_STEPS.find((s) => s.vehicles === Number(fleet[1]))!
+    return { tier: 'FLEET', vehicles: step.vehicles, period, priceRon: period === 'year' ? step.annualRon : step.monthlyRon, envVar }
+  }
+  const tier = id.startsWith('PRO_') ? 'PRO' : 'BUSINESS'
+  const rung = LADDER[tier]
+  return { tier, vehicles: rung.vehicles, period, priceRon: period === 'year' ? rung.annualRon : rung.monthlyRon, envVar }
+}
+
+/** Every company plan, its allowance and price read from the ladder above. */
+export const ORG_PLANS = Object.fromEntries(ORG_PLAN_IDS.map((id) => [id, orgPlan(id)])) as Record<OrgPlanId, OrgPlan>
+
+export function isOrgPlanId(value: unknown): value is OrgPlanId {
+  return (ORG_PLAN_IDS as readonly unknown[]).includes(value)
+}
+
+/** What `orgVehicleLimit()` reads. */
+export const ORG_PLAN_SELECT = { plan: true, compedAt: true } as const
+
+export interface OrgPlanStatusLike {
+  plan: string | null
+  compedAt: Date | null
+}
+
+/**
+ * How many vehicles an organisation may hold; null is no cap.
+ * - comped (the closed beta, or a beta account's organisation made before
+ *   billing was configured): no cap;
+ * - a plan: that plan's allowance;
+ * - no plan: none. An organisation can exist and invite people before it
+ *   pays, but holds vehicles only on a plan — and one whose plan lapsed
+ *   keeps them all, read-only (`overLimitIds()` with a limit of 0).
+ */
+export function orgVehicleLimit(org: OrgPlanStatusLike | null | undefined): number | null {
+  if (!org) return 0
+  if (org.compedAt) return null
+  return isOrgPlanId(org.plan) ? ORG_PLANS[org.plan].vehicles : 0
 }
 
 // ─── Grandfathering ─────────────────────────────────────────────────────

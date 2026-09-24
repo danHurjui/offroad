@@ -3,7 +3,7 @@ jest.mock('@/lib/auth', () => ({ authOptions: {} }))
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     user: { findUnique: jest.fn(), update: jest.fn(), delete: jest.fn() },
-    organization: { create: jest.fn(), update: jest.fn(), delete: jest.fn(), deleteMany: jest.fn() },
+    organization: { create: jest.fn(), update: jest.fn(), delete: jest.fn(), deleteMany: jest.fn(), findUnique: jest.fn(), findMany: jest.fn() },
     organizationMember: { findUnique: jest.fn(), findMany: jest.fn(), findFirst: jest.fn(), count: jest.fn(), update: jest.fn(), delete: jest.fn() },
     vehicle: { findMany: jest.fn(), update: jest.fn(), deleteMany: jest.fn(), count: jest.fn() },
     vehicleAssignment: { updateMany: jest.fn() },
@@ -17,6 +17,7 @@ jest.mock('@/lib/rateLimit', () => {
 })
 jest.mock('@/lib/personalData', () => ({ collectStorageKeys: jest.fn(), deleteStoredFiles: jest.fn() }))
 
+import { ORG_PLAN_IDS, ORG_PLANS } from '@/lib/plans'
 import fs from 'fs'
 import { Prisma } from '@prisma/client'
 import path from 'path'
@@ -62,6 +63,9 @@ let targets: Record<string, { id: string; organizationId: string; userId: string
 beforeEach(() => {
   jest.clearAllMocks()
   targets = {}
+  // RL-042 slice 3: no organisation here pays for a plan unless a test says so.
+  org.findMany.mockResolvedValue([])
+  org.findUnique.mockResolvedValue({ stripeSubscriptionId: null })
   mockSession.mockResolvedValue({ user: { id: 'me', active: true } })
   ;(consumeRateLimit as jest.Mock).mockResolvedValue({ ok: true })
   ;(prisma.$transaction as jest.Mock).mockImplementation((arg: unknown) =>
@@ -166,9 +170,27 @@ describe('POST /api/organizations', () => {
         name: 'Transport SRL',
         cui: 'RO14399840',
         billingAddress: null,
+        // Billing is not configured in the tests: a beta organisation is comped.
+        compedAt: expect.any(Date),
         members: { create: { userId: 'me', role: 'OWNER' } },
       },
     })
+  })
+
+  // RL-042 slice 3: with every company Price configured, organisations are
+  // open to anyone and start with no plan.
+  it('opens to everyone once organisation billing is configured, starting with no plan', async () => {
+    const env = { ...process.env }
+    process.env.STRIPE_SECRET_KEY = 'sk_test_51abc'
+    for (const plan of ORG_PLAN_IDS) process.env[ORG_PLANS[plan].envVar] = `price_${plan.toLowerCase()}`
+    try {
+      user.findUnique.mockResolvedValue({ orgBetaAt: null, isAdmin: false })
+      org.create.mockResolvedValue({ id: 'o1', name: 'Transport SRL' })
+      expect((await createOrg(req({ name: 'Transport SRL' }))).status).toBe(201)
+      expect(org.create).toHaveBeenCalledWith({ data: expect.objectContaining({ compedAt: null }) })
+    } finally {
+      process.env = env
+    }
   })
 
   it('stops at the rate limit', async () => {
@@ -472,6 +494,26 @@ describe('schema', () => {
       'utf8'
     )
     expect(migration).toMatch(/CHECK \("organizationId" IS NULL OR "isPublic" = false\)/)
+  })
+})
+
+describe('paying organisations are cancelled first, never deleted under a live plan', () => {
+  it('refuses deleting one that still has a subscription', async () => {
+    callerIs('OWNER')
+    org.findUnique.mockResolvedValue({ stripeSubscriptionId: 'sub_1' })
+    const res = await deleteOrg(req({}), orgParams)
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('orgHasSubscription')
+    expect(org.delete).not.toHaveBeenCalled()
+  })
+
+  it('refuses deleting an account that would take a paying organisation with it', async () => {
+    member.findMany.mockResolvedValue([{ role: 'OWNER', organization: { id: 'solo', name: 'Solo SRL', members: [{ role: 'OWNER' }] } }])
+    org.findMany.mockResolvedValue([{ id: 'solo', name: 'Solo SRL' }])
+    const res = await deleteAccount()
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('orgPayingAccount')
+    expect(user.delete).not.toHaveBeenCalled()
   })
 })
 

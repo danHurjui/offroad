@@ -10,6 +10,12 @@ import {
   PERSONAL_PLAN_IDS,
   TIER_ORDER,
   formatPlanPrice,
+  isOrgPlanId,
+  ORG_PLAN_IDS,
+  ORG_PLANS,
+  orgVehicleLimit,
+  overLimitIds,
+  type OrgPlanId,
   vehicleLimit,
   type PlanStatusLike,
 } from '@/lib/plans'
@@ -51,8 +57,22 @@ describe('the ladder', () => {
     }
   })
 
-  it('keeps the company rungs off sale until their billing exists', () => {
-    for (const id of TIER_ORDER) expect(LADDER[id].onSale).toBe(!LADDER[id].company)
+  // RL-042 slice 3: the company rungs are sold to organisations.
+  it('prices every company plan from the ladder, annual at ten months', () => {
+    expect(ORG_PLANS.PRO_MONTHLY).toMatchObject({ tier: 'PRO', vehicles: 10, period: 'month', priceRon: LADDER.PRO.monthlyRon })
+    expect(ORG_PLANS.BUSINESS_ANNUAL).toMatchObject({ tier: 'BUSINESS', vehicles: 50, period: 'year', priceRon: LADDER.BUSINESS.annualRon })
+    for (const step of FLEET_STEPS) {
+      const monthly = ORG_PLANS[`FLEET_${step.vehicles}_MONTHLY` as OrgPlanId]
+      const annual = ORG_PLANS[`FLEET_${step.vehicles}_ANNUAL` as OrgPlanId]
+      expect(monthly).toMatchObject({ tier: 'FLEET', vehicles: step.vehicles, priceRon: step.monthlyRon })
+      expect(annual.priceRon).toBe(step.monthlyRon * 10)
+    }
+    expect(new Set(ORG_PLAN_IDS.map((id) => ORG_PLANS[id].envVar)).size).toBe(ORG_PLAN_IDS.length)
+  })
+
+  it('never sells a company plan to a person, or Personal to an organisation', () => {
+    for (const id of ORG_PLAN_IDS) expect(isPersonalPlanId(id)).toBe(false)
+    for (const id of PERSONAL_PLAN_IDS) expect(isOrgPlanId(id)).toBe(false)
   })
 
   it('charges at checkout exactly what the ladder quotes', () => {
@@ -129,6 +149,40 @@ describe('everyone else gets the allowance of their rung', () => {
     const account = user({ isPro: true, proPlan: 'PERSONAL_MONTHLY', grandfatheredAt: DAY })
     expect(isGrandfathered(account)).toBe(false)
     expect(vehicleLimit(account)).toBe(3)
+  })
+})
+
+describe('an organisation’s allowance', () => {
+  it('is uncapped while comped (the closed beta)', () => {
+    expect(orgVehicleLimit({ plan: null, compedAt: DAY })).toBeNull()
+    expect(orgVehicleLimit({ plan: 'PRO_MONTHLY', compedAt: DAY })).toBeNull()
+  })
+
+  it('is its plan’s', () => {
+    expect(orgVehicleLimit({ plan: 'PRO_ANNUAL', compedAt: null })).toBe(10)
+    expect(orgVehicleLimit({ plan: 'FLEET_250_MONTHLY', compedAt: null })).toBe(250)
+  })
+
+  it('is none without a plan — so a lapsed one keeps its vehicles, all read-only', () => {
+    expect(orgVehicleLimit({ plan: null, compedAt: null })).toBe(0)
+    expect(orgVehicleLimit({ plan: 'SOMETHING_ELSE', compedAt: null })).toBe(0)
+    expect(orgVehicleLimit(null)).toBe(0)
+    expect(overLimitIds([{ id: 'a', createdAt: DAY }], 0)).toEqual(['a'])
+  })
+})
+
+describe('the organisation billing migration', () => {
+  const sql = fs.readFileSync(
+    path.join(process.cwd(), 'prisma', 'migrations', '20261004120000_organization_billing', 'migration.sql'),
+    'utf8'
+  )
+
+  it('comps every organisation from the closed beta, so none turns read-only the day billing ships', () => {
+    expect(sql).toMatch(/UPDATE "Organization" SET "compedAt" = NOW\(\);/)
+  })
+
+  it('declares every company plan the code sells', () => {
+    for (const id of ORG_PLAN_IDS) expect(sql).toContain(`'${id}'`)
   })
 })
 

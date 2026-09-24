@@ -4,7 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { requireSession } from '@/lib/authz'
 import { readJsonBody } from '@/lib/requestBody'
 import { consumeRateLimit, rateLimitResponse } from '@/lib/rateLimit'
-import { canCreateOrganization, parseOrganization } from '@/lib/organizations'
+import { canCreateOrganization, createsCompedOrganization, parseOrganization } from '@/lib/organizations'
+import { isOrgBillingConfigured } from '@/lib/stripe'
 
 /** RL-038: the organisations the caller belongs to, with their role in each. */
 export async function GET() {
@@ -28,10 +29,9 @@ export async function GET() {
 }
 
 /**
- * Creates an organisation with the caller as its first OWNER. Closed beta:
- * an admin switches it on per account (`orgBetaAt`), and admins have it
- * (`canCreateOrganization()`). Read from the database so the switch works
- * at once rather than on the next token refresh.
+ * Creates an organisation with the caller as its first OWNER. Open to
+ * everyone once organisation billing is configured; until then the closed
+ * beta (`canCreateOrganization()`), and a beta organisation is comped.
  */
 export async function POST(req: NextRequest) {
   const auth = await requireSession()
@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
   const { session } = auth
 
   const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { orgBetaAt: true, isAdmin: true } })
-  if (!canCreateOrganization(user)) return await apiError('orgBetaRequired', 403)
+  const open = isOrgBillingConfigured()
+  if (!canCreateOrganization(user, open)) return await apiError('orgBetaRequired', 403)
 
   const limit = await consumeRateLimit('orgCreate', `user:${session.user.id}`)
   if (!limit.ok) return await rateLimitResponse(limit)
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest) {
         name: name!,
         cui: cui ?? null,
         billingAddress: billingAddress ?? null,
+        compedAt: createsCompedOrganization(open) ? new Date() : null,
         members: { create: { userId: session.user.id, role: 'OWNER' } },
       },
     })

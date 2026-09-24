@@ -21,6 +21,25 @@ export default async function ReadOnlyVehicleNotice({
 }) {
   if (!(await isVehicleReadOnly(vehicle))) return null
   const t = await getTranslations('readOnly')
+
+  // A company vehicle is read-only because the organisation's plan does not
+  // cover it (lapsed, or more vehicles than it allows): its managers see
+  // where to fix that — billing is the OWNERs' — and nobody else is told
+  // anything they cannot act on.
+  if (vehicle.organizationId) {
+    return (
+      <div className="note-warn mb-6 rounded-lg p-4 text-sm" role="status">
+        <p className="font-semibold">{t('title')}</p>
+        <p className="mt-1">{isOwner ? t('companyManagerBody') : t('companyBody')}</p>
+        {isOwner && (
+          <Link href={`/dashboard/organizations/${vehicle.organizationId}`} className="btn-secondary mt-3">
+            {t('seeOrganization')}
+          </Link>
+        )}
+      </div>
+    )
+  }
+
   const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: PLAN_SELECT })
   const limit = vehicleLimit(owner) ?? 0
 

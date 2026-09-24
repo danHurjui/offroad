@@ -1933,7 +1933,7 @@
       "law2": "Te rugăm să ne semnalezi întâi nouă problema — cele mai multe lucruri sunt neînțelegeri și se rezolvă în aceeași săptămână. Dacă asta nu funcționează, te poți adresa <authority></authority> sau poți folosi <odr>platforma europeană de soluționare online a litigiilor</odr>.",
       "law3": "Modul în care îți prelucrăm datele personale este descris în <privacy>politica de confidențialitate</privacy>, care face parte din această înțelegere.",
       "companyTerm": "Pro, Business și Fleet.",
-      "company": "Planuri pentru firme, cu mai mulți utilizatori și șoferi: Pro ({pro} RON pe lună, până la {proVehicles} vehicule), Business ({business} RON pe lună, până la {businessVehicles}) și Fleet (de la {fleet} RON pe lună, până la {fleetVehicles}). Nu sunt încă de vânzare; acești termeni vor spune mai mult când vor fi.",
+      "company": "Planuri pentru firme, cu mai mulți utilizatori și șoferi: Pro ({pro} RON pe lună, până la {proVehicles} vehicule), Business ({business} RON pe lună, până la {businessVehicles}) și Fleet (de la {fleet} RON pe lună, până la {fleetVehicles}), fiecare și anual. Le cumpără o organizație și îi sunt facturate ei; doar proprietarii ei gestionează facturarea. Dacă plățile se opresc sau are mai multe vehicule decât acoperă planul, vehiculele peste limită devin doar în citire — niciodată ascunse sau șterse — până când planul le acoperă.",
       "grandfathered": "Dacă aveai Pro înainte să existe aceste planuri — plătit lunar, anual sau o dată, ori ca membru fondator sau cadou — îl păstrezi ca Personal fără limită de vehicule, la prețul pe care îl plăteai, cât timp îl deții. Anularea încheie asta; dacă mai târziu cumperi Personal, e la prețul și limitele de atunci."
     }
   },
@@ -2152,7 +2152,14 @@
     "tripDriverInvalid": "Această persoană nu poate fi trecută ca șofer al vehiculului.",
     "tripMonthInvalid": "Alege o lună (AAAA-LL).",
     "vehicleLimitPersonal": "Personal acoperă până la {limit} vehicule. Planurile pentru mai multe sunt cele pentru firme, care nu sunt încă de vânzare.",
-    "vehicleReadOnly": "Acest vehicul e doar în citire: proprietarul are mai multe vehicule personale decât acoperă planul lui. Nu s-a șters nimic — poate fi deschis, exportat, făcut privat sau șters."
+    "vehicleReadOnly": "Acest vehicul e doar în citire: proprietarul are mai multe vehicule personale decât acoperă planul lui. Nu s-a șters nimic — poate fi deschis, exportat, făcut privat sau șters.",
+    "orgVehicleReadOnly": "Acest vehicul al firmei e doar în citire: planul organizației nu îl acoperă. Nu s-a șters nimic — un proprietar poate alege un plan.",
+    "orgVehicleLimit": "Planul organizației acoperă {limit} vehicule și le are deja. Un plan mai mare face loc.",
+    "orgPlanRequired": "Organizația nu are încă un plan, așa că nu poate ține vehicule. Un proprietar poate alege unul din pagina de facturare.",
+    "orgAlreadySubscribed": "Organizația are deja un plan. Îl schimbi din portalul de facturare.",
+    "orgComped": "Această organizație e gratuită, fără limită de vehicule; nu e nimic de cumpărat.",
+    "orgHasSubscription": "Anulează mai întâi planul organizației din portalul de facturare — ștergerea ar lăsa cardul să fie taxat în continuare.",
+    "orgPayingAccount": "Ștergerea contului ar șterge și {names}, care plătește încă un plan. Anulează-l mai întâi din portalul de facturare al organizației."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -2826,7 +2833,7 @@
     "intro": "Un cont de firmă: vehiculele lui, membrii lui și ce poate face fiecare.",
     "none": "Nu faci parte din nicio organizație.",
     "createTitle": "Organizație nouă",
-    "createHelp": "Devii primul ei proprietar. Codul fiscal este opțional și poate fi adăugat mai târziu.",
+    "createHelp": "Devii primul ei proprietar. Codul fiscal e opțional și poate fi adăugat mai târziu. Poate ține vehicule după ce are un plan, ales din pagina de facturare.",
     "betaNote": "Organizațiile sunt într-un beta închis. Cere-ne să le activăm pentru contul tău.",
     "settingsHelp": "Conturile de firmă din care faci parte și oamenii din ele.",
     "open": "Deschide organizațiile",
@@ -3218,12 +3225,60 @@
     "priceFrom": "de la {price} RON/lună",
     "vehiclesUpTo": "Până la {count, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}",
     "fleetStep": "{count} de vehicule: {price} RON",
-    "annualNote": "Fiecare și anual, la prețul a zece luni."
+    "annualNote": "Fiecare și anual, la prețul a zece luni.",
+    "companyIntroOpen": "Mai mulți utilizatori, șoferi, conformitatea flotei, rapoarte și foi de deplasare — cumpărate de o organizație, cu cardul și facturile ei.",
+    "companyStart": "Creează o organizație"
   },
   "readOnly": {
     "title": "Acest vehicul e doar în citire",
     "ownerBody": "Planul tău acoperă {limit, plural, one {un vehicul personal} few {# vehicule personale} other {# de vehicule personale}}, iar tu ai mai multe. Nu s-a șters nimic: poți deschide și exporta tot ce e aici, îl poți face privat sau îl poți șterge. Vehiculele cele mai vechi rămân editabile; ca să-l editezi din nou pe acesta, alege un plan care îl acoperă, șterge alt vehicul sau mută unul într-o organizație.",
     "collaboratorBody": "Planul proprietarului nu mai acoperă atâtea vehicule, așa că deocamdată nu se poate adăuga sau schimba nimic aici. Tot ce s-a înregistrat e încă aici.",
-    "seePlans": "Vezi planurile"
+    "seePlans": "Vezi planurile",
+    "companyManagerBody": "Planul organizației nu acoperă acest vehicul — a expirat sau organizația are mai multe vehicule decât permite planul. Nu s-a ascuns și nu s-a șters nimic: documentele, datele și istoricul sunt toate aici. Un proprietar poate alege un plan din pagina organizației.",
+    "companyBody": "Planul organizației nu acoperă acum acest vehicul, așa că nu se poate adăuga sau schimba nimic aici. Tot ce s-a înregistrat e încă aici.",
+    "seeOrganization": "Deschide organizația"
+  },
+  "orgBilling": {
+    "title": "Plan și facturare",
+    "intro": "Organizația își plătește propriul plan, cu cardul și facturile ei. Doar proprietarii văd această pagină.",
+    "planTitle": "Plan",
+    "billingLink": "Plan și facturare",
+    "comped": "Gratuit, fără limită de vehicule — păstrat din beta-ul închis.",
+    "onPlan": "{plan}, facturat {period}.",
+    "noPlan": "Încă niciun plan. Organizația poate invita oameni, dar poate ține vehicule doar cu un plan.",
+    "vehiclesUncapped": "{count, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}, fără limită.",
+    "vehiclesOf": "{count} din {limit} vehicule.",
+    "paymentFailed": "Ultima plată a eșuat. Totul funcționează în continuare cât timp Stripe reîncearcă; un proprietar trebuie să actualizeze cardul.",
+    "paymentFailedOwner": "Ultima plată a eșuat. Totul funcționează în continuare cât timp Stripe reîncearcă — actualizează cardul din Plan și facturare ca planul să nu se încheie.",
+    "readOnlyCount": "{count, plural, one {# vehicul e} few {# vehicule sunt} other {# de vehicule sunt}} doar în citire: planul acoperă mai puține decât are organizația. Nu s-a ascuns și nu s-a șters nimic — un plan care le acoperă le face din nou editabile, sau mută unele în afara organizației.",
+    "ownerChooses": "Un proprietar alege planul.",
+    "tier": {
+      "PRO": "Pro",
+      "BUSINESS": "Business",
+      "FLEET": "Fleet"
+    },
+    "period": {
+      "month": "lunar",
+      "year": "anual"
+    },
+    "billed": {
+      "month": "Lunar",
+      "year": "Anual (prețul a zece luni)"
+    },
+    "periodLabel": "Perioada de facturare",
+    "upToVehicles": "Până la {count} de vehicule",
+    "pricePerMonth": "{price} RON/lună",
+    "pricePerYear": "{price} RON/an",
+    "choose": "Alege",
+    "redirecting": "Redirecționare…",
+    "checkoutFailed": "Nu s-a putut porni plata",
+    "portalFailed": "Nu s-a putut deschide facturarea",
+    "manage": "Gestionează facturarea",
+    "manageHelp": "Schimbi planul, actualizezi cardul, descarci facturi sau anulezi — în portalul de facturare Stripe. La anulare, toate vehiculele rămân, doar în citire.",
+    "chooseTitle": "Alege un plan",
+    "chooseHelp": "Facturat organizației. Dacă ajunge să aibă mai multe vehicule decât acoperă planul, cele mai noi devin doar în citire până când planul le acoperă — niciodată ascunse sau șterse.",
+    "notConfigured": "Planurile pentru firme nu sunt încă de vânzare.",
+    "subscribed": "Mulțumim. Planul apare aici imediat ce Stripe confirmă plata, de obicei într-un minut.",
+    "invoicesHelp": "Facturile anterioare și cardul salvat sunt în portalul de facturare Stripe."
   }
 }

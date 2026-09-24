@@ -7,6 +7,7 @@ jest.mock('@/lib/prisma', () => ({
     projectCollaborator: { findFirst: jest.fn() },
     user: { findUnique: jest.fn() },
     vehicleAssignment: { updateMany: jest.fn() },
+    organization: { findUnique: jest.fn() },
     $transaction: jest.fn(),
   },
 }))
@@ -44,6 +45,8 @@ beforeEach(() => {
   jest.clearAllMocks()
   mockSession.mockResolvedValue({ user: { id: 'me', active: true } })
   ;(prisma.projectCollaborator.findFirst as jest.Mock).mockResolvedValue(null)
+  // RL-042 slice 3: a beta organisation — comped, no vehicle cap.
+  ;(prisma.organization.findUnique as jest.Mock).mockResolvedValue({ plan: null, compedAt: new Date() })
   vehicle.findUnique.mockResolvedValue(PERSONAL)
   vehicle.updateMany.mockResolvedValue({ count: 1 })
   ;(prisma.$transaction as jest.Mock).mockImplementation((fn: (tx: typeof prisma) => unknown) => fn(prisma))

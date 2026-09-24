@@ -1933,7 +1933,7 @@
       "law2": "Please raise a problem with us first — most things are a misunderstanding and get fixed the same week. If that fails you can go to <authority></authority>, or use the EU’s <odr>online dispute resolution platform</odr>.",
       "law3": "How we handle your personal data is in the <privacy>privacy policy</privacy>, which is part of this agreement.",
       "companyTerm": "Pro, Business and Fleet.",
-      "company": "Plans for companies, with several users and drivers: Pro ({pro} RON a month, up to {proVehicles} vehicles), Business ({business} RON a month, up to {businessVehicles}) and Fleet (from {fleet} RON a month, up to {fleetVehicles}). They are not on sale yet; these terms will say more when they are.",
+      "company": "Plans for companies, with several users and drivers: Pro ({pro} RON a month, up to {proVehicles} vehicles), Business ({business} RON a month, up to {businessVehicles}) and Fleet (from {fleet} RON a month, up to {fleetVehicles}), each also by the year. They are bought by an organisation and billed to it; only its owners manage billing. If its payments stop or it holds more vehicles than its plan covers, the vehicles over it become read-only — never hidden or deleted — until the plan covers them.",
       "grandfathered": "If you held Pro before these plans existed — paid monthly, annually or once, or as a founding member or a gift — you keep it as Personal with no vehicle cap, at the price you were paying, for as long as you hold it. Cancelling ends that; buying Personal later is at the price and allowance of the day."
     }
   },
@@ -2152,7 +2152,14 @@
     "tripDriverInvalid": "That person can’t be recorded as the driver of this vehicle.",
     "tripMonthInvalid": "Choose a month (YYYY-MM).",
     "vehicleLimitPersonal": "Personal covers up to {limit} vehicles. The plans for more are the company ones, which are not on sale yet.",
-    "vehicleReadOnly": "This vehicle is read-only: its owner has more personal vehicles than their plan covers. Nothing was deleted — it can still be opened, exported, made private or deleted."
+    "vehicleReadOnly": "This vehicle is read-only: its owner has more personal vehicles than their plan covers. Nothing was deleted — it can still be opened, exported, made private or deleted.",
+    "orgVehicleReadOnly": "This company vehicle is read-only: the organisation’s plan does not cover it. Nothing was deleted — an owner can choose a plan.",
+    "orgVehicleLimit": "The organisation’s plan covers {limit} vehicles, and it holds that many. A bigger plan makes room.",
+    "orgPlanRequired": "The organisation has no plan yet, so it cannot hold vehicles. An owner can choose one on its billing page.",
+    "orgAlreadySubscribed": "The organisation already has a plan. Change it in the billing portal.",
+    "orgComped": "This organisation is free with no vehicle cap; there is nothing to buy.",
+    "orgHasSubscription": "Cancel the organisation’s plan in the billing portal first — deleting it would leave the card being charged.",
+    "orgPayingAccount": "Deleting your account would also delete {names}, which still pays for a plan. Cancel it in that organisation’s billing portal first."
   },
   "admin": {
     "aria": "RigLog admin",
@@ -2826,7 +2833,7 @@
     "intro": "A company account: its vehicles, its members and what each of them may do.",
     "none": "You don’t belong to any organisation.",
     "createTitle": "New organisation",
-    "createHelp": "You become its first owner. The fiscal code is optional and can be added later.",
+    "createHelp": "You become its first owner. The fiscal code is optional and can be added later. It holds vehicles once it has a plan, chosen on its billing page.",
     "betaNote": "Organisations are in a closed beta. Ask us to switch them on for your account.",
     "settingsHelp": "Company accounts you belong to, and the people in them.",
     "open": "Open organisations",
@@ -3218,12 +3225,60 @@
     "priceFrom": "from {price} RON/month",
     "vehiclesUpTo": "Up to {count, plural, one {# vehicle} other {# vehicles}}",
     "fleetStep": "{count} vehicles: {price} RON",
-    "annualNote": "Each also by the year, for the price of ten months."
+    "annualNote": "Each also by the year, for the price of ten months.",
+    "companyIntroOpen": "Several users, drivers, fleet compliance, reports and trip sheets — bought by an organisation, with its own card and invoices.",
+    "companyStart": "Start an organisation"
   },
   "readOnly": {
     "title": "This vehicle is read-only",
     "ownerBody": "Your plan covers {limit, plural, one {# personal vehicle} other {# personal vehicles}}, and you have more. Nothing was deleted: you can open and export everything here, make it private or delete it. The oldest vehicles stay editable; to edit this one again, choose a plan that covers it, delete another vehicle, or move one into an organisation.",
     "collaboratorBody": "Its owner’s plan no longer covers this many vehicles, so nothing can be added or changed here for now. Everything recorded is still here.",
-    "seePlans": "See the plans"
+    "seePlans": "See the plans",
+    "companyManagerBody": "The organisation’s plan does not cover this vehicle — it lapsed, or the organisation holds more vehicles than the plan allows. Nothing was hidden or deleted: documents, dates and history are all here. An owner can choose a plan on the organisation’s page.",
+    "companyBody": "The organisation’s plan does not cover this vehicle right now, so nothing can be added or changed here. Everything recorded is still here.",
+    "seeOrganization": "Open the organisation"
+  },
+  "orgBilling": {
+    "title": "Plan and billing",
+    "intro": "The organisation pays for its own plan, with its own card and invoices. Only owners see this page.",
+    "planTitle": "Plan",
+    "billingLink": "Plan and billing",
+    "comped": "Free, with no vehicle cap — kept from the closed beta.",
+    "onPlan": "{plan}, billed {period}.",
+    "noPlan": "No plan yet. The organisation can invite people, but holds vehicles only on a plan.",
+    "vehiclesUncapped": "{count, plural, one {# vehicle} other {# vehicles}}, no cap.",
+    "vehiclesOf": "{count} of {limit} vehicles.",
+    "paymentFailed": "The last payment failed. Everything keeps working while Stripe retries; an owner needs to update the card.",
+    "paymentFailedOwner": "The last payment failed. Everything keeps working while Stripe retries — update the card from Plan and billing so the plan does not end.",
+    "readOnlyCount": "{count, plural, one {# vehicle is} other {# vehicles are}} read-only: the plan covers fewer than the organisation holds. Nothing was hidden or deleted — a plan that covers them makes them editable again, or move some out.",
+    "ownerChooses": "An owner chooses the plan.",
+    "tier": {
+      "PRO": "Pro",
+      "BUSINESS": "Business",
+      "FLEET": "Fleet"
+    },
+    "period": {
+      "month": "monthly",
+      "year": "yearly"
+    },
+    "billed": {
+      "month": "Monthly",
+      "year": "Yearly (ten months’ price)"
+    },
+    "periodLabel": "Billing period",
+    "upToVehicles": "Up to {count} vehicles",
+    "pricePerMonth": "{price} RON/month",
+    "pricePerYear": "{price} RON/year",
+    "choose": "Choose",
+    "redirecting": "Redirecting…",
+    "checkoutFailed": "Could not start checkout",
+    "portalFailed": "Could not open billing",
+    "manage": "Manage billing",
+    "manageHelp": "Change the plan, update the card, download invoices or cancel — in Stripe’s billing portal. Cancelling keeps every vehicle, read-only.",
+    "chooseTitle": "Choose a plan",
+    "chooseHelp": "Billed to the organisation. If it ever holds more vehicles than its plan covers, the newest ones become read-only until the plan covers them — never hidden or deleted.",
+    "notConfigured": "Company plans are not on sale yet.",
+    "subscribed": "Thank you. The plan shows here as soon as Stripe confirms the payment, usually within a minute.",
+    "invoicesHelp": "Past invoices and the card on file are in Stripe’s billing portal."
   }
 }
