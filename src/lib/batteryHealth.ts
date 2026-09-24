@@ -15,6 +15,8 @@
  *   ends it.
  */
 
+import { getDocumentStatus } from './documents'
+
 export const BATTERY_SOURCES = ['WORKSHOP_TEST', 'CAR_DISPLAY', 'OWNER_TOOL'] as const
 export type BatterySource = (typeof BATTERY_SOURCES)[number]
 
@@ -96,4 +98,48 @@ export function sortReadings<T extends BatteryReadingLike>(readings: T[]): T[] {
   return [...readings].sort(
     (a, b) => a.date.getTime() - b.date.getTime() || (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0)
   )
+}
+
+/** The traction-battery warranty is worth acting on inside these. */
+export const WARRANTY_WARN_DAYS = 90
+export const WARRANTY_WARN_KM = 5_000
+
+export interface WarrantyStatus {
+  /**
+   * - `none`: no terms recorded.
+   * - `kmUnknown`: a limit by distance alone, and no current km to measure it
+   *   against (no reading, or a replaced gauge — the reading is then no
+   *   longer the car's total).
+   * - `ended` by either limit; `soon` inside 90 days or 5,000 km; `ok`.
+   */
+  state: 'none' | 'kmUnknown' | 'ended' | 'soon' | 'ok'
+  endedBy: 'date' | 'km' | null
+  /** From `getDocumentStatus()`, so it agrees with the documents board. */
+  daysLeft: number | null
+  kmLeft: number | null
+}
+
+/**
+ * Whichever limit comes first — the one rule Car Health's warranty row and
+ * the reminder email both read, so the screen and the email cannot
+ * disagree about the same warranty.
+ */
+export function warrantyStatus(
+  until: Date | null,
+  limitKm: number | null,
+  readings: { km: number; readAt: Date; isOverride: boolean; createdAt?: Date }[],
+  now: Date
+): WarrantyStatus {
+  if (until === null && limitKm === null) return { state: 'none', endedBy: null, daysLeft: null, kmLeft: null }
+  const daysLeft = until ? getDocumentStatus(until, now).daysUntil : null
+  const newest = [...readings].sort(
+    (a, b) => b.readAt.getTime() - a.readAt.getTime() || (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)
+  )[0]
+  const kmKnown = newest !== undefined && !readings.some((r) => r.isOverride)
+  const kmLeft = limitKm !== null && kmKnown ? limitKm - newest.km : null
+  if (daysLeft !== null && daysLeft < 0) return { state: 'ended', endedBy: 'date', daysLeft, kmLeft }
+  if (kmLeft !== null && kmLeft <= 0) return { state: 'ended', endedBy: 'km', daysLeft, kmLeft }
+  if (daysLeft === null && kmLeft === null) return { state: 'kmUnknown', endedBy: null, daysLeft, kmLeft }
+  const soon = (daysLeft !== null && daysLeft <= WARRANTY_WARN_DAYS) || (kmLeft !== null && kmLeft <= WARRANTY_WARN_KM)
+  return { state: soon ? 'soon' : 'ok', endedBy: null, daysLeft, kmLeft }
 }

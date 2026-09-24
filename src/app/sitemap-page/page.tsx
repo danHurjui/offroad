@@ -4,7 +4,9 @@ import { getTranslations } from 'next-intl/server'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 import { prisma } from '@/lib/prisma'
+import { canonicalFor, languageAlternates } from '@/lib/pageMetadata'
 import { DEMO_SECTIONS } from '@/lib/demoTour'
+import { localizedHref } from '@/i18n/localizedHref'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('sitemapPage')
@@ -15,7 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
     // so both URLs serve the same page. Canonical rather than a robots
     // disallow: blocking it would stop a crawler ever seeing which of the
     // two is the real one.
-    alternates: { canonical: '/sitemap' },
+    alternates: { canonical: canonicalFor('/sitemap'), ...languageAlternates('/sitemap') },
   }
 }
 
@@ -58,9 +60,9 @@ export default async function SitemapPage() {
     {
       heading: t('main'),
       links: [
-        { href: '/', label: t('home') },
-        { href: '/demo', label: t('demo') },
-        { href: '/donate', label: t('donate') },
+        { href: localizedHref('/'), label: t('home') },
+        { href: localizedHref('/demo'), label: t('demo') },
+        { href: localizedHref('/donate'), label: t('donate') },
         { href: '/login', label: t('logIn') },
         { href: '/register', label: t('signUp') },
       ],
@@ -76,9 +78,9 @@ export default async function SitemapPage() {
     {
       heading: t('legal'),
       links: [
-        { href: '/terms', label: t('terms') },
-        { href: '/privacy', label: t('privacy') },
-        { href: '/cookies', label: t('cookies') },
+        { href: localizedHref('/terms'), label: t('terms') },
+        { href: localizedHref('/privacy'), label: t('privacy') },
+        { href: localizedHref('/cookies'), label: t('cookies') },
       ],
     },
   ]
@@ -119,7 +121,7 @@ export default async function SitemapPage() {
                 <ul className="space-y-1.5 text-sm">
                   {section.chapters.map((chapter) => (
                     <li key={chapter.id}>
-                      <Link href={`/demo/${chapter.id}`} className="text-brand-600 hover:underline dark:text-brand-300">
+                      <Link href={localizedHref(`/demo/${chapter.id}`)} className="text-brand-600 hover:underline dark:text-brand-300">
                         {td(`chapter.${chapter.id}.title`)}
                       </Link>
                     </li>

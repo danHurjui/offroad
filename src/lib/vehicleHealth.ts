@@ -31,7 +31,7 @@ import { getDocumentStatus } from './documents'
 import { distanceCovered, type ReadingLike } from './odometer'
 import { PROJECT_TYPE_CONFIG, type ProjectType } from './projectType'
 import { powertrainOf, takesCharge, type Powertrain } from './powertrain'
-import { sortReadings } from './batteryHealth'
+import { sortReadings, warrantyStatus } from './batteryHealth'
 
 export type HealthTone = 'ok' | 'warn' | 'danger' | 'info' | 'none'
 export type HealthArea = 'document' | 'service' | 'tyres' | 'jobs' | 'battery' | 'warranty'
@@ -84,9 +84,7 @@ export const DEFAULT_SERVICE_INTERVAL: Record<Powertrain, { km: number; days: nu
   ELECTRIC: null,
 }
 
-/** The traction-battery warranty is worth acting on inside these. */
-export const WARRANTY_WARN_DAYS = 90
-export const WARRANTY_WARN_KM = 5_000
+export { WARRANTY_WARN_DAYS, WARRANTY_WARN_KM } from './batteryHealth'
 
 /**
  * #104: the owner's own interval, when they have given one. Either half
@@ -467,24 +465,28 @@ function warrantyRow(input: HealthInput, base: string): HealthRow {
   const until = input.battery?.warrantyUntil ?? null
   const limitKm = input.battery?.warrantyKm ?? null
   const row = { area: 'warranty' as const, id: 'warranty', label: { key: 'area.warranty' }, href: `${base}/battery` }
-  if (until === null && limitKm === null) {
-    return { ...row, tone: 'none', reason: { key: 'warranty.none' }, urgency: 0, action: { key: 'nextAction.setWarranty' } }
-  }
-  const daysLeft = until ? getDocumentStatus(until, input.now).daysUntil : null
-  const newest = [...input.readings].sort(
-    (a, b) => b.readAt.getTime() - a.readAt.getTime() || (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)
-  )[0]
-  const kmKnown = newest !== undefined && !input.readings.some((r) => r.isOverride)
-  const kmLeft = limitKm !== null && kmKnown ? limitKm - newest.km : null
+  const status = warrantyStatus(until, limitKm, input.readings, input.now)
+  const { daysLeft, kmLeft } = status
   const date = until ? fmtDay(until) : ''
 
-  if (daysLeft !== null && daysLeft < 0) {
-    return { ...row, tone: 'info', reason: { key: 'warranty.endedDate', values: { date } }, urgency: 0 }
+  if (status.state === 'none') {
+    return { ...row, tone: 'none', reason: { key: 'warranty.none' }, urgency: 0, action: { key: 'nextAction.setWarranty' } }
   }
-  if (kmLeft !== null && kmLeft <= 0) {
-    return { ...row, tone: 'info', reason: { key: 'warranty.endedKm', values: { limitKm: limitKm! } }, urgency: 0 }
+  if (status.state === 'ended') {
+    return status.endedBy === 'date'
+      ? { ...row, tone: 'info', reason: { key: 'warranty.endedDate', values: { date } }, urgency: 0 }
+      : { ...row, tone: 'info', reason: { key: 'warranty.endedKm', values: { limitKm: limitKm! } }, urgency: 0 }
   }
-  const soon = (daysLeft !== null && daysLeft <= WARRANTY_WARN_DAYS) || (kmLeft !== null && kmLeft <= WARRANTY_WARN_KM)
+  if (status.state === 'kmUnknown') {
+    return {
+      ...row,
+      tone: 'none',
+      reason: { key: 'warranty.kmUnknown', values: { limitKm: limitKm! } },
+      urgency: 0,
+      action: { key: 'nextAction.recordKm' },
+      href: `${base}/odometer`,
+    }
+  }
   const reason: Message =
     daysLeft !== null && kmLeft !== null
       ? { key: 'warranty.both', values: { date, days: daysLeft, limitKm: limitKm!, km: kmLeft } }
@@ -492,13 +494,8 @@ function warrantyRow(input: HealthInput, base: string): HealthRow {
         ? { key: 'warranty.dateKmUnknown', values: { date, days: daysLeft, limitKm } }
         : daysLeft !== null
           ? { key: 'warranty.dateOnly', values: { date, days: daysLeft } }
-          : kmLeft !== null
-            ? { key: 'warranty.kmOnly', values: { limitKm: limitKm!, km: kmLeft } }
-            : { key: 'warranty.kmUnknown', values: { limitKm: limitKm! } }
-  if (daysLeft === null && kmLeft === null) {
-    // A limit by distance alone, and no current km to measure it against.
-    return { ...row, tone: 'none', reason, urgency: 0, action: { key: 'nextAction.recordKm' }, href: `${base}/odometer` }
-  }
+          : { key: 'warranty.kmOnly', values: { limitKm: limitKm!, km: kmLeft! } }
+  const soon = status.state === 'soon'
   return {
     ...row,
     tone: soon ? 'warn' : 'ok',

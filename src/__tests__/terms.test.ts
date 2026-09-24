@@ -160,7 +160,8 @@ describe('the terms are reachable', () => {
     fs.readFileSync(path.join(process.cwd(), 'src', ...segments), 'utf8')
 
   it('are linked from the public footer', () => {
-    expect(read('components', 'PublicFooter.tsx')).toMatch(/href="\/terms"/)
+    // Through localizedHref, so an English page links the English terms.
+    expect(read('components', 'PublicFooter.tsx')).toMatch(/href=\{localizedHref\('\/terms'\)\}/)
   })
 
   // Agreeing to terms you were never shown is not agreement.

@@ -127,3 +127,33 @@ describe('sitemap.xml — feature pages and honest dates', () => {
     expect(byUrl.get('https://riglog.example/demo/fuel')).toBeUndefined()
   })
 })
+
+describe('sitemap.xml — the English addresses', () => {
+  beforeEach(() => {
+    process.env.NEXTAUTH_URL = 'https://riglog.example'
+    mockVehicles.mockResolvedValue([{ slug: 'a', updatedAt: new Date('2026-01-02'), owner: { username: 'dan' } }])
+    mockTickets.mockResolvedValue([{ id: 'tkt1', updatedAt: new Date('2026-02-03') }])
+    mockPartsRequests.mockResolvedValue([])
+  })
+  afterEach(() => {
+    delete process.env.NEXTAUTH_URL
+    jest.clearAllMocks()
+  })
+
+  it('lists both addresses of our own pages, each declaring the pair', async () => {
+    const entries = await sitemap()
+    const ro = entries.find((e) => e.url === 'https://riglog.example/demo/fuel')
+    const en = entries.find((e) => e.url === 'https://riglog.example/en/demo/fuel')
+    const pair = { ro: 'https://riglog.example/demo/fuel', en: 'https://riglog.example/en/demo/fuel', 'x-default': 'https://riglog.example/demo/fuel' }
+    expect(ro?.alternates?.languages).toEqual(pair)
+    expect(en?.alternates?.languages).toEqual(pair)
+    expect(entries.find((e) => e.url === 'https://riglog.example/en')?.alternates?.languages).toMatchObject({ ro: 'https://riglog.example' })
+  })
+
+  it('somebody’s own words keep one address', async () => {
+    const urls = (await sitemap()).map((e) => e.url)
+    expect(urls).not.toContain('https://riglog.example/en/builds/dan/a')
+    expect(urls).not.toContain('https://riglog.example/en/tickets/tkt1')
+    expect(urls).not.toContain('https://riglog.example/en/community')
+  })
+})

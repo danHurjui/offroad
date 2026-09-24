@@ -1875,6 +1875,15 @@
       "body": "{inviter} te-a invitat să te alături organizației {organization} pe RigLog, cu rolul {role}.",
       "cta": "Acceptă invitația",
       "expiry": "Linkul expiră în 7 zile. Autentifică-te cu această adresă de email ca să îl accepți."
+    },
+    "batteryWarranty": {
+      "subject": "Garanția bateriei se apropie de final: {vehicle}",
+      "body": "Garanția bateriei de înaltă tensiune a mașinii tale {vehicle} se apropie de final: {detail}.",
+      "advice": "Dacă vrei bateria testată cât încă e în garanție, acum e momentul. E singurul memento pentru aceste condiții.",
+      "cta": "Vezi în RigLog",
+      "byDate": "până pe {date} (mai sunt {days, plural, one {# zi} few {# zile} other {# de zile}})",
+      "byKm": "până la {limitKm} km (mai sunt {km} km)",
+      "whicheverFirst": "{byDate} sau {byKm}, care vine prima"
     }
   },
   "notify": {
@@ -1883,7 +1892,8 @@
     "priceAlertTitle": "{item} a atins prețul tău țintă",
     "priceAlertBody": "Găsit la {price} RON (țintă {target} RON)",
     "documentReminderTitle": "{document} {daysUntil}",
-    "documentReminderBody": "{vehicle} — actualizează documentul în RigLog după reînnoire."
+    "documentReminderBody": "{vehicle} — actualizează documentul în RigLog după reînnoire.",
+    "batteryWarrantyTitle": "Garanția bateriei se apropie de final: {vehicle}"
   },
   "legal": {
     "cookie": {
@@ -3755,7 +3765,7 @@
     "deleted": "Citirea din {date} a fost ștearsă.",
     "deleteFailed": "Citirea nu a putut fi ștearsă.",
     "warrantyTitle": "Garanția bateriei",
-    "warrantyHelp": "Din actele mașinii — de obicei un număr de ani sau de km, care vine primul. Lasă un câmp gol dacă garanția nu are o astfel de limită.",
+    "warrantyHelp": "Din actele mașinii — de obicei un număr de ani sau de km, care vine primul. Lasă un câmp gol dacă garanția nu are o astfel de limită. Primești un singur memento pe email când ajunge la 90 de zile sau 5.000 km de final.",
     "warrantyUntil": "Se încheie pe",
     "warrantyKm": "Sau la (km)",
     "warrantySave": "Salvează garanția",
@@ -3763,7 +3773,11 @@
     "warrantyFailed": "Garanția nu a putut fi salvată.",
     "warrantyUntilValue": "până pe {date}",
     "warrantyKmValue": "{km} km",
-    "whicheverFirst": "sau"
+    "whicheverFirst": "sau",
+    "edit": "Modifică",
+    "updated": "Citire corectată.",
+    "saveChanges": "Salvează modificările",
+    "cancel": "Renunță"
   },
   "talonScan": {
     "scan": "Scanează talonul",

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/pageMetadata'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import PublicHeader from '@/components/PublicHeader'
@@ -8,7 +9,7 @@ import { COOKIES, LEGAL_LAST_UPDATED, LOCAL_STORAGE_ENTRIES } from '@/lib/legal'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('legalPages.cookies')
-  return { title: t('metaTitle'), description: t('metaDescription') }
+  return await publicPageMetadata({ path: '/cookies', title: t('metaTitle'), description: t('metaDescription') })
 }
 
 export default async function CookiesPage() {

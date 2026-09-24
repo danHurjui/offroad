@@ -10,6 +10,8 @@ import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
 /**
  * RL-056: the traction-battery warranty — a vehicle setting, so owner-only
  * (pitfall #4). Both halves are sent every time; a blank clears one.
+ * Changing either clears `batteryWarrantyRemindedAt`, so the reminder
+ * (cron) is re-armed for the new terms; saving the same terms leaves it.
  */
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   const auth = await requireSession()
@@ -25,9 +27,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (!warranty.ok) return await apiError('batteryWarrantyInvalid', 400)
 
   try {
+    const changed =
+      (vehicle.batteryWarrantyUntil?.getTime() ?? null) !== (warranty.value.batteryWarrantyUntil?.getTime() ?? null) ||
+      vehicle.batteryWarrantyKm !== warranty.value.batteryWarrantyKm
     const updated = await prisma.vehicle.update({
       where: { id: vehicle.id },
-      data: warranty.value,
+      data: { ...warranty.value, ...(changed ? { batteryWarrantyRemindedAt: null } : {}) },
       select: { batteryWarrantyUntil: true, batteryWarrantyKm: true },
     })
     return NextResponse.json(updated)

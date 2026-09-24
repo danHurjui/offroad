@@ -11,6 +11,7 @@ import JsonLd from '@/components/JsonLd'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 import { demoPreviews } from '@/components/demo/demoPreviews'
+import { localizedHref } from '@/i18n/localizedHref'
 
 type Params = { params: { feature: string } }
 
@@ -65,7 +66,7 @@ export default async function DemoFeaturePage({ params }: Params) {
         <nav aria-label={t('breadcrumbLabel')} className="mb-6 text-sm text-ink-muted">
           <ol className="flex flex-wrap items-center gap-1">
             <li>
-              <Link href="/demo" className="text-brand-600 hover:underline dark:text-brand-300">
+              <Link href={localizedHref('/demo')} className="text-brand-600 hover:underline dark:text-brand-300">
                 {t('breadcrumb')}
               </Link>
             </li>
@@ -105,7 +106,7 @@ export default async function DemoFeaturePage({ params }: Params) {
             <ul className="mt-4 grid gap-3 sm:grid-cols-2">
               {siblings.map((c) => (
                 <li key={c.id}>
-                  <Link href={`/demo/${c.id}`} className="font-medium text-brand-600 hover:underline dark:text-brand-300">
+                  <Link href={localizedHref(`/demo/${c.id}`)} className="font-medium text-brand-600 hover:underline dark:text-brand-300">
                     {t(`chapter.${c.id}.title`)}
                   </Link>{' '}
                   <span className="text-xs text-ink-faint">{t(TIER_LABEL_KEY[c.tier])}</span>
@@ -115,7 +116,7 @@ export default async function DemoFeaturePage({ params }: Params) {
           </section>
         )}
         <p className="mt-10 text-sm">
-          <Link href={`/demo#${chapter.id}`} className="text-brand-600 hover:underline dark:text-brand-300">
+          <Link href={`${localizedHref('/demo')}#${chapter.id}`} className="text-brand-600 hover:underline dark:text-brand-300">
             {t('wholeTour')}
           </Link>
         </p>

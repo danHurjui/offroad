@@ -704,10 +704,29 @@ without anything to maintain.
 ### Language (`src/i18n/`, `messages/{ro,en}.json`, `src/lib/vocabulary.ts`)
 next-intl, Romanian default, English second. **The locale is a cookie
 (`riglog-locale`), not a URL segment** — no `[locale]` route, no
-locale-aware `Link`; `src/i18n/config.ts` explains the trade. There is no
-middleware, which is why `request.ts` reads `requestLocale` rather than
-next-intl's deprecated `locale` param (destructuring that one 404s every
-page here).
+locale-aware `Link`; `src/i18n/config.ts` explains the trade. next-intl
+has no middleware of its own here, which is why `request.ts` reads
+`requestLocale` rather than next-intl's deprecated `locale` param
+(destructuring that one 404s every page here).
+
+**The public pages of ours also have English addresses**
+(`src/i18n/localeRoutes.ts`): `/en`, `/en/demo`, `/en/demo/<feature>`,
+`/en/donate`, the legal pages and `/en/sitemap`, so Search indexes both
+languages. `src/middleware.ts` (matching only `/en`) rewrites them to the
+page itself and sets `x-riglog-locale: en`, which `localeFromRequest()`
+reads **before** the cookie — an English address is English for everyone,
+a Romanian one follows the reader as before. Anything else under `/en`
+404s. Builds, tickets, parts requests and the community pages keep one
+address: they are somebody's own words in one language.
+- `publicPageMetadata()` declares the pair as hreflang (Romanian is
+  `x-default`), with the canonical on the address it was reached by;
+  `sitemap.ts` lists both, each with the pair. The `/og` picture is told
+  `lang=en`.
+- Links on those pages go through `localizedHref()`, so a reader or
+  crawler that came in on `/en` stays on English addresses.
+- `LanguageToggle` on a page with two addresses moves to the other one
+  with a **full load** — a soft navigation keeps the root layout (`lang`,
+  the client catalogue) in the old language.
 
 Two stores on purpose: the cookie drives what the screen renders,
 `User.locale` drives email, because reminders and notifications are sent
@@ -854,7 +873,17 @@ note, report file) and `Vehicle.batteryWarrantyUntil`/`batteryWarrantyKm`
 - **The warranty row is whichever comes first**: the date half is
   `getDocumentStatus()`'s day count, the km half the newest reading
   (unknown after a replaced gauge, never guessed); `warn` inside 90 days
-  or 5,000 km, `info` once ended. On screen only — no reminder emails yet.
+  or 5,000 km, `info` once ended. `warrantyStatus()` is that rule, read by
+  both the row and the reminder.
+- **One reminder per set of terms**, in the daily document-reminder cron
+  (Hobby allows few crons): inside 90 days / 5,000 km, email + push to
+  `vehicleManagers()` in their language. `batteryWarrantyRemindedAt` is
+  marked before sending; the warranty PUT clears it only when the terms
+  change. Nothing is sent for an ended warranty or one with no km to
+  measure.
+- **Readings can be corrected** (PATCH, owner any / others their own,
+  checked like a new one). `updatedAt` is kept, and the passport shows
+  "changed" beside "entered" when a correction came a day or more later.
 - **No default service interval for `ELECTRIC`** (the owner's decision on
   #124): `DEFAULT_SERVICE_INTERVAL` is a `Record<Powertrain, …>` and an EV
   without its own interval gets a `none` row linking to the edit form's

@@ -1,5 +1,23 @@
 import type { Metadata } from 'next'
 import { getLocale } from 'next-intl/server'
+import { englishPath, hasEnglishVersion } from '@/i18n/localeRoutes'
+import { onEnglishAddress } from '@/i18n/localizedHref'
+
+/**
+ * The two addresses of a page that has an English version, as hreflang:
+ * Romanian is the default (`x-default`) since that is the market and the
+ * language a visitor with no preference gets. Empty for a page with one
+ * address (a build, a ticket — somebody's own words in one language).
+ */
+export function languageAlternates(path: string): { languages?: Record<string, string> } {
+  if (!hasEnglishVersion(path)) return {}
+  return { languages: { ro: path, en: englishPath(path), 'x-default': path } }
+}
+
+/** This page's own address: its English one when that is how it was reached. */
+export function canonicalFor(path: string): string {
+  return onEnglishAddress() && hasEnglishVersion(path) ? englishPath(path) : path
+}
 
 /**
  * The metadata every public page wants, in one place.
@@ -18,6 +36,11 @@ import { getLocale } from 'next-intl/server'
  *   as a bare URL. The tour is a page people are meant to *send* to
  *   somebody, so the preview is the point.
  * - **A Twitter card**, which several other things read as a fallback.
+ *
+ * - **Its language pair** (src/i18n/localeRoutes.ts): a page with an
+ *   English address declares both as hreflang alternates, and its
+ *   canonical is the address it was reached on — `/en/demo` is its own
+ *   page, not a duplicate of `/demo`.
  *
  * The root layout supplies `metadataBase`, which a relative `canonical`
  * and `url` resolve against. It also declares `openGraph`, but a page
@@ -41,16 +64,18 @@ export async function publicPageMetadata({
   image?: string
 }): Promise<Metadata> {
   const locale = await getLocale()
-  const images = [{ url: image, width: 1200, height: 630, alt: title }]
+  // The picture in the page's own language: /og has no /en address, so it is told.
+  const imageUrl = onEnglishAddress() ? `${image}${image.includes('?') ? '&' : '?'}lang=en` : image
+  const images = [{ url: imageUrl, width: 1200, height: 630, alt: title }]
 
   return {
     title,
     description,
-    alternates: { canonical: path },
+    alternates: { canonical: canonicalFor(path), ...languageAlternates(path) },
     openGraph: {
       title,
       description,
-      url: path,
+      url: canonicalFor(path),
       type: 'website',
       siteName: 'RigLog',
       // The language this response is actually in. One URL serves

@@ -264,6 +264,22 @@ export async function documentReminderEmail(
   }
 }
 
+/** RL-056: the traction-battery warranty is close to its end — sent once per set of terms. */
+export async function batteryWarrantyReminderEmail(
+  locale: Locale,
+  input: { vehicleName: string; detail: string; vehicleUrl: string }
+): Promise<EmailContent> {
+  const t = await strings(locale)
+  return {
+    subject: t('batteryWarranty.subject', { vehicle: input.vehicleName }),
+    html: layout([
+      `<p>${t('batteryWarranty.body', { vehicle: strong(input.vehicleName), detail: esc(input.detail) })}</p>`,
+      `<p>${t('batteryWarranty.advice')}</p>`,
+      `<p><a href="${input.vehicleUrl}">${t('batteryWarranty.cta')}</a></p>`,
+    ]),
+  }
+}
+
 export async function collaboratorInviteEmail(
   locale: Locale,
   input: { inviterName: string; vehicleName: string; acceptUrl: string }

@@ -225,7 +225,7 @@ describe('the feature pages', () => {
   })
 
   it('the tour index and the homepage cards link to them', async () => {
-    expect(read('src/app/demo/page.tsx')).toContain('href={`/demo/${chapter.id}`}')
+    expect(read('src/app/demo/page.tsx')).toContain('href={localizedHref(`/demo/${chapter.id}`)}')
     const { FEATURE_KEYS, HOME_FEATURE_CHAPTER } = await import('@/lib/demoTour')
     const ids = DEMO_CHAPTERS.map((c) => c.id)
     for (const key of FEATURE_KEYS) expect(ids).toContain(HOME_FEATURE_CHAPTER[key])

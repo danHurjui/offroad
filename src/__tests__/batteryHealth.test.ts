@@ -36,7 +36,7 @@ import { computeHealth, DEFAULT_SERVICE_INTERVAL, type HealthInput } from '@/lib
 import { buildPassport, type PassportInput } from '@/lib/passport'
 import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { POST } from '@/app/api/vehicles/[id]/battery/route'
-import { DELETE } from '@/app/api/vehicles/[id]/battery/[readingId]/route'
+import { DELETE, PATCH } from '@/app/api/vehicles/[id]/battery/[readingId]/route'
 import { POST as POST_REPORT } from '@/app/api/vehicles/[id]/battery/[readingId]/report/route'
 import { PUT as PUT_WARRANTY } from '@/app/api/vehicles/[id]/battery/warranty/route'
 
@@ -224,6 +224,13 @@ describe('the passport lists battery readings as recorded', () => {
     expect(p.absences.map((a) => a.key)).not.toContain('absence.noBatteryReadingsRecorded')
   })
 
+  it('a reading corrected a day or more after it was entered says when', () => {
+    const corrected = { ...r('2026-05-02', 88), updatedAt: day('2026-09-10') }
+    const same = { ...r('2026-05-03', 87), updatedAt: day('2026-09-01') }
+    const p = buildPassport(passportInput({ fuelType: 'ELECTRIC', batteryReadings: [corrected, same] }))
+    expect(p.battery.readings.map((x) => x.changedAt)).toEqual([day('2026-09-10'), null])
+  })
+
   it('with none, for a vehicle that plugs in, says no reading was recorded in RigLog', () => {
     const p = buildPassport(passportInput({ fuelType: 'PLUGIN_HYBRID' }))
     expect(p.battery).toEqual({ shown: true, readings: [] })
@@ -322,6 +329,29 @@ describe('battery routes', () => {
     expect(prisma.batteryHealthReading.delete).not.toHaveBeenCalled()
   })
 
+  it('PATCH corrects a reading, checked like a new one', async () => {
+    ;(prisma.batteryHealthReading.findUnique as jest.Mock).mockResolvedValue({ id: 'b1', vehicleId: 'v1', createdByUserId: 'mechanic', date: day('2026-09-01') })
+    ;(prisma.batteryHealthReading.update as jest.Mock).mockImplementation(({ data }) => Promise.resolve({ id: 'b1', ...data }))
+    const at = { params: { id: 'v1', readingId: 'b1' } }
+    const res = await PATCH(req({ sohPercent: 89, source: 'CAR_DISPLAY', date: '2026-08-30', km: '', note: '' }), at)
+    expect(res.status).toBe(200)
+    expect(prisma.batteryHealthReading.update).toHaveBeenCalledWith({
+      where: { id: 'b1' },
+      data: { sohPercent: 89, source: 'CAR_DISPLAY', km: null, note: null, date: day('2026-08-30') },
+    })
+    expect((await (await PATCH(req({ sohPercent: 0 }), at)).json()).code).toBe('batterySohInvalid')
+    expect((await PATCH(req({ sohPercent: 90, date: '2099-01-01' }), at)).status).toBe(400)
+  })
+
+  it('PATCH: someone else corrects only their own', async () => {
+    mockSession.mockResolvedValue({ user: { id: 'mechanic' } })
+    ;(prisma.projectCollaborator.findFirst as jest.Mock).mockResolvedValue({ id: 'pc1' })
+    ;(prisma.batteryHealthReading.findUnique as jest.Mock).mockResolvedValue({ id: 'b1', vehicleId: 'v1', createdByUserId: 'owner', date: day('2026-09-01') })
+    const res = await PATCH(req({ sohPercent: 80 }), { params: { id: 'v1', readingId: 'b1' } })
+    expect([res.status, (await res.json()).code]).toEqual([403, 'batteryOwnOnly'])
+    expect(prisma.batteryHealthReading.update).not.toHaveBeenCalled()
+  })
+
   it('a report is filed under the owner’s prefix whoever uploads it', async () => {
     mockSession.mockResolvedValue({ user: { id: 'mechanic' } })
     ;(prisma.projectCollaborator.findFirst as jest.Mock).mockResolvedValue({ id: 'pc1' })
@@ -339,8 +369,9 @@ describe('battery routes', () => {
     ;(prisma.vehicle.update as jest.Mock).mockResolvedValue({ batteryWarrantyUntil: day('2031-03-12'), batteryWarrantyKm: 160_000 })
     const res = await PUT_WARRANTY(req({ batteryWarrantyUntil: '2031-03-12', batteryWarrantyKm: 160000 }), { params })
     expect(res.status).toBe(200)
+    // New terms re-arm the reminder.
     expect(prisma.vehicle.update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { batteryWarrantyUntil: day('2031-03-12'), batteryWarrantyKm: 160_000 } })
+      expect.objectContaining({ data: { batteryWarrantyUntil: day('2031-03-12'), batteryWarrantyKm: 160_000, batteryWarrantyRemindedAt: null } })
     )
     expect((await (await PUT_WARRANTY(req({ batteryWarrantyKm: 'lots' }), { params })).json()).code).toBe('batteryWarrantyInvalid')
 
@@ -349,6 +380,15 @@ describe('battery routes', () => {
     ;(prisma.vehicle.update as jest.Mock).mockClear()
     expect((await PUT_WARRANTY(req({ batteryWarrantyKm: 1 }), { params })).status).toBe(404)
     expect(prisma.vehicle.update).not.toHaveBeenCalled()
+  })
+
+  it('saving the same warranty terms again leaves the sent reminder alone', async () => {
+    ;(prisma.vehicle.findUnique as jest.Mock).mockResolvedValue({ ...PERSONAL, batteryWarrantyUntil: day('2031-03-12'), batteryWarrantyKm: 160_000 })
+    ;(prisma.vehicle.update as jest.Mock).mockResolvedValue({ batteryWarrantyUntil: day('2031-03-12'), batteryWarrantyKm: 160_000 })
+    await PUT_WARRANTY(req({ batteryWarrantyUntil: '2031-03-12', batteryWarrantyKm: 160000 }), { params })
+    expect(prisma.vehicle.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { batteryWarrantyUntil: day('2031-03-12'), batteryWarrantyKm: 160_000 } })
+    )
   })
 
   it('every write asks the read-only gate first', async () => {
@@ -360,6 +400,9 @@ describe('battery routes', () => {
     ;(prisma.batteryHealthReading.findUnique as jest.Mock).mockResolvedValue({ id: 'b1', vehicleId: 'v1', createdByUserId: 'owner' })
     expect((await DELETE({} as never, { params: { id: 'v1', readingId: 'b1' } })).status).toBe(403)
     expect(prisma.batteryHealthReading.delete).not.toHaveBeenCalled()
+    ;(refuseIfReadOnly as jest.Mock).mockResolvedValueOnce(refusal)
+    expect((await PATCH(req({ sohPercent: 80 }), { params: { id: 'v1', readingId: 'b1' } })).status).toBe(403)
+    expect(prisma.batteryHealthReading.update).not.toHaveBeenCalled()
     ;(refuseIfReadOnly as jest.Mock).mockResolvedValueOnce(refusal)
     expect((await PUT_WARRANTY(req({ batteryWarrantyKm: 1 }), { params })).status).toBe(403)
     expect(prisma.vehicle.update).not.toHaveBeenCalled()

@@ -5,7 +5,10 @@ import { prisma } from '@/lib/prisma'
 import { managersSelect, vehicleManagers } from '@/lib/access'
 import { translator } from '@/i18n/translator'
 import { decideReminder, daysUntilMessage, getDocumentStatus, REMINDER_FIELDS } from '@/lib/documents'
-import { sendEmail, documentReminderEmail, emailLocale } from '@/lib/email'
+import { sendEmail, documentReminderEmail, batteryWarrantyReminderEmail, emailLocale } from '@/lib/email'
+import { warrantyStatus } from '@/lib/batteryHealth'
+import { powertrainOf, takesCharge } from '@/lib/powertrain'
+import type { Locale } from '@/i18n/config'
 import { purgeExpiredRateLimits } from '@/lib/rateLimit'
 import { appUrlForNotification } from '@/lib/appUrl'
 import { sendPushNotification } from '@/lib/webpush'
@@ -128,6 +131,10 @@ async function handle(req: NextRequest) {
     }
   }
 
+  const batteryWarranty = baseUrl ? await remindBatteryWarranties(baseUrl) : { sent: 0, pushed: 0 }
+  sent += batteryWarranty.sent
+  pushed += batteryWarranty.pushed
+
   // Piggyback the rate-limit sweep on the daily cron rather than adding a
   // second scheduled function — elapsed windows are dead rows, and Vercel's
   // Hobby plan allows only a limited number of cron jobs.
@@ -142,6 +149,90 @@ async function handle(req: NextRequest) {
     // the cron log rather than looking like a quiet success.
     ...(baseUrl ? {} : { skipped: 'No usable public URL configured; no reminders were sent or marked.' }),
   })
+}
+
+/**
+ * RL-056: one reminder per set of warranty terms, when the traction-battery
+ * warranty comes inside 90 days or 5,000 km of whichever limit is first —
+ * the same `warrantyStatus()` Car Health's row reads, so the email never
+ * says something the screen does not. Only for a vehicle that plugs in.
+ *
+ * `batteryWarrantyRemindedAt` is marked before sending (a failed send
+ * misses this one reminder rather than repeating it nightly), and the
+ * warranty PUT clears it when the terms change, which re-arms it. A
+ * warranty already ended, or with no current km to measure, sends nothing.
+ * Folded into this job rather than a second cron: Vercel's Hobby plan
+ * allows few.
+ */
+async function remindBatteryWarranties(baseUrl: string): Promise<{ sent: number; pushed: number }> {
+  const vehicles = await prisma.vehicle.findMany({
+    where: {
+      batteryWarrantyRemindedAt: null,
+      OR: [{ batteryWarrantyUntil: { not: null } }, { batteryWarrantyKm: { not: null } }],
+    },
+    select: {
+      id: true,
+      make: true,
+      model: true,
+      year: true,
+      fuelType: true,
+      batteryWarrantyUntil: true,
+      batteryWarrantyKm: true,
+      odometerReadings: { select: { km: true, readAt: true, isOverride: true, createdAt: true } },
+      ...managersSelect({
+        email: true,
+        locale: true,
+        pushSubscriptions: { select: { id: true, endpoint: true, p256dh: true, auth: true } },
+      }),
+    },
+  })
+  let sent = 0
+  let pushed = 0
+  const now = new Date()
+  for (const vehicle of vehicles) {
+    if (!takesCharge(powertrainOf(vehicle.fuelType))) continue
+    const status = warrantyStatus(vehicle.batteryWarrantyUntil, vehicle.batteryWarrantyKm, vehicle.odometerReadings, now)
+    if (status.state !== 'soon') continue
+    await prisma.vehicle.update({ where: { id: vehicle.id }, data: { batteryWarrantyRemindedAt: now } })
+
+    const name = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
+    const url = `${baseUrl}/dashboard/vehicles/${vehicle.id}/battery`
+    for (const recipient of vehicleManagers(vehicle)) {
+      const locale = emailLocale(recipient)
+      const detail = await warrantyDetail(locale, vehicle.batteryWarrantyUntil, vehicle.batteryWarrantyKm, status.daysLeft, status.kmLeft)
+      const { subject, html } = await batteryWarrantyReminderEmail(locale, { vehicleName: name, detail, vehicleUrl: url })
+      try {
+        await sendEmail({ to: recipient.email, subject, html })
+        sent++
+      } catch (e) {
+        console.error('[cron] battery warranty reminder not delivered:', e)
+      }
+      if (recipient.pushSubscriptions.length > 0) {
+        const tPush = await translator(locale, 'notify')
+        const payload = { title: tPush('batteryWarrantyTitle', { vehicle: name }), body: detail, url }
+        for (const sub of recipient.pushSubscriptions) {
+          try {
+            const result = await sendPushNotification(sub, payload)
+            if (result === 'sent') pushed++
+            if (result === 'gone') await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {})
+          } catch (e) {
+            console.error('[cron] battery warranty push not delivered:', e)
+          }
+        }
+      }
+    }
+  }
+  return { sent, pushed }
+}
+
+/** "until 12.03.2031 (60 days left) or 160.000 km (3.000 km left), whichever comes first", in the recipient's language. */
+async function warrantyDetail(locale: Locale, until: Date | null, limitKm: number | null, daysLeft: number | null, kmLeft: number | null): Promise<string> {
+  const t = await translator(locale, 'email')
+  const date = until ? until.toLocaleDateString('ro-RO', { timeZone: 'UTC' }) : ''
+  const km = (n: number) => n.toLocaleString('ro-RO')
+  const byDate = daysLeft !== null ? t('batteryWarranty.byDate', { date, days: daysLeft }) : null
+  const byKm = kmLeft !== null && limitKm !== null ? t('batteryWarranty.byKm', { limitKm: km(limitKm), km: km(kmLeft) }) : null
+  return byDate && byKm ? t('batteryWarranty.whicheverFirst', { byDate, byKm }) : (byDate ?? byKm ?? '')
 }
 
 export { handle as GET, handle as POST }
