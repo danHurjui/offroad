@@ -7,6 +7,7 @@ import Nav from './Nav'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 import LanguageToggle from './LanguageToggle'
+import { localizedHref } from '@/i18n/localizedHref'
 
 /**
  * Header for the logged-out marketing site (/, /donate, /tickets).
@@ -51,7 +52,7 @@ export default async function PublicHeader() {
           was already a little too wide clearly too wide. Wrapping costs a
           second line on the narrowest screens and nothing anywhere else. */}
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-        <Link href="/" className="text-brand-600 dark:text-brand-300" aria-label={t('homeAria')}>
+        <Link href={localizedHref('/')} className="text-brand-600 dark:text-brand-300" aria-label={t('homeAria')}>
           <Logo />
         </Link>
         <nav className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2 text-sm sm:gap-x-4">
@@ -60,13 +61,13 @@ export default async function PublicHeader() {
           {/* The tour is the page a first-time visitor wants, so it keeps
               its place at every width; the roadmap steps aside on a phone
               alongside donate, where there is room for one of the three. */}
-          <Link href="/demo" className="text-ink-muted hover:text-ink">
+          <Link href={localizedHref('/demo')} className="text-ink-muted hover:text-ink">
             {t('demo')}
           </Link>
           <Link href="/tickets" className="hidden text-ink-muted hover:text-ink sm:inline">
             {t('roadmap')}
           </Link>
-          <Link href="/donate" className="hidden text-ink-muted hover:text-ink sm:inline">
+          <Link href={localizedHref('/donate')} className="hidden text-ink-muted hover:text-ink sm:inline">
             {t('donate')}
           </Link>
           {/* No signed-in branch here any more: that case returned above. */}

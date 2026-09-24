@@ -454,6 +454,9 @@ model Vehicle {
   /// Entered by the owner, never defaulted: the terms vary by car and market.
   batteryWarrantyUntil       DateTime?
   batteryWarrantyKm          Int?
+  /// RL-056: when the one warranty reminder went out; cleared whenever the
+  /// terms change, which re-arms it.
+  batteryWarrantyRemindedAt  DateTime?
   /// RL-050 values and finance, RL-045 slice 5 (src/lib/ownershipCosts.ts).
   /// The purchase lives here for every mode, a restoration's acquisition
   /// included — its intake form reads and writes these (#105).
@@ -1436,6 +1439,8 @@ model BatteryHealthReading {
   reportUrl       String?
   createdByUserId String?
   createdAt       DateTime @default(now())
+  /// A reading can be corrected; the passport shows when, beside when it was entered.
+  updatedAt       DateTime @updatedAt
 
   vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   createdBy User?   @relation("BatteryHealthReadingBy", fields: [createdByUserId], references: [id], onDelete: SetNull)

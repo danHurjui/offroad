@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/pageMetadata'
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import PublicHeader from '@/components/PublicHeader'
@@ -14,7 +15,7 @@ import {
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('legalPages.privacy')
-  return { title: t('metaTitle'), description: t('metaDescription') }
+  return await publicPageMetadata({ path: '/privacy', title: t('metaTitle'), description: t('metaDescription') })
 }
 
 /**

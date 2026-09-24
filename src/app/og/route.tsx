@@ -5,6 +5,7 @@ import { ImageResponse } from 'next/og'
 import { getTranslations } from 'next-intl/server'
 import { CARD_COLORS, CARD_FONTS, CARD_HEIGHT, CARD_WIDTH } from '@/lib/card'
 import { DEMO_CHAPTERS, chapterValues, metaDescriptionFrom } from '@/lib/demoTour'
+import { isLocale } from '@/i18n/config'
 
 export const runtime = 'nodejs'
 
@@ -24,7 +25,10 @@ export const runtime = 'nodejs'
 export async function GET(req: NextRequest) {
   const feature = req.nextUrl.searchParams.get('feature')
   const chapter = DEMO_CHAPTERS.find((c) => c.id === feature)
-  const t = await getTranslations(chapter ? 'demo' : 'home')
+  // `?lang=en` from an English address's metadata; otherwise the request's own language.
+  const lang = req.nextUrl.searchParams.get('lang')
+  const namespace = chapter ? 'demo' : 'home'
+  const t = isLocale(lang) ? await getTranslations({ locale: lang, namespace }) : await getTranslations(namespace)
   const title = chapter ? t(`chapter.${chapter.id}.title`) : t('ogTitle')
   const body = metaDescriptionFrom(chapter ? t(`chapter.${chapter.id}.body`, chapterValues(chapter.id)) : t('metaDescription'), 150)
 

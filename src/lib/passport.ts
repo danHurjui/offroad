@@ -79,6 +79,7 @@ export interface BatteryReadingInput {
   source: string
   note: string | null
   createdAt: Date
+  updatedAt?: Date
 }
 
 export interface BatteryRow {
@@ -87,8 +88,9 @@ export interface BatteryRow {
   km: number | null
   source: string
   note: string | null
-  /** When it was typed in — a reading has no edit, so no "changed". */
+  /** When it was typed in, and last corrected if a day or more later. */
   recordedAt: Date
+  changedAt: Date | null
 }
 
 export interface AccidentInput {
@@ -239,6 +241,7 @@ export function buildPassport(input: PassportInput): Passport {
         source: r.source,
         note: r.note,
         recordedAt: r.createdAt,
+        changedAt: r.updatedAt && r.updatedAt.getTime() - r.createdAt.getTime() > DAY_MS ? r.updatedAt : null,
       })),
     },
     absences,

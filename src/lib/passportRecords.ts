@@ -45,7 +45,7 @@ export async function loadPassport(vehicle: Vehicle, options: PassportOptions, n
     // RL-056: the report file stays behind the owner's session, like photos.
     prisma.batteryHealthReading.findMany({
       where: { vehicleId: vehicle.id },
-      select: { date: true, sohPercent: true, km: true, source: true, note: true, createdAt: true },
+      select: { date: true, sohPercent: true, km: true, source: true, note: true, createdAt: true, updatedAt: true },
     }),
     vehicle.isPublic ? prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { username: true } }) : Promise.resolve(null),
     vehicle.isPublic

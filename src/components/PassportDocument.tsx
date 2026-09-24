@@ -233,7 +233,10 @@ export default async function PassportDocument({
                     {t('batteryReading', { soh: r.sohPercent, source: tb(`source.${r.source}`) })}
                   </div>
                   {r.note && <p className="whitespace-pre-line text-sm text-ink">{r.note}</p>}
-                  <div className="text-xs text-ink-faint">{t('recordedOn', { date: fmtDate(r.recordedAt) })}</div>
+                  <div className="text-xs text-ink-faint">
+                    {t('recordedOn', { date: fmtDate(r.recordedAt) })}
+                    {r.changedAt && ` · ${t('changedOn', { date: fmtDate(r.changedAt) })}`}
+                  </div>
                 </li>
               ))}
             </ol>

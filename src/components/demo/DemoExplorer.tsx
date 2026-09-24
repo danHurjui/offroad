@@ -54,7 +54,14 @@ function matchesTier(chapter: DemoChapter, tier: TierFilter): boolean {
   return tier === 'all' || chapter.tier === tier
 }
 
-export default function DemoExplorer({ previews }: { previews: Record<string, React.ReactNode> }) {
+export default function DemoExplorer({
+  previews,
+  featureBase = '/demo',
+}: {
+  previews: Record<string, React.ReactNode>
+  /** Where the feature pages are: `/en/demo` on the English address. */
+  featureBase?: string
+}) {
   const t = useTranslations('demo')
   const vocabulary = useAllVocabulary()
 
@@ -300,7 +307,7 @@ export default function DemoExplorer({ previews }: { previews: Record<string, Re
                 </Link>
               )}
               <Link
-                href={`/demo/${chapter.id}`}
+                href={`${featureBase}/${chapter.id}`}
                 className="mt-3 block text-sm font-medium text-brand-600 hover:underline dark:text-brand-300"
               >
                 {t('featurePage')}

@@ -113,7 +113,9 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
               heading: [date(r.date), r.km !== null ? km(r.km) : null, t('batteryReading', { soh: r.sohPercent, source: tb(`source.${r.source}`) })]
                 .filter(Boolean)
                 .join('  ·  '),
-              detail: [r.note, t('recordedOn', { date: date(r.recordedAt) })].filter(Boolean).join('  ·  '),
+              detail: [r.note, t('recordedOn', { date: date(r.recordedAt) }), r.changedAt && t('changedOn', { date: date(r.changedAt) })]
+                .filter(Boolean)
+                .join('  ·  '),
             })),
             none: t('absence.noBatteryReadingsRecorded'),
           }

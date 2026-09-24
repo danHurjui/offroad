@@ -6,9 +6,10 @@ import { requireVehicleAccess } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { powertrainOf, takesCharge } from '@/lib/powertrain'
+import { isBatterySource } from '@/lib/batteryHealth'
 import BatteryReadingForm from '@/components/BatteryReadingForm'
 import BatteryWarrantyForm from '@/components/BatteryWarrantyForm'
-import { BatteryReadingRow, RemoveBatteryReadingButton } from '@/components/BatteryReadingRemove'
+import { BatteryReadingItem, BatteryReadingRow } from '@/components/BatteryReadingRemove'
 
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 const num = (n: number) => n.toLocaleString('ro-RO')
@@ -53,29 +54,30 @@ export default async function BatteryPage({ params }: { params: { id: string } }
         <ul className="card mb-6 divide-y divide-surface-border">
           {readings.map((r) => (
             <BatteryReadingRow key={r.id} readingId={r.id}>
-              <li className="flex flex-wrap items-start justify-between gap-3 p-4">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-ink">{t('recordedValue', { soh: r.sohPercent })}</span>
-                    <span className="badge badge-neutral">{t(`source.${r.source}`)}</span>
-                  </div>
-                  <div className="text-sm text-ink-muted">
-                    {fmtDate(r.date)}
-                    {r.km !== null && ` · ${num(r.km)} km`}
-                  </div>
-                  {r.note && <p className="mt-1 whitespace-pre-line text-sm text-ink">{r.note}</p>}
+              <BatteryReadingItem
+                vehicleId={vehicle.id}
+                reading={{
+                  id: r.id,
+                  sohPercent: r.sohPercent,
+                  source: isBatterySource(r.source) ? r.source : 'WORKSHOP_TEST',
+                  date: r.date.toISOString().slice(0, 10),
+                  km: r.km,
+                  note: r.note,
+                }}
+                dateLabel={fmtDate(r.date)}
+                reportUrl={r.reportUrl}
+                canChange={isOwner || r.createdByUserId === session.user.id}
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-ink">{t('recordedValue', { soh: r.sohPercent })}</span>
+                  <span className="badge badge-neutral">{t(`source.${r.source}`)}</span>
                 </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  {r.reportUrl && (
-                    <a href={`/api/uploads/${r.reportUrl}`} target="_blank" rel="noreferrer" className="text-sm text-brand-600 hover:underline dark:text-brand-300">
-                      {t('viewReport')}
-                    </a>
-                  )}
-                  {(isOwner || r.createdByUserId === session.user.id) && (
-                    <RemoveBatteryReadingButton vehicleId={vehicle.id} readingId={r.id} dateLabel={fmtDate(r.date)} />
-                  )}
+                <div className="text-sm text-ink-muted">
+                  {fmtDate(r.date)}
+                  {r.km !== null && ` · ${num(r.km)} km`}
                 </div>
-              </li>
+                {r.note && <p className="mt-1 whitespace-pre-line text-sm text-ink">{r.note}</p>}
+              </BatteryReadingItem>
             </BatteryReadingRow>
           ))}
         </ul>

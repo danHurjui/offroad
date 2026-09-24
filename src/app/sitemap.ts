@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { appUrlForMetadata } from '@/lib/appUrl'
 import { DEMO_CHAPTERS } from '@/lib/demoTour'
 import { LEGAL_LAST_UPDATED } from '@/lib/legal'
+import { englishPath, hasEnglishVersion } from '@/i18n/localeRoutes'
 
 /**
  * RL-018: every URL a crawler is allowed to have, so search engines find
@@ -21,14 +22,14 @@ import { LEGAL_LAST_UPDATED } from '@/lib/legal'
  * the whole dashboard, the collaborator accept flow, the API — is in
  * neither.
  *
- * ## One URL per page, no hreflang
+ * ## Two addresses for our own pages, one for everybody else's
  *
- * The interface is bilingual but the language comes from a cookie rather
- * than the path (src/i18n/config.ts), so every page here has exactly one
- * URL and there is no alternate to declare. A crawler gets the default
- * language. That is the cost of the cookie approach, and it is stated
- * here because this file is where somebody will come looking for the
- * missing `alternates`.
+ * The homepage, the tour and its feature pages, donate, the legal pages
+ * and the readable site map have an English address as well
+ * (src/i18n/localeRoutes.ts): both are listed, each declaring the pair as
+ * hreflang alternates, Romanian as `x-default`. A build, a ticket or a
+ * parts request is somebody's own words in one language, so it has one
+ * URL, as do the community pages, which are mostly those.
  *
  * ## lastmod is only ever a real date
  *
@@ -105,9 +106,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
+  // Each page with an English address, listed twice, the pair declared on both.
+  const withEnglish = (entries: MetadataRoute.Sitemap): MetadataRoute.Sitemap =>
+    entries.flatMap((entry) => {
+      const path = entry.url.slice(baseUrl.length) || '/'
+      if (!hasEnglishVersion(path)) return [entry]
+      const alternates = { languages: { ro: `${baseUrl}${path === '/' ? '' : path}`, en: `${baseUrl}${englishPath(path)}`, 'x-default': `${baseUrl}${path === '/' ? '' : path}` } }
+      return [
+        { ...entry, alternates },
+        { ...entry, url: `${baseUrl}${englishPath(path)}`, alternates },
+      ]
+    })
+
   return [
-    ...staticPages,
-    ...featurePages,
+    ...withEnglish([...staticPages, ...featurePages]),
     ...vehicles
       .filter((v) => v.owner.username && v.slug)
       .map((v) => ({

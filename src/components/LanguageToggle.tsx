@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { LOCALES, LOCALE_NAMES, LOCALE_SHORT, type Locale } from '@/i18n/config'
+import { englishPath, fromEnglishPath, hasEnglishVersion } from '@/i18n/localeRoutes'
 
 /**
  * Romanian/English switch, the language counterpart to ThemeToggle.
@@ -24,6 +25,7 @@ export default function LanguageToggle({ compact = false }: { compact?: boolean 
   const active = useLocale() as Locale
   const t = useTranslations('language')
   const router = useRouter()
+  const pathname = usePathname()
   const [pending, startTransition] = useTransition()
   const [failed, setFailed] = useState(false)
 
@@ -39,7 +41,19 @@ export default function LanguageToggle({ compact = false }: { compact?: boolean 
           body: JSON.stringify({ locale: next }),
         })
         if (!res.ok) throw new Error(String(res.status))
-        router.refresh()
+        // A public page with two addresses moves to the one in the chosen
+        // language (an /en address is English whatever the cookie says);
+        // everywhere else the cookie is the whole story.
+        const romanianPath = fromEnglishPath(pathname ?? '/') ?? pathname ?? '/'
+        const target = next === 'en' && hasEnglishVersion(romanianPath) ? englishPath(romanianPath) : romanianPath
+        if (target !== pathname) {
+          // A full load, not router.push: the root layout (html lang, the
+          // client catalogue) is only rendered again on a document load,
+          // and a soft navigation would leave it in the old language.
+          window.location.assign(`${target}${window.location.search}${window.location.hash}`)
+        } else {
+          router.refresh()
+        }
       } catch {
         // The page is still readable in the current language, so this is
         // not worth a dialog — but it must not silently do nothing either.

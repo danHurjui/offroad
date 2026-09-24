@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/pageMetadata'
 import Link from 'next/link'
 import { getLocale, getTranslations } from 'next-intl/server'
 import PublicHeader from '@/components/PublicHeader'
@@ -19,7 +20,7 @@ import { MAX_UPLOAD_BYTES } from '@/lib/storage'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('legalPages.terms')
-  return { title: t('metaTitle'), description: t('metaDescription') }
+  return await publicPageMetadata({ path: '/terms', title: t('metaTitle'), description: t('metaDescription') })
 }
 
 const MAX_UPLOAD_MB = Math.round(MAX_UPLOAD_BYTES / (1024 * 1024))

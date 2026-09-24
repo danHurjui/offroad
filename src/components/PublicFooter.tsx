@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import AppVersion from './AppVersion'
+import { localizedHref } from '@/i18n/localizedHref'
 
 export default async function PublicFooter() {
   const t = await getTranslations('footer')
@@ -17,7 +18,7 @@ export default async function PublicFooter() {
           <AppVersion className="mt-1 -ml-1 block" />
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-ink-muted">
-          <Link href="/demo" className="hover:text-ink">
+          <Link href={localizedHref('/demo')} className="hover:text-ink">
             {t('demo')}
           </Link>
           <Link href="/community" className="hover:text-ink">
@@ -29,22 +30,22 @@ export default async function PublicFooter() {
           <Link href="/tickets/new" className="hover:text-ink">
             {t('reportBug')}
           </Link>
-          <Link href="/donate" className="hover:text-ink">
+          <Link href={localizedHref('/donate')} className="hover:text-ink">
             {t('donate')}
           </Link>
           <Link href="/login" className="hover:text-ink">
             {t('logIn')}
           </Link>
-          <Link href="/terms" className="hover:text-ink">
+          <Link href={localizedHref('/terms')} className="hover:text-ink">
             {t('terms')}
           </Link>
-          <Link href="/privacy" className="hover:text-ink">
+          <Link href={localizedHref('/privacy')} className="hover:text-ink">
             {t('privacy')}
           </Link>
-          <Link href="/cookies" className="hover:text-ink">
+          <Link href={localizedHref('/cookies')} className="hover:text-ink">
             {t('cookies')}
           </Link>
-          <Link href="/sitemap" className="hover:text-ink">
+          <Link href={localizedHref('/sitemap')} className="hover:text-ink">
             {t('sitemap')}
           </Link>
         </nav>

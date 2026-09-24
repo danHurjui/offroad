@@ -12,6 +12,7 @@ import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 import DemoExplorer from '@/components/demo/DemoExplorer'
 import { demoPreviews } from '@/components/demo/demoPreviews'
+import { localizedHref } from '@/i18n/localizedHref'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('demo')
@@ -128,7 +129,7 @@ export default async function DemoPage() {
         <h2 id="explore-heading" className="sr-only">
           {t('explore')}
         </h2>
-        <DemoExplorer previews={previews} />
+        <DemoExplorer previews={previews} featureBase={localizedHref('/demo')} />
       </section>
 
       {/*
@@ -161,7 +162,7 @@ export default async function DemoPage() {
                           URL a crawler can rank, where the panel above is
                           a fragment of this one. */}
                       <Link
-                        href={`/demo/${chapter.id}`}
+                        href={localizedHref(`/demo/${chapter.id}`)}
                         className="text-brand-600 hover:underline dark:text-brand-300"
                       >
                         {t(`chapter.${chapter.id}.title`)}
@@ -217,7 +218,7 @@ export default async function DemoPage() {
             <Link href="/register" className="btn-primary px-6 py-3 text-base">
               {t('ctaStart')}
             </Link>
-            <Link href="/" className="btn-secondary px-6 py-3 text-base">
+            <Link href={localizedHref('/')} className="btn-secondary px-6 py-3 text-base">
               {t('ctaPricing')}
             </Link>
           </div>

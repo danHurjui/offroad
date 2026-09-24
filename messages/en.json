@@ -1875,6 +1875,15 @@
       "body": "{inviter} has invited you to join {organization} on RigLog as {role}.",
       "cta": "Accept the invitation",
       "expiry": "This link expires in 7 days. Log in with this email address to accept it."
+    },
+    "batteryWarranty": {
+      "subject": "Battery warranty ending soon: {vehicle}",
+      "body": "The high-voltage battery warranty on your {vehicle} is close to its end: {detail}.",
+      "advice": "If you want the battery tested while it is still covered, now is the time. This is the one reminder for these terms.",
+      "cta": "See it in RigLog",
+      "byDate": "until {date} ({days, plural, one {# day} other {# days}} left)",
+      "byKm": "up to {limitKm} km ({km} km left)",
+      "whicheverFirst": "{byDate} or {byKm}, whichever comes first"
     }
   },
   "notify": {
@@ -1883,7 +1892,8 @@
     "priceAlertTitle": "{item} hit your target price",
     "priceAlertBody": "Found at {price} RON (target {target} RON)",
     "documentReminderTitle": "{document} {daysUntil}",
-    "documentReminderBody": "{vehicle} — update it in RigLog once renewed."
+    "documentReminderBody": "{vehicle} — update it in RigLog once renewed.",
+    "batteryWarrantyTitle": "Battery warranty ending soon: {vehicle}"
   },
   "legal": {
     "cookie": {
@@ -3755,7 +3765,7 @@
     "deleted": "Reading from {date} removed.",
     "deleteFailed": "Couldn’t remove the reading.",
     "warrantyTitle": "Battery warranty",
-    "warrantyHelp": "From the car’s paperwork — usually a number of years or of km, whichever comes first. Leave a field blank if the warranty has no such limit.",
+    "warrantyHelp": "From the car’s paperwork — usually a number of years or of km, whichever comes first. Leave a field blank if the warranty has no such limit. You get one reminder by email when it comes within 90 days or 5,000 km of its end.",
     "warrantyUntil": "Ends on",
     "warrantyKm": "Or at (km)",
     "warrantySave": "Save warranty",
@@ -3763,7 +3773,11 @@
     "warrantyFailed": "Couldn’t save the warranty.",
     "warrantyUntilValue": "until {date}",
     "warrantyKmValue": "{km} km",
-    "whicheverFirst": "or"
+    "whicheverFirst": "or",
+    "edit": "Edit",
+    "updated": "Reading corrected.",
+    "saveChanges": "Save changes",
+    "cancel": "Cancel"
   },
   "talonScan": {
     "scan": "Scan the talon",

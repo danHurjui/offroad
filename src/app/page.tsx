@@ -17,6 +17,7 @@ import { FEATURE_KEYS, HOME_FEATURE_CHAPTER } from '@/lib/demoTour'
 import DemoScreen from '@/components/demo/DemoScreen'
 import { HealthPreview, ReceiptScanPreview } from '@/components/demo/recordPreviews'
 import { FleetBoardPreview } from '@/components/demo/fleetPreviews'
+import { localizedHref } from '@/i18n/localizedHref'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('home')
@@ -100,7 +101,7 @@ export default async function Home() {
             <Link href="/register" className="btn-primary px-6 py-3 text-base">
               {t('ctaStart')}
             </Link>
-            <Link href="/demo" className="btn-secondary px-6 py-3 text-base">
+            <Link href={localizedHref('/demo')} className="btn-secondary px-6 py-3 text-base">
               {t('ctaDemo')}
             </Link>
             <Link href="/community" className="btn-secondary px-6 py-3 text-base">
@@ -154,7 +155,7 @@ export default async function Home() {
       <Section eyebrow={t('featuresEyebrow')} title={t('featuresTitle')}>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURE_KEYS.map((key) => (
-            <Link key={key} href={`/demo/${HOME_FEATURE_CHAPTER[key]}`} className="card block p-5 transition-colors hover:border-brand-400">
+            <Link key={key} href={localizedHref(`/demo/${HOME_FEATURE_CHAPTER[key]}`)} className="card block p-5 transition-colors hover:border-brand-400">
               <h3 className="mb-1.5 font-semibold text-ink">{t(`feature.${key}.title`)}</h3>
               <p className="text-sm text-ink-muted">{t(`feature.${key}.body`)}</p>
             </Link>
@@ -163,7 +164,7 @@ export default async function Home() {
         {/* These nine are the summary. /demo is the same list at length,
             with a sample screen against each one. */}
         <div className="mt-6">
-          <Link href="/demo" className="btn-secondary">
+          <Link href={localizedHref('/demo')} className="btn-secondary">
             {t('ctaDemo')}
           </Link>
         </div>
@@ -299,7 +300,7 @@ export default async function Home() {
             <p className="text-sm text-ink-muted">
               {t('supportBody')}
             </p>
-            <Link href="/donate" className="btn-primary mt-4">
+            <Link href={localizedHref('/donate')} className="btn-primary mt-4">
               {t('donate')}
             </Link>
           </div>

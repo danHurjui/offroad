@@ -1,10 +1,11 @@
 import { cookies, headers } from 'next/headers'
 import { DEFAULT_LOCALE, LOCALE_COOKIE, type Locale, isLocale, localeFromAcceptLanguage } from './config'
+import { LOCALE_HEADER } from './localeRoutes'
 
 /**
  * The language this request should be answered in, in the order a person
- * would expect: what they chose, then what their browser asked for, then
- * Romanian.
+ * would expect: the address (an `/en` page), what they chose, then what
+ * their browser asked for, then Romanian.
  *
  * One implementation, used twice. next-intl's request config calls it to
  * decide what a *page* renders as; a Route Handler calls it directly when
@@ -17,6 +18,12 @@ import { DEFAULT_LOCALE, LOCALE_COOKIE, type Locale, isLocale, localeFromAcceptL
  */
 export function localeFromRequest(): Locale {
   try {
+    // An English address (/en/…) is English whoever reads it — the
+    // middleware sets this. Only a language, so a client sending it
+    // itself on another page gains nothing but English.
+    const fixed = headers().get(LOCALE_HEADER)
+    if (isLocale(fixed)) return fixed
+
     const chosen = cookies().get(LOCALE_COOKIE)?.value
     if (isLocale(chosen)) return chosen
 

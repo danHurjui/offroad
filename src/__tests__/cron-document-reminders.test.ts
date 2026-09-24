@@ -1,10 +1,15 @@
 jest.mock('@/lib/prisma', () => ({
-  prisma: { document: { findMany: jest.fn(), update: jest.fn() }, pushSubscription: { delete: jest.fn().mockResolvedValue({}) } },
+  prisma: {
+    document: { findMany: jest.fn(), update: jest.fn() },
+    vehicle: { findMany: jest.fn().mockResolvedValue([]), update: jest.fn() },
+    pushSubscription: { delete: jest.fn().mockResolvedValue({}) },
+  },
 }))
 jest.mock('@/lib/webpush', () => ({ sendPushNotification: jest.fn().mockResolvedValue('sent') }))
 jest.mock('@/lib/email', () => ({
   sendEmail: jest.fn().mockResolvedValue(undefined),
   documentReminderEmail: jest.fn().mockResolvedValue({ subject: 's', html: '<p>x</p>' }),
+  batteryWarrantyReminderEmail: jest.fn().mockResolvedValue({ subject: 'w', html: '<p>w</p>' }),
   emailLocale: jest.fn().mockReturnValue('ro'),
 }))
 // The email/notification path builds its translator directly from the
@@ -31,6 +36,7 @@ function req(headers: Record<string, string> = {}) {
 beforeEach(() => {
   jest.clearAllMocks()
   process.env.CRON_SECRET = 'test-secret'
+  ;(prisma.vehicle.findMany as jest.Mock).mockResolvedValue([])
 })
 
 it('returns 401 without the correct x-cron-secret header', async () => {
@@ -234,5 +240,68 @@ describe('Web Push (#100)', () => {
     mockFindMany.mockResolvedValue([doc({ owner: { email: 'o@test.com', pushSubscriptions: [sub('phone')] } })])
     await POST(req({ 'x-cron-secret': 'test-secret' }))
     expect(mockPush).toHaveBeenCalledTimes(1)
+  })
+})
+
+// RL-056: the battery warranty reminder rides the same daily job.
+describe('battery warranty reminder', () => {
+  const DAY = 24 * 60 * 60 * 1000
+  const ev = (over: Record<string, unknown> = {}) => ({
+    id: 'v9', make: 'Dacia', model: 'Spring', year: 2022, fuelType: 'ELECTRIC',
+    batteryWarrantyUntil: new Date(Date.now() + 40 * DAY), batteryWarrantyKm: null,
+    odometerReadings: [],
+    organizationId: null, owner: { email: 'ev@test.com', pushSubscriptions: [] }, organization: null,
+    ...over,
+  })
+  const run = async () => (await POST(req({ 'x-cron-secret': 'test-secret' }))).json()
+
+  beforeEach(() => {
+    mockFindMany.mockResolvedValue([])
+    process.env.NEXTAUTH_URL = 'https://riglog.example'
+  })
+  afterEach(() => delete process.env.NEXTAUTH_URL)
+
+  it('asks only for vehicles with terms and no reminder yet', async () => {
+    await run()
+    expect((prisma.vehicle.findMany as jest.Mock).mock.calls[0][0].where).toEqual({
+      batteryWarrantyRemindedAt: null,
+      OR: [{ batteryWarrantyUntil: { not: null } }, { batteryWarrantyKm: { not: null } }],
+    })
+  })
+
+  it('reminds once inside 90 days, marking it before it sends', async () => {
+    ;(prisma.vehicle.findMany as jest.Mock).mockResolvedValue([ev()])
+    const data = await run()
+    expect(prisma.vehicle.update).toHaveBeenCalledWith({ where: { id: 'v9' }, data: { batteryWarrantyRemindedAt: expect.any(Date) } })
+    expect(mockSendEmail).toHaveBeenCalledWith(expect.objectContaining({ to: 'ev@test.com', subject: 'w' }))
+    expect(data.sent).toBe(1)
+  })
+
+  it('reminds inside 5,000 km of a km limit, from the newest reading', async () => {
+    ;(prisma.vehicle.findMany as jest.Mock).mockResolvedValue([
+      ev({ batteryWarrantyUntil: null, batteryWarrantyKm: 160_000, odometerReadings: [{ km: 157_000, readAt: new Date(), isOverride: false, createdAt: new Date() }] }),
+    ])
+    await run()
+    expect(prisma.vehicle.update).toHaveBeenCalled()
+  })
+
+  it.each([
+    ['far off', { batteryWarrantyUntil: new Date(Date.now() + 400 * DAY) }],
+    ['already ended', { batteryWarrantyUntil: new Date(Date.now() - 2 * DAY) }],
+    ['a km limit with no km to measure', { batteryWarrantyUntil: null, batteryWarrantyKm: 160_000 }],
+    ['a car that does not plug in', { fuelType: 'DIESEL' }],
+  ])('sends nothing for %s', async (_name, over) => {
+    ;(prisma.vehicle.findMany as jest.Mock).mockResolvedValue([ev(over)])
+    await run()
+    expect(prisma.vehicle.update).not.toHaveBeenCalled()
+    expect(mockSendEmail).not.toHaveBeenCalled()
+  })
+
+  it('a company vehicle’s reminder goes to the people who manage it', async () => {
+    ;(prisma.vehicle.findMany as jest.Mock).mockResolvedValue([
+      ev({ organizationId: 'o1', organization: { members: [{ user: { email: 'm1@co.ro', pushSubscriptions: [] } }, { user: { email: 'm2@co.ro', pushSubscriptions: [] } }] } }),
+    ])
+    await run()
+    expect(mockSendEmail.mock.calls.map((c) => c[0].to)).toEqual(['m1@co.ro', 'm2@co.ro'])
   })
 })
