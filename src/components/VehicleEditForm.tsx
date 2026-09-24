@@ -10,7 +10,8 @@ import RegistrationFields, { registrationValuesFrom, type RegistrationValues } f
 import ValuesFields, { valuesFrom, valuesPayload, type ValuesValues } from './ValuesFields'
 import { compressImageIfNeeded } from '@/lib/compressImage'
 import { MAKE_SUGGESTIONS, modelSuggestionsFor } from '@/lib/vehicleSuggestions'
-import type { ProjectType } from '@/lib/projectType'
+import { PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
+import { SERVICE_INTERVAL_RANGES } from '@/lib/vehicleHealth'
 
 interface Vehicle {
   id: string
@@ -47,6 +48,8 @@ interface Vehicle {
   financeMonthlyRon: number | null
   financeStartDate: string | null
   financeEndDate: string | null
+  serviceIntervalKm: number | null
+  serviceIntervalMonths: number | null
 }
 
 export default function VehicleEditForm({
@@ -70,7 +73,11 @@ export default function VehicleEditForm({
     isPublic: vehicle.isPublic,
     hideCostsFromCollaborators: vehicle.hideCostsFromCollaborators,
     hidePublicCost: vehicle.hidePublicCost,
+    serviceIntervalKm: vehicle.serviceIntervalKm?.toString() ?? '',
+    serviceIntervalMonths: vehicle.serviceIntervalMonths?.toString() ?? '',
   })
+  // #104: only modes with a service row in Car Health (not restoration).
+  const hasServiceRow = PROJECT_TYPE_CONFIG[vehicle.projectType].serviceCategory !== null
   const [registration, setRegistration] = useState<RegistrationValues>(() => registrationValuesFrom(vehicle))
   const [values, setValues] = useState<ValuesValues>(() => valuesFrom(vehicle))
   const publicUrl = vehicle.ownerUsername && vehicle.slug ? `/builds/${vehicle.ownerUsername}/${vehicle.slug}` : null
@@ -226,6 +233,47 @@ export default function VehicleEditForm({
         <RegistrationFields values={registration} onChange={setRegistration} />
 
         <ValuesFields values={values} onChange={setValues} currentValueAt={vehicle.currentValueAt} />
+
+        {hasServiceRow && (
+          <fieldset className="space-y-2">
+            <legend className="label">{t('serviceInterval')}</legend>
+            <p className="text-xs text-ink-muted">{t('serviceIntervalHelp')}</p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="serviceIntervalKm">{t('serviceIntervalKm')}</label>
+                <input
+                  id="serviceIntervalKm"
+                  name="serviceIntervalKm"
+                  type="number"
+                  className="input"
+                  value={form.serviceIntervalKm}
+                  onChange={(e) => setForm({ ...form, serviceIntervalKm: e.target.value })}
+                  min={SERVICE_INTERVAL_RANGES.serviceIntervalKm.min}
+                  max={SERVICE_INTERVAL_RANGES.serviceIntervalKm.max}
+                  step={1}
+                  inputMode="numeric"
+                  placeholder="15000"
+                />
+              </div>
+              <div>
+                <label className="label" htmlFor="serviceIntervalMonths">{t('serviceIntervalMonths')}</label>
+                <input
+                  id="serviceIntervalMonths"
+                  name="serviceIntervalMonths"
+                  type="number"
+                  className="input"
+                  value={form.serviceIntervalMonths}
+                  onChange={(e) => setForm({ ...form, serviceIntervalMonths: e.target.value })}
+                  min={SERVICE_INTERVAL_RANGES.serviceIntervalMonths.min}
+                  max={SERVICE_INTERVAL_RANGES.serviceIntervalMonths.max}
+                  step={1}
+                  inputMode="numeric"
+                  placeholder="12"
+                />
+              </div>
+            </div>
+          </fieldset>
+        )}
 
         <CoverPhotoField
           currentUrl={coverUrl}

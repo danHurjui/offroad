@@ -1201,6 +1201,10 @@
     "urlOnSave": "Adresa publică se generează la salvare.",
     "hidePublicCost": "Ascunde costul total de pe pagina publică",
     "hideCostsFromCollaborators": "Ascunde totalurile de cost față de colaboratori",
+    "serviceInterval": "Interval de revizie",
+    "serviceIntervalHelp": "Cât de des are nevoie vehiculul de revizie, pentru Starea mașinii. Completează unul sau amândouă; lasă-le goale ca să folosim 15.000 km sau un an, pe care Starea mașinii îl prezintă apoi ca presupunere.",
+    "serviceIntervalKm": "La fiecare (km)",
+    "serviceIntervalMonths": "La fiecare (luni)",
     "saveFailed": "Nu am putut salva modificările",
     "saveChanges": "Salvează modificările",
     "dangerZone": "Zonă periculoasă",
@@ -2678,7 +2682,16 @@
       "due": "Următoarea în circa {km} km sau {days, plural, one {# zi} few {# zile} other {# de zile}}, care vine prima (presupunând la 15.000 km sau un an).",
       "overdue": "Depășită cu {km} km sau {days, plural, one {# zi} few {# zile} other {# de zile}} (presupunând la 15.000 km sau un an).",
       "dueTime": "Următoarea în {days, plural, one {# zi} few {# zile} other {# de zile}} (presupunând o dată pe an). Notează kilometrajul la revizie ca să urmărim și distanța.",
-      "overdueTime": "Depășită cu {days, plural, one {# zi} few {# zile} other {# de zile}} (presupunând o dată pe an)."
+      "overdueTime": "Depășită cu {days, plural, one {# zi} few {# zile} other {# de zile}} (presupunând o dată pe an).",
+      "overdueKm": "Depășită cu {km} km (presupunând la 15.000 km sau un an).",
+      "ownDue": "Următoarea în circa {km} km sau {days, plural, one {# zi} few {# zile} other {# de zile}}, care vine prima (intervalul tău: la fiecare {intervalKm, number} km sau {months, plural, one {lună} few {# luni} other {# de luni}}).",
+      "ownOverdue": "Depășită cu {km} km sau {days, plural, one {# zi} few {# zile} other {# de zile}} (intervalul tău: la fiecare {intervalKm, number} km sau {months, plural, one {lună} few {# luni} other {# de luni}}).",
+      "ownDueKm": "Următoarea în circa {km} km (intervalul tău: la fiecare {intervalKm, number} km).",
+      "ownOverdueKm": "Depășită cu {km} km (intervalul tău: la fiecare {intervalKm, number} km).",
+      "ownDueTime": "Următoarea în {days, plural, one {# zi} few {# zile} other {# de zile}} (intervalul tău: la fiecare {months, plural, one {lună} few {# luni} other {# de luni}}).",
+      "ownOverdueTime": "Depășită cu {days, plural, one {# zi} few {# zile} other {# de zile}} (intervalul tău: la fiecare {months, plural, one {lună} few {# luni} other {# de luni}}).",
+      "ownDueTimeKmUnknown": "Următoarea în {days, plural, one {# zi} few {# zile} other {# de zile}} (intervalul tău: la fiecare {intervalKm, number} km sau {months, plural, one {lună} few {# luni} other {# de luni}}). Notează kilometrajul la revizie ca să urmărim și distanța.",
+      "ownNoDistance": "Intervalul tău este la fiecare {intervalKm, number} km. Notează kilometrajul în ziua reviziei și încă o dată de atunci, ca să știi cât mai ai."
     },
     "tyres": {
       "none": "Nimic înregistrat — adaugă anvelopele montate ca să urmărim profilul și vechimea.",
@@ -2701,6 +2714,7 @@
     "nextAction": {
       "addDocuments": "Adaugă documentele vehiculului",
       "logService": "Notează ultima revizie",
+      "recordKm": "Notează kilometrajul",
       "bookService": "Programează o revizie",
       "renew": "Reînnoiește {type}",
       "addTyres": "Adaugă anvelopele montate",

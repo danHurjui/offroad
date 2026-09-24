@@ -94,6 +94,8 @@ export default async function EditVehiclePage({ params }: { params: { id: string
           financeMonthlyRon: toNumberOrNull(vehicle.financeMonthlyRon),
           financeStartDate: vehicle.financeStartDate?.toISOString() ?? null,
           financeEndDate: vehicle.financeEndDate?.toISOString() ?? null,
+          serviceIntervalKm: vehicle.serviceIntervalKm,
+          serviceIntervalMonths: vehicle.serviceIntervalMonths,
         }}
         coverCandidates={coverCandidates}
       />

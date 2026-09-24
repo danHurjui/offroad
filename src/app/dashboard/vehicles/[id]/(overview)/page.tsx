@@ -73,6 +73,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
     tasks,
     readings,
     tyreSets: tyreSets.map((set) => ({ ...set, treadDepthMm: toNumberOrNull(set.treadDepthMm) })),
+    serviceInterval: { km: vehicle.serviceIntervalKm, months: vehicle.serviceIntervalMonths },
   })
   // RL-019: Pro-gated, restoration only — the vehicle's plan (a
   // collaborator's own tier is irrelevant, same as everywhere else).

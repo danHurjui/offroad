@@ -209,6 +209,20 @@ describe('vehicle routes', () => {
     expect(mockUpdate).not.toHaveBeenCalled()
   })
 
+  it('PATCH saves the service interval (#104), and refuses one out of range', async () => {
+    const ok = await PATCH(req({ serviceIntervalKm: '10000', serviceIntervalMonths: '' }), { params: { id: 'v1' } })
+    expect(ok.status).toBe(200)
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: 'v1' },
+      data: { serviceIntervalKm: 10_000, serviceIntervalMonths: null },
+    })
+    mockUpdate.mockClear()
+    const bad = await PATCH(req({ serviceIntervalMonths: 120 }), { params: { id: 'v1' } })
+    expect(bad.status).toBe(400)
+    expect((await bad.json()).error).toMatch(/serviceIntervalMonths/)
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
   it('PATCH stays owner-only for these fields too', async () => {
     mockSession.mockResolvedValue({ user: { id: 'collaborator' } })
     const res = await PATCH(req({ plate: 'B 1 X' }), { params: { id: 'v1' } })

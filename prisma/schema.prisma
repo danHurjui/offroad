@@ -446,6 +446,11 @@ model Vehicle {
   financeMonthlyRon          Decimal?    @db.Decimal(10, 2)
   financeStartDate           DateTime?
   financeEndDate             DateTime?
+  /// #104: the owner's own service interval, for Car Health
+  /// (src/lib/vehicleHealth.ts). Either or both; with neither set the
+  /// default (15,000 km or a year) is used and said to be an assumption.
+  serviceIntervalKm          Int?
+  serviceIntervalMonths      Int?
   createdAt                  DateTime    @default(now())
   updatedAt                  DateTime    @updatedAt
 
