@@ -47,7 +47,7 @@
     "pushUnsupported": "Push notifications are not supported on this device/browser.",
     "pushNotConfigured": "Push notifications are not configured on this server yet.",
     "dangerZone": "Danger zone",
-    "deleteHelp": "Deletes your account and every vehicle, task, document and photo you own — including the uploaded files themselves, not just the entries pointing at them. Records of any donations are kept for accounting, with your account detached from them. This cannot be undone, so take a copy of your data first if you want one.",
+    "deleteHelp": "Deletes your account and every vehicle, task, document and photo you own — including the uploaded files themselves, not just the entries pointing at them. Records of any donations are kept for accounting, with your account detached from them. A Personal subscription is cancelled at the same moment, so nothing more is charged; the part of the period already paid for is not refunded automatically — ask for it if you want it back. This cannot be undone, so take a copy of your data first if you want one.",
     "deleteAccount": "Delete account",
     "confirmDelete": "Delete your account and all vehicles/tasks/photos? This cannot be undone.",
     "confirmDeleteAgain": "This is permanent. Are you absolutely sure?",
@@ -2159,7 +2159,8 @@
     "orgAlreadySubscribed": "The organisation already has a plan. Change it in the billing portal.",
     "orgComped": "This organisation is free with no vehicle cap; there is nothing to buy.",
     "orgHasSubscription": "Cancel the organisation’s plan in the billing portal first — deleting it would leave the card being charged.",
-    "orgPayingAccount": "Deleting your account would also delete {names}, which still pays for a plan. Cancel it in that organisation’s billing portal first."
+    "orgPayingAccount": "Deleting your account would also delete {names}, which still pays for a plan. Cancel it in that organisation’s billing portal first.",
+    "subscriptionCancelFailed": "Your Personal subscription could not be cancelled just now, so your account was not deleted and nothing was changed. Try again in a moment, or cancel the plan from Manage billing first."
   },
   "admin": {
     "aria": "RigLog admin",

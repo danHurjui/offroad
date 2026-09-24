@@ -1285,6 +1285,16 @@ relation is `Restrict`, and `Task.addedBy` had no rule — so account
 deletion 500'd for every user who had ever logged a task, silently, for as
 long as the route existed. The route looked right; the schema refused.
 
+**Deleting an account cancels its Personal subscription first**
+(`cancelPersonalSubscriptions()`, `src/lib/accountBilling.ts`) — every
+live subscription on the account's customer, at once, not at period end.
+Afterwards nobody can sign in to cancel it, and Stripe would keep
+charging. If Stripe cannot cancel it (down, or not configured), nothing
+is deleted and the answer is 503 `subscriptionCancelFailed`. The unused
+part of the period is not refunded automatically; `/terms` already says
+to ask. A paying *organisation* is refused instead (`orgPayingAccount`) —
+it is the company's plan to end, not one member's.
+
 `Task.addedBy` is `SetNull` rather than `Cascade` on purpose: a mechanic
 collaborator deleting their own account must not take the vehicle owner's
 service history with them. `addedByUserId` is therefore nullable, meaning
