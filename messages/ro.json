@@ -46,6 +46,7 @@
     "pushDenied": "Permisiunea pentru notificări a fost refuzată în browser.",
     "pushUnsupported": "Notificările push nu sunt acceptate pe acest dispozitiv sau browser.",
     "pushNotConfigured": "Notificările push nu sunt încă configurate pe acest server.",
+    "pushReminders": "Un dispozitiv cu notificările push activate primește și memento-urile pentru documente (ITP, RCA, rovinietă…), pe lângă e-mail. Dacă oprești push aici, se opresc și ele pe acest dispozitiv.",
     "dangerZone": "Zonă periculoasă",
     "deleteHelp": "Îți șterge contul și fiecare vehicul, lucrare, document și poză pe care le deții — inclusiv fișierele încărcate, nu doar înregistrările care trimit la ele. Evidența donațiilor se păstrează pentru contabilitate, cu contul tău desprins de ele. Un abonament Personal se anulează în același moment, deci nu se mai încasează nimic; partea din perioadă deja plătită nu se rambursează automat — cere-o dacă o vrei înapoi. Operațiunea nu poate fi anulată, așa că descarcă-ți datele înainte dacă vrei o copie.",
     "deleteAccount": "Șterge contul",
@@ -1836,7 +1837,9 @@
     "taskDone": "a marcat „{task}” ca finalizată",
     "photosAdded": "a adăugat poze noi la „{task}”",
     "priceAlertTitle": "{item} a atins prețul tău țintă",
-    "priceAlertBody": "Găsit la {price} RON (țintă {target} RON)"
+    "priceAlertBody": "Găsit la {price} RON (țintă {target} RON)",
+    "documentReminderTitle": "{document} {daysUntil}",
+    "documentReminderBody": "{vehicle} — actualizează documentul în RigLog după reînnoire."
   },
   "legal": {
     "cookie": {
@@ -2034,7 +2037,7 @@
       "basisInterestsTerm": "Interese legitime",
       "basisInterests": "menținerea serviciului sigur și funcțional: limitarea traficului, prevenirea abuzurilor, jurnalele serverului.",
       "basisConsentTerm": "Consimțământ",
-      "basisConsent": "notificările opționale, pe e-mail și push, despre proiectele pe care le urmărești. Tu le activezi și tot tu le poți dezactiva oricând din setări.",
+      "basisConsent": "notificările opționale, pe e-mail și push, despre proiectele pe care le urmărești, și memento-urile push pentru documentele tale pe un dispozitiv unde ai activat push. Tu le activezi și tot tu le poți dezactiva oricând din setări.",
       "basisLegalTerm": "Obligație legală",
       "basisLegal": "păstrarea evidenței plăților.",
       "sharingHeading": "Cine mai are acces",

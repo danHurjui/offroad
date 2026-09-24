@@ -308,8 +308,17 @@ Vercel Cron, which Vercel invokes with `GET` and an automatic
 scheduler (a crontab, GitHub Actions) at it with either that header or
 `x-cron-secret: $CRON_SECRET`. In-app badge (vehicle dashboard "Documents"
 link) and the historic-vehicle banner (`isHistoricVehicle()`, 30+ years
-old → informational only, doesn't change reminder math) are built; web
-push is not — only email. See "Email" below for the provider setup.
+old → informational only, doesn't change reminder math) are built.
+See "Email" below for the provider setup.
+
+**Web Push too (#100)**: each recipient's subscribed devices get the
+reminder as well, in their language. It is sent inside the same loop,
+after the thresholds are marked, so it shares the email's one decision —
+never a second send path with its own idea of what is due. A failed push
+costs neither the email nor the next recipient (nor the reverse); a
+404/410 deletes the subscription. It follows the device subscription, not
+`notifyFollowedPush`: that flag is about projects you follow, and turning
+push off in settings removes the subscription, which stops both.
 
 ### Email (`src/lib/email.ts`)
 Two providers, chosen by **which API key is set** — Brevo first, then
@@ -1546,7 +1555,7 @@ task detail, photo upload, photo timeline, found-state intake, profile
 settings, PWA install shell, workshop DIY/labour log on task.
 
 Phase 2 is fully implemented:
-- RL-011/012 wishlist / parts hunt, RL-013 document reminders (email only —
+- RL-011/012 wishlist / parts hunt, RL-013 document reminders (email, and Web Push since #100 —
   see above)
 - RL-016 receipt attach on tasks
 - RL-015 cost analytics dashboard (`src/lib/analytics.ts` +

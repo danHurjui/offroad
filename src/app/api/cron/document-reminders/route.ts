@@ -7,10 +7,12 @@ import { decideReminder, daysUntilMessage, getDocumentStatus, REMINDER_FIELDS } 
 import { sendEmail, documentReminderEmail, emailLocale } from '@/lib/email'
 import { purgeExpiredRateLimits } from '@/lib/rateLimit'
 import { appUrlForNotification } from '@/lib/appUrl'
+import { sendPushNotification } from '@/lib/webpush'
 
 /**
  * RL-013: document reminders at 30/14/3 days before expiry, delivered by
- * email. Not user-facing.
+ * email and (#100) Web Push to every device each recipient subscribed.
+ * Not user-facing.
  *
  * vercel.json wires a daily Vercel Cron job at this path when deployed
  * there — Vercel invokes cron routes with GET and, when CRON_SECRET is
@@ -20,7 +22,9 @@ import { appUrlForNotification } from '@/lib/appUrl'
  * Actions, curl) with either that header or `x-cron-secret: $CRON_SECRET`
  * — POST is accepted too, for manual/non-GET callers.
  *
- * In-app badge / web push are not implemented here — see CLAUDE.md.
+ * Push rides the same decision as the email: it is sent inside the loop
+ * that has already marked the thresholds, so it can never be a second send
+ * path with its own idea of what is due. Without VAPID keys it does nothing.
  */
 async function handle(req: NextRequest) {
   const bearer = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
@@ -37,12 +41,17 @@ async function handle(req: NextRequest) {
     },
     include: {
       // RL-038: a company vehicle's reminders go to the people who manage it.
-      vehicle: { select: { id: true, make: true, model: true, year: true, ...managersSelect({ email: true, locale: true }) } },
+      vehicle: { select: { id: true, make: true, model: true, year: true, ...managersSelect({
+          email: true,
+          locale: true,
+          pushSubscriptions: { select: { id: true, endpoint: true, p256dh: true, auth: true } },
+        }), } },
     },
   })
 
   const baseUrl = appUrlForNotification('the document reminder email')
   let sent = 0
+  let pushed = 0
 
   // Bail out of the whole loop rather than skipping sends inside it. The
   // reminderNSentAt fields are marked *before* the email goes out, so
@@ -80,6 +89,27 @@ async function handle(req: NextRequest) {
       } catch (e) {
         console.error('[cron] document reminder not delivered:', e)
       }
+
+      // After the email and independent of it: a failed email does not
+      // cost the push, and a failed push costs neither the email nor the
+      // next recipient. A dead subscription (404/410) is deleted.
+      if (recipient.pushSubscriptions.length > 0) {
+        const tPush = await translator(locale, 'notify')
+        const payload = {
+          title: tPush('documentReminderTitle', { document: tDoc(`type.${doc.type}`), daysUntil: tDoc(days.key, days.values) }),
+          body: tPush('documentReminderBody', { vehicle: `${doc.vehicle.year} ${doc.vehicle.make} ${doc.vehicle.model}` }),
+          url: `${baseUrl}/dashboard/vehicles/${doc.vehicle.id}/documents`,
+        }
+        for (const sub of recipient.pushSubscriptions) {
+          try {
+            const result = await sendPushNotification(sub, payload)
+            if (result === 'sent') pushed++
+            if (result === 'gone') await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {})
+          } catch (e) {
+            console.error('[cron] document reminder push not delivered:', e)
+          }
+        }
+      }
     }
   }
 
@@ -91,6 +121,7 @@ async function handle(req: NextRequest) {
   return NextResponse.json({
     checked: documents.length,
     sent,
+    pushed,
     purgedRateLimits,
     // Surfaced so a scheduled run that silently sent nothing is visible in
     // the cron log rather than looking like a quiet success.

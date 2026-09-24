@@ -46,6 +46,7 @@
     "pushDenied": "Notification permission was denied in your browser.",
     "pushUnsupported": "Push notifications are not supported on this device/browser.",
     "pushNotConfigured": "Push notifications are not configured on this server yet.",
+    "pushReminders": "A device with push on also gets your document reminders (ITP, RCA, rovinietă…) alongside the email. Turning push off here stops them on this device too.",
     "dangerZone": "Danger zone",
     "deleteHelp": "Deletes your account and every vehicle, task, document and photo you own — including the uploaded files themselves, not just the entries pointing at them. Records of any donations are kept for accounting, with your account detached from them. A Personal subscription is cancelled at the same moment, so nothing more is charged; the part of the period already paid for is not refunded automatically — ask for it if you want it back. This cannot be undone, so take a copy of your data first if you want one.",
     "deleteAccount": "Delete account",
@@ -1836,7 +1837,9 @@
     "taskDone": "marked “{task}” as done",
     "photosAdded": "added new photos to “{task}”",
     "priceAlertTitle": "{item} hit your target price",
-    "priceAlertBody": "Found at {price} RON (target {target} RON)"
+    "priceAlertBody": "Found at {price} RON (target {target} RON)",
+    "documentReminderTitle": "{document} {daysUntil}",
+    "documentReminderBody": "{vehicle} — update it in RigLog once renewed."
   },
   "legal": {
     "cookie": {
@@ -2034,7 +2037,7 @@
       "basisInterestsTerm": "Legitimate interests",
       "basisInterests": "keeping the service secure and working: rate limiting, abuse prevention, server logs.",
       "basisConsentTerm": "Consent",
-      "basisConsent": "optional email and push notifications about projects you follow. You turn them on, and you can turn them off in settings at any time.",
+      "basisConsent": "optional email and push notifications about projects you follow, and push reminders about your documents on a device where you turned push on. You turn them on, and you can turn them off in settings at any time.",
       "basisLegalTerm": "Legal obligation",
       "basisLegal": "keeping records of payments.",
       "sharingHeading": "Who else sees it",
