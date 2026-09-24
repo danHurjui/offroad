@@ -31,7 +31,7 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     ? { vehicleId, vehicle: { ownerId: userId } }
     : { vehicle: { ownerId: userId } }
 
-  const [user, vehicles, tasks, taskPhotos, foundStatePhotos, waypoints, documents, fuelEntries, accidentPhotos, handoverPhotos] = await Promise.all([
+  const [user, vehicles, tasks, taskPhotos, foundStatePhotos, waypoints, documents, fuelEntries, chargeEntries, accidentPhotos, handoverPhotos] = await Promise.all([
     // A user's avatar isn't tied to a vehicle, so it's skipped when the
     // caller only wants one vehicle's files.
     vehicleId ? null : prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } }),
@@ -49,6 +49,8 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     prisma.document.findMany({ where: { ...underVehicle, fileUrl: { not: null } }, select: { fileUrl: true } }),
     // RL-044: fill-up receipts.
     prisma.fuelEntry.findMany({ where: { ...underVehicle, receiptUrl: { not: null } }, select: { receiptUrl: true } }),
+    // RL-053: charging receipts.
+    prisma.chargeEntry.findMany({ where: { ...underVehicle, receiptUrl: { not: null } }, select: { receiptUrl: true } }),
     // RL-050: photos of accidents and damage.
     prisma.accidentPhoto.findMany({ where: { accident: underVehicle }, select: { url: true } }),
     // RL-040: condition photos at a driver handover.
@@ -64,6 +66,7 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     ...waypoints.map((w) => w.photoUrl),
     ...documents.map((d) => d.fileUrl),
     ...fuelEntries.map((f) => f.receiptUrl),
+    ...chargeEntries.map((c) => c.receiptUrl),
     ...accidentPhotos.map((p) => p.url),
     ...handoverPhotos.map((p) => p.url),
   ]
@@ -228,6 +231,7 @@ function fetchVehicles(userId: string) {
       odometerReadings: { orderBy: { readAt: 'asc' } },
       trips: { orderBy: { date: 'asc' } },
       fuelEntries: { orderBy: { date: 'asc' } },
+      chargeEntries: { orderBy: { date: 'asc' } },
       tyreSets: true,
       expenses: { orderBy: { date: 'asc' } },
       accidents: { include: { photos: true }, orderBy: { date: 'asc' } },
@@ -263,6 +267,11 @@ function serializeVehicle(vehicle: VehicleWithRelations) {
     fuelEntries: vehicle.fuelEntries.map((entry) => ({
       ...entry,
       litres: toNumberOrNull(entry.litres),
+      totalRon: toNumberOrNull(entry.totalRon),
+    })),
+    chargeEntries: vehicle.chargeEntries.map((entry) => ({
+      ...entry,
+      kwh: toNumberOrNull(entry.kwh),
       totalRon: toNumberOrNull(entry.totalRon),
     })),
     tyreSets: vehicle.tyreSets.map((set) => ({

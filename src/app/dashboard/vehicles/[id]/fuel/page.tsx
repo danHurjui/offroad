@@ -12,6 +12,7 @@ import FuelQuickAdd from '@/components/FuelQuickAdd'
 import { FuelRow, RemoveFuelButton } from '@/components/FuelEntryRemove'
 import { vehicleHasPro } from '@/lib/entitlement'
 import { formatRon } from '@/lib/money'
+import { powertrainOf, takesFuel } from '@/lib/powertrain'
 
 const num = (n: number, digits = 2) => n.toLocaleString('ro-RO', { maximumFractionDigits: digits })
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
@@ -62,7 +63,14 @@ export default async function FuelPage({ params }: { params: { id: string } }) {
       </Link>
       <h1 className="mb-6 text-2xl font-bold text-ink">{t('pageTitle')}</h1>
 
-      {vehicle.fuelType === 'ELECTRIC' && <p className="note mb-6 rounded-lg border p-3 text-sm text-ink">{t('electric')}</p>}
+      {!takesFuel(powertrainOf(vehicle.fuelType)) && (
+        <p className="note mb-6 rounded-lg border p-3 text-sm text-ink">
+          {t('electric')}{' '}
+          <Link href={`/dashboard/vehicles/${vehicle.id}/charging`} className="font-medium text-brand-600 hover:underline dark:text-brand-300">
+            {t('electricLink')}
+          </Link>
+        </p>
+      )}
 
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="card p-4">

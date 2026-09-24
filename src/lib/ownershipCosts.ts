@@ -50,6 +50,9 @@ export const MONEY_COLUMNS: Record<string, CostSource | { excluded: string }> = 
   'Task.partsCostRon': 'task',
   'Task.labourCostRon': 'task',
   'FuelEntry.totalRon': 'fuel',
+  // RL-053 records charges; RL-055 (#123) adds them to the total, with the
+  // "Fuel & charging" category. Until then the costs page leaves them out.
+  'ChargeEntry.totalRon': { excluded: 'not yet counted: charging joins the cost of ownership in RL-055 (#123)' },
   'Document.costRon': 'document',
   'TyreSet.costRon': 'tyreSet',
   'VehicleExpense.amountRon': 'expense',

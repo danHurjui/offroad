@@ -20,6 +20,7 @@ import DriverPanel from '@/components/DriverPanel'
 import ReadOnlyVehicleNotice from '@/components/ReadOnlyVehicleNotice'
 import { vehicleHasPro } from '@/lib/entitlement'
 import { formatRon } from '@/lib/money'
+import { powertrainOf, takesCharge, takesFuel } from '@/lib/powertrain'
 
 // RL-003: project dashboard — build overview screen.
 export default async function VehicleDashboardPage({ params }: { params: { id: string } }) {
@@ -127,6 +128,8 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
   // mode, owner vs collaborator vs driver — only the layout changed.
   const base = `/dashboard/vehicles/${vehicle.id}`
   const costsVisible = !hidesCosts(vehicle)
+  // RL-053: a plug-in hybrid gets both logs; an unknown powertrain keeps fuel.
+  const powertrain = powertrainOf(vehicle.fuelType)
   type SectionLink = { href: string; label: string; count?: number; external?: boolean }
   const when = (condition: boolean, link: SectionLink): SectionLink[] => (condition ? [link] : [])
   const sectionGroups: { key: 'records' | 'planning' | 'share'; links: SectionLink[] }[] = [
@@ -136,7 +139,8 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
         ...when(isOwner, { href: `${base}/documents`, label: t('documents'), count: documentsNeedingAttention }),
         { href: `${base}/service-book`, label: t('serviceBook') },
         { href: `${base}/photos`, label: t('photos') },
-        { href: `${base}/fuel`, label: t('fuel') },
+        ...when(takesFuel(powertrain), { href: `${base}/fuel`, label: t('fuel') }),
+        ...when(takesCharge(powertrain), { href: `${base}/charging`, label: t('charging') }),
         ...when(vehicle.projectType !== 'RESTORATION', { href: `${base}/tyres`, label: t('tyres') }),
         { href: `${base}/expenses`, label: t('expenses') },
         { href: `${base}/accidents`, label: t('accidents') },
@@ -196,7 +200,7 @@ export default async function VehicleDashboardPage({ params }: { params: { id: s
       </Link>
       <ReadOnlyVehicleNotice vehicle={vehicle} isOwner={isOwner} />
       {vehicle.access === 'driver' && (
-        <DriverPanel vehicleId={vehicle.id} projectType={vehicle.projectType} driverUserId={session.user.id} />
+        <DriverPanel vehicleId={vehicle.id} projectType={vehicle.projectType} fuelType={vehicle.fuelType} driverUserId={session.user.id} />
       )}
       {/* The title and the one thing people come here to do share a row;
           everything else is a section link, grouped below. These used to be

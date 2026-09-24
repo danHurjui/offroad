@@ -41,6 +41,10 @@ interface Vehicle {
   powerKw: number | null
   colour: string | null
   seats: number | null
+  batteryCapacityKwh: number | null
+  connectorTypes: string[]
+  maxAcKw: number | null
+  maxDcKw: number | null
   purchaseDate: string | null
   purchasePriceRon: number | null
   currentValueRon: number | null

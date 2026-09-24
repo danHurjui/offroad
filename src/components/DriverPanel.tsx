@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { prisma } from '@/lib/prisma'
 import { PROJECT_TYPE_CONFIG, type ProjectType } from '@/lib/projectType'
+import { powertrainOf, takesCharge, takesFuel } from '@/lib/powertrain'
 import HandoverForm from './HandoverForm'
 
 /**
@@ -12,10 +13,12 @@ import HandoverForm from './HandoverForm'
 export default async function DriverPanel({
   vehicleId,
   projectType,
+  fuelType,
   driverUserId,
 }: {
   vehicleId: string
   projectType: ProjectType
+  fuelType: string | null
   driverUserId: string
 }) {
   const t = await getTranslations('driverPanel')
@@ -26,6 +29,7 @@ export default async function DriverPanel({
   if (!assignment) return null
   const base = `/dashboard/vehicles/${vehicleId}`
   const canReport = PROJECT_TYPE_CONFIG[projectType].defect !== null
+  const powertrain = powertrainOf(fuelType)
 
   return (
     <section className="card mb-6 space-y-4 p-4 sm:p-5">
@@ -39,7 +43,8 @@ export default async function DriverPanel({
         {canReport && (
           <Link href={`${base}/defect`} className="btn-primary text-center">{t('report')}</Link>
         )}
-        <Link href={`${base}/fuel`} className="btn-secondary text-center">{t('fuel')}</Link>
+        {takesFuel(powertrain) && <Link href={`${base}/fuel`} className="btn-secondary text-center">{t('fuel')}</Link>}
+        {takesCharge(powertrain) && <Link href={`${base}/charging`} className="btn-secondary text-center">{t('charge')}</Link>}
         <Link href={`${base}/expenses`} className="btn-secondary text-center">{t('expense')}</Link>
         <Link href={`${base}/odometer`} className="btn-secondary text-center">{t('km')}</Link>
         <Link href={`${base}/trips`} className="btn-secondary text-center">{t('trips')}</Link>

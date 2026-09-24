@@ -208,6 +208,7 @@ model User {
   tickets              Ticket[]              @relation("TicketAuthor")
   odometerReadings     OdometerReading[]     @relation("OdometerReadingBy")
   fuelEntries          FuelEntry[]           @relation("FuelEntryBy")
+  chargeEntries        ChargeEntry[]         @relation("ChargeEntryBy")
   tyreSets             TyreSet[]             @relation("TyreSetBy")
   vehicleExpenses      VehicleExpense[]      @relation("VehicleExpenseBy")
   accidents            Accident[]            @relation("AccidentBy")
@@ -435,6 +436,19 @@ model Vehicle {
   powerKw                    Int?
   colour                     String?
   seats                      Int?
+  /// RL-052: what a vehicle that plugs in can take (src/lib/powertrain.ts
+  /// decides when these apply). Usable capacity, as a spec sheet quotes it;
+  /// a Float rather than a Decimal because it is a specification, not
+  /// money, and a Decimal would reach every JSON response as a string.
+  batteryCapacityKwh         Float?
+  /// CONNECTOR_TYPES codes, in catalogue order, each at most once.
+  connectorTypes             String[]    @default([])
+  maxAcKw                    Int?
+  maxDcKw                    Int?
+  /// RL-053: what the owner pays per kWh at home, so a home charge can be
+  /// entered as kWh alone. A price, so Decimal (pitfall #5); hidden with the
+  /// other costs (serializeVehicle).
+  homeTariffRonPerKwh        Decimal?    @db.Decimal(6, 4)
   /// RL-050 values and finance, RL-045 slice 5 (src/lib/ownershipCosts.ts).
   /// The purchase lives here for every mode, a restoration's acquisition
   /// included — its intake form reads and writes these (#105).
@@ -469,6 +483,7 @@ model Vehicle {
   followers     Follow[]
   odometerReadings OdometerReading[]
   fuelEntries   FuelEntry[]
+  chargeEntries ChargeEntry[]
   tyreSets      TyreSet[]
   expenses      VehicleExpense[]
   passportLinks PassportLink[]
@@ -983,7 +998,7 @@ model OdometerReading {
   km             Int
   /// The day the reading was taken, stored at 00:00 UTC.
   readAt         DateTime
-  /// MANUAL | TASK | FOUND_STATE | FUEL | HANDOVER | TRIP — see ODOMETER_SOURCES.
+  /// MANUAL | TASK | FOUND_STATE | FUEL | CHARGE | HANDOVER | TRIP — see ODOMETER_SOURCES.
   source         String
   note           String?
   isOverride     Boolean  @default(false)
@@ -1001,6 +1016,7 @@ model OdometerReading {
   task      Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
   createdBy User?   @relation("OdometerReadingBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
   fuelEntry FuelEntry?
+  chargeEntry ChargeEntry?
   assignmentStart VehicleAssignment? @relation("AssignmentStart")
   assignmentEnd   VehicleAssignment? @relation("AssignmentEnd")
   tripStart       Trip?              @relation("TripStart")
@@ -1042,6 +1058,39 @@ model FuelEntry {
 
   @@index([vehicleId, date])
   @@index([createdByUserId])
+}
+
+/// RL-053 (#121): a charge, for a vehicle that plugs in. The fuel log's
+/// rules, with two differences: the total may be 0 (free charging is
+/// common), and kWh may be missing (a home socket with no meter).
+model ChargeEntry {
+  id                String   @id @default(cuid())
+  vehicleId         String
+  /// The day of the charge, stored at 00:00 UTC like FuelEntry.date.
+  date              DateTime
+  /// Energy delivered, as the charger or its app reports it. Never derived
+  /// from battery % x capacity: that is the car's estimate.
+  kwh               Decimal? @db.Decimal(8, 2)
+  totalRon          Decimal  @db.Decimal(10, 2)
+  /// The total was worked out from the owner's home tariff, not paid as a
+  /// price; the entry says so. Stored, so a later tariff rewrites nothing.
+  totalFromTariff   Boolean  @default(false)
+  /// HOME | WORK | PUBLIC_AC | PUBLIC_DC | OTHER — see CHARGE_LOCATIONS.
+  location          String
+  network           String?
+  socFrom           Int?
+  socTo             Int?
+  /// Storage key, never a URL; in collectStorageKeys() (pitfall #14).
+  receiptUrl        String?
+  odometerReadingId String?  @unique
+  createdByUserId   String?
+  createdAt         DateTime @default(now())
+
+  vehicle         Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  odometerReading OdometerReading? @relation(fields: [odometerReadingId], references: [id], onDelete: SetNull)
+  createdBy       User?            @relation("ChargeEntryBy", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@index([vehicleId, date])
 }
 
 /// RL-050 tyres, shipped with Car Health (RL-046) as slice 4 of #49 —

@@ -28,6 +28,13 @@ export type FuelType = (typeof FUEL_TYPES)[number]
 export const TRANSMISSIONS = ['MANUAL', 'AUTOMATIC'] as const
 export type Transmission = (typeof TRANSMISSIONS)[number]
 
+/**
+ * RL-052: the sockets a car that plugs in can take. Codes, labelled from
+ * `vehicleProfile.connector.*`, like the fuel types.
+ */
+export const CONNECTOR_TYPES = ['TYPE_2', 'CCS2', 'CHADEMO', 'TYPE_1', 'SCHUKO', 'OTHER'] as const
+export type ConnectorType = (typeof CONNECTOR_TYPES)[number]
+
 export const PLATE_MAX_LENGTH = 12
 export const COLOUR_MAX_LENGTH = 40
 
@@ -36,10 +43,19 @@ export const RANGES = {
   engineCapacityCc: { min: 49, max: 20000 },
   powerKw: { min: 1, max: 1500 },
   seats: { min: 1, max: 90 },
+  // RL-052. Usable capacity: a small plug-in hybrid has ~5 kWh, the
+  // largest electric pickups ~200.
+  batteryCapacityKwh: { min: 1, max: 250 },
+  maxAcKw: { min: 1, max: 50 },
+  maxDcKw: { min: 1, max: 1000 },
 } as const
 
 export function isFuelType(value: unknown): value is FuelType {
   return typeof value === 'string' && (FUEL_TYPES as readonly string[]).includes(value)
+}
+
+export function isConnectorType(value: unknown): value is ConnectorType {
+  return typeof value === 'string' && (CONNECTOR_TYPES as readonly string[]).includes(value)
 }
 
 export function isTransmission(value: unknown): value is Transmission {
@@ -84,6 +100,10 @@ export type ProfileField =
   | 'powerKw'
   | 'colour'
   | 'seats'
+  | 'batteryCapacityKwh'
+  | 'connectorTypes'
+  | 'maxAcKw'
+  | 'maxDcKw'
 
 export const PROFILE_FIELDS: readonly ProfileField[] = [
   'plate',
@@ -94,6 +114,10 @@ export const PROFILE_FIELDS: readonly ProfileField[] = [
   'powerKw',
   'colour',
   'seats',
+  'batteryCapacityKwh',
+  'connectorTypes',
+  'maxAcKw',
+  'maxDcKw',
 ]
 
 export type ProfileData = Partial<{
@@ -105,6 +129,10 @@ export type ProfileData = Partial<{
   powerKw: number | null
   colour: string | null
   seats: number | null
+  batteryCapacityKwh: number | null
+  connectorTypes: ConnectorType[]
+  maxAcKw: number | null
+  maxDcKw: number | null
 }>
 
 export type ProfileParse = { ok: true; data: ProfileData } | { ok: false; field: ProfileField }
@@ -165,6 +193,41 @@ export function parseProfile(body: Record<string, unknown>, now: Date = new Date
     const n = intInRange(body[field], RANGES[field])
     if (n === false) return { ok: false, field }
     data[field] = n
+  }
+
+  // RL-052: the battery side. Kept whatever the fuel type says — switching
+  // a vehicle to petrol by mistake must not throw away what was entered;
+  // the form only hides these while they do not apply.
+  if (body.batteryCapacityKwh !== undefined) {
+    if (blank(body.batteryCapacityKwh)) data.batteryCapacityKwh = null
+    else {
+      const n = Number(body.batteryCapacityKwh)
+      const { min, max } = RANGES.batteryCapacityKwh
+      // One decimal is what a spec sheet quotes (e.g. 52.0, 77.4).
+      if (!Number.isFinite(n) || n < min || n > max || Math.round(n * 10) !== n * 10) {
+        return { ok: false, field: 'batteryCapacityKwh' }
+      }
+      data.batteryCapacityKwh = n
+    }
+  }
+
+  for (const field of ['maxAcKw', 'maxDcKw'] as const) {
+    if (body[field] === undefined) continue
+    const n = intInRange(body[field], RANGES[field])
+    if (n === false) return { ok: false, field }
+    data[field] = n
+  }
+
+  if (body.connectorTypes !== undefined) {
+    if (body.connectorTypes === null) data.connectorTypes = []
+    else if (!Array.isArray(body.connectorTypes) || !body.connectorTypes.every(isConnectorType)) {
+      return { ok: false, field: 'connectorTypes' }
+    } else {
+      // Stored in catalogue order, once each, so two saves of the same
+      // choice are the same row.
+      const chosen = new Set<string>(body.connectorTypes)
+      data.connectorTypes = CONNECTOR_TYPES.filter((c) => chosen.has(c))
+    }
   }
 
   if (body.colour !== undefined) {

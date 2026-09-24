@@ -1,5 +1,6 @@
 import { getTranslations } from 'next-intl/server'
-import { isFuelType, isTransmission, kwToCp } from '@/lib/vehicleProfile'
+import { isConnectorType, isFuelType, isTransmission, kwToCp } from '@/lib/vehicleProfile'
+import { hasEngine, powertrainOf, takesCharge } from '@/lib/powertrain'
 
 /**
  * RL-050: the plate as a plate. **Private screens only** — never import
@@ -25,13 +26,24 @@ export async function RegistrationSummary({
     colour: string | null
     seats: number | null
     firstRegistrationDate: Date | null
+    batteryCapacityKwh?: number | null
+    connectorTypes?: string[]
   }
 }) {
   const t = await getTranslations('vehicleProfile')
   const parts: string[] = []
+  const powertrain = powertrainOf(vehicle.fuelType)
   if (isFuelType(vehicle.fuelType)) parts.push(t(`fuel.${vehicle.fuelType}`))
   if (isTransmission(vehicle.transmission)) parts.push(t(`gearbox.${vehicle.transmission}`))
-  if (vehicle.engineCapacityCc) parts.push(t('summaryCc', { cc: vehicle.engineCapacityCc.toLocaleString('ro-RO') }))
+  // RL-052: only what applies to this powertrain; a value kept after the
+  // fuel type changed is not shown against the wrong one.
+  if (takesCharge(powertrain) && vehicle.batteryCapacityKwh) {
+    parts.push(t('summaryBattery', { kwh: vehicle.batteryCapacityKwh.toLocaleString('ro-RO') }))
+  }
+  if (takesCharge(powertrain) && vehicle.connectorTypes?.length) {
+    parts.push(vehicle.connectorTypes.filter(isConnectorType).map((c) => t(`connector.${c}`)).join(', '))
+  }
+  if (hasEngine(powertrain) && vehicle.engineCapacityCc) parts.push(t('summaryCc', { cc: vehicle.engineCapacityCc.toLocaleString('ro-RO') }))
   if (vehicle.powerKw) parts.push(t('summaryKw', { kw: vehicle.powerKw, cp: kwToCp(vehicle.powerKw) }))
   if (vehicle.colour) parts.push(vehicle.colour)
   if (vehicle.seats) parts.push(t('summarySeats', { seats: vehicle.seats }))

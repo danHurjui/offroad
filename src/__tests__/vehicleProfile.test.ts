@@ -60,6 +60,46 @@ describe('normalizePlate', () => {
   })
 })
 
+describe('parseProfile: battery and charging (RL-052)', () => {
+  it('accepts a usable capacity to one decimal, and clears it with a blank', () => {
+    expect(parseProfile({ batteryCapacityKwh: '77.4' }, NOW)).toEqual({ ok: true, data: { batteryCapacityKwh: 77.4 } })
+    expect(parseProfile({ batteryCapacityKwh: 52 }, NOW)).toEqual({ ok: true, data: { batteryCapacityKwh: 52 } })
+    expect(parseProfile({ batteryCapacityKwh: '' }, NOW)).toEqual({ ok: true, data: { batteryCapacityKwh: null } })
+  })
+
+  it.each([['0'], ['251'], ['77.45'], ['abc']])('refuses a capacity of %s', (value) => {
+    expect(parseProfile({ batteryCapacityKwh: value }, NOW)).toEqual({ ok: false, field: 'batteryCapacityKwh' })
+  })
+
+  it('stores connectors once each, in catalogue order', () => {
+    expect(parseProfile({ connectorTypes: ['CCS2', 'TYPE_2', 'CCS2'] }, NOW)).toEqual({
+      ok: true,
+      data: { connectorTypes: ['TYPE_2', 'CCS2'] },
+    })
+    expect(parseProfile({ connectorTypes: [] }, NOW)).toEqual({ ok: true, data: { connectorTypes: [] } })
+    expect(parseProfile({ connectorTypes: null }, NOW)).toEqual({ ok: true, data: { connectorTypes: [] } })
+  })
+
+  it('refuses an unknown connector, or a connector that is not in a list', () => {
+    expect(parseProfile({ connectorTypes: ['TYPE_2', 'TESLA_SUPERCHARGER'] }, NOW)).toEqual({ ok: false, field: 'connectorTypes' })
+    expect(parseProfile({ connectorTypes: 'TYPE_2' }, NOW)).toEqual({ ok: false, field: 'connectorTypes' })
+  })
+
+  it('bounds the charging powers', () => {
+    expect(parseProfile({ maxAcKw: '11', maxDcKw: '150' }, NOW)).toEqual({ ok: true, data: { maxAcKw: 11, maxDcKw: 150 } })
+    expect(parseProfile({ maxAcKw: '51' }, NOW)).toEqual({ ok: false, field: 'maxAcKw' })
+    expect(parseProfile({ maxDcKw: '7.5' }, NOW)).toEqual({ ok: false, field: 'maxDcKw' })
+  })
+
+  it('keeps the battery fields whatever the fuel type says', () => {
+    // Switching to petrol by mistake must not lose what was entered.
+    expect(parseProfile({ fuelType: 'PETROL', batteryCapacityKwh: '12.0' }, NOW)).toEqual({
+      ok: true,
+      data: { fuelType: 'PETROL', batteryCapacityKwh: 12 },
+    })
+  })
+})
+
 describe('parseProfile', () => {
   it('returns only the fields that were sent', () => {
     expect(parseProfile({ make: 'Dacia' }, NOW)).toEqual({ ok: true, data: {} })
@@ -242,6 +282,6 @@ describe('vehicle routes', () => {
   })
 
   it('knows every field it parses', () => {
-    expect(PROFILE_FIELDS).toHaveLength(8)
+    expect(PROFILE_FIELDS).toHaveLength(12)
   })
 })

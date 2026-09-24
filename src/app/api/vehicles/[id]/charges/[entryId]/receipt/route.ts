@@ -1,0 +1,80 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { apiError, apiErrorWith } from '@/lib/apiError'
+import { requireSession } from '@/lib/authz'
+import { requireVehicleAccess, hidesCosts } from '@/lib/access'
+import { prisma } from '@/lib/prisma'
+import { readFormData } from '@/lib/requestBody'
+import { saveUpload, deleteUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
+import { serializeChargeEntry } from '@/lib/serialize'
+import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
+
+/**
+ * RL-053: a charge's receipt, a photo or PDF, one per entry — the fill-up
+ * receipt's rules. The key is stored, never a URL, filed under the vehicle
+ * **owner's** prefix whoever uploads it, so the owner's erasure request
+ * finds it (collectStorageKeys()).
+ */
+async function load(vehicleId: string, entryId: string, userId: string) {
+  const vehicle = await requireVehicleAccess(vehicleId, userId)
+  if (!vehicle) return { ok: false as const, error: await apiError('notFound', 404) }
+  const entry = await prisma.chargeEntry.findUnique({ where: { id: entryId } })
+  if (!entry || entry.vehicleId !== vehicle.id) return { ok: false as const, error: await apiError('notFound', 404) }
+  if (vehicle.access !== 'owner' && entry.createdByUserId !== userId) {
+    return { ok: false as const, error: await apiError('chargeOwnOnly', 403) }
+  }
+  return { ok: true as const, vehicle, entry }
+}
+
+export async function POST(req: NextRequest, { params }: { params: { id: string; entryId: string } }): Promise<NextResponse> {
+  const auth = await requireSession()
+  if (!auth.ok) return auth.error
+  const loaded = await load(params.id, params.entryId, auth.session.user.id)
+  if (!loaded.ok) return loaded.error
+  const readOnly = await refuseIfReadOnly(loaded.vehicle)
+  if (readOnly) return readOnly
+  const { vehicle, entry } = loaded
+
+  const parsedForm = await readFormData(req)
+  if (!parsedForm.ok) return parsedForm.error
+  const file = parsedForm.form.get('file')
+  if (!(file instanceof File)) return await apiError('fileRequired', 400)
+  if (!ALLOWED_UPLOAD_TYPES.includes(file.type)) return await apiError('unsupportedFileType', 400)
+  if (file.size > MAX_UPLOAD_BYTES) {
+    return await apiErrorWith('fileTooLarge', { maxMb: MAX_UPLOAD_BYTES / 1024 / 1024 }, 400)
+  }
+
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const key = await saveUpload(vehicle.ownerId, vehicle.id, file.name, buffer, file.type)
+    const updated = await prisma.chargeEntry.update({
+      where: { id: entry.id },
+      data: { receiptUrl: key },
+      include: { odometerReading: { select: { km: true } } },
+    })
+    if (entry.receiptUrl) await deleteUpload(entry.receiptUrl)
+    const shown = serializeChargeEntry(updated)
+    return NextResponse.json(hidesCosts(vehicle) ? { ...shown, totalRon: null, pricePerKwh: null } : shown)
+  } catch (e) {
+    if (e instanceof StorageError) return await apiError('saveFileFailed', 500)
+    return await apiError('internalError', 500)
+  }
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string; entryId: string } }) {
+  const auth = await requireSession()
+  if (!auth.ok) return auth.error
+  const loaded = await load(params.id, params.entryId, auth.session.user.id)
+  if (!loaded.ok) return loaded.error
+  const readOnly = await refuseIfReadOnly(loaded.vehicle)
+  if (readOnly) return readOnly
+  const { entry } = loaded
+  if (!entry.receiptUrl) return NextResponse.json({ ok: true })
+
+  try {
+    await prisma.chargeEntry.update({ where: { id: entry.id }, data: { receiptUrl: null } })
+    await deleteUpload(entry.receiptUrl)
+    return NextResponse.json({ ok: true })
+  } catch {
+    return await apiError('internalError', 500)
+  }
+}

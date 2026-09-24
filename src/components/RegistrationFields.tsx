@@ -1,7 +1,8 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
-import { FUEL_TYPES, PLATE_MAX_LENGTH, COLOUR_MAX_LENGTH, RANGES, TRANSMISSIONS, kwToCp } from '@/lib/vehicleProfile'
+import { CONNECTOR_TYPES, FUEL_TYPES, PLATE_MAX_LENGTH, COLOUR_MAX_LENGTH, RANGES, TRANSMISSIONS, kwToCp } from '@/lib/vehicleProfile'
+import { hasEngine, powertrainOf, takesCharge } from '@/lib/powertrain'
 
 export interface RegistrationValues {
   plate: string
@@ -12,6 +13,10 @@ export interface RegistrationValues {
   powerKw: string
   colour: string
   seats: string
+  batteryCapacityKwh: string
+  connectorTypes: string[]
+  maxAcKw: string
+  maxDcKw: string
 }
 
 /** Form state from what the server holds. */
@@ -24,6 +29,10 @@ export function registrationValuesFrom(vehicle: {
   powerKw: number | null
   colour: string | null
   seats: number | null
+  batteryCapacityKwh: number | null
+  connectorTypes: string[]
+  maxAcKw: number | null
+  maxDcKw: number | null
 }): RegistrationValues {
   return {
     plate: vehicle.plate ?? '',
@@ -34,6 +43,10 @@ export function registrationValuesFrom(vehicle: {
     powerKw: vehicle.powerKw?.toString() ?? '',
     colour: vehicle.colour ?? '',
     seats: vehicle.seats?.toString() ?? '',
+    batteryCapacityKwh: vehicle.batteryCapacityKwh?.toString() ?? '',
+    connectorTypes: vehicle.connectorTypes,
+    maxAcKw: vehicle.maxAcKw?.toString() ?? '',
+    maxDcKw: vehicle.maxDcKw?.toString() ?? '',
   }
 }
 
@@ -75,6 +88,10 @@ export default function RegistrationFields({
   const t = useTranslations('vehicleProfile')
   const set = (patch: Partial<RegistrationValues>) => onChange({ ...values, ...patch })
   const kw = Number(values.powerKw)
+  // RL-052: fields that do not apply are hidden, never cleared — their
+  // values still go back unchanged, so picking the wrong fuel by mistake
+  // and correcting it loses nothing.
+  const powertrain = powertrainOf(values.fuelType)
   const today = new Date().toISOString().slice(0, 10)
 
   return (
@@ -111,7 +128,7 @@ export default function RegistrationFields({
             ))}
           </select>
         </div>
-        <div>
+        <div hidden={!hasEngine(powertrain)}>
           <label className="label" htmlFor="engineCapacityCc">{t('engineCapacityCc')}</label>
           <input
             id="engineCapacityCc"
@@ -170,6 +187,80 @@ export default function RegistrationFields({
           />
         </div>
       </div>
+
+      {takesCharge(powertrain) && (
+        <fieldset className="space-y-4 rounded-xl border border-surface-border p-4">
+          <legend className="px-1 text-sm font-semibold text-ink">{t('batteryHeading')}</legend>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div>
+              <label className="label" htmlFor="batteryCapacityKwh">{t('batteryCapacityKwh')}</label>
+              <input
+                id="batteryCapacityKwh"
+                type="number"
+                inputMode="decimal"
+                className="input"
+                value={values.batteryCapacityKwh}
+                min={RANGES.batteryCapacityKwh.min}
+                max={RANGES.batteryCapacityKwh.max}
+                step={0.1}
+                aria-describedby="batteryCapacityKwh-help"
+                onChange={(e) => set({ batteryCapacityKwh: e.target.value })}
+              />
+              <p id="batteryCapacityKwh-help" className="mt-1 text-xs text-ink-faint">{t('batteryCapacityHelp')}</p>
+            </div>
+            <div>
+              <label className="label" htmlFor="maxAcKw">{t('maxAcKw')}</label>
+              <input
+                id="maxAcKw"
+                type="number"
+                inputMode="numeric"
+                className="input"
+                value={values.maxAcKw}
+                min={RANGES.maxAcKw.min}
+                max={RANGES.maxAcKw.max}
+                step={1}
+                onChange={(e) => set({ maxAcKw: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="label" htmlFor="maxDcKw">{t('maxDcKw')}</label>
+              <input
+                id="maxDcKw"
+                type="number"
+                inputMode="numeric"
+                className="input"
+                value={values.maxDcKw}
+                min={RANGES.maxDcKw.min}
+                max={RANGES.maxDcKw.max}
+                step={1}
+                onChange={(e) => set({ maxDcKw: e.target.value })}
+              />
+            </div>
+          </div>
+          <fieldset>
+            <legend className="label">{t('connectorTypes')}</legend>
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              {CONNECTOR_TYPES.map((code) => (
+                <label key={code} className="flex min-h-11 items-center gap-2 text-sm text-ink sm:min-h-0">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={values.connectorTypes.includes(code)}
+                    onChange={(e) =>
+                      set({
+                        connectorTypes: e.target.checked
+                          ? [...values.connectorTypes, code]
+                          : values.connectorTypes.filter((c) => c !== code),
+                      })
+                    }
+                  />
+                  {t(`connector.${code}`)}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </fieldset>
+      )}
     </fieldset>
   )
 }
