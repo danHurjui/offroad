@@ -74,4 +74,45 @@ describe('GET /api/uploads/[...path]', () => {
     expect(mockRequireVehicleAccess).not.toHaveBeenCalled()
     expect(res.headers.get('Cache-Control')).toContain('public')
   })
+
+  // #114: the access check keys on the vehicleId in segment 1, but the file
+  // was read from the whole joined path — a `..` segment could satisfy the
+  // check against a public vehicle while pointing the read at another
+  // vehicle's private file. The key shape is now validated up front.
+  describe('rejects anything that is not a clean <user>/<vehicle>/<file> key', () => {
+    it('refuses traversal segments without touching the DB or storage', async () => {
+      const res = await GET(req(), {
+        params: { path: ['u1', 'v1', '..', '..', 'victimUser', 'victimVehicle', 'secret.jpg'] },
+      })
+      expect(res.status).toBe(404)
+      expect(mockVehicleFindUnique).not.toHaveBeenCalled()
+      expect(mockReadUpload).not.toHaveBeenCalled()
+    })
+
+    it('refuses a `..` filename segment', async () => {
+      const res = await GET(req(), { params: { path: ['u1', 'v1', '..'] } })
+      expect(res.status).toBe(404)
+      expect(mockReadUpload).not.toHaveBeenCalled()
+    })
+
+    it('refuses a slash smuggled into a segment', async () => {
+      const res = await GET(req(), { params: { path: ['u1', 'v1', 'a/b.jpg'] } })
+      expect(res.status).toBe(404)
+      expect(mockReadUpload).not.toHaveBeenCalled()
+    })
+
+    it('refuses more than three segments', async () => {
+      const res = await GET(req(), { params: { path: ['u1', 'v1', 'sub', 'photo.jpg'] } })
+      expect(res.status).toBe(404)
+      expect(mockReadUpload).not.toHaveBeenCalled()
+    })
+
+    it('reads from exactly the validated key it authorised', async () => {
+      mockVehicleFindUnique.mockResolvedValue({ id: 'v1', isPublic: true })
+      mockGetSession.mockResolvedValue(null)
+      await GET(req(), { params: { path: ['u1', 'v1', 'photo.jpg'] } })
+      expect(mockVehicleFindUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'v1' } }))
+      expect(mockReadUpload).toHaveBeenCalledWith('u1/v1/photo.jpg')
+    })
+  })
 })

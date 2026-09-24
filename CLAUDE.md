@@ -1706,6 +1706,14 @@ as the rest of this file — see "What this is" above):
    that route allows unauthenticated requests for a public vehicle
    (`vehicle.isPublic`) — that's the one intentional exception; every other
    access path still requires a session + `requireVehicleAccess()`.
+   The route validates the key shape (`parseStorageKey`: exactly
+   `<userId>/<vehicleId>/<filename>`, id charset `[A-Za-z0-9_-]`) **before**
+   it authorises anything, so the vehicleId it access-checks (segment 1) is
+   always the vehicle that owns the bytes it reads — a `..` segment can no
+   longer point the read at another vehicle's file while the check passes
+   against a public one (#114). Keep the access-checked id and the read path
+   derived from the same validated key; never slice one out positionally and
+   join the other from the raw path.
 
 7. **`npx prisma generate` after every schema edit** — required before
    `npm test` or `npm run dev` will pick up new fields/models.
