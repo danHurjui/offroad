@@ -203,3 +203,51 @@ export const DEMO_FAQ_IDS = [
   'company',
   'leave',
 ] as const
+
+/** The section a chapter sits in, for its own page's breadcrumb and siblings. */
+export function sectionOf(chapterId: string): DemoSection | undefined {
+  return DEMO_SECTIONS.find((section) => section.chapters.some((chapter) => chapter.id === chapterId))
+}
+
+/**
+ * A meta description from a chapter's body: search shows about 155
+ * characters. A longer body ends at its last whole sentence when that
+ * says enough (half the room or more), else at a word, marked as cut —
+ * never mid-word, and never ".…".
+ */
+export function metaDescriptionFrom(body: string, max = 155): string {
+  const text = body.replace(/\s+/g, ' ').trim()
+  if (text.length <= max) return text
+  const room = text.slice(0, max)
+  const sentenceEnd = Math.max(room.lastIndexOf('. '), room.lastIndexOf('! '), room.lastIndexOf('? '))
+  if (sentenceEnd >= max / 2) return text.slice(0, sentenceEnd + 1)
+  const cut = text.slice(0, max - 1)
+  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s.,;:—–-]+$/, '')}…`
+}
+
+/**
+ * The homepage's feature cards, as catalogue keys rather than prose.
+ *
+ * The order is the layout; the words live in messages/*.json under
+ * `home.feature.<key>`, so adding a card is one entry here and one block
+ * per language — and i18n.test.ts fails if a language is missing one.
+ */
+export const FEATURE_KEYS = ['costs', 'photos', 'documents', 'fuel', 'health', 'receipts', 'mechanic', 'passport', 'privacy'] as const
+
+/**
+ * Where each card leads: the tour chapter that shows it at length, on its
+ * own page (/demo/[feature]). A link from the homepage is the strongest
+ * internal signal those pages get; demoTour.test.ts holds that every one
+ * of these is a real chapter.
+ */
+export const HOME_FEATURE_CHAPTER: Record<(typeof FEATURE_KEYS)[number], string> = {
+  costs: 'costs',
+  photos: 'photos',
+  documents: 'documents',
+  fuel: 'fuel',
+  health: 'health',
+  receipts: 'receiptScan',
+  mechanic: 'collaborators',
+  passport: 'passport',
+  privacy: 'yourData',
+}

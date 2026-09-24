@@ -402,7 +402,8 @@
     "privacy": "Confidențialitate",
     "cookies": "Cookie-uri",
     "xmlNote": "Motoarele de căutare preferă <link>sitemap.xml</link>.",
-    "demo": "Demo — toate funcțiile"
+    "demo": "Demo — toate funcțiile",
+    "features": "Funcții"
   },
   "dashboard": {
     "title": "Vehiculele tale",
@@ -512,7 +513,7 @@
     "battery": "Baterie"
   },
   "home": {
-    "metaTitle": "Jurnal auto: build off-road, restaurare și reparații — RigLog",
+    "metaTitle": "Jurnal auto online: service, ITP, RCA și consum — RigLog",
     "heroTitle": "Fiecare șurub, fiecare leu, fiecare poză — într-un singur loc.",
     "heroBody": "RigLog ține evidența build-urilor off-road, e jurnal de restaurare pentru clasice, jurnal de reparații pentru mașina de zi cu zi — și jurnal de flotă pentru dubele firmei tale. Păstrează istoricul pe care vehiculul tău îl merită.",
     "ctaStart": "Începe gratuit",
@@ -607,7 +608,7 @@
         "body": "Când vinzi, trimiți cartea de service, documentele și daunele notate ca link sau PDF — spunând cinstit că e evidența proprie a proprietarului."
       }
     },
-    "metaDescription": "Notează fiecare modificare, etapă de restaurare și reparație a vehiculului tău: costuri, poze, bonuri și memento-uri pentru ITP și RCA, într-un singur loc. Gratuit la început.",
+    "metaDescription": "Aplicație gratuită pentru mașina ta: istoric service și reparații, memento ITP, RCA și rovinietă, consum real, costuri și dosarul mașinii la vânzare.",
     "ctaDemo": "Vezi funcțiile",
     "personal": "Personal",
     "personalFrom": "{price} RON",
@@ -626,10 +627,11 @@
       "trips": "Curse de serviciu și personale, verificate față de kilometraj",
       "reports": "Lucrări și costuri ca tabele, plus un PDF cu rezumatul pentru contabil"
     },
-    "businessCta": "Vezi funcțiile pentru flote"
+    "businessCta": "Vezi funcțiile pentru flote",
+    "ogTitle": "Jurnalul complet al mașinii tale"
   },
   "demo": {
-    "metaTitle": "Toate funcțiile, cu ecrane de exemplu — RigLog",
+    "metaTitle": "Funcții: istoric service, ITP și RCA, consum, flotă — RigLog",
     "metaDescription": "Vezi ce face RigLog înainte să-ți faci cont: lucrări cu costuri, poze, bonuri citite din poză, alimentări și consum real, memento-uri pentru ITP și RCA, pașaportul mașinii pentru vânzare și unelte de flotă pentru firme. Ecrane de probă, fără cont.",
     "heroTitle": "Tot ce face RigLog, înainte să-ți faci cont",
     "heroBody": "Un tur prin fiecare funcție — {count} la număr — cu ecrane de exemplu din aplicație. Alegi o categorie, filtrezi după plan și deschizi exact ce te interesează.",
@@ -789,7 +791,7 @@
       },
       "identity": {
         "title": "Număr și talon",
-        "body": "Numărul de înmatriculare și ce scrie în talon — combustibil, cutie, motor, putere, prima înmatriculare — ținute lângă vehicul. Numărul se poate căuta în garaj și nu apare niciodată pe o pagină publică."
+        "body": "Fotografiezi talonul și numărul, VIN-ul, marca, modelul, combustibilul, motorul, puterea și prima înmatriculare se completează ca să le verifici — citit pe telefon, niciodată încărcat. Numărul se caută în garaj și nu apare niciodată pe o pagină publică."
       },
       "odometer": {
         "title": "Istoricul kilometrajului",
@@ -1143,7 +1145,11 @@
       }
     },
     "breadcrumb": "Funcții",
-    "tierBusiness": "Plan de firmă"
+    "tierBusiness": "Plan de firmă",
+    "breadcrumbLabel": "Navigare",
+    "moreIn": "Mai multe în {section}",
+    "wholeTour": "Vezi toate funcțiile în tur →",
+    "featurePage": "Deschide pagina acestei funcții"
   },
   "task": {
     "name": "Denumire",
@@ -1682,7 +1688,8 @@
     "totalSpent": "Total cheltuit",
     "documentedWith": "Documentat cu <b>RigLog</b>",
     "noCompletedWork": "Nicio lucrare finalizată înregistrată încă.",
-    "byOwner": "de {name}"
+    "byOwner": "de {name}",
+    "metaDescription": "{year} {make} {model} — {mode}, documentat de {owner} pe RigLog: lucrările și pozele, pas cu pas."
   },
   "vin": {
     "field": {
@@ -3768,7 +3775,6 @@
     "hybrid": "Talonul menționează și combustibil, și electricitate. Alege tu Hibrid sau Hibrid plug-in — talonul nu spune care, și doar un plug-in primește jurnalul de încărcări.",
     "check": "Verifică fiecare câmp cu talonul înainte să salvezi.",
     "failed": "Talonul nu a putut fi citit. Încearcă o poză mai clară, în lumină bună, sau completează câmpurile de mână.",
-    "upgrade": "Scanează talonul în loc să-l tastezi — cu Personal",
     "field": {
       "plate": "număr de înmatriculare",
       "firstRegistrationDate": "prima înmatriculare",

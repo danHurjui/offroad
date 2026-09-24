@@ -385,6 +385,13 @@ Results Test following. The markup is still valid Schema.org and would do
 nothing at all in Search. The questions live on `/demo` as ordinary
 prose, which is what actually earns the long-tail query.
 
+**The sitemap's `lastmod` is only ever a real date** (`sitemap.ts`):
+Google ignores `changefreq`/`priority` but uses `lastmod` while it proves
+accurate. A build page has its vehicle's update, the feed and the boards
+their newest entry, the legal pages `LEGAL_LAST_UPDATED`; the homepage and
+the tour have none, never "now" on every fetch. The feature pages are
+listed too, and the readable `/sitemap` lists them by section.
+
 `serializeJsonLd()` escapes `<` so a string value can never close its own
 `<script>` tag. Nothing here takes user input today; that function is the
 boundary where it would stop being true.
@@ -445,8 +452,26 @@ features out of the page a crawler reads and out of the reader's Ctrl+F.
 index at the foot of the page. Search does index hidden tab content but
 does not weigh it the same as what is on the page, and the explorer hides
 all but one of its panels — so the index is what puts every
-feature name in the document unhidden. Its anchors open the matching
-feature, via the hashchange handling below.
+feature name in the document unhidden. Its links go to each feature's
+own page (below).
+
+**Every feature has its own page, `/demo/[feature]`.** A fragment is not a
+page to Search, so on `/demo` alone a query like "consum mașină electrică"
+could only land on a page about forty other things. Each chapter gets its
+own URL, title, `metaDescriptionFrom()` description (its last whole
+sentence within ~155 characters, else cut at a word), canonical, H1,
+breadcrumb JSON-LD, the **same screen** as its panel (`demoPreviews()`,
+shared, so the two cannot differ), and links to its section's other
+features. The tour index, each panel and the homepage's cards
+(`HOME_FEATURE_CHAPTER`) link to them; they are in both sitemaps. An
+unknown id is a 404.
+
+**Link previews** come from `/og` (`src/app/og/route.tsx`, 1200×630 on
+the share cards' Roboto for the diacritics): the homepage's picture, or a
+chapter's with `?feature=<id>`. The text is only ever the catalogue's —
+never the query's — so the address cannot draw anyone else's words on
+this domain. `publicPageMetadata()` puts it in `og:image` and a
+`summary_large_image` Twitter card.
 
 **A `<noscript>` stylesheet turns it back into the plain stacked page** —
 it un-hides every `[data-demo-panel]` and removes every
@@ -968,7 +993,9 @@ next code, since the card's two columns come back as one row.
   a plate found without its A must start with a real county code.
 - On the edit form a field it could not read keeps its value (it may
   already be right); what was read overwrites, and the note lists both.
-  Same plan gate as the receipt scanner.
+- **Free on every plan** (the owner's decision), unlike the receipt and
+  invoice scanners: it is used once per car, while somebody is deciding
+  whether the app is worth filling in, and it costs nothing to run.
 - Bench: 6 renders (one/two columns, tilt, dim, shadow, blur) of a talon
   laid out like the real card: 53/60 fields right, none wrong. Sparse
   mode drops the single-letter codes, so A/B/R come from the second look.

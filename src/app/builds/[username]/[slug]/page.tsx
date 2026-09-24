@@ -44,7 +44,15 @@ export async function generateMetadata({
   const { vehicle, owner } = data
   const config = await getVocabulary(vehicle.projectType)
   const title = `${vehicle.year} ${vehicle.make} ${vehicle.model} — RigLog`
-  const description = `${config.label} by ${owner.displayName} on RigLog.`
+  const tp = await getTranslations('publicBuild')
+  // The year as text: a number argument would be formatted as 2.015.
+  const description = tp('metaDescription', {
+    year: String(vehicle.year),
+    make: vehicle.make,
+    model: vehicle.model,
+    mode: config.label,
+    owner: owner.displayName,
+  })
   const baseUrl = appUrlForMetadata()
   const ogImage = vehicle.coverPhotoUrl ? `${baseUrl}/api/uploads/${vehicle.coverPhotoUrl}` : undefined
 

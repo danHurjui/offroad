@@ -10,56 +10,8 @@ import { formatPlanPrice, LADDER } from '@/lib/plans'
 import JsonLd from '@/components/JsonLd'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
-import DemoScreen from '@/components/demo/DemoScreen'
 import DemoExplorer from '@/components/demo/DemoExplorer'
-import DemoModeSwitcher from '@/components/demo/DemoModeSwitcher'
-import {
-  AnalyticsPreview,
-  CardPreview,
-  CollaboratorsPreview,
-  CostsPreview,
-  DataRightsPreview,
-  DocumentsPreview,
-  FeedPreview,
-  FoundStatePreview,
-  GaragePreview,
-  InstallPreview,
-  LanguagePreview,
-  OriginalityPreview,
-  PartsWantedPreview,
-  PdfPreview,
-  PhotosPreview,
-  PriceAlertPreview,
-  PublicBuildPreview,
-  RoadmapPreview,
-  ShortcutsPreview,
-  TasksPreview,
-  ThemePreview,
-  TrailPreview,
-  VinPreview,
-  WishlistPreview,
-} from '@/components/demo/previews'
-import {
-  AccidentsPreview,
-  FuelPreview,
-  ChargingPreview,
-  HealthPreview,
-  IdentityPreview,
-  OdometerPreview,
-  OwnershipPreview,
-  PassportPreview,
-  ReceiptScanPreview,
-  ServiceBookPreview,
-  TyresPreview,
-} from '@/components/demo/recordPreviews'
-import {
-  DriversPreview,
-  FleetBoardPreview,
-  FleetCostsPreview,
-  FleetReportsPreview,
-  OrganizationPreview,
-  TripsPreview,
-} from '@/components/demo/fleetPreviews'
+import { demoPreviews } from '@/components/demo/demoPreviews'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('demo')
@@ -112,64 +64,8 @@ export default async function DemoPage() {
   const t = await getTranslations('demo')
   const locale = await getLocale()
 
-  /**
-   * Every chapter's screen, already rendered.
-   *
-   * Framed here rather than inside each preview so the "sample data"
-   * caption cannot be forgotten on a new one — a preview that quietly
-   * shipped without it would be the only unlabelled invented data on the
-   * page, which is the one thing this page must not do.
-   */
-  const label = (id: string) => t(`chapter.${id}.title`)
-  const screen = (id: string, body: React.ReactNode) => (
-    <DemoScreen label={label(id)}>{body}</DemoScreen>
-  )
+  const previews = await demoPreviews()
 
-  const previews: Record<string, React.ReactNode> = {
-    modes: screen('modes', <DemoModeSwitcher />),
-    tasks: screen('tasks', <TasksPreview />),
-    photos: screen('photos', <PhotosPreview />),
-    documents: screen('documents', <DocumentsPreview />),
-    costs: screen('costs', <CostsPreview />),
-    wishlist: screen('wishlist', <WishlistPreview />),
-    foundState: screen('foundState', <FoundStatePreview />),
-    jobReport: screen('jobReport', <PdfPreview scope="job" />),
-    analytics: screen('analytics', <AnalyticsPreview />),
-    collaborators: screen('collaborators', <CollaboratorsPreview />),
-    trailLog: screen('trailLog', <TrailPreview />),
-    cards: screen('cards', <CardPreview />),
-    limits: screen('limits', <GaragePreview />),
-    pdfExport: screen('pdfExport', <PdfPreview scope="history" />),
-    originality: screen('originality', <OriginalityPreview />),
-    vinDecoder: screen('vinDecoder', <VinPreview />),
-    priceAlert: screen('priceAlert', <PriceAlertPreview />),
-    identity: screen('identity', <IdentityPreview />),
-    odometer: screen('odometer', <OdometerPreview />),
-    fuel: screen('fuel', <FuelPreview />),
-    charging: screen('charging', <ChargingPreview />),
-    receiptScan: screen('receiptScan', <ReceiptScanPreview />),
-    health: screen('health', <HealthPreview />),
-    tyres: screen('tyres', <TyresPreview />),
-    ownership: screen('ownership', <OwnershipPreview />),
-    serviceBook: screen('serviceBook', <ServiceBookPreview />),
-    passport: screen('passport', <PassportPreview />),
-    accidents: screen('accidents', <AccidentsPreview />),
-    organization: screen('organization', <OrganizationPreview />),
-    fleetBoard: screen('fleetBoard', <FleetBoardPreview />),
-    fleetCosts: screen('fleetCosts', <FleetCostsPreview />),
-    drivers: screen('drivers', <DriversPreview />),
-    trips: screen('trips', <TripsPreview />),
-    fleetReports: screen('fleetReports', <FleetReportsPreview />),
-    publicBuild: screen('publicBuild', <PublicBuildPreview />),
-    feed: screen('feed', <FeedPreview />),
-    partsWanted: screen('partsWanted', <PartsWantedPreview />),
-    roadmap: screen('roadmap', <RoadmapPreview />),
-    languages: screen('languages', <LanguagePreview />),
-    install: screen('install', <InstallPreview />),
-    theme: screen('theme', <ThemePreview />),
-    shortcuts: screen('shortcuts', <ShortcutsPreview />),
-    yourData: screen('yourData', <DataRightsPreview />),
-  }
 
   const featureCount = DEMO_SECTIONS.reduce((sum, section) => sum + section.chapters.length, 0)
 
@@ -261,12 +157,15 @@ export default async function DemoPage() {
                 <ul className="mt-3 space-y-2 text-sm">
                   {section.chapters.map((chapter) => (
                     <li key={chapter.id}>
-                      <a
-                        href={`#${chapter.id}`}
+                      {/* Each feature's own page (/demo/[feature]): a real
+                          URL a crawler can rank, where the panel above is
+                          a fragment of this one. */}
+                      <Link
+                        href={`/demo/${chapter.id}`}
                         className="text-brand-600 hover:underline dark:text-brand-300"
                       >
                         {t(`chapter.${chapter.id}.title`)}
-                      </a>{' '}
+                      </Link>{' '}
                       <span className="text-xs text-ink-faint">
                         {t(TIER_LABEL_KEY[chapter.tier])}
                       </span>

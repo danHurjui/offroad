@@ -299,6 +299,12 @@ export default function DemoExplorer({ previews }: { previews: Record<string, Re
                   {t('seeItLive')}
                 </Link>
               )}
+              <Link
+                href={`/demo/${chapter.id}`}
+                className="mt-3 block text-sm font-medium text-brand-600 hover:underline dark:text-brand-300"
+              >
+                {t('featurePage')}
+              </Link>
               {previews[chapter.id] && <div className="mt-5">{previews[chapter.id]}</div>}
             </section>
           ))}

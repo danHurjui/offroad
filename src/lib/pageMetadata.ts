@@ -31,13 +31,17 @@ export async function publicPageMetadata({
   path,
   title,
   description,
+  image = '/og',
 }: {
   /** Site-relative, leading slash, no query string: '/demo'. */
   path: string
   title: string
   description: string
+  /** The link-preview picture (src/app/og/route.tsx); the homepage's unless a page has its own. */
+  image?: string
 }): Promise<Metadata> {
   const locale = await getLocale()
+  const images = [{ url: image, width: 1200, height: 630, alt: title }]
 
   return {
     title,
@@ -53,7 +57,9 @@ export async function publicPageMetadata({
       // whichever language the reader picked (src/i18n/config.ts), so
       // there is no `alternateLocale` to declare.
       locale: locale === 'ro' ? 'ro_RO' : 'en_GB',
+      images,
     },
-    twitter: { card: 'summary', title, description },
+    // A large card now there is a picture worth showing.
+    twitter: { card: 'summary_large_image', title, description, images },
   }
 }

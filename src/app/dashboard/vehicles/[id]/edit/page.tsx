@@ -7,7 +7,6 @@ import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import { loadSites } from '@/lib/siteRecords'
-import { vehicleHasPro } from '@/lib/entitlement'
 import VehicleEditForm from '@/components/VehicleEditForm'
 import MoveToOrganization from '@/components/MoveToOrganization'
 import MoveOutOfOrganization from '@/components/MoveOutOfOrganization'
@@ -23,7 +22,7 @@ export default async function EditVehiclePage({ params }: { params: { id: string
   const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { username: true } })
   // RL-038: a company vehicle names its organisation; a personal one can be
   // moved into one where this account manages vehicles.
-  const [company, destinations, sites, canScan] = await Promise.all([
+  const [company, destinations, sites] = await Promise.all([
     vehicle.organizationId
       ? prisma.organization.findUnique({ where: { id: vehicle.organizationId }, select: { name: true } })
       : Promise.resolve(null),
@@ -36,8 +35,6 @@ export default async function EditVehiclePage({ params }: { params: { id: string
         }),
     // #103: a company vehicle can be put at one of its organisation's sites.
     vehicle.organizationId ? loadSites(vehicle.organizationId) : Promise.resolve([]),
-    // Scanning the talon follows the vehicle's plan, like the receipt scanner.
-    vehicleHasPro(vehicle),
   ])
   const config = await getVocabulary(vehicle.projectType)
 
@@ -110,8 +107,6 @@ export default async function EditVehiclePage({ params }: { params: { id: string
         }}
         sites={sites}
         coverCandidates={coverCandidates}
-        canScan={canScan}
-        offerScanUpgrade={!vehicle.organizationId}
       />
       {company && <MoveOutOfOrganization vehicleId={vehicle.id} organizationName={company.name} />}
       {destinations.length > 0 && (

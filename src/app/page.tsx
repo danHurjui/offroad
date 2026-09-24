@@ -13,6 +13,7 @@ import JsonLd from '@/components/JsonLd'
 import CompanyPlans from '@/components/CompanyPlans'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
+import { FEATURE_KEYS, HOME_FEATURE_CHAPTER } from '@/lib/demoTour'
 import DemoScreen from '@/components/demo/DemoScreen'
 import { HealthPreview, ReceiptScanPreview } from '@/components/demo/recordPreviews'
 import { FleetBoardPreview } from '@/components/demo/fleetPreviews'
@@ -26,14 +27,6 @@ export async function generateMetadata(): Promise<Metadata> {
   })
 }
 
-/**
- * The feature cards, as catalogue keys rather than prose.
- *
- * The order is the layout; the words live in messages/*.json under
- * `home.feature.<key>`, so adding a card is one entry here and one block
- * per language — and i18n.test.ts fails if a language is missing one.
- */
-const FEATURE_KEYS = ['costs', 'photos', 'documents', 'fuel', 'health', 'receipts', 'mechanic', 'passport', 'privacy'] as const
 
 /** The fleet section's points, in order (`home.businessPoint.<key>`). */
 const BUSINESS_POINTS = ['compliance', 'drivers', 'trips', 'reports'] as const
@@ -161,10 +154,10 @@ export default async function Home() {
       <Section eyebrow={t('featuresEyebrow')} title={t('featuresTitle')}>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURE_KEYS.map((key) => (
-            <div key={key} className="card p-5">
+            <Link key={key} href={`/demo/${HOME_FEATURE_CHAPTER[key]}`} className="card block p-5 transition-colors hover:border-brand-400">
               <h3 className="mb-1.5 font-semibold text-ink">{t(`feature.${key}.title`)}</h3>
               <p className="text-sm text-ink-muted">{t(`feature.${key}.body`)}</p>
-            </div>
+            </Link>
           ))}
         </div>
         {/* These nine are the summary. /demo is the same list at length,

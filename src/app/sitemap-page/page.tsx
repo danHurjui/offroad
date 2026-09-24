@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 import { prisma } from '@/lib/prisma'
+import { DEMO_SECTIONS } from '@/lib/demoTour'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('sitemapPage')
@@ -41,6 +42,7 @@ const MAX_BUILDS = 60
 
 export default async function SitemapPage() {
   const t = await getTranslations('sitemapPage')
+  const td = await getTranslations('demo')
 
   const [builds, totalBuilds] = await Promise.all([
     prisma.vehicle.findMany({
@@ -106,6 +108,27 @@ export default async function SitemapPage() {
             </section>
           ))}
         </div>
+
+        {/* Every feature's own page, by section — the same pages /sitemap.xml lists. */}
+        <section className="mt-12" aria-labelledby="sitemap-features">
+          <h2 id="sitemap-features" className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('features')}</h2>
+          <div className="grid gap-6 sm:grid-cols-2">
+            {DEMO_SECTIONS.map((section) => (
+              <div key={section.id}>
+                <h3 className="mb-2 text-sm font-semibold text-ink">{td(`section.${section.id}.eyebrow`)}</h3>
+                <ul className="space-y-1.5 text-sm">
+                  {section.chapters.map((chapter) => (
+                    <li key={chapter.id}>
+                      <Link href={`/demo/${chapter.id}`} className="text-brand-600 hover:underline dark:text-brand-300">
+                        {td(`chapter.${chapter.id}.title`)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <section className="mt-12">
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-faint">{t('builds')}</h2>
