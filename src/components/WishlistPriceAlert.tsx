@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts'
 import { useChartTheme } from './useChartTheme'
 import FormError from './FormError'
+import { formatRon } from '@/lib/money'
 
 interface Item {
   id: string
@@ -20,8 +21,8 @@ interface PriceEntry {
   recordedAt: string
 }
 
-function formatRon(value: unknown): string {
-  return `${Number(value).toLocaleString('ro-RO')} RON`
+function ron(value: unknown, decimals: 0 | 2 = 2): string {
+  return formatRon(Number(value), decimals)
 }
 
 // RL-026: target price + "I found it at this price" log + history chart.
@@ -129,7 +130,7 @@ export default function WishlistPriceAlert({
         <div className="mb-3 flex items-center justify-between">
           <span className="text-sm font-medium text-ink-muted">{t('priceHistory')}</span>
           {lowestPrice != null && <span className="text-sm font-semibold text-ink">
-              {t('lowest', { price: formatRon(lowestPrice) })}
+              {t('lowest', { price: ron(lowestPrice) })}
             </span>}
         </div>
         {priceHistory.length === 0 ? (
@@ -137,7 +138,7 @@ export default function WishlistPriceAlert({
         ) : priceHistory.length === 1 ? (
           <p className="text-sm text-ink">
             {t('singleEntry', {
-              price: formatRon(priceHistory[0].priceRon),
+              price: ron(priceHistory[0].priceRon),
               date: new Date(priceHistory[0].recordedAt).toLocaleDateString('ro-RO'),
             })}
           </p>
@@ -147,9 +148,9 @@ export default function WishlistPriceAlert({
               <LineChart data={priceHistory.map((e) => ({ date: new Date(e.recordedAt).toLocaleDateString('ro-RO'), price: e.priceRon }))}>
                 <CartesianGrid strokeDasharray="3 3" stroke={chart.grid} />
                 <XAxis dataKey="date" fontSize={11} tick={{ fill: chart.axis }} />
-                <YAxis fontSize={11} tickFormatter={formatRon} width={70} tick={{ fill: chart.axis }} />
+                <YAxis fontSize={11} tickFormatter={(v) => ron(v, 0)} width={70} tick={{ fill: chart.axis }} />
                 <Tooltip
-                  formatter={formatRon}
+                  formatter={(v) => ron(v)}
                   contentStyle={{ backgroundColor: chart.tooltipBg, border: `1px solid ${chart.tooltipBorder}`, borderRadius: 8 }}
                   itemStyle={{ color: chart.axis }}
                   labelStyle={{ color: chart.axis }}

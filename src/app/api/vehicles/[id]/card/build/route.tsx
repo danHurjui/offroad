@@ -14,6 +14,7 @@ import { toNumberOrNull } from '@/lib/serialize'
 import { resolveImageDataUri } from '@/lib/pdf'
 import { CARD_WIDTH, CARD_HEIGHT, CARD_FONTS, CARD_COLORS, CardFooter, publicCardUrl } from '@/lib/card'
 import { vehicleHasPro } from '@/lib/entitlement'
+import { formatRon } from '@/lib/money'
 
 // RL-020: off-road "build card" — 1200x630 PNG for sharing. Owner-only,
 // Pro-gated. next/og's ImageResponse (Satori under the hood) renders fast
@@ -110,7 +111,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
         <div style={{ position: 'absolute', left: 56, bottom: 100, display: 'flex', gap: 48 }}>
           <Stat label="Modifications" value={String(tasks.length)} />
           <Stat label="Progress" value={`${progressPct}%`} />
-          <Stat label="Spent" value={`${totalSpent.toLocaleString('ro-RO')} RON`} />
+          <Stat label="Spent" value={formatRon(totalSpent, 0)} />
         </div>
 
         <CardFooter url={url} />

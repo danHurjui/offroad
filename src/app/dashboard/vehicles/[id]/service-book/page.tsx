@@ -9,8 +9,8 @@ import { loadServiceBook } from '@/lib/serviceBookRecords'
 import type { RowFlag } from '@/lib/serviceBook'
 import ExportPdfButton from '@/components/ExportPdfButton'
 import { vehicleHasPro } from '@/lib/entitlement'
+import { formatRon } from '@/lib/money'
 
-const money = (n: number) => n.toLocaleString('ro-RO', { maximumFractionDigits: 2 })
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 
 // RL-047: the service book — a view over the completed jobs, in the order
@@ -58,7 +58,7 @@ export default async function ServiceBookPage({ params }: { params: { id: string
         </div>
         <div className="card p-4">
           <div className="text-xs text-ink-faint">{t('total')}</div>
-          <div className="text-2xl font-semibold text-ink">{hideCosts ? t('hidden') : `${money(book.total)} RON`}</div>
+          <div className="text-2xl font-semibold text-ink">{hideCosts ? t('hidden') : formatRon(book.total)}</div>
         </div>
       </div>
 
@@ -118,7 +118,7 @@ export default async function ServiceBookPage({ params }: { params: { id: string
                   </div>
                 )}
               </div>
-              {!hideCosts && <div className="shrink-0 font-semibold text-ink">{row.cost > 0 ? `${money(row.cost)} RON` : '—'}</div>}
+              {!hideCosts && <div className="shrink-0 font-semibold text-ink">{row.cost > 0 ? formatRon(row.cost) : '—'}</div>}
             </li>
           ))}
         </ol>

@@ -12,6 +12,7 @@ import { buildPassportDocDefinition } from '@/lib/pdfPassport'
 import { loadPassport } from '@/lib/passportRecords'
 import type { ServiceRow } from '@/lib/serviceBook'
 import { vehicleHasPro } from '@/lib/entitlement'
+import { formatRon } from '@/lib/money'
 
 // RL-049: the passport as a dated PDF snapshot. Owner only and Pro. It
 // carries the same choices (plate, VIN, costs) as the live link, or the
@@ -52,7 +53,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
         { label: t(p.span.fromPurchase ? 'ownedSince' : 'recordsSince'), value: date(p.span.from) },
         { label: t('latestKm'), value: p.mileage.latest ? km(p.mileage.latest.km) : t('none') },
         { label: t('jobs'), value: String(p.jobs.count) },
-        ...(p.jobs.spend !== null ? [{ label: t('spendLabel'), value: `${p.jobs.spend.toLocaleString('ro-RO', { maximumFractionDigits: 2 })} RON` }] : []),
+        ...(p.jobs.spend !== null ? [{ label: t('spendLabel'), value: formatRon(p.jobs.spend) }] : []),
       ],
       missingTitle: t('missingTitle'),
       missing: [
@@ -94,7 +95,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
         detail: [
           a.insurance && t(`accidentInsurance.${a.insurance}`),
           a.repairedAt ? t('accidentRepaired', { date: date(a.repairedAt) }) : t('accidentNotRepaired'),
-          a.repairCost !== null && t('accidentCost', { amount: `${a.repairCost.toLocaleString('ro-RO', { maximumFractionDigits: 2 })} RON` }),
+          a.repairCost !== null && t('accidentCost', { amount: formatRon(a.repairCost) }),
           a.photoCount > 0 && t('accidentPhotos', { count: a.photoCount }),
           t('recordedOn', { date: date(a.recordedAt) }),
           a.changedAt && t('changedOn', { date: date(a.changedAt) }),

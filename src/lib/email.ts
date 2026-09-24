@@ -1,5 +1,6 @@
 import { isLocale, toLocale, type Locale } from '@/i18n/config'
 import { translator } from '@/i18n/translator'
+import { formatAmount } from './money'
 /**
  * Transactional email, over Brevo or Resend.
  *
@@ -350,8 +351,8 @@ export async function priceAlertEmail(
     html: layout([
       `<p>${t('priceAlert.body', {
         item: strong(input.itemName),
-        price: strong(input.priceRon.toLocaleString('ro-RO')),
-        target: esc(input.targetPriceRon.toLocaleString('ro-RO')),
+        price: strong(formatAmount(input.priceRon)),
+        target: esc(formatAmount(input.targetPriceRon)),
       })}</p>`,
       `<p><a href="${input.vehicleUrl}">${t('priceAlert.cta')}</a></p>`,
     ]),

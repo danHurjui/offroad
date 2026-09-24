@@ -9,6 +9,7 @@ import { toNumberOrNull } from '@/lib/serialize'
 import { isAccidentKind, isInsuranceRoute } from '@/lib/accidents'
 import AccidentForm from '@/components/AccidentForm'
 import { AccidentActions, AccidentRow } from '@/components/AccidentActions'
+import { formatAmount } from '@/lib/money'
 
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 
@@ -61,7 +62,7 @@ export default async function AccidentsPage({ params }: { params: { id: string }
                     {[
                       isInsuranceRoute(a.insurance) && t(`insurance.${a.insurance}`),
                       a.repairedAt ? t('repairedOn', { date: fmtDate(a.repairedAt) }) : t('notRepaired'),
-                      showCosts && cost !== null && t('cost', { amount: cost.toLocaleString('ro-RO', { maximumFractionDigits: 2 }) }),
+                      showCosts && cost !== null && t('cost', { amount: formatAmount(cost) }),
                       t('recordedOn', { date: fmtDate(a.createdAt) }),
                     ]
                       .filter(Boolean)

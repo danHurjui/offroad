@@ -20,6 +20,7 @@ import {
   shouldShowChecklist,
   type OnboardingStep,
 } from '@/lib/onboarding'
+import { formatAmount } from '@/lib/money'
 
 type GarageParams = { q?: string; mode?: string; attention?: string; sort?: string }
 
@@ -293,7 +294,7 @@ async function VehicleCard({
           </div>
         )}
         <div className="flex min-w-0 flex-wrap gap-x-3 text-xs text-ink-faint">
-          {card.spend !== null && <span>{t('garage.spent', { amount: card.spend.toLocaleString('ro-RO', { maximumFractionDigits: 2 }) })}</span>}
+          {card.spend !== null && <span>{t('garage.spent', { amount: formatAmount(card.spend) })}</span>}
           <span>{t('garage.lastActivity', { date: fmtDate(card.lastActivity) })}</span>
         </div>
       </div>

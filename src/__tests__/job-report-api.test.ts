@@ -126,8 +126,8 @@ describe('DIY vs workshop cost split', () => {
     expect(res.status).toBe(200)
     const docDefinition = mockRenderPdf.mock.calls[0][0]
     const content = JSON.stringify(docDefinition.content)
-    expect(content).toContain('Total labour: 150 RON')
-    expect(content).toContain('Total parts: 0 RON')
+    expect(content).toContain('Total labour: 150,00 RON')
+    expect(content).toContain('Total parts: 0,00 RON')
   })
 
   it('splits a workshop task into parts and labour', async () => {
@@ -140,7 +140,7 @@ describe('DIY vs workshop cost split', () => {
     await GET(reqWithQuery(''), { params })
     const docDefinition = mockRenderPdf.mock.calls[0][0]
     const content = JSON.stringify(docDefinition.content)
-    expect(content).toContain('Total labour: 300 RON')
-    expect(content).toContain('Total parts: 200 RON')
+    expect(content).toContain('Total labour: 300,00 RON')
+    expect(content).toContain('Total parts: 200,00 RON')
   })
 })

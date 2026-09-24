@@ -2,6 +2,7 @@ import type { Content, TableCell } from 'pdfmake'
 import { PDF_COLORS, PDF_PAGE, PDF_TABLE_LAYOUT, pdfRule, pdfStatTile, type PdfDocDefinition } from '@/lib/pdf'
 import type { Passport } from '@/lib/passport'
 import type { ServiceRow } from '@/lib/serviceBook'
+import { formatRon } from './money'
 
 /** Every word the document prints, resolved by the route in the reader's language. */
 export interface PdfPassportStrings {
@@ -36,7 +37,7 @@ export interface PdfPassportStrings {
   footer: string
 }
 
-const RON = (n: number) => `${n.toLocaleString('ro-RO', { maximumFractionDigits: 2 })} RON`
+const RON = (n: number) => formatRon(n)
 const DATE = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 
 /**

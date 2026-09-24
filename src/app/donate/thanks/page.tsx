@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import { formatRon } from '@/lib/donations'
+import { formatBani } from '@/lib/donations'
 import PublicHeader from '@/components/PublicHeader'
 import PublicFooter from '@/components/PublicFooter'
 
@@ -41,7 +41,7 @@ export default async function DonateThanksPage({
         <h1 className="text-3xl font-bold text-ink">{t('thanksTitle')}</h1>
         {donation ? (
           <p className="mt-4 text-ink-muted">
-            {t('thanksWithAmount', { amount: formatRon(donation.amountBani) })}
+            {t('thanksWithAmount', { amount: formatBani(donation.amountBani) })}
             {donation.status === 'PENDING' && t('thanksPending')}
           </p>
         ) : (

@@ -5,6 +5,7 @@ import { SHORTCUTS, formatKeys } from '@/lib/shortcuts'
 import { TICKET_STATUSES } from '@/lib/tickets'
 import { decodeVin } from '@/lib/vinDecoder'
 import { getAllVocabulary, getOriginalityConditions, getVocabulary } from '@/lib/vocabulary'
+import { formatRon } from '@/lib/money'
 
 /**
  * The mock screens on the tour.
@@ -28,7 +29,7 @@ const SAMPLE_MODE = 'OFFROAD' as const
 
 /** A cost, in the app's own format. */
 function ron(amount: number): string {
-  return `${amount.toLocaleString('ro-RO')} RON`
+  return formatRon(amount)
 }
 
 /**

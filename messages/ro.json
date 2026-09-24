@@ -1439,6 +1439,7 @@
     "anonymousAlready": " (nu ești autentificat, deci deja este așa)",
     "redirecting": "Se redirecționează către plată…",
     "donateAmount": "Donează {amount} RON",
+    "amountRange": "Introdu o sumă între {min} și {max}.",
     "donateNoAmount": "Donează",
     "checkoutFailed": "Nu am putut începe plata",
     "stripeNote": "Plățile sunt procesate de Stripe. RigLog nu vede niciodată datele cardului tău, iar aceasta este o plată unică — nu se configurează nimic recurent.",

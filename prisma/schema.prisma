@@ -564,10 +564,7 @@ model FoundState {
   id               String   @id @default(cuid())
   vehicleId        String   @unique
   /// #105: the acquisition date and price paid live on Vehicle
-  /// (purchaseDate / purchasePriceRon) only. The two FoundState columns
-  /// still exist in the database, nullable and unread, until the next
-  /// release drops them — a column dropped in the release that stops
-  /// reading it breaks the previous deployment while it is still serving.
+  /// (purchaseDate / purchasePriceRon) only.
   odometer         Int?
   knownHistory     String?
   conditionRating  Int?

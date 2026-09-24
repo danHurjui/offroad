@@ -4,10 +4,11 @@ import { getVocabulary } from '@/lib/vocabulary'
 import { labelFor, type ProjectType } from '@/lib/projectType'
 import type { Message } from '@/lib/passport'
 import type { PassportView } from '@/lib/passportRecords'
+import { formatRon } from '@/lib/money'
 
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 const km = (n: number) => `${n.toLocaleString('ro-RO')} km`
-const money = (n: number) => `${n.toLocaleString('ro-RO', { maximumFractionDigits: 2 })} RON`
+const money = (n: number) => formatRon(n)
 const STATUS_CLASS = { valid: 'badge-success', expiring: 'badge-warn', expired: 'badge-danger' } as const
 
 /**

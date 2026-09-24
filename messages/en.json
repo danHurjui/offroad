@@ -1439,6 +1439,7 @@
     "anonymousAlready": " (you are not logged in, so this is already the case)",
     "redirecting": "Redirecting to checkout…",
     "donateAmount": "Donate {amount} RON",
+    "amountRange": "Enter an amount between {min} and {max}.",
     "donateNoAmount": "Donate",
     "checkoutFailed": "Could not start checkout",
     "stripeNote": "Payments are handled by Stripe. RigLog never sees your card details, and this is a one-off payment — nothing recurring is set up.",

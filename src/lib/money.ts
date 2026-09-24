@@ -3,8 +3,9 @@
  * thousands, a comma before the bani. One helper, so an export and the
  * screen it came from print the same figure the same way (RL-041).
  *
- * The app printed `14.99 RON` in places and `14.999 RON` in others; new
- * code uses this, and the rest can move over as it is touched.
+ * The app printed `14.99 RON` in places and `14.999 RON` in others; since
+ * #105 everything goes through here, and a test fails on a hand-built
+ * `${…} RON` anywhere else.
  */
 
 const formatters = new Map<number, Intl.NumberFormat>()

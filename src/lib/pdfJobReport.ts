@@ -1,5 +1,6 @@
 import type { Content } from 'pdfmake'
 import { PDF_COLORS, PDF_PAGE, pdfRule, pdfStatTile, type PdfDocDefinition, type PdfPhoto } from '@/lib/pdf'
+import { formatRon } from './money'
 
 export interface JobReportTask {
   name: string
@@ -38,7 +39,7 @@ export interface JobReportInput {
   generatedAt: Date
 }
 
-const RON = (n: number) => `${n.toLocaleString('ro-RO')} RON`
+const RON = (n: number) => formatRon(n)
 
 function photoRow(photos: PdfPhoto[]): Content | null {
   if (photos.length === 0) return null

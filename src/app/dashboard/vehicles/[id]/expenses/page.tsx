@@ -8,8 +8,8 @@ import { getVocabulary } from '@/lib/vocabulary'
 import { toNumberOrNull } from '@/lib/serialize'
 import ExpenseQuickAdd from '@/components/ExpenseQuickAdd'
 import { ExpenseRow, RemoveExpenseButton } from '@/components/ExpenseRemove'
+import { formatAmount, formatRon } from '@/lib/money'
 
-const num = (n: number) => n.toLocaleString('ro-RO', { maximumFractionDigits: 2 })
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
 
 // RL-045: the running costs that are not a job, a fill-up, a document or a
@@ -45,7 +45,7 @@ export default async function ExpensesPage({ params }: { params: { id: string } 
 
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">{t('history')}</h2>
-        {!hideSpend && expenses.length > 0 && <span className="text-sm text-ink-muted">{t('total', { total: num(total) })}</span>}
+        {!hideSpend && expenses.length > 0 && <span className="text-sm text-ink-muted">{t('total', { total: formatAmount(total) })}</span>}
       </div>
       {expenses.length === 0 ? (
         <p className="card p-6 text-center text-ink-muted">{t('empty')}</p>
@@ -56,7 +56,7 @@ export default async function ExpensesPage({ params }: { params: { id: string } 
               <li className="flex flex-wrap items-start justify-between gap-3 p-4">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-ink">{num(e.amountRon)} RON</span>
+                    <span className="font-semibold text-ink">{formatRon(e.amountRon)}</span>
                     <span className="badge badge-neutral">{t(`kind.${e.kind}`)}</span>
                   </div>
                   <div className="text-sm text-ink-muted">

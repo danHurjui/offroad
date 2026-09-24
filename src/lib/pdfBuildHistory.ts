@@ -1,6 +1,7 @@
 import type { Content } from 'pdfmake'
 import { PDF_COLORS, PDF_PAGE, PDF_TABLE_LAYOUT, pdfRule, pdfStatTile, type PdfDocDefinition, type PdfPhoto } from '@/lib/pdf'
 import type { ProjectType } from '@/lib/projectType'
+import { formatRon } from './money'
 
 export type PdfTaskPhoto = PdfPhoto
 
@@ -89,7 +90,7 @@ export interface VehicleHistoryPdfInput {
   generatedAt: Date
 }
 
-const RON = (n: number) => `${n.toLocaleString('ro-RO')} RON`
+const RON = (n: number) => formatRon(n)
 const DATE = (d: Date) => d.toLocaleDateString('ro-RO')
 
 type Margin = [number, number, number, number]
