@@ -110,6 +110,8 @@ export const DEMO_SECTIONS: DemoSection[] = [
       { id: 'identity', tier: 'free' },
       { id: 'odometer', tier: 'free' },
       { id: 'fuel', tier: 'free' },
+      // RL-057 (#125): charging, for a car that plugs in.
+      { id: 'charging', tier: 'free' },
       { id: 'receiptScan', tier: 'pro' },
       { id: 'health', tier: 'free' },
       { id: 'tyres', tier: 'free', modes: ['OFFROAD', 'DAILY_DRIVER'] },
@@ -196,6 +198,7 @@ export const DEMO_FAQ_IDS = [
   'mechanic',
   'private',
   'daily',
+  'electric',
   'sell',
   'company',
   'leave',

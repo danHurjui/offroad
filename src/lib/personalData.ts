@@ -31,7 +31,7 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     ? { vehicleId, vehicle: { ownerId: userId } }
     : { vehicle: { ownerId: userId } }
 
-  const [user, vehicles, tasks, taskPhotos, foundStatePhotos, waypoints, documents, fuelEntries, chargeEntries, accidentPhotos, handoverPhotos] = await Promise.all([
+  const [user, vehicles, tasks, taskPhotos, foundStatePhotos, waypoints, documents, fuelEntries, chargeEntries, batteryReports, accidentPhotos, handoverPhotos] = await Promise.all([
     // A user's avatar isn't tied to a vehicle, so it's skipped when the
     // caller only wants one vehicle's files.
     vehicleId ? null : prisma.user.findUnique({ where: { id: userId }, select: { avatarUrl: true } }),
@@ -51,6 +51,8 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     prisma.fuelEntry.findMany({ where: { ...underVehicle, receiptUrl: { not: null } }, select: { receiptUrl: true } }),
     // RL-053: charging receipts.
     prisma.chargeEntry.findMany({ where: { ...underVehicle, receiptUrl: { not: null } }, select: { receiptUrl: true } }),
+    // RL-056: battery health reports.
+    prisma.batteryHealthReading.findMany({ where: { ...underVehicle, reportUrl: { not: null } }, select: { reportUrl: true } }),
     // RL-050: photos of accidents and damage.
     prisma.accidentPhoto.findMany({ where: { accident: underVehicle }, select: { url: true } }),
     // RL-040: condition photos at a driver handover.
@@ -67,6 +69,7 @@ export async function collectStorageKeys(userId: string, vehicleId?: string): Pr
     ...documents.map((d) => d.fileUrl),
     ...fuelEntries.map((f) => f.receiptUrl),
     ...chargeEntries.map((c) => c.receiptUrl),
+    ...batteryReports.map((b) => b.reportUrl),
     ...accidentPhotos.map((p) => p.url),
     ...handoverPhotos.map((p) => p.url),
   ]
@@ -232,6 +235,7 @@ function fetchVehicles(userId: string) {
       trips: { orderBy: { date: 'asc' } },
       fuelEntries: { orderBy: { date: 'asc' } },
       chargeEntries: { orderBy: { date: 'asc' } },
+      batteryHealthReadings: { orderBy: { date: 'asc' } },
       tyreSets: true,
       expenses: { orderBy: { date: 'asc' } },
       accidents: { include: { photos: true }, orderBy: { date: 'asc' } },

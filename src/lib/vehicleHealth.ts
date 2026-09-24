@@ -30,9 +30,11 @@
 import { getDocumentStatus } from './documents'
 import { distanceCovered, type ReadingLike } from './odometer'
 import { PROJECT_TYPE_CONFIG, type ProjectType } from './projectType'
+import { powertrainOf, takesCharge, type Powertrain } from './powertrain'
+import { sortReadings } from './batteryHealth'
 
 export type HealthTone = 'ok' | 'warn' | 'danger' | 'info' | 'none'
-export type HealthArea = 'document' | 'service' | 'tyres' | 'jobs'
+export type HealthArea = 'document' | 'service' | 'tyres' | 'jobs' | 'battery' | 'warranty'
 
 export interface Message {
   key: string
@@ -66,6 +68,25 @@ export interface HealthReport {
  */
 export const SERVICE_INTERVAL_KM = 15_000
 export const SERVICE_INTERVAL_DAYS = 365
+
+/**
+ * RL-056 (#124): the default per powertrain, typed as a full Record so
+ * `tsc` names one left out. An electric car has no oil, filters or timing
+ * belt and manufacturers schedule it very differently, so it has **no
+ * default** (the owner's decision on #124): until the owner sets their own
+ * interval the row is `none` and asks for it, never an assumed figure.
+ */
+export const DEFAULT_SERVICE_INTERVAL: Record<Powertrain, { km: number; days: number } | null> = {
+  COMBUSTION: { km: SERVICE_INTERVAL_KM, days: SERVICE_INTERVAL_DAYS },
+  HYBRID: { km: SERVICE_INTERVAL_KM, days: SERVICE_INTERVAL_DAYS },
+  PLUGIN_HYBRID: { km: SERVICE_INTERVAL_KM, days: SERVICE_INTERVAL_DAYS },
+  UNKNOWN: { km: SERVICE_INTERVAL_KM, days: SERVICE_INTERVAL_DAYS },
+  ELECTRIC: null,
+}
+
+/** The traction-battery warranty is worth acting on inside these. */
+export const WARRANTY_WARN_DAYS = 90
+export const WARRANTY_WARN_KM = 5_000
 
 /**
  * #104: the owner's own interval, when they have given one. Either half
@@ -137,6 +158,14 @@ export interface HealthInput {
   tyreSets: { id: string; isFitted: boolean; treadDepthMm: number | null; dotYear: number | null; fittedAt: Date | null; fittedKm: number | null }[]
   /** #104: the owner's interval; absent or both null means the default. */
   serviceInterval?: ServiceInterval
+  /** The talon's fuel type; it picks the default interval and the battery rows. */
+  fuelType?: string | null
+  /** RL-056: only read for a vehicle that plugs in. */
+  battery?: {
+    readings: { date: Date; sohPercent: number; source: string; createdAt?: Date }[]
+    warrantyUntil: Date | null
+    warrantyKm: number | null
+  }
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -145,6 +174,7 @@ export function computeHealth(input: HealthInput): HealthReport {
   const base = `/dashboard/vehicles/${input.vehicleId}`
   const config = PROJECT_TYPE_CONFIG[input.projectType]
   const onTheRoad = input.projectType !== 'RESTORATION'
+  const powertrain = powertrainOf(input.fuelType)
   const rows: HealthRow[] = []
 
   // ---- Documents: one row per type, from its latest expiry --------------
@@ -195,7 +225,22 @@ export function computeHealth(input: HealthInput): HealthReport {
   }
 
   // ---- Service: interval since the last completed service job ----------
-  if (config.serviceCategory) {
+  const ownInterval =
+    input.serviceInterval && (input.serviceInterval.km !== null || input.serviceInterval.months !== null) ? input.serviceInterval : null
+  const defaultInterval = DEFAULT_SERVICE_INTERVAL[powertrain]
+  if (config.serviceCategory && !ownInterval && !defaultInterval) {
+    // No interval of the owner's and none to assume: ask for theirs.
+    rows.push({
+      area: 'service',
+      id: 'service',
+      label: { key: 'area.service' },
+      tone: 'none',
+      reason: { key: 'service.noDefault' },
+      href: `${base}/edit#service-interval`,
+      urgency: 0,
+      action: { key: 'nextAction.setServiceInterval' },
+    })
+  } else if (config.serviceCategory) {
     const services = input.tasks
       .filter((t) => t.category === config.serviceCategory && t.status === config.completeStatus && t.date <= input.now)
       .sort((a, b) => b.date.getTime() - a.date.getTime())
@@ -212,14 +257,14 @@ export function computeHealth(input: HealthInput): HealthReport {
         action: { key: 'nextAction.logService' },
       })
     } else {
-      const own = input.serviceInterval && (input.serviceInterval.km !== null || input.serviceInterval.months !== null)
-        ? input.serviceInterval
-        : null
-      const intervalKm = own ? own.km : SERVICE_INTERVAL_KM
+      const own = ownInterval
+      // Without the owner's interval there is a default: the branch above
+      // took every powertrain that has none.
+      const intervalKm = own ? own.km : defaultInterval!.km
       const lastDay = Date.UTC(last.date.getUTCFullYear(), last.date.getUTCMonth(), last.date.getUTCDate())
       const today = Date.UTC(input.now.getUTCFullYear(), input.now.getUTCMonth(), input.now.getUTCDate())
       const daysLeft = !own
-        ? SERVICE_INTERVAL_DAYS - Math.floor((input.now.getTime() - last.date.getTime()) / DAY_MS)
+        ? defaultInterval!.days - Math.floor((input.now.getTime() - last.date.getTime()) / DAY_MS)
         : own.months !== null
           ? Math.round((addMonthsUtc(new Date(lastDay), own.months).getTime() - today) / DAY_MS)
           : null
@@ -321,6 +366,39 @@ export function computeHealth(input: HealthInput): HealthReport {
     }
   }
 
+  // ---- High-voltage battery: recorded, never rated (RL-056) -------------
+  if (onTheRoad && takesCharge(powertrain)) {
+    const readings = sortReadings(input.battery?.readings ?? [])
+    const latest = readings[readings.length - 1]
+    const first = readings[0]
+    rows.push({
+      area: 'battery',
+      id: 'battery',
+      label: { key: 'area.battery' },
+      // Information whatever the figure: there is no agreed line below
+      // which a battery is worn, and this module never draws one.
+      tone: latest ? 'info' : 'none',
+      reason: !latest
+        ? { key: 'battery.none' }
+        : readings.length === 1
+          ? { key: 'battery.recorded', values: { soh: latest.sohPercent, date: fmtDay(latest.date), source: latest.source } }
+          : {
+              key: 'battery.recordedSince',
+              values: {
+                soh: latest.sohPercent,
+                date: fmtDay(latest.date),
+                source: latest.source,
+                firstSoh: first.sohPercent,
+                firstDate: fmtDay(first.date),
+              },
+            },
+      href: `${base}/battery`,
+      urgency: 0,
+      action: latest ? undefined : { key: 'nextAction.recordBattery' },
+    })
+    rows.push(warrantyRow(input, base))
+  }
+
   // ---- Open jobs -----------------------------------------------------
   const toneOf = (status: string) => config.statusTags.find((s) => s.value === status)?.tone ?? 'neutral'
   const open = input.tasks.filter((t) => t.status !== config.completeStatus)
@@ -374,6 +452,60 @@ export function computeHealth(input: HealthInput): HealthReport {
   }
 
   return { rows, next: nextAction(rows) }
+}
+
+const fmtDay = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
+
+/**
+ * The traction-battery warranty: whichever of the date and the km comes
+ * first. The date half is `getDocumentStatus()`'s day count, so it agrees
+ * with the documents board; the km half is the newest reading, and is
+ * unknown after a replaced gauge (the reading is no longer the car's
+ * total). Ended is `info` — there is nothing left to do about it.
+ */
+function warrantyRow(input: HealthInput, base: string): HealthRow {
+  const until = input.battery?.warrantyUntil ?? null
+  const limitKm = input.battery?.warrantyKm ?? null
+  const row = { area: 'warranty' as const, id: 'warranty', label: { key: 'area.warranty' }, href: `${base}/battery` }
+  if (until === null && limitKm === null) {
+    return { ...row, tone: 'none', reason: { key: 'warranty.none' }, urgency: 0, action: { key: 'nextAction.setWarranty' } }
+  }
+  const daysLeft = until ? getDocumentStatus(until, input.now).daysUntil : null
+  const newest = [...input.readings].sort(
+    (a, b) => b.readAt.getTime() - a.readAt.getTime() || (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)
+  )[0]
+  const kmKnown = newest !== undefined && !input.readings.some((r) => r.isOverride)
+  const kmLeft = limitKm !== null && kmKnown ? limitKm - newest.km : null
+  const date = until ? fmtDay(until) : ''
+
+  if (daysLeft !== null && daysLeft < 0) {
+    return { ...row, tone: 'info', reason: { key: 'warranty.endedDate', values: { date } }, urgency: 0 }
+  }
+  if (kmLeft !== null && kmLeft <= 0) {
+    return { ...row, tone: 'info', reason: { key: 'warranty.endedKm', values: { limitKm: limitKm! } }, urgency: 0 }
+  }
+  const soon = (daysLeft !== null && daysLeft <= WARRANTY_WARN_DAYS) || (kmLeft !== null && kmLeft <= WARRANTY_WARN_KM)
+  const reason: Message =
+    daysLeft !== null && kmLeft !== null
+      ? { key: 'warranty.both', values: { date, days: daysLeft, limitKm: limitKm!, km: kmLeft } }
+      : daysLeft !== null && limitKm !== null
+        ? { key: 'warranty.dateKmUnknown', values: { date, days: daysLeft, limitKm } }
+        : daysLeft !== null
+          ? { key: 'warranty.dateOnly', values: { date, days: daysLeft } }
+          : kmLeft !== null
+            ? { key: 'warranty.kmOnly', values: { limitKm: limitKm!, km: kmLeft } }
+            : { key: 'warranty.kmUnknown', values: { limitKm: limitKm! } }
+  if (daysLeft === null && kmLeft === null) {
+    // A limit by distance alone, and no current km to measure it against.
+    return { ...row, tone: 'none', reason, urgency: 0, action: { key: 'nextAction.recordKm' }, href: `${base}/odometer` }
+  }
+  return {
+    ...row,
+    tone: soon ? 'warn' : 'ok',
+    reason,
+    urgency: Math.min(daysLeft ?? Infinity, kmLeft === null ? Infinity : kmLeft / 40),
+    action: soon ? { key: 'nextAction.batteryBeforeWarranty' } : undefined,
+  }
 }
 
 /**

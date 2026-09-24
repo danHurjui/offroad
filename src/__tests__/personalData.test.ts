@@ -9,6 +9,7 @@ jest.mock('@/lib/prisma', () => ({
     document: { findMany: jest.fn() },
     fuelEntry: { findMany: jest.fn() },
     chargeEntry: { findMany: jest.fn() },
+    batteryHealthReading: { findMany: jest.fn() },
     accidentPhoto: { findMany: jest.fn() },
     assignmentPhoto: { findMany: jest.fn() },
     ticket: { findMany: jest.fn() },
@@ -48,6 +49,7 @@ function stubKeyQueries({
   documentFileUrls = [],
   fuelReceiptUrls = [],
   chargeReceiptUrls = [],
+  batteryReportUrls = [],
   accidentPhotoUrls = [],
   handoverPhotoUrls = [],
 }: {
@@ -60,6 +62,7 @@ function stubKeyQueries({
   documentFileUrls?: string[]
   fuelReceiptUrls?: string[]
   chargeReceiptUrls?: string[]
+  batteryReportUrls?: string[]
   accidentPhotoUrls?: string[]
   handoverPhotoUrls?: string[]
 } = {}) {
@@ -72,6 +75,7 @@ function stubKeyQueries({
   ;(prisma.document.findMany as jest.Mock).mockResolvedValue(documentFileUrls.map((fileUrl) => ({ fileUrl })))
   ;(prisma.fuelEntry.findMany as jest.Mock).mockResolvedValue(fuelReceiptUrls.map((receiptUrl) => ({ receiptUrl })))
   ;(prisma.chargeEntry.findMany as jest.Mock).mockResolvedValue(chargeReceiptUrls.map((receiptUrl) => ({ receiptUrl })))
+  ;(prisma.batteryHealthReading.findMany as jest.Mock).mockResolvedValue(batteryReportUrls.map((reportUrl) => ({ reportUrl })))
   ;(prisma.accidentPhoto.findMany as jest.Mock).mockResolvedValue(accidentPhotoUrls.map((url) => ({ url })))
   ;(prisma.assignmentPhoto.findMany as jest.Mock).mockResolvedValue(handoverPhotoUrls.map((url) => ({ url })))
 }
@@ -93,6 +97,7 @@ describe('collectStorageKeys', () => {
       documentFileUrls: ['u1/v1/itp.pdf'],
       fuelReceiptUrls: ['u1/v1/omv.jpg'],
       chargeReceiptUrls: ['u1/v1/ionity.pdf'],
+      batteryReportUrls: ['u1/v1/soh-test.pdf'],
       accidentPhotoUrls: ['u1/v1/dent.jpg'],
       handoverPhotoUrls: ['u1/v1/handover.jpg'],
     })
@@ -108,6 +113,7 @@ describe('collectStorageKeys', () => {
         'u1/v1/itp.pdf',
         'u1/v1/omv.jpg',
         'u1/v1/ionity.pdf',
+        'u1/v1/soh-test.pdf',
         'u1/v1/photo.jpg',
         'u1/v1/receipt.pdf',
         'u1/v1/waypoint.jpg',
@@ -141,7 +147,7 @@ describe('collectStorageKeys', () => {
 
     expect((prisma.user.findUnique as jest.Mock).mock.calls[0][0].where).toEqual({ id: 'owner-1' })
     expect((prisma.vehicle.findMany as jest.Mock).mock.calls[0][0].where).toEqual({ ownerId: 'owner-1' })
-    for (const model of [prisma.task, prisma.taskPhoto, prisma.trailWaypoint, prisma.document, prisma.fuelEntry, prisma.chargeEntry, prisma.accidentPhoto, prisma.assignmentPhoto]) {
+    for (const model of [prisma.task, prisma.taskPhoto, prisma.trailWaypoint, prisma.document, prisma.fuelEntry, prisma.chargeEntry, prisma.batteryHealthReading, prisma.accidentPhoto, prisma.assignmentPhoto]) {
       const where = JSON.stringify((model.findMany as jest.Mock).mock.calls[0][0].where)
       expect(where).toContain('owner-1')
     }

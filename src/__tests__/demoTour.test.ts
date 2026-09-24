@@ -178,3 +178,31 @@ describe('the tour keeps a shared #feature link', () => {
     expect(code).not.toMatch(/pushState/)
   })
 })
+
+// RL-057 (#125): electric cars on the tour, shown by the real functions.
+describe('the tour covers electric cars', () => {
+  const read = (f: string) => fs.readFileSync(path.join(process.cwd(), f), 'utf8')
+
+  it('has a free charging chapter among the car records, with its own preview', () => {
+    const records = DEMO_SECTIONS.find((s) => s.id === 'records')!
+    expect(records.chapters).toContainEqual({ id: 'charging', tier: 'free' })
+    expect(read('src/app/demo/page.tsx')).toContain("charging: screen('charging', <ChargingPreview />)")
+  })
+
+  it('the preview runs the charging functions over samples that show the rules', () => {
+    const source = read('src/components/demo/recordPreviews.tsx')
+    const preview = source.slice(source.indexOf('export async function ChargingPreview'), source.indexOf('export async function ReceiptScanPreview'))
+    expect(preview).toContain('chargeSummary(charges)')
+    expect(preview).toContain('chargeConsumption(charges)')
+    expect(preview).toContain('computeHealth(')
+    expect(preview).toMatch(/totalRon: 0,/) // a free charge
+    expect(preview.match(/socTo: 80/g)?.length).toBeGreaterThanOrEqual(2) // an 80% → 80% stretch
+  })
+
+  it.each(LOCALES)('%s answers the electric-car question, and the homepage names charging', (locale) => {
+    const catalogue = CATALOGUES[locale] as unknown as { demo: Record<string, unknown>; home: Record<string, unknown> }
+    expect(typeof lookup(catalogue.demo, 'faq.electric.q')).toBe('string')
+    expect(String(lookup(catalogue.demo, 'faq.electric.a'))).toMatch(/kWh/)
+    expect(String(lookup(catalogue.home, 'feature.fuel.body'))).toMatch(/electric/i)
+  })
+})

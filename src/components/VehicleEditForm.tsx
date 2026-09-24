@@ -251,7 +251,7 @@ export default function VehicleEditForm({
         <ValuesFields values={values} onChange={setValues} currentValueAt={vehicle.currentValueAt} />
 
         {hasServiceRow && (
-          <fieldset className="space-y-2">
+          <fieldset id="service-interval" className="scroll-mt-20 space-y-2">
             <legend className="label">{t('serviceInterval')}</legend>
             <p className="text-xs text-ink-muted">{t('serviceIntervalHelp')}</p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

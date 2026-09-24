@@ -34,6 +34,14 @@ export interface PdfPassportStrings {
   accidents: Array<{ heading: string; description: string; detail: string }>
   /** Printed instead when there are none: an absence of records, never a clean history. */
   noAccidents: string
+  /** RL-056: null when the section does not apply to this vehicle. */
+  battery: {
+    title: string
+    note: string
+    /** One entry per reading, already worded; empty prints `none`. */
+    readings: Array<{ heading: string; detail: string }>
+    none: string
+  } | null
   footer: string
 }
 
@@ -121,6 +129,22 @@ export function buildPassportDocDefinition(passport: Passport, strings: PdfPassp
       margin: [0, 0, 0, 6],
       unbreakable: true,
     })
+  }
+
+  if (strings.battery) {
+    content.push(h2(strings.battery.title))
+    content.push({ text: strings.battery.note, style: 'note' })
+    if (strings.battery.readings.length === 0) content.push({ text: strings.battery.none, style: 'list' })
+    for (const r of strings.battery.readings) {
+      content.push({
+        stack: [
+          { text: r.heading, style: 'workName' },
+          { text: r.detail, style: 'workNote' },
+        ],
+        margin: [0, 0, 0, 6],
+        unbreakable: true,
+      })
+    }
   }
 
   return {

@@ -29,6 +29,8 @@
 import { distanceCovered, type ReadingLike } from './odometer'
 import { getDocumentStatus, type DocumentStatus } from './documents'
 import type { ServiceRow } from './serviceBook'
+import { powertrainOf, takesCharge } from './powertrain'
+import { sortReadings } from './batteryHealth'
 
 /** A stretch this long with nothing recorded is listed as a gap. */
 export const GAP_DAYS = 365
@@ -65,6 +67,28 @@ export interface PassportInput {
   documents: Array<{ type: string; expiryDate: Date }>
   tyreSets: Array<{ season: string; label: string | null; isFitted: boolean; dotYear: number | null }>
   accidents: AccidentInput[]
+  /** RL-056: the talon's fuel type, which says whether a battery section applies. */
+  fuelType?: string | null
+  batteryReadings?: BatteryReadingInput[]
+}
+
+export interface BatteryReadingInput {
+  date: Date
+  sohPercent: number
+  km: number | null
+  source: string
+  note: string | null
+  createdAt: Date
+}
+
+export interface BatteryRow {
+  date: Date
+  sohPercent: number
+  km: number | null
+  source: string
+  note: string | null
+  /** When it was typed in — a reading has no edit, so no "changed". */
+  recordedAt: Date
 }
 
 export interface AccidentInput {
@@ -113,6 +137,11 @@ export interface Passport {
   gaps: Array<{ from: Date; to: Date; days: number }>
   /** Accidents and damage as the owner recorded them, oldest first. */
   accidents: AccidentRow[]
+  /**
+   * RL-056: high-voltage battery readings as recorded, oldest first — shown
+   * for a vehicle that plugs in, or for any vehicle that has some.
+   */
+  battery: { shown: boolean; readings: BatteryRow[] }
   /** What is not in the records, each phrased as an absence of records. */
   absences: Message[]
 }
@@ -136,7 +165,14 @@ export function recordGaps(activity: Date[], from: Date, to: Date, minDays = GAP
 export function buildPassport(input: PassportInput): Passport {
   const { vehicle, options, now } = input
   const readings = [...input.readings].sort((a, b) => a.readAt.getTime() - b.readAt.getTime())
-  const activity = [...input.rows.map((r) => r.date), ...readings.map((r) => r.readAt), ...input.fuelDates]
+  const batteryReadings = sortReadings(input.batteryReadings ?? [])
+  const activity = [
+    ...input.rows.map((r) => r.date),
+    ...readings.map((r) => r.readAt),
+    ...input.fuelDates,
+    ...batteryReadings.map((r) => r.date),
+  ]
+  const plugsIn = takesCharge(powertrainOf(input.fuelType))
 
   const firstRecord = activity.length ? new Date(Math.min(...activity.map((d) => d.getTime()))) : vehicle.createdAt
   const from = vehicle.purchaseDate ?? (firstRecord < vehicle.createdAt ? firstRecord : vehicle.createdAt)
@@ -151,6 +187,8 @@ export function buildPassport(input: PassportInput): Passport {
   if (input.projectType !== 'RESTORATION' && input.tyreSets.length === 0) absences.push({ key: 'absence.noTyres' })
   // None recorded is not the same as none happened, and it says so.
   if (input.accidents.length === 0) absences.push({ key: 'absence.noAccidentsRecorded' })
+  // Nothing about the battery itself — only that nobody recorded a test.
+  if (plugsIn && batteryReadings.length === 0) absences.push({ key: 'absence.noBatteryReadingsRecorded' })
 
   const fitted = input.tyreSets.find((s) => s.isFitted) ?? null
 
@@ -192,6 +230,17 @@ export function buildPassport(input: PassportInput): Passport {
         recordedAt: a.createdAt,
         changedAt: a.updatedAt.getTime() - a.createdAt.getTime() > DAY_MS ? a.updatedAt : null,
       })),
+    battery: {
+      shown: plugsIn || batteryReadings.length > 0,
+      readings: batteryReadings.map((r) => ({
+        date: r.date,
+        sohPercent: r.sohPercent,
+        km: r.km,
+        source: r.source,
+        note: r.note,
+        recordedAt: r.createdAt,
+      })),
+    },
     absences,
   }
 }
