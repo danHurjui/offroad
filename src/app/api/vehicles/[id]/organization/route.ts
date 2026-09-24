@@ -48,7 +48,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // both land.
     const moved = await prisma.vehicle.updateMany({
       where: { id: vehicle.id, organizationId: null },
-      data: { organizationId, isPublic: false },
+      data: { organizationId, isPublic: false, keptEditableAt: null },
     })
     if (moved.count === 0) return await apiError('vehicleAlreadyCompany', 400)
     return NextResponse.json({ ok: true, organizationId })
@@ -89,7 +89,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
       await endAssignmentsFor(tx, { organizationId, vehicleId: vehicle.id })
       return tx.vehicle.updateMany({
         where: { id: vehicle.id, organizationId },
-        data: { organizationId: null, ownerId: session.user.id, slug: null },
+        data: { organizationId: null, ownerId: session.user.id, slug: null, keptEditableAt: null },
       })
     })
     if (moved.count === 0) return await apiError('vehicleNotCompany', 400)

@@ -68,16 +68,26 @@ export default async function SettingsPage() {
   // subscription is cancelled, not after.
   const personal = await prisma.vehicle.findMany({
     where: { ownerId: user.id, organizationId: null },
-    select: { id: true, createdAt: true, year: true, make: true, model: true },
+    select: { id: true, createdAt: true, keptEditableAt: true, year: true, make: true, model: true },
+    orderBy: { createdAt: 'asc' },
   })
   const label = (id: string) => {
     const v = personal.find((x) => x.id === id)!
     return `${v.year} ${v.make} ${v.model}`
   }
+  const readOnlyNow = overLimitIds(personal, vehicleLimit(user))
+  const ifPlanEnds = overLimitIds(personal, LADDER.FREE.vehicles)
   const allowance = {
-    readOnlyNow: overLimitIds(personal, vehicleLimit(user)).map(label),
-    ifPlanEnds: overLimitIds(personal, LADDER.FREE.vehicles).map(label),
+    readOnlyNow: readOnlyNow.map(label),
+    ifPlanEnds: ifPlanEnds.map(label),
     freeVehicles: LADDER.FREE.vehicles,
+    // The picker's rows: which stay editable now, and which would if the plan ended.
+    vehicles: personal.map((v) => ({
+      id: v.id,
+      label: label(v.id),
+      editableNow: !readOnlyNow.includes(v.id),
+      editableIfPlanEnds: !ifPlanEnds.includes(v.id),
+    })),
   }
 
   return (

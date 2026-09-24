@@ -57,7 +57,7 @@
     "planUncapped": "fără limită de vehicule și poze nelimitate — păstrate de dinaintea planurilor actuale.",
     "planPersonalLimits": "până la {vehicles, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}, poze nelimitate.",
     "readOnlyNow": "Doar în citire acum, pentru că planul tău acoperă mai puține vehicule decât ai: {vehicles}. Nu s-a șters nimic.",
-    "ifPlanEnds": "Dacă acest plan se încheie, nu se șterge nimic. Planul gratuit acoperă {free, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}: cele mai vechi rămân editabile, iar acestea ar deveni doar în citire până alegi din nou un plan sau renunți la altele: {vehicles}."
+    "ifPlanEnds": "Dacă acest plan se încheie, nu se șterge nimic. Planul gratuit acoperă {free, plural, one {un vehicul} few {# vehicule} other {# de vehicule}}: cele pe care le alegi mai jos rămân editabile (cele mai vechi, dacă nu alegi niciunul), iar acestea ar deveni doar în citire până alegi din nou un plan sau renunți la altele: {vehicles}."
   },
   "common": {
     "save": "Salvează",
@@ -1898,7 +1898,7 @@
       "paying2": "Planurile lunare și anuale se reînnoiesc automat până anulezi. Poți anula oricând din <settings>Profil și setări</settings>, de unde se deschide portalul de facturare Stripe. Anularea oprește următoarea plată; îți păstrezi planul până la finalul perioadei deja plătite. Planul pe viață este o plată unică, fără nimic de anulat.",
       "withdrawal": "<b>Poți anula cu rambursare integrală în {days} zile de la achiziție, din orice motiv sau fără niciunul.</b> Legislația europeană și cea română îți dau acest drept pentru orice cumperi la distanță. Poate fi renunțat pentru conținut digital livrat imediat, dar numai dacă ți se cere întâi să renunți la el — iar noi nu îți cerem asta, deci dreptul rămâne. Scrie-ne sau deschide o solicitare și spune că te retragi.",
       "afterWithdrawal": "După {days} zile nu rambursăm pentru răzgândire. Rambursăm însă când te-am taxat din greșeală sau când serviciul a fost nefolosibil o perioadă semnificativă — cere-ne.",
-      "losingPro": "Pierderea unui plan plătit nu șterge nimic. Vehiculele, pozele și istoricul tău rămân exact acolo unde sunt; doar ecranele exclusiv plătite nu se mai deschid, iar exportul funcționează în continuare, ca să poți lua totul cu tine. Dacă ai atunci mai multe vehicule decât acoperă planul, cele mai vechi rămân editabile, iar restul devin doar în citire — le poți deschide, exporta, face private sau șterge — până alegi din nou un plan sau renunți la altele.",
+      "losingPro": "Pierderea unui plan plătit nu șterge nimic. Vehiculele, pozele și istoricul tău rămân exact acolo unde sunt; doar ecranele exclusiv plătite nu se mai deschid, iar exportul funcționează în continuare, ca să poți lua totul cu tine. Dacă ai atunci mai multe vehicule decât acoperă planul, cele pe care le alegi în setări rămân editabile (cele mai vechi, dacă nu alegi niciunul), iar restul devin doar în citire — le poți deschide, exporta, face private sau șterge — până alegi din nou un plan sau renunți la altele.",
       "foundingHeading": "Membri fondatori",
       "founding1": "Primele {limit} conturi create vreodată primesc Personal fără plată. Dacă ești unul dintre ele, pagina de setări ți-o spune și îți dă numărul.",
       "founding2": "Este un cadou, nu o achiziție: nu s-a plătit nimic, deci nu există nimic de rambursat și niciun abonament de anulat. Este legat de contul tău și nu poate fi transferat sau vândut.",
@@ -2162,7 +2162,10 @@
     "orgPayingAccount": "Ștergerea contului ar șterge și {names}, care plătește încă un plan. Anulează-l mai întâi din portalul de facturare al organizației.",
     "subscriptionCancelFailed": "Abonamentul Personal nu a putut fi anulat acum, așa că nu ți-am șters contul și nu s-a schimbat nimic. Încearcă din nou peste puțin timp sau anulează mai întâi planul din Gestionează facturarea.",
     "adminOrgFieldsLimited": "Aici se poate schimba doar `comped`",
-    "orgCompWhilePaying": "Organizația plătește un plan. Anulează-l din portalul de facturare al organizației înainte să o faci gratuită, altfel cardul este taxat în continuare."
+    "orgCompWhilePaying": "Organizația plătește un plan. Anulează-l din portalul de facturare al organizației înainte să o faci gratuită, altfel cardul este taxat în continuare.",
+    "orgManagersOnly": "Doar un proprietar sau un manager de flotă al organizației poate face asta.",
+    "invalidEditableChoice": "Alege dintre vehiculele din listă.",
+    "tooManyEditable": "Planul păstrează cel mult {limit} editabile — debifează câteva mai întâi."
   },
   "admin": {
     "aria": "RigLog administrare",
@@ -3240,7 +3243,7 @@
   },
   "readOnly": {
     "title": "Acest vehicul e doar în citire",
-    "ownerBody": "Planul tău acoperă {limit, plural, one {un vehicul personal} few {# vehicule personale} other {# de vehicule personale}}, iar tu ai mai multe. Nu s-a șters nimic: poți deschide și exporta tot ce e aici, îl poți face privat sau îl poți șterge. Vehiculele cele mai vechi rămân editabile; ca să-l editezi din nou pe acesta, alege un plan care îl acoperă, șterge alt vehicul sau mută unul într-o organizație.",
+    "ownerBody": "Planul tău acoperă {limit, plural, one {un vehicul personal} few {# vehicule personale} other {# de vehicule personale}}, iar tu ai mai multe. Nu s-a șters nimic: poți deschide și exporta tot ce e aici, îl poți face privat sau îl poți șterge. Rămân editabile cele alese în setări (cele mai vechi, dacă nu e ales niciunul); ca să-l editezi din nou pe acesta, alege-l acolo, alege un plan care îl acoperă, șterge alt vehicul sau mută unul într-o organizație.",
     "collaboratorBody": "Planul proprietarului nu mai acoperă atâtea vehicule, așa că deocamdată nu se poate adăuga sau schimba nimic aici. Tot ce s-a înregistrat e încă aici.",
     "seePlans": "Vezi planurile",
     "companyManagerBody": "Planul organizației nu acoperă acest vehicul — a expirat sau organizația are mai multe vehicule decât permite planul. Nu s-a ascuns și nu s-a șters nimic: documentele, datele și istoricul sunt toate aici. Un proprietar poate alege un plan din pagina organizației.",
@@ -3285,9 +3288,21 @@
     "manage": "Gestionează facturarea",
     "manageHelp": "Schimbi planul, actualizezi cardul, descarci facturi sau anulezi — în portalul de facturare Stripe. La anulare, toate vehiculele rămân, doar în citire.",
     "chooseTitle": "Alege un plan",
-    "chooseHelp": "Facturat organizației. Dacă ajunge să aibă mai multe vehicule decât acoperă planul, cele mai noi devin doar în citire până când planul le acoperă — niciodată ascunse sau șterse.",
+    "chooseHelp": "Facturat organizației. Dacă ajunge să aibă mai multe vehicule decât acoperă planul, cele pe care un manager nu le-a ales să rămână editabile (implicit, cele mai noi) devin doar în citire până când planul le acoperă — niciodată ascunse sau șterse.",
     "notConfigured": "Planurile pentru firme nu sunt încă de vânzare.",
     "subscribed": "Mulțumim. Planul apare aici imediat ce Stripe confirmă plata, de obicei într-un minut.",
     "invoicesHelp": "Facturile anterioare și cardul salvat sunt în portalul de facturare Stripe."
+  },
+  "editableChoice": {
+    "title": "Ce vehicule rămân editabile",
+    "helpNow": "Planul tău acoperă {limit, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}. Bifează-le pe cele care rămân editabile; celelalte rămân vizibile și nu se șterge nimic.",
+    "helpIfEnds": "Dacă planul se încheie, rămân editabile doar {limit, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}. Alege aici care; altfel, cele mai vechi.",
+    "helpOrg": "Planul acoperă {limit, plural, one {# vehicul} few {# vehicule} other {# de vehicule}}. Bifează-le pe cele care rămân editabile; celelalte rămân vizibile și nu se șterge nimic.",
+    "chosen": "{count} din {limit} alese",
+    "save": "Salvează alegerea",
+    "saving": "Se salvează…",
+    "saved": "Salvat.",
+    "failed": "Alegerea nu a putut fi salvată",
+    "rateNote": "Poți schimba asta de câteva ori pe zi."
   }
 }

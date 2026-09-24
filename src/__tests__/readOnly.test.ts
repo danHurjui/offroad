@@ -190,3 +190,12 @@ describe('every write route under a vehicle is gated', () => {
     }
   })
 })
+
+describe('moving a vehicle drops its choice', () => {
+  // A choice belongs to one garage or one fleet; carried across a move it
+  // would jump the queue in the other.
+  it('clears keptEditableAt on the way in and on the way out', () => {
+    const source = fs.readFileSync(path.join(process.cwd(), 'src/app/api/vehicles/[id]/organization/route.ts'), 'utf8')
+    expect(source.match(/keptEditableAt: null/g)).toHaveLength(2)
+  })
+})

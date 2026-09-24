@@ -211,14 +211,22 @@ export function vehicleLimit(user: PlanStatusLike | null | undefined): number | 
 }
 
 /**
- * RL-042 (#54): which personal vehicles sit beyond the allowance — those
- * are **read-only, never deleted**. The oldest `limit` stay writable (the
- * ones the account had room for first); the rest, newest first, are the
- * ones over. Pure; `vehicleAllowance.ts` loads the rows.
+ * RL-042 (#54): which vehicles sit beyond the allowance — those are
+ * **read-only, never deleted**. The ones the owner chose to keep editable
+ * (`keptEditableAt`) come first, then the oldest (the ones the account had
+ * room for first); whatever falls past `limit` is over. More chosen than
+ * the limit (a plan that shrank) keeps the oldest chosen. Pure;
+ * `vehicleAllowance.ts` loads the rows.
  */
-export function overLimitIds(vehicles: Array<{ id: string; createdAt: Date }>, limit: number | null): string[] {
+export function overLimitIds(
+  vehicles: Array<{ id: string; createdAt: Date; keptEditableAt?: Date | null }>,
+  limit: number | null
+): string[] {
   if (limit === null || vehicles.length <= limit) return []
-  const ordered = [...vehicles].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id))
+  const rank = (v: { keptEditableAt?: Date | null }) => (v.keptEditableAt ? 0 : 1)
+  const ordered = [...vehicles].sort(
+    (a, b) => rank(a) - rank(b) || a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id)
+  )
   return ordered.slice(limit).map((v) => v.id)
 }
 

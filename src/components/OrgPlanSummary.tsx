@@ -1,13 +1,15 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { isOrgPlanId, ORG_PLANS, orgVehicleLimit } from '@/lib/plans'
+import EditableVehiclesPicker, { type PickerVehicle } from './EditableVehiclesPicker'
 
 /**
  * RL-042 slice 3: the organisation's plan in one card — what it is, how
  * many vehicles it holds against its allowance, and anything wrong (a
  * failed payment, no plan, vehicles over the allowance and so read-only).
  * On the organisation page for everyone who manages vehicles; the link to
- * billing is the OWNERs' alone.
+ * billing is the OWNERs' alone. With `choice`, a manager picks which
+ * vehicles stay editable while there are more than the plan covers.
  */
 export default async function OrgPlanSummary({
   org,
@@ -15,6 +17,7 @@ export default async function OrgPlanSummary({
   readOnlyCount,
   isOwner,
   linkToBilling = true,
+  choice,
 }: {
   org: { id: string; plan: string | null; compedAt: Date | null; paymentFailedAt: Date | null }
   vehicleCount: number
@@ -22,8 +25,11 @@ export default async function OrgPlanSummary({
   isOwner: boolean
   /** Off on the billing page itself. */
   linkToBilling?: boolean
+  /** Every company vehicle, ticked where editable now. */
+  choice?: PickerVehicle[]
 }) {
   const t = await getTranslations('orgBilling')
+  const te = await getTranslations('editableChoice')
   const limit = orgVehicleLimit(org)
   const plan = isOrgPlanId(org.plan) ? ORG_PLANS[org.plan] : null
 
@@ -50,6 +56,14 @@ export default async function OrgPlanSummary({
       {org.paymentFailedAt && <p className="note-warn rounded-lg p-3">{isOwner ? t('paymentFailedOwner') : t('paymentFailed')}</p>}
       {readOnlyCount > 0 && (
         <p className="note-warn rounded-lg p-3">{t('readOnlyCount', { count: readOnlyCount })}</p>
+      )}
+      {choice && readOnlyCount > 0 && limit !== null && limit > 0 && (
+        <EditableVehiclesPicker
+          endpoint={`/api/organizations/${org.id}/editable-vehicles`}
+          max={limit}
+          help={te('helpOrg', { limit })}
+          vehicles={choice}
+        />
       )}
       {!org.compedAt && !plan && !isOwner && <p className="text-xs text-ink-faint">{t('ownerChooses')}</p>}
     </section>
