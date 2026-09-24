@@ -1,5 +1,9 @@
 jest.mock('@/lib/prisma', () => ({
-  prisma: { user: { update: jest.fn() }, donation: { updateMany: jest.fn() } },
+  prisma: {
+    user: { update: jest.fn() },
+    donation: { updateMany: jest.fn() },
+    organization: { findUnique: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
+  },
 }))
 jest.mock('@/lib/stripe', () => ({
   ...jest.requireActual('@/lib/stripe'),

@@ -1,5 +1,5 @@
 import Stripe from 'stripe'
-import { LADDER, PERSONAL_PLAN_IDS, type PersonalPlanId } from './plans'
+import { LADDER, ORG_PLAN_IDS, ORG_PLANS, PERSONAL_PLAN_IDS, type OrgPlanId, type PersonalPlanId } from './plans'
 
 /**
  * RL-017: single Stripe client + plan config. Three purchase options per
@@ -119,7 +119,45 @@ export const PERSONAL_PLANS: Record<
 }
 
 export function priceIdFor(plan: PersonalPlanId): string {
-  const { envVar } = PERSONAL_PLANS[plan]
+  return priceIdFromEnv(PERSONAL_PLANS[plan].envVar)
+}
+
+/** RL-042 slice 3: the Stripe Price for a company plan (`STRIPE_PRICE_ORG_*`). */
+export function orgPriceIdFor(plan: OrgPlanId): string {
+  return priceIdFromEnv(ORG_PLANS[plan].envVar)
+}
+
+/**
+ * Which company plan a Price id is, or null — for a subscription changed in
+ * the billing portal, which reports the new Price and nothing else. Only
+ * well-formed configured ids are compared, so a misconfigured variable
+ * matches nothing rather than throwing inside the webhook.
+ */
+export function orgPlanForPriceId(priceId: string | null | undefined): OrgPlanId | null {
+  if (!priceId) return null
+  for (const plan of ORG_PLAN_IDS) {
+    try {
+      if (orgPriceIdFor(plan) === priceId) return plan
+    } catch (e) {
+      if (!(e instanceof StripeConfigError)) throw e
+    }
+  }
+  return null
+}
+
+/** Whether every company Price is configured, i.e. organisations can be sold to. */
+export function isOrgBillingConfigured(): boolean {
+  try {
+    getStripe()
+    for (const plan of ORG_PLAN_IDS) orgPriceIdFor(plan)
+    return true
+  } catch (e) {
+    if (e instanceof StripeConfigError) return false
+    throw e
+  }
+}
+
+function priceIdFromEnv(envVar: string): string {
   const priceId = process.env[envVar]?.trim()
   if (!priceId) throw new StripeConfigError(envVar, `${envVar} is not set`)
 
@@ -306,10 +344,11 @@ export interface StripeConfigProblem {
   /**
    * What stops working. `payments` is everything including donations;
    * `pro` is only the subscription plans, since donations build their
-   * price inline and need no Price id; `settlement` means payments still
-   * go through but nothing records them.
+   * price inline and need no Price id; `organizations` is the company
+   * plans, and while any is missing organisations stay a closed beta;
+   * `settlement` means payments still go through but nothing records them.
    */
-  affects: 'payments' | 'pro' | 'settlement'
+  affects: 'payments' | 'pro' | 'organizations' | 'settlement'
 }
 
 /**
@@ -337,6 +376,9 @@ export function stripeConfigProblems(): StripeConfigProblem[] {
   collect('payments', () => getStripe())
   for (const plan of PERSONAL_PLAN_IDS) {
     collect('pro', () => priceIdFor(plan))
+  }
+  for (const plan of ORG_PLAN_IDS) {
+    collect('organizations', () => orgPriceIdFor(plan))
   }
 
   if (!process.env.STRIPE_WEBHOOK_SECRET?.trim()) {

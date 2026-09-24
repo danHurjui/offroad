@@ -8,10 +8,11 @@ import {
   describeStripeFailure,
   getStripe,
   priceIdFor,
+  orgPriceIdFor,
   StripeConfigError,
   PERSONAL_PLANS,
 } from '@/lib/stripe'
-import { PERSONAL_PLAN_IDS } from '@/lib/plans'
+import { ORG_PLAN_IDS, ORG_PLANS, PERSONAL_PLAN_IDS } from '@/lib/plans'
 import { DONATION_CURRENCY } from '@/lib/donations'
 import { verificationDisabledReason } from '@/lib/emailVerification'
 import { APP_VERSION, BUILD_SHA, BUILD_TIME, isBuildKnown } from '@/lib/version'
@@ -124,6 +125,32 @@ function paymentChecks(): DiagnosticCheck[] {
       ),
     })
   }
+
+  // RL-042 slice 3: the company plans. Missing ones are a warning, not a
+  // failure — organisations simply stay the closed beta until all ten are
+  // set, and nothing already working breaks.
+  const orgMissing = problems.filter((p) => p.affects === 'organizations')
+  checks.push(
+    orgMissing.length === 0
+      ? {
+          id: 'org-prices',
+          label: 'Company plan prices',
+          status: 'ok',
+          variables: [],
+          detail: 'All ten STRIPE_PRICE_ORG_* ids are set, so anyone can create an organisation and buy a company plan.',
+        }
+      : {
+          id: 'org-prices',
+          label: 'Company plan prices',
+          status: 'warn',
+          variables: orgMissing.map((p) => p.variable),
+          detail:
+            `${orgMissing.length} of the ten company plan Prices ${orgMissing.length === 1 ? 'is' : 'are'} not configured ` +
+            `(${orgMissing.map((p) => p.variable).join(', ')}), so organisations stay a closed beta: only accounts ` +
+            'given the beta on /admin/users can create one, and those are free with no vehicle cap. ' +
+            orgMissing[0].message,
+        }
+  )
 
   for (const problem of problems.filter((p) => p.affects === 'settlement')) {
     checks.push({
@@ -280,6 +307,13 @@ export async function stripePricesCheck(): Promise<DiagnosticCheck | null> {
   for (const plan of PERSONAL_PLAN_IDS) {
     try {
       configured.push({ variable: PERSONAL_PLANS[plan].envVar, priceId: priceIdFor(plan) })
+    } catch (e) {
+      if (!(e instanceof StripeConfigError)) throw e
+    }
+  }
+  for (const plan of ORG_PLAN_IDS) {
+    try {
+      configured.push({ variable: ORG_PLANS[plan].envVar, priceId: orgPriceIdFor(plan) })
     } catch (e) {
       if (!(e instanceof StripeConfigError)) throw e
     }

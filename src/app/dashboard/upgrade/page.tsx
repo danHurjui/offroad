@@ -66,7 +66,7 @@ export default async function UpgradePage() {
         </div>
       )}
 
-      <CompanyPlans />
+      <CompanyPlans signedIn />
     </div>
   )
 }

@@ -10,6 +10,8 @@ import OrganizationMembers from '@/components/OrganizationMembers'
 import OrganizationDelete from '@/components/OrganizationDelete'
 import OrganizationInvites from '@/components/OrganizationInvites'
 import { inviteStatus } from '@/lib/organizationInvites'
+import OrgPlanSummary from '@/components/OrgPlanSummary'
+import { orgReadOnlyVehicleIds } from '@/lib/vehicleAllowance'
 
 // RL-038: one organisation. Anyone in it sees who else is; owners edit the
 // details, manage roles and can delete it. Outsiders get a 404.
@@ -69,6 +71,15 @@ export default async function OrganizationPage({ params }: { params: { orgId: st
         {' · '}
         {t('yourRole', { role: t(`role.${membership.role}`) })}
       </p>
+
+      {managesVehicles && (
+        <OrgPlanSummary
+          org={org}
+          vehicleCount={vehicles.length}
+          readOnlyCount={(await orgReadOnlyVehicleIds(org.id)).size}
+          isOwner={manager}
+        />
+      )}
 
       {manager && (
         <section className="card mb-6 p-5">

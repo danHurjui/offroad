@@ -1162,6 +1162,21 @@ model AccidentPhoto {
 /// members. `cui` is the Romanian fiscal code, stored normalised (see
 /// src/lib/organizations.ts), optional because a company may be set up
 /// before its papers are to hand.
+/// RL-042 (#54) slice 3: the company rungs of the ladder, each monthly or
+/// annual; Fleet in its fixed steps. Prices and allowances in src/lib/plans.ts.
+enum OrgPlan {
+  PRO_MONTHLY
+  PRO_ANNUAL
+  BUSINESS_MONTHLY
+  BUSINESS_ANNUAL
+  FLEET_100_MONTHLY
+  FLEET_100_ANNUAL
+  FLEET_250_MONTHLY
+  FLEET_250_ANNUAL
+  FLEET_500_MONTHLY
+  FLEET_500_ANNUAL
+}
+
 model Organization {
   id             String   @id @default(cuid())
   name           String
@@ -1169,6 +1184,20 @@ model Organization {
   billingAddress String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  /// RL-042 (#54) slice 3: the organisation's own Stripe customer — never a
+  /// member's, so a card is the company's and outlives who added it.
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  /// The company plan paid for, written only by the Stripe webhook. Null
+  /// with no subscription; read through `orgVehicleLimit()`.
+  plan                 OrgPlan?
+  /// Set on `invoice.payment_failed`, cleared on the next success — the
+  /// banner. The plan itself only ends on `customer.subscription.deleted`.
+  paymentFailedAt      DateTime?
+  /// No charge and no vehicle cap: every organisation from the closed beta
+  /// (stamped by the migration), and one created by a beta account while
+  /// organisation billing is not configured yet.
+  compedAt             DateTime?
 
   members  OrganizationMember[]
   invites  OrganizationInvite[]

@@ -4,6 +4,7 @@ import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { prisma } from '@/lib/prisma'
 import OrganizationForm from '@/components/OrganizationForm'
 import { canCreateOrganization } from '@/lib/organizations'
+import { isOrgBillingConfigured } from '@/lib/stripe'
 
 // RL-038: the organisations this account belongs to, and — for an account
 // in the closed beta — the form that creates one.
@@ -49,7 +50,7 @@ export default async function OrganizationsPage() {
 
       <section className="card p-5">
         <h2 className="mb-1 text-sm font-semibold text-ink">{t('createTitle')}</h2>
-        {canCreateOrganization(user) ? (
+        {canCreateOrganization(user, isOrgBillingConfigured()) ? (
           <>
             <p className="mb-3 text-xs text-ink-muted">{t('createHelp')}</p>
             <OrganizationForm />

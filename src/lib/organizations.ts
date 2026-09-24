@@ -20,22 +20,36 @@ export function isOrgRole(value: unknown): value is OrgRole {
 }
 
 /**
- * Whether an account may create an organisation during the closed beta:
- * switched on per account by an admin (`orgBetaAt`), and always for an
- * admin — the people running the beta need to see what they are running
- * without granting it to themselves first. Read from the database, not
- * the token, so switching it on works at once.
+ * Whether an account may create an organisation.
+ *
+ * RL-042 slice 3: once organisation billing is configured (`open` — every
+ * company Price set, `isOrgBillingConfigured()` in stripe.ts, passed in so
+ * this module stays free of Stripe), **anyone**: an organisation holds no
+ * vehicles until it pays, so there is nothing to give away. Until then it
+ * is the closed beta — switched on per account by an admin (`orgBetaAt`),
+ * and always for an admin. Read from the database, not the token, so
+ * switching it on works at once.
  */
-export function canCreateOrganization(user: { orgBetaAt: Date | null; isAdmin: boolean } | null): boolean {
-  return !!user && (user.orgBetaAt !== null || user.isAdmin)
+export function canCreateOrganization(user: { orgBetaAt: Date | null; isAdmin: boolean } | null, open = false): boolean {
+  return !!user && (open || user.orgBetaAt !== null || user.isAdmin)
+}
+
+/**
+ * An organisation made while billing is not configured is a beta one:
+ * comped, with no vehicle cap — otherwise it could hold nothing, since
+ * there is no plan to buy. One made once billing is open starts with no
+ * plan.
+ */
+export function createsCompedOrganization(open: boolean): boolean {
+  return !open
 }
 
 /**
  * Whether the header offers "Business": anyone who can create an
  * organisation or already belongs to one.
  */
-export function showsBusiness(user: { orgBetaAt: Date | null; isAdmin: boolean } | null, memberships: number): boolean {
-  return canCreateOrganization(user) || memberships > 0
+export function showsBusiness(user: { orgBetaAt: Date | null; isAdmin: boolean } | null, memberships: number, open = false): boolean {
+  return canCreateOrganization(user, open) || memberships > 0
 }
 
 /** Running the organisation itself — details, members, deleting it — is the owners'. */

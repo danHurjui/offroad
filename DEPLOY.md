@@ -136,13 +136,28 @@ limited to once a day, which this already respects.
    migrating in Stripe — the database migration marks every account that
    held Pro as grandfathered (Personal, no vehicle cap). Whether Managed
    Payments applies to the Personal Prices is the same decision as before:
-   set a tax code on the product if it is on. The company plans (Pro,
-   Business, Fleet) have no Prices yet; they are shown, not sold.
+   set a tax code on the product if it is on.
+
+   **Company plans (RL-042 slice 3, optional).** Organisations buy Pro,
+   Business or Fleet. Create one product per rung — Pro, Business, and a
+   Fleet product per step (100, 250, 500 vehicles) — each with a monthly
+   and an annual **recurring** RON Price at the figures in `ORG_PLANS`
+   (`src/lib/plans.ts`; annual is ten months), and set the ten
+   `STRIPE_PRICE_ORG_*` variables. **Until all ten are set, organisations
+   stay the closed beta** (`/admin/diagnostics` → *Company plan prices*
+   says which are missing); once they are, anyone can create one, and a
+   new organisation holds vehicles only after it buys a plan. Every
+   organisation that existed before this was comped by the migration: free,
+   no vehicle cap, nothing to do. For plan changes (a bigger Fleet step,
+   monthly ↔ annual) to work from the portal, add the company products under
+   Settings → Billing → Customer portal → *Products*, and add the
+   `customer.subscription.updated` event to the webhook endpoint below.
 2. Copy your Secret key into `STRIPE_SECRET_KEY`.
 3. Developers → Webhooks → Add endpoint:
    `https://<your-domain>/api/webhooks/stripe`, events
    `checkout.session.completed`, `invoice.payment_failed`,
-   `invoice.payment_succeeded`, `customer.subscription.deleted`. Copy the
+   `invoice.payment_succeeded`, `customer.subscription.updated`,
+   `customer.subscription.deleted`. Copy the
    endpoint's signing secret into `STRIPE_WEBHOOK_SECRET`.
 4. Redeploy so the new env vars take effect.
 

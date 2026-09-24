@@ -9,6 +9,7 @@ jest.mock('@/lib/prisma', () => ({
     vehicle: { findUnique: jest.fn(), findMany: jest.fn(), update: jest.fn() },
     projectCollaborator: { findFirst: jest.fn() },
     organizationMember: { findUnique: jest.fn() },
+    organization: { findUnique: jest.fn() },
   },
 }))
 
@@ -69,9 +70,35 @@ describe('the gate', () => {
     expect(await isVehicleReadOnly({ id: 'new', ownerId: 'owner', organizationId: null })).toBe(false)
   })
 
-  it('never applies to a company vehicle (slice 3 is the organisation’s plan)', async () => {
-    expect(await isVehicleReadOnly({ id: 'new', ownerId: 'owner', organizationId: 'org1' })).toBe(false)
-    expect(mockUser).not.toHaveBeenCalled()
+  // RL-042 slice 3: a company vehicle follows the organisation's plan,
+  // never the account of record's.
+  describe('on a company vehicle', () => {
+    const company = { id: 'new', ownerId: 'owner', organizationId: 'org1' }
+    const mockOrg = prisma.organization.findUnique as jest.Mock
+
+    it('is never read-only in a comped (beta) organisation', async () => {
+      mockOrg.mockResolvedValue({ plan: null, compedAt: new Date() })
+      expect(await isVehicleReadOnly(company)).toBe(false)
+      expect(mockUser).not.toHaveBeenCalled()
+    })
+
+    it('keeps the oldest within the plan and the rest read-only', async () => {
+      mockOrg.mockResolvedValue({ plan: 'PRO_MONTHLY', compedAt: null })
+      mockVehicles.mockResolvedValue([
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `v${i}`, createdAt: new Date(2025, 0, i + 1) })),
+        { id: 'new', createdAt: new Date('2026-05-01') },
+      ])
+      expect(await isVehicleReadOnly(company)).toBe(true)
+      expect(await isVehicleReadOnly({ ...company, id: 'v0' })).toBe(false)
+    })
+
+    it('turns every vehicle read-only when the plan lapses — never hides them', async () => {
+      mockOrg.mockResolvedValue({ plan: null, compedAt: null })
+      mockVehicles.mockResolvedValue([OLD, NEW])
+      expect(await isVehicleReadOnly({ ...company, id: 'old' })).toBe(true)
+      const res = await refuseIfReadOnly({ ...company, id: 'old' })
+      expect((await res?.json()).code).toBe('ORG_PLAN_REQUIRED')
+    })
   })
 })
 

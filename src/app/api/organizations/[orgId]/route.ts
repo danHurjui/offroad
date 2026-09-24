@@ -86,6 +86,12 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   if (!loaded.ok) return loaded.error
   if (!canManageOrganization(loaded.role)) return await apiError('orgOwnerOnly', 403)
 
+  // RL-042 slice 3: a paid plan is cancelled first, in the billing portal.
+  // Deleting the organisation would leave Stripe charging a company that
+  // no longer exists here, with nobody able to reach its portal.
+  const billing = await prisma.organization.findUnique({ where: { id: params.orgId }, select: { stripeSubscriptionId: true } })
+  if (billing?.stripeSubscriptionId) return await apiError('orgHasSubscription', 409)
+
   const vehicles = await prisma.vehicle.findMany({ where: { organizationId: params.orgId }, select: { id: true, ownerId: true } })
   if (vehicles.length > 0) {
     const parsed = await readJsonBody(req)
