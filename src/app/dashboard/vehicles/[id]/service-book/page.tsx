@@ -3,13 +3,12 @@ import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleAccess, hidesCosts } from '@/lib/access'
-import { prisma } from '@/lib/prisma'
 import { labelFor } from '@/lib/projectType'
 import { getVocabulary } from '@/lib/vocabulary'
 import { loadServiceBook } from '@/lib/serviceBookRecords'
 import type { RowFlag } from '@/lib/serviceBook'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
 import ExportPdfButton from '@/components/ExportPdfButton'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 const money = (n: number) => n.toLocaleString('ro-RO', { maximumFractionDigits: 2 })
 const fmtDate = (d: Date) => d.toLocaleDateString('ro-RO', { timeZone: 'UTC' })
@@ -28,7 +27,7 @@ export default async function ServiceBookPage({ params }: { params: { id: string
   // Same rule as the other cost views: per-job costs are hidden from a
   // collaborator the owner hides them from, so the column goes too.
   const hideCosts = hidesCosts(vehicle)
-  const owner = isOwner ? await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } }) : null
+  const canExport = isOwner && (await vehicleHasPro(vehicle))
 
   const book = await loadServiceBook(vehicle.id, config.completeStatus)
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
@@ -65,7 +64,7 @@ export default async function ServiceBookPage({ params }: { params: { id: string
 
       {isOwner && (
         <div className="card mb-6 p-4">
-          {hasPro(owner) ? (
+          {canExport ? (
             <ExportPdfButton endpoint={`/api/vehicles/${vehicle.id}/export/service-book`} fallbackName={`RigLog_ServiceBook_${vehicleName}`} />
           ) : (
             <p className="text-sm text-ink-muted">{t('exportPro')}</p>

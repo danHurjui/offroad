@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import ShareImageButton from '@/components/ShareImageButton'
 import TransformationCardPicker from '@/components/TransformationCardPicker'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-020 (off-road build card) / RL-021 (restoration transformation
 // card) — one page, branching on projectType, since both are the same
@@ -25,8 +25,7 @@ export default async function ShareCardPage({ params }: { params: { id: string }
   if (vehicle.projectType === 'DAILY_DRIVER') notFound()
 
   const config = await getVocabulary(vehicle.projectType)
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
-  const isPro = hasPro(owner)
+  const isPro = await vehicleHasPro(vehicle)
 
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`
   const isOffroad = vehicle.projectType === 'OFFROAD'

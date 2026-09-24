@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client'
 import { prisma } from './prisma'
-import { hasPro, PRO_SELECT } from './pro'
+import { vehicleHasPro } from './entitlement'
 import { checkReading } from './odometer'
 import { loadReadings, ReadingConflict } from './odometerRecords'
 import type { AccessibleVehicle } from './access'
@@ -22,8 +22,7 @@ export type TripGate = 'ok' | 'upgrade' | 'forbidden'
 export async function tripGate(vehicle: Pick<AccessibleVehicle, 'access' | 'organizationId' | 'ownerId'>): Promise<TripGate> {
   if (vehicle.access !== 'owner' && vehicle.access !== 'driver') return 'forbidden'
   if (vehicle.organizationId) return 'ok'
-  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: PRO_SELECT })
-  return hasPro(owner) ? 'ok' : 'upgrade'
+  return (await vehicleHasPro(vehicle)) ? 'ok' : 'upgrade'
 }
 
 export const TRIP_SELECT = {

@@ -133,7 +133,7 @@ describe('wiring', () => {
   it('the export is the owner’s and Pro, like RL-014', () => {
     const route = read('src/app/api/vehicles/[id]/export/service-book/route.ts')
     expect(route).toMatch(/requireVehicleOwner/)
-    expect(route).toMatch(/hasPro\(owner\)/)
+    expect(route).toMatch(/vehicleHasPro\(vehicle\)/)
   })
 
   it('the page and the PDF read the same jobs', () => {

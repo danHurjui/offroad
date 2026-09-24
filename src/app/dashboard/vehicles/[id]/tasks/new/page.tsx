@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import TaskForm from '@/components/TaskForm'
 import { taskFieldSuggestions } from '@/lib/taskSuggestions'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 export default async function NewTaskPage({ params }: { params: { id: string } }) {
   const tc = await getTranslations('common')
@@ -20,7 +20,7 @@ export default async function NewTaskPage({ params }: { params: { id: string } }
   const suggestions = await taskFieldSuggestions(vehicle.id)
   // RL-048: scanning an invoice is Pro — the account of record's plan, as
   // on the fuel form.
-  const planOwner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
+  const canScan = await vehicleHasPro(vehicle)
   const isOwner = vehicle.access === 'owner'
   const collaborator = isOwner
     ? null
@@ -42,7 +42,7 @@ export default async function NewTaskPage({ params }: { params: { id: string } }
           collaboratorLabel={isOwner ? undefined : collaborator?.label ?? ''}
           suggestions={suggestions}
           costsHidden={hidesCosts(vehicle)}
-          canScan={hasPro(planOwner)}
+          canScan={canScan}
           offerScanUpgrade={isOwner && !vehicle.organizationId}
         />
       </Suspense>

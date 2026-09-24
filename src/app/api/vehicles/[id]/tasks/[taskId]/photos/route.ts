@@ -7,8 +7,9 @@ import { isValidPhotoType } from '@/lib/projectType'
 import { saveUpload, StorageError, MAX_UPLOAD_BYTES, ALLOWED_UPLOAD_TYPES } from '@/lib/storage'
 import { notifyFollowers } from '@/lib/followNotify'
 import { readFormData } from '@/lib/requestBody'
-import { hasPro, PRO_SELECT, FREE_TIER } from '@/lib/pro'
+import { FREE_TIER } from '@/lib/pro'
 import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 
 // RL-006: photo upload, linked to task.
@@ -64,11 +65,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string;
       return await apiErrorWith('fileTooLarge', { maxMb: MAX_UPLOAD_BYTES / 1024 / 1024 }, 400)
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { ...PRO_SELECT },
-    })
-    if (!hasPro(user)) {
+    // The vehicle's plan, not the uploader's: a collaborator adding photos
+    // to a Personal owner's vehicle gets the owner's allowance.
+    if (!(await vehicleHasPro(vehicle))) {
       const existingCount = await prisma.taskPhoto.count({ where: { taskId: task.id } })
       if (existingCount >= FREE_TIER.photosPerTask) {
         return await apiErrorWith(

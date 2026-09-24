@@ -3,9 +3,8 @@ import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
-import { prisma } from '@/lib/prisma'
 import TrailRecorder from '@/components/TrailRecorder'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 export default async function RecordTrailRunPage({ params }: { params: { id: string } }) {
   const t = await getTranslations('trailLog')
@@ -13,8 +12,7 @@ export default async function RecordTrailRunPage({ params }: { params: { id: str
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle || vehicle.projectType !== 'OFFROAD') notFound()
 
-  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
-  if (!hasPro(owner)) notFound()
+  if (!(await vehicleHasPro(vehicle))) notFound()
 
   return (
     <div className="mx-auto max-w-xl">

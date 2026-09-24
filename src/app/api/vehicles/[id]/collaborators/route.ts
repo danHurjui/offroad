@@ -7,9 +7,9 @@ import { requireVehicleOwner } from '@/lib/access'
 import { generateInviteToken, isValidEmail, inviteAcceptUrl, FREE_TIER_COLLABORATOR_LIMIT, DAILY_INVITE_LIMIT } from '@/lib/collaborators'
 import { sendEmail, collaboratorInviteEmail, inviteeLocale } from '@/lib/email'
 import { readJsonBody } from '@/lib/requestBody'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
 import { appUrlForNotification } from '@/lib/appUrl'
 import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-030: invite mechanic/specialist as project collaborator. Owner only.
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -65,9 +65,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const owner = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { ...PRO_SELECT, displayName: true, locale: true },
+      select: { displayName: true, locale: true },
     })
-    if (!hasPro(owner)) {
+    if (!(await vehicleHasPro(vehicle))) {
       const activeOrPendingCount = await prisma.projectCollaborator.count({
         where: { vehicleId: vehicle.id, status: { in: ['PENDING', 'ACTIVE'] } } })
       if (activeOrPendingCount >= FREE_TIER_COLLABORATOR_LIMIT) {

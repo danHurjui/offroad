@@ -4,9 +4,9 @@ import { requireSession } from '@/lib/authz'
 import { requireVehicleOwner } from '@/lib/access'
 import { prisma } from '@/lib/prisma'
 import { readJsonBody } from '@/lib/requestBody'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
 import { newPassportToken } from '@/lib/passportRecords'
 import { refuseIfReadOnly } from '@/lib/vehicleAllowance'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 /**
  * RL-049: share the passport. Owner only and Pro. One live link per
@@ -26,8 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const readOnly = await refuseIfReadOnly(vehicle)
   if (readOnly) return readOnly
 
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT } })
-  if (!hasPro(owner)) return await apiError('proPassport', 403, { code: 'UPGRADE_REQUIRED' })
+  if (!(await vehicleHasPro(vehicle))) return await apiError('proPassport', 403, { code: 'UPGRADE_REQUIRED' })
 
   const parsed = await readJsonBody(req)
   if (!parsed.ok) return parsed.error

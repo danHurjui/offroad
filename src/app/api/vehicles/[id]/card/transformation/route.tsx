@@ -11,7 +11,7 @@ import { PROJECT_TYPE_CONFIG } from '@/lib/projectType'
 import { resolveImageDataUri } from '@/lib/pdf'
 import { computeOriginalityScore } from '@/lib/originality'
 import { CARD_WIDTH, CARD_HEIGHT, CARD_FONTS, CARD_COLORS, CardFooter, publicCardUrl } from '@/lib/card'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-021: restoration "transformation card" — before/after, 1200x630
 // PNG. Owner-only, Pro-gated, restoration mode only. Shares its rendering
@@ -29,8 +29,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return await apiError('transformationRestorationOnly', 400)
   }
 
-  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { ...PRO_SELECT, username: true } })
-  if (!owner || !hasPro(owner)) {
+  const owner = await prisma.user.findUnique({ where: { id: session.user.id }, select: { username: true } })
+  if (!owner || !(await vehicleHasPro(vehicle))) {
     return await apiError('proShareCards', 403, { code: 'UPGRADE_REQUIRED' })
   }
 

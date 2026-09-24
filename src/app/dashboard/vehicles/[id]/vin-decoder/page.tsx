@@ -3,10 +3,9 @@ import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { requireSessionOrRedirect } from '@/lib/serverAuth'
 import { requireVehicleOwner } from '@/lib/access'
-import { prisma } from '@/lib/prisma'
 import { getVocabulary } from '@/lib/vocabulary'
 import VinDecoderPanel from '@/components/VinDecoderPanel'
-import { hasPro, PRO_SELECT } from '@/lib/pro'
+import { vehicleHasPro } from '@/lib/entitlement'
 
 // RL-028: VIN / chassis decoder — restoration mode, Pro-gated.
 export default async function VinDecoderPage({ params }: { params: { id: string } }) {
@@ -16,8 +15,7 @@ export default async function VinDecoderPage({ params }: { params: { id: string 
   const vehicle = await requireVehicleOwner(params.id, session.user.id)
   if (!vehicle || vehicle.projectType !== 'RESTORATION') notFound()
 
-  const owner = await prisma.user.findUnique({ where: { id: vehicle.ownerId }, select: { ...PRO_SELECT } })
-  const isPro = hasPro(owner)
+  const isPro = await vehicleHasPro(vehicle)
   const config = await getVocabulary(vehicle.projectType)
 
   return (
